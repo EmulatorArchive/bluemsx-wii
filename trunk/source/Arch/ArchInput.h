@@ -34,6 +34,7 @@
 
 typedef enum { AM_DISABLE = 0, AM_ENABLE_MOUSE, AM_ENABLE_LASER } AmEnableMode;
 
+UInt8 archJoystickGetState(int joystickNo);
 void  archMouseEmuEnable(AmEnableMode mode);
 void archMouseSetForceLock(int lock);
 void archMouseGetState(int* dx, int* dy);
