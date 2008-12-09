@@ -36,7 +36,7 @@
 #include "IoPort.h"
 #include "RomLoader.h"
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 typedef struct {
     int deviceHandle;

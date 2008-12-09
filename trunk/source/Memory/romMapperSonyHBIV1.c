@@ -36,7 +36,7 @@
 #include "ArchVideoIn.h"
 #include "SaveState.h"
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 typedef struct {

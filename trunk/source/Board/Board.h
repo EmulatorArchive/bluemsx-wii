@@ -135,10 +135,8 @@ int  boardGetCassetteInserted();
 
 #define boardFrequency() (6 * 3579545)
 
-static UInt32 boardSystemTime() {
-    extern UInt32* boardSysTime;
-    return *boardSysTime;
-}
+extern UInt32* boardSysTime;
+#define boardSystemTime() (*boardSysTime)
 
 UInt64 boardSystemTime64();
 

@@ -31,7 +31,7 @@
 #include "ArchInput.h"
 #include "Language.h"
 #include <stdlib.h>
-
+#include <string.h>
 
 static JoystickPortUpdateHandler updateHandler = NULL;
 static void* updateHandlerRef;

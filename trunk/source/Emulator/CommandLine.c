@@ -203,7 +203,7 @@ int emuCheckResetArgument(char* cmdLine) {
     int i;
     char*   argument;
     
-    for (i = 0; argument = extractToken(cmdLine, i); i++) {
+    for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
         if (strcmp(argument, "/reset") == 0) {
             return 1;
         }
@@ -222,7 +222,7 @@ char* emuCheckThemeArgument(char* cmdLine){
     
     themeName[0] = 0;
 
-    for (i = 0; argument = extractToken(cmdLine, i); i++) {
+    for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
         if (strcmp(argument, "/theme") == 0) {
             argument = extractToken(cmdLine, i + 1);
             if (argument != NULL && argument[0] != '/') {
@@ -245,7 +245,7 @@ void emuCheckFullscreenArgument(Properties* properties, char* cmdLine){
 
 //    properties->video.windowSize = P_VIDEO_SIZEX2;
 
-    for (i = 0; argument = extractToken(cmdLine, i); i++) {
+    for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
         if (strcmp(argument, "/fullscreen") == 0) {
             properties->video.windowSize = P_VIDEO_SIZEFULLSCREEN;
         }
@@ -320,7 +320,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine) {
     // If more than one argument, check arguments,
     // set configuration and then run
 
-    for (i = 0; argument = extractToken(cmdLine, i); i++) {
+    for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
         if (strcmp(argument, "/rom1") == 0) {
             argument = extractToken(cmdLine, ++i);
             if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument

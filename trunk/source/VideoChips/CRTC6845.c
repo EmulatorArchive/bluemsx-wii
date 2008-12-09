@@ -35,7 +35,6 @@
 #include "Language.h"
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 
 /*
    AR Address Register
