@@ -38,8 +38,8 @@
 #include <string.h>
 
 #define FREQUENCY        3579545
-#define SAMPLERATE       (FREQUENCY / 64)
-#define SAMPLERATE_OUT   44100
+#define SAMPLERATE_IN    (FREQUENCY / 64)
+#define SAMPLERATE_OUT   SAMPLERATE
 #define BUFFER_SIZE      10000
 #define TIMER_FREQUENCY  (boardFrequency() / FREQUENCY * 64)
 
@@ -175,7 +175,7 @@ static Int32* ym2151Sync(void* ref, UInt32 count)
 
     for (i = 0; i < count; i++) {
         Int16 sl, sr;
-        ym2151->off -= SAMPLERATE - SAMPLERATE_OUT;
+        ym2151->off -= SAMPLERATE_IN - SAMPLERATE_OUT;
         ym2151->s1l = ym2151->s2l;
         ym2151->s1r = ym2151->s2r;
         YM2151UpdateOne(ym2151->opl, &sl, &sr, 1);
@@ -189,8 +189,8 @@ static Int32* ym2151Sync(void* ref, UInt32 count)
             ym2151->s2l = sl;
             ym2151->s2r = sr;
         }
-        ym2151->buffer[2*i+0] = 11*(Int32)((ym2151->s1l * (ym2151->off / 256) + ym2151->s2l * ((SAMPLERATE - ym2151->off) / 256)) / (SAMPLERATE / 256));
-        ym2151->buffer[2*i+1] = 11*(Int32)((ym2151->s1r * (ym2151->off / 256) + ym2151->s2r * ((SAMPLERATE - ym2151->off) / 256)) / (SAMPLERATE / 256));
+        ym2151->buffer[2*i+0] = 11*(Int32)((ym2151->s1l * (ym2151->off / 256) + ym2151->s2l * ((SAMPLERATE_IN - ym2151->off) / 256)) / (SAMPLERATE_IN / 256));
+        ym2151->buffer[2*i+1] = 11*(Int32)((ym2151->s1r * (ym2151->off / 256) + ym2151->s2r * ((SAMPLERATE_IN - ym2151->off) / 256)) / (SAMPLERATE_IN / 256));
     }
 
     return ym2151->buffer;
@@ -279,7 +279,7 @@ YM2151* ym2151Create(Mixer* mixer)
 
     ym2151->handle = mixerRegisterChannel(mixer, MIXER_CHANNEL_YAMAHA_SFG, 1, ym2151Sync, ym2151);
 
-    ym2151->opl = YM2151Create(ym2151, FREQUENCY, SAMPLERATE);
+    ym2151->opl = YM2151Create(ym2151, FREQUENCY, SAMPLERATE_IN);
 
     return ym2151;
 }

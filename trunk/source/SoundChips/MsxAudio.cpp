@@ -40,7 +40,6 @@ extern "C" {
 }
 
 #define FREQUENCY        3579545
-#define SAMPLERATE       44100
 #define BUFFER_SIZE      10000
  
 extern "C" Int32* msxaudioSync(void* ref, UInt32 count);

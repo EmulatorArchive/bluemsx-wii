@@ -39,10 +39,10 @@
 #include <string.h>
 
 #define FREQUENCY        3579545
-#define SAMPLERATE       (FREQUENCY / 72)
-#define SAMPLERATE_OUT   44100
+#define SAMPLERATE_IN    (FREQUENCY / 72)
+#define SAMPLERATE_OUT   SAMPLERATE
 #define BUFFER_SIZE      10000
-#define TIMER_FREQUENCY  (4 * boardFrequency() / SAMPLERATE)
+#define TIMER_FREQUENCY  (4 * boardFrequency() / SAMPLERATE_IN)
 
 
 struct Y8950 {
@@ -227,8 +227,8 @@ static Int32* y8950Sync(void* ref, UInt32 count)
     UInt32 i;
 
     for (i = 0; i < count; i++) {
-#if SAMPLERATE > SAMPLERATE_OUT
-        y8950->off -= SAMPLERATE - SAMPLERATE_OUT;
+#if SAMPLERATE_IN > SAMPLERATE_OUT
+        y8950->off -= SAMPLERATE_IN - SAMPLERATE_OUT;
         y8950->s1 = y8950->s2;
         y8950->s2 = Y8950UpdateOne(y8950->opl);
         if (y8950->off < 0) {
@@ -236,7 +236,7 @@ static Int32* y8950Sync(void* ref, UInt32 count)
             y8950->s1 = y8950->s2;
             y8950->s2 = Y8950UpdateOne(y8950->opl);
         }
-        y8950->buffer[i] = (y8950->s1 * (y8950->off / 256) + y8950->s2 * ((SAMPLERATE - y8950->off) / 256)) / (SAMPLERATE / 256);
+        y8950->buffer[i] = (y8950->s1 * (y8950->off / 256) + y8950->s2 * ((SAMPLERATE_IN - y8950->off) / 256)) / (SAMPLERATE_IN / 256);
 #else
         y8950->buffer[i] = Y8950UpdateOne(y8950->opl);
 #endif
@@ -334,7 +334,7 @@ Y8950* y8950Create(Mixer* mixer)
 
     y8950->handle = mixerRegisterChannel(mixer, MIXER_CHANNEL_MSXAUDIO, 0, y8950Sync, y8950);
 
-    y8950->opl = OPLCreate(OPL_TYPE_Y8950, FREQUENCY, SAMPLERATE, 256, y8950);
+    y8950->opl = OPLCreate(OPL_TYPE_Y8950, FREQUENCY, SAMPLERATE_IN, 256, y8950);
     OPLSetOversampling(y8950->opl, boardGetY8950Oversampling());
     OPLResetChip(y8950->opl);
 

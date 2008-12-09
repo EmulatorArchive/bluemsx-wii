@@ -41,7 +41,6 @@ extern "C" {
 
 
 #define FREQUENCY        3579545
-#define SAMPLERATE       44100
 #define BUFFER_SIZE      10000
  
 struct YM_2413 {

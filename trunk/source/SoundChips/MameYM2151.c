@@ -9,6 +9,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "ArchSound.h"
 #include "MameYM2151.h"
 #include "SaveState.h"
 
@@ -1143,7 +1144,7 @@ MameYm2151* YM2151Create(void* ref, int clock, int rate)
 
 	chip->clock = clock;
 	/*rate = clock/64;*/
-	chip->sampfreq = rate ? rate : 44100;	/* avoid division by 0 in init_chip_tables() */
+	chip->sampfreq = rate ? rate : SAMPLERATE;	/* avoid division by 0 in init_chip_tables() */
 	init_chip_tables(chip);
 
 	chip->lfo_timer_add = (UInt32)((1<<LFO_SH) * (clock/64.0) / chip->sampfreq);
