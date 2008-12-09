@@ -335,12 +335,12 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->sound.MidiOut.desc[0]         = 0;
     properties->sound.MidiOut.mt32ToGm        = 0;
 
-    strcpy(properties->joy1.type, "none");
-    properties->joy1.typeId            = 0;
+    strcpy(properties->joy1.type, "joystick");
+    properties->joy1.typeId            = JOYSTICK_PORT_JOYSTICK;
     properties->joy1.autofire          = 0;
 
-    strcpy(properties->joy2.type, "none");
-    properties->joy2.typeId            = 0;
+    strcpy(properties->joy2.type, "joystick");
+    properties->joy2.typeId            = JOYSTICK_PORT_JOYSTICK;
     properties->joy2.autofire          = 0;
 
     properties->keyboard.configFile[0] = 0;
@@ -903,11 +903,14 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
     if (!useDefault) {
         propLoad(properties);
     }
-
+#ifndef WII
+    printf("Checking available machines\n");
     // Verify machine name
     {
         char** machineNames = machineGetAvailable(1);
+        char **machineNamesBak = machineNames;
 
+        printf("Finding '%s'\n", properties->emulation.machineName);
         while (*machineNames != NULL) {
             if (0 == strcmp(*machineNames, properties->emulation.machineName)) {
                 break;
@@ -916,8 +919,9 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
         }
 
         if (*machineNames == NULL) {
-            char** machineNames = machineGetAvailable(1);
+            char** machineNames = machineNamesBak;
             int foundMSX2 = 0;
+            printf("Not found, finding alternative\n");
 
             if (*machineNames != NULL) {
                 strcpy(properties->emulation.machineName, *machineNames);
@@ -935,8 +939,9 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
                 machineNames++;
             }
         }
+        printf("Found, returning '%s'\n", *machineNames);
     }
-
+#endif
     return properties;
 }
 
