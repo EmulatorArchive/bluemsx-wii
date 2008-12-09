@@ -37,7 +37,7 @@
 #include "hq3x.h"
 #include <stdlib.h>
 #include <math.h>
-#include <memory.h>
+#include <malloc.h>
  
 #define RGB_MASK 0x7fff
 

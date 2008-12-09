@@ -52,6 +52,8 @@ static int spritesEnable = 1;
 static int displayEnable = 1;
 static int refreshRate   = 0;
 
+static char* VdpNames[] = { "V9938", "V9958", "TMS9929A", "TMS99x8A" };
+
 void vdpSetSpritesEnable(int enable) {
     spritesEnable = enable ? 1 : 0;
 }

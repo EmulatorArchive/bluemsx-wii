@@ -35,6 +35,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
+#include <ctype.h>
 #ifdef USE_ARCH_GLOB
 #include "ArchGlob.h"
 #else

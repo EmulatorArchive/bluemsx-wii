@@ -40,7 +40,7 @@
 #include "ArchUart.h"
 #include "Language.h"
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 /*
   80H  R/W  8251 data port
