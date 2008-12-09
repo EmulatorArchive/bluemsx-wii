@@ -31,7 +31,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 #include "wd33c93.h"
 #include "Board.h"
 #include "SaveState.h"
