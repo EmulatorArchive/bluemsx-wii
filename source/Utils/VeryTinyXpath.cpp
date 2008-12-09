@@ -29,7 +29,7 @@
 */
 #include "VeryTinyXpath.h"
 #include "tinyxml.h"
-#include <string.h>
+#include <string>
 #include <stdlib.h>
 #include <stdarg.h>
 #ifdef __APPLE__
