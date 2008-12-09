@@ -82,11 +82,16 @@ FrameBufferData* frameBufferGetActive();
 
 void frameBufferSetBlendFrames(int blendFrames);
 
-#define videoGetTransparentColor() 0x8000
-
-static UInt16 videoGetColor(int R, int G, int B)
-{
-    return ((R >> 3) << 10) | ((G >> 3) << 5) | (B >> 3);
-}
+#ifdef WII
+#define TRANSPARENT 0x0020
+#define videoGetTransparentColor() TRANSPARENT
+#define videoGetColor(R, G, B) \
+          ((((int)(R) >> 3) << 11) | (((int)(G) >> 3) << 6) | ((int)(B) >> 3))
+#else
+#define TRANSPARENT 0x8000
+#define videoGetTransparentColor() TRANSPARENT
+#define videoGetColor(R, G, B) \
+          ((((int)(R) >> 3) << 10) | (((int)(G) >> 3) << 5) | ((int)(B) >> 3))
+#endif
 
 #endif

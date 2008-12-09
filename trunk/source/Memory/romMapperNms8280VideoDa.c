@@ -61,15 +61,24 @@ static UInt8 daRead(RomMapperNms8280VideoDa* rm, int screenMode, int x, int y, U
 
     // If palette is NULL we do 8 bit RGB conversion
     if (palette == NULL) {
+#ifdef WII
+        return ((color >> 11) & 0x1c) | ((color >> 3) & 0xe0) | ((color >> 3) & 0x03);
+#else
         return ((color >> 10) & 0x1c) | ((color >> 2) & 0xe0) | ((color >> 3) & 0x03);
+#endif
     }
 
     bestDiff = 0x1000000;
     match = 0;
-    
+
     for (i = 0; i < paletteCount; i++) {
+#ifdef WII
+        int dR = ((palette[i] >> 11) & 0x1f) - ((color >> 11) & 0x1f);
+        int dG = ((palette[i] >>  6) & 0x1f) - ((color >>  6) & 0x1f);
+#else
         int dR = ((palette[i] >> 10) & 0x1f) - ((color >> 10) & 0x1f);
         int dG = ((palette[i] >>  5) & 0x1f) - ((color >>  5) & 0x1f);
+#endif
         int dB = ((palette[i] >>  0) & 0x1f) - ((color >>  0) & 0x1f);
         int test = dR * dR + dG * dG + dB * dB;
         if (test < bestDiff) {

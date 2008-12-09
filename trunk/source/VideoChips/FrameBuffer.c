@@ -470,11 +470,19 @@ static FrameBuffer* mixFrame(FrameBuffer* d, FrameBuffer* a, FrameBuffer* b, int
 
         d->line[y].doubleWidth = a->line[y].doubleWidth;
         for (x = 0; x < width; x ++) {
+#ifdef WII
+            UInt32 av = ((ap[x] >> 1) & 0xffe0ffe0) | (ap[x] & 0x001f001f);
+            UInt32 bv = ((bp[x] >> 1) & 0xffe0ffe0) | (bp[x] & 0x001f001f);
+            UInt32 dd = ((((av & M1) * p + (bv & M1) * n) >> 5) & M1) |
+                    ((((((av >> 5) & M2) * p + ((bv >> 5) & M2) * n) >> 5) & M2) << 5);
+            dp[x] = ((dd << 1) & 0xffc0ffc0) | (dd & 0x001f001f);
+#else
             UInt32 av = ap[x];
             UInt32 bv = bp[x];
             dp[x] = ((((av & M1) * p + (bv & M1) * n) >> 5) & M1) |
                     ((((((av >> 5) & M2) * p + ((bv >> 5) & M2) * n) >> 5) & M2) << 5) |
-                    (av & 0x80008000);
+                    (av & (TRANSPARENT | (TRANSPARENT << 16)));
+#endif
         }
     }
 
@@ -540,11 +548,19 @@ static FrameBuffer* mixFrameInterlace(FrameBuffer* d, FrameBuffer* a, FrameBuffe
         d->line[y].doubleWidth = a->line[y / 2].doubleWidth;
 
         for (x = 0; x < width; x++) {
+#ifdef WII
+            UInt32 av = ((ap[x] >> 1) & 0xffe0ffe0) | (ap[x] & 0x001f001f);
+            UInt32 bv = ((bp[x] >> 1) & 0xffe0ffe0) | (bp[x] & 0x001f001f);
+            UInt32 dd = ((((av & M1) * p + (bv & M1) * n) >> 5) & M1) |
+                    ((((((av >> 5) & M2) * p + ((bv >> 5) & M2) * n) >> 5) & M2) << 5);
+            dp[x] = ((dd << 1) & 0xffc0ffc0) | (dd & 0x001f001f);
+#else
             UInt32 av = ap[x];
             UInt32 bv = bp[x];
             dp[x] = ((((av & M1) * p + (bv & M1) * n) >> 5) & M1) |
                     ((((((av >> 5) & M2) * p + ((bv >> 5) & M2) * n) >> 5) & M2) << 5) |
-                    (av & 0x80008000);
+                    (av & (TRANSPARENT | (TRANSPARENT << 16)));
+#endif
         }
     }
 
@@ -659,7 +675,7 @@ static void frameBufferSuperimpose(FrameBuffer* a)
             if (scaleWidth && a->line[y].doubleWidth) {
                 for (x = imageWidth - 1; x >= 0; x--) {
                     UInt16 val = pSrc[x];
-                    if (val & 0x8000) {
+                    if (val & TRANSPARENT) {
                         pDst1[x] = pImg1[x];
                         pDst2[x] = pImg2[x];
                     }
@@ -672,7 +688,7 @@ static void frameBufferSuperimpose(FrameBuffer* a)
             else {
                 for (x = imageWidth - 1; x >= 0; x--) {
                     UInt16 val = pSrc[x / 2];
-                    if (val & 0x8000) {
+                    if (val & TRANSPARENT) {
                         pDst1[x] = pImg1[x];
                         pDst2[x] = pImg2[x];
                         x--;
@@ -710,7 +726,7 @@ static void frameBufferSuperimpose(FrameBuffer* a)
             if (scaleWidth && a->line[y].doubleWidth) {
                 for (x = imageWidth - 1; x >= 0; x--) {
                     UInt16 val = pSrc[x];
-                    if (val & 0x8000) {
+                    if (val & TRANSPARENT) {
                         pDst[x] = pImg[x];
                     }
                     else {
@@ -721,7 +737,7 @@ static void frameBufferSuperimpose(FrameBuffer* a)
             else {
                 for (x = imageWidth - 1; x >= 0; x--) {
                     UInt16 val = pSrc[x / 2];
-                    if (val & 0x8000) {
+                    if (val & TRANSPARENT) {
                         pDst[x] = pImg[x];
                         x--;
                         pDst[x] = pImg[x];

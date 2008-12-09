@@ -56,6 +56,9 @@ typedef enum {
 typedef struct Video Video;
 
 struct Video {
+#ifdef WII
+    int deInterlace;
+#else
     UInt16* pRgbTable16;
     UInt32* pRgbTable32;
     VideoPalMode palMode;
@@ -69,6 +72,7 @@ struct Video {
     double contrast;
     int deInterlace;
     int invertRGB;
+#endif
 };
 
 Video* videoCreate();
