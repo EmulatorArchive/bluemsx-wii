@@ -38,7 +38,6 @@ extern "C" {
 }
 
 #define FREQUENCY        3579545
-#define SAMPLERATE       44100
 #define BUFFER_SIZE      2 * 10000
  
 struct Moonsound {

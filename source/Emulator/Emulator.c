@@ -542,7 +542,7 @@ void emulatorRestart() {
 void emulatorRestartSound() {
     emulatorSuspend();
     archSoundDestroy();
-    archSoundCreate(mixer, 44100, properties->sound.bufSize, properties->sound.stereo ? 2 : 1);
+    archSoundCreate(mixer, SAMPLERATE, properties->sound.bufSize, properties->sound.stereo ? 2 : 1);
     emulatorResume();
 }
 

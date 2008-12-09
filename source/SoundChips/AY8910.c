@@ -37,7 +37,11 @@
 #include <string.h>
 #include <math.h>
 
+#ifdef WII
+#define BASE_PHASE_STEP 0x2549740dUL  /* = (1 << 28) * 3579545 / 32 / 48000 */
+#else
 #define BASE_PHASE_STEP 0x28959becUL  /* = (1 << 28) * 3579545 / 32 / 44100 */
+#endif
 #define BUFFER_SIZE     10000
 
 static Int16 voltTable[16];

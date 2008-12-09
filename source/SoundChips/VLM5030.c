@@ -106,10 +106,10 @@ static Int32* vlm5030Sync(VLM5030* vlm5030, UInt32 count)
 
     for (i = 0; i < count; i++) {
         vlm5030->timer += FREQINCR;
-        if (vlm5030->timer >= 44100) {
+        if (vlm5030->timer >= SAMPLERATE) {
             vlm5030_update_callback(&vlm5030->sampleVolume, 1);
             vlm5030->sampleVolume *= 10;
-            vlm5030->timer -= 44100;
+            vlm5030->timer -= SAMPLERATE;
         }
 
         /* Perform DC offset filtering */

@@ -32,6 +32,13 @@
 
 #include "MsxTypes.h"
 
+/* Defines */
+#ifdef WII
+#define SAMPLERATE 48000
+#else
+#define SAMPLERATE 44100
+#endif
+
 /* Type definitions */
 typedef struct Mixer Mixer;
 

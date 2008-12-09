@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#define SAMPLERATE        44100
 #define BITSPERSAMPLE     16
 #define BUFFER_SIZE       40000
 
