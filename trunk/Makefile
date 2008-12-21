@@ -17,9 +17,9 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source/Bios source/Board source/Debugger source/Emulator source/Input source/IoDevice source/Language source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80
+SOURCES		:=	source/Resource source/Gui source/Expat source/Bios source/Board source/Debugger source/Emulator source/Input source/IoDevice source/Language source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80
 DATA		:=	data
-INCLUDES	:=  source/Arch source/Board source/Common source/Debugger source/Emulator source/Input source/IoDevice source/Language source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80
+INCLUDES	:=	souce source/Resource source/Gui source/Expat source/Arch source/Board source/Common source/Debugger source/Emulator source/Input source/IoDevice source/Language source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80 include/wiisprite include/libpng
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -34,13 +34,14 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 #LIBS	:=	-lwiiuse -lbte -logc -lm
-LIBS	:=	-lfat -lwiiuse -lbte -logc -lm
+#LIBS	:=	-lfat -lwiiuse -lbte -logc -lm
+LIBS	:=	 -lfreetype -lwiisprite -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad -lbte 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=
+LIBDIRS	:= $(CURDIR)
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -64,6 +65,8 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+PNGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.png)))
+TTFFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.ttf)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -78,20 +81,21 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
 					$(sFILES:.s=.o) $(SFILES:.S=.o)
 
+export GENFILES	:=	$(PNGFILES:.png=.h) $(TTFFILES:.ttf=.h)
+
 #---------------------------------------------------------------------------------
 # build a list of include paths
 #---------------------------------------------------------------------------------
-
-export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
+export INCLUDE	:=	$(foreach dir,$(INCLUDES), -I $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-					-I$(CURDIR)/$(BUILD) \
+					-I$(CURDIR)/$(BUILD) -I$(CURDIR)/include \
 					-I$(LIBOGC_INC) \
 					-I$(LIBOGC_INC)/ogc
 
 #---------------------------------------------------------------------------------
 # build a list of library paths
 #---------------------------------------------------------------------------------
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib/wii) \
 					-L$(LIBOGC_LIB)
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
@@ -121,7 +125,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 $(OUTPUT).dol: $(OUTPUT).elf
-$(OUTPUT).elf: $(OFILES)
+$(OUTPUT).elf: $(GENFILES) $(OFILES)
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .jpg extension
@@ -130,6 +134,20 @@ $(OUTPUT).elf: $(OFILES)
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	$(bin2o)
+
+#---------------------------------------------------------------------------------
+# This rule converts .png to .h files
+#---------------------------------------------------------------------------------
+%.h: %.png
+	@echo Converting $(notdir $<) to $(notdir $@) ...
+	@$(CURDIR)/../util/raw2c $< $(CURDIR)/$@ $(notdir $@)
+
+#---------------------------------------------------------------------------------
+# This rule converts .ttf to .h files
+#---------------------------------------------------------------------------------
+%.h: %.ttf
+	@echo Converting $(notdir $<) to $(notdir $@) ...
+	@$(CURDIR)/../util/raw2c $< $(CURDIR)/$@ $(notdir $@)
 
 -include $(DEPENDS)
 
