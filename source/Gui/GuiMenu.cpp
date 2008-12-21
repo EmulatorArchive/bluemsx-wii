@@ -11,14 +11,14 @@
 #include "GuiContainer.h"
 
 // Images
-#include "arrow.h"
-#include "background.h"
-#include "mousecursor.h"
-#include "noise.h"
-#include "selector.h"
+#include "image_arrow.h"
+#include "image_background.h"
+#include "image_mousecursor.h"
+#include "image_noise.h"
+#include "image_selector.h"
 
 // Fonts
-#include "arial.h"
+#include "font_arial.h"
 
 #define RUMBLE 0
 #define SCROLL_TIME 500
@@ -168,7 +168,7 @@ GameElement* GuiMenu::DoModal(const char *filename)
 
     // Cursor (top layer)
     Image imgCursor;
-	if(imgCursor.LoadImage(mousecursor) != IMG_LOAD_ERROR_NONE) exit(0);
+	if(imgCursor.LoadImage(image_mousecursor) != IMG_LOAD_ERROR_NONE) exit(0);
     Sprite sprCursor;
 	sprCursor.SetImage(&imgCursor);
 	sprCursor.SetPosition(400, 500);
@@ -176,14 +176,14 @@ GameElement* GuiMenu::DoModal(const char *filename)
 	manager.Append(&sprCursor);
 
     // Load arrow
-	if(imgArrow.LoadImage(arrow) != IMG_LOAD_ERROR_NONE)exit(0);
+	if(imgArrow.LoadImage(image_arrow) != IMG_LOAD_ERROR_NONE)exit(0);
 
     // Load noise image
-	if(imgNoise.LoadImage(noise) != IMG_LOAD_ERROR_NONE)exit(0);
+	if(imgNoise.LoadImage(image_noise) != IMG_LOAD_ERROR_NONE)exit(0);
 
     // Load font
     TextRender fontArial;
-	fontArial.SetFont(arial, sizeof(arial));
+	fontArial.SetFont(font_arial, sizeof(font_arial));
 
     // Title list
     InitTitleList(&manager, &fontArial, 24,
@@ -192,7 +192,7 @@ GameElement* GuiMenu::DoModal(const char *filename)
 
     // Selector
     Image imgSelector;
-	if(imgSelector.LoadImage(selector) != IMG_LOAD_ERROR_NONE) exit(0);
+	if(imgSelector.LoadImage(image_selector) != IMG_LOAD_ERROR_NONE) exit(0);
 	sprSelector.SetImage(&imgSelector);
     sprSelector.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     sprSelector.SetRefPixelPosition(4, 0);
@@ -217,7 +217,7 @@ GameElement* GuiMenu::DoModal(const char *filename)
 
     // Background
     Image imgBackground;
-	if(imgBackground.LoadImage(background) != IMG_LOAD_ERROR_NONE)exit(0);
+	if(imgBackground.LoadImage(image_background) != IMG_LOAD_ERROR_NONE)exit(0);
     Sprite sprBackground;
 	sprBackground.SetImage(&imgBackground);
 	sprBackground.SetPosition(0, 0);
