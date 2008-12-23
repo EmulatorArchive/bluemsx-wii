@@ -375,7 +375,7 @@ void ogc_video__update(void)
 }
 
 /* Initialize VIDEO subsystem */
-void ogc_video__init(int interlaced, int ntsc, int bilinear)
+void ogc_video__init(int interlaced, int ntsc, int bilinear, int console)
 {
   g_interlaced = interlaced;
   g_ntsc = ntsc;
@@ -433,17 +433,23 @@ void ogc_video__init(int interlaced, int ntsc, int bilinear)
   xfb[0] = (u32 *) MEM_K0_TO_K1((u32 *) SYS_AllocateFramebuffer(&TV50hz_576i));
   xfb[1] = (u32 *) MEM_K0_TO_K1((u32 *) SYS_AllocateFramebuffer(&TV50hz_576i));
 
-  /* Define a console */
-  //console_init(xfb[0], 20, 64, 640, 574, 574 * 2);
-  console_init(xfb[0], 20, 20, vmode->fbWidth, vmode->xfbHeight,
-               vmode->fbWidth * VI_DISPLAY_PIX_SZ);
-
   /* Clear framebuffers to black */
   VIDEO_ClearFrameBuffer (vmode, xfb[0], COLOR_BLACK);
   VIDEO_ClearFrameBuffer (vmode, xfb[1], COLOR_BLACK);
+  memcpy(xfb[0], VIDEO_GetCurrentFramebuffer() + 24 * vmode->fbWidth * VI_DISPLAY_PIX_SZ,
+  	     vmode->fbWidth * (vmode->xfbHeight - 4) * VI_DISPLAY_PIX_SZ);
+  memcpy(xfb[1], VIDEO_GetCurrentFramebuffer() + 24 * vmode->fbWidth * VI_DISPLAY_PIX_SZ,
+  	     vmode->fbWidth * (vmode->xfbHeight - 4) * VI_DISPLAY_PIX_SZ);
+
+  /* Define a console */
+  if( console ) {
+	  //console_init(xfb[0], 20, 64, 640, 574, 574 * 2);
+	  console_init(xfb[0], 20, 20, vmode->fbWidth, vmode->xfbHeight,
+	               vmode->fbWidth * VI_DISPLAY_PIX_SZ);
+  }
 
   /* Set the framebuffer to be displayed at next VBlank */
-  VIDEO_SetNextFramebuffer (xfb[0]);
+  VIDEO_SetNextFramebuffer(xfb[0]);
 
   /* Register Video Retrace handlers */
   VIDEO_SetPreRetraceCallback(framestart);
@@ -457,10 +463,6 @@ void ogc_video__init(int interlaced, int ntsc, int bilinear)
   /* Wait for VBlank */
   VIDEO_WaitVSync();
   VIDEO_WaitVSync();
-
-  /* Initialize GUI */
-  //unpackBackdrop ();
-  //init_font();
 
   /* Initialize GX */
   gxStart();

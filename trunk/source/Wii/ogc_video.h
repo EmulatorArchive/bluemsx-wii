@@ -37,7 +37,7 @@
 #define VASPECT           240
 #endif
 
-extern void ogc_video__init(int interlaced, int ntsc, int bilinear);
+extern void ogc_video__init(int interlaced, int ntsc, int bilinear, int console);
 extern void ogc_video__update(void);
 extern void ogc_video__reset(void);
 
