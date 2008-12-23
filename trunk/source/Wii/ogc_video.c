@@ -436,10 +436,6 @@ void ogc_video__init(int interlaced, int ntsc, int bilinear, int console)
   /* Clear framebuffers to black */
   VIDEO_ClearFrameBuffer (vmode, xfb[0], COLOR_BLACK);
   VIDEO_ClearFrameBuffer (vmode, xfb[1], COLOR_BLACK);
-  memcpy(xfb[0], VIDEO_GetCurrentFramebuffer() + 24 * vmode->fbWidth * VI_DISPLAY_PIX_SZ,
-  	     vmode->fbWidth * (vmode->xfbHeight - 4) * VI_DISPLAY_PIX_SZ);
-  memcpy(xfb[1], VIDEO_GetCurrentFramebuffer() + 24 * vmode->fbWidth * VI_DISPLAY_PIX_SZ,
-  	     vmode->fbWidth * (vmode->xfbHeight - 4) * VI_DISPLAY_PIX_SZ);
 
   /* Define a console */
   if( console ) {
