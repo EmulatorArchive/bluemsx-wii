@@ -234,10 +234,12 @@ int main(int argc, char **argv)
     delete txtImg;
     delete manager;
 #endif
-    delete gwd;
 
-    // Init Console
+#if CONSOLE_DEBUG
+    // Switch to ogc_video
+    delete gwd;
     ogc_video__init(0, 0, 0, CONSOLE_DEBUG);
+#endif
 
     // GUI DeInit
     GuiFontClose();
@@ -389,7 +391,9 @@ int main(int argc, char **argv)
     boardSetFdcTimingEnable(properties->emulation.enableFdcTiming);
     boardSetY8950Enable(properties->sound.chip.enableY8950);
     boardSetYm2413Enable(properties->sound.chip.enableYM2413);
-    boardSetMoonsoundEnable(properties->sound.chip.enableMoonsound);
+    //NOTE: Disable Moonsound right now since we allready have memory resource problems...
+    //      ... and the Moonsound needs a lot of memory because of its wave table rom.
+    boardSetMoonsoundEnable(0 /*properties->sound.chip.enableMoonsound*/);
     boardSetVideoAutodetect(properties->video.detectActiveMonitor);
 
     i = emuTryStartWithArguments(properties, game->GetCommandLine());
@@ -404,6 +408,12 @@ int main(int argc, char **argv)
     }
 
     printf("Waiting for quit event...\n");
+
+#if CONSOLE_DEBUG==0
+    // Switch to ogc_video
+    delete gwd;
+    ogc_video__init(0, 0, 0, CONSOLE_DEBUG);
+#endif
 
     // Start displaying error messages top-left
     printf("\x1b[2;0H");
