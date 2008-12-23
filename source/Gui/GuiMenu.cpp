@@ -10,15 +10,9 @@
 #include "GuiMenu.h"
 #include "GuiContainer.h"
 
-// Images
-#include "image_arrow.h"
-#include "image_background.h"
-#include "image_mousecursor.h"
-#include "image_noise.h"
-#include "image_selector.h"
-
-// Fonts
-#include "font_arial.h"
+// Resources
+#include "GuiImages.h"
+#include "GuiFonts.h"
 
 #define RUMBLE 0
 #define SCROLL_TIME 500
@@ -142,7 +136,7 @@ void GuiMenu::SetSelected(int selected)
     }
 }
 
-GameElement* GuiMenu::DoModal(const char *filename)
+GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
 {
     GameElement *returnValue = NULL;
 #if RUMBLE
@@ -153,47 +147,27 @@ GameElement* GuiMenu::DoModal(const char *filename)
 	int selected = 0;
 	int current = -1;
 
-	// Initialise Wiimote
-	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
-
     // Load games database
     games.Load(filename);
     num_games = games.GetNumberOfGames();
 
     // Initialize manager
-	GameWindow gwd;
 	LayerManager manager(NUM_LIST_ITEMS + 10);
-	gwd.InitVideo();
-	gwd.SetBackground((GXColor){ 0, 0, 0, 255 });
 
     // Cursor (top layer)
-    Image imgCursor;
-	if(imgCursor.LoadImage(image_mousecursor) != IMG_LOAD_ERROR_NONE) exit(0);
     Sprite sprCursor;
-	sprCursor.SetImage(&imgCursor);
+	sprCursor.SetImage(g_imgMousecursor);
 	sprCursor.SetPosition(400, 500);
     sprCursor.SetVisible(false);
 	manager.Append(&sprCursor);
 
-    // Load arrow
-	if(imgArrow.LoadImage(image_arrow) != IMG_LOAD_ERROR_NONE)exit(0);
-
-    // Load noise image
-	if(imgNoise.LoadImage(image_noise) != IMG_LOAD_ERROR_NONE)exit(0);
-
-    // Load font
-    TextRender fontArial;
-	fontArial.SetFont(font_arial, sizeof(font_arial));
-
     // Title list
-    InitTitleList(&manager, &fontArial, 24,
+    InitTitleList(&manager, g_fontArial, 24,
                   36, 32, 264, 36, 33);
     SetListIndex(0);
 
     // Selector
-    Image imgSelector;
-	if(imgSelector.LoadImage(image_selector) != IMG_LOAD_ERROR_NONE) exit(0);
-	sprSelector.SetImage(&imgSelector);
+	sprSelector.SetImage(g_imgSelector);
     sprSelector.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     sprSelector.SetRefPixelPosition(4, 0);
 	sprSelector.SetPosition(0, 0);
@@ -216,10 +190,8 @@ GameElement* GuiMenu::DoModal(const char *filename)
 	manager.Append(grWinPlay.GetLayer());
 
     // Background
-    Image imgBackground;
-	if(imgBackground.LoadImage(image_background) != IMG_LOAD_ERROR_NONE)exit(0);
     Sprite sprBackground;
-	sprBackground.SetImage(&imgBackground);
+	sprBackground.SetImage(g_imgBackground);
 	sprBackground.SetPosition(0, 0);
  	manager.Append(&sprBackground);
 
@@ -312,7 +284,7 @@ GameElement* GuiMenu::DoModal(const char *filename)
 		if(ticks_to_millisecs(gettime())>time2rumble+250 && rumbeling){ rumbeling = false; }
 #endif
 		manager.Draw(0,0);
-		gwd.Flush();
+		gwd->Flush();
 
 		if( ((buttons & WPAD_BUTTON_A) ||
              (buttons & WPAD_BUTTON_1)) && selected >= 0 ) {

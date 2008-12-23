@@ -15,7 +15,7 @@ public:
     GuiMenu();
     virtual ~GuiMenu();
 
-    GameElement *DoModal(const char *filename);
+    GameElement *DoModal(GameWindow *gwd, const char *filename);
 private:
     // Game list
     GameList games;

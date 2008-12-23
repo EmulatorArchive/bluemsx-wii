@@ -70,6 +70,12 @@ void keyboardUpdate();
 int keyboardGetModifiers();
 }
 
+#include "GuiContainer.h"
+#include "GuiFonts.h"
+#include "GuiImages.h"
+
+#define CONSOLE_DEBUG 0
+
 static Properties* properties;
 static Video* video;
 static Mixer* mixer;
@@ -168,27 +174,74 @@ int main(int argc, char **argv)
     int height;
     void* disp_thread;
 
-	// Initialise the video system
-    //ogc_video__init(0, 0, 0);
+    // Initialize GameWindow
+	GameWindow *gwd = new GameWindow;
+	gwd->InitVideo();
+	gwd->SetBackground((GXColor){ 0, 0, 0, 255 });
 
     // Init Wiimote
 	WPAD_Init();
+	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
     // Init SD-Card access
     fatInitDefault();
 
+    // GUI init
+    GuiFontInit();
+    GuiImageInit();
+
     // Menu
     archSetCurrentDirectory("fat:/MSX/Games");
     GuiMenu *menu = new GuiMenu();
-    GameElement *game = menu->DoModal("gamelist.xml");
+    GameElement *game = menu->DoModal(gwd, "gamelist.xml");
     delete menu;
     if( game == NULL ) {
         exit(0);
     }
     archSetCurrentDirectory("fat:/MSX");
 
+#if CONSOLE_DEBUG==0
+    // Initialize manager
+    LayerManager *manager = new LayerManager(3);
+
+    DrawableImage *txtImg = new DrawableImage;
+    txtImg->CreateImage(144, 60);
+    txtImg->SetFont(g_fontArial);
+    txtImg->SetSize(32);
+    txtImg->SetColor((GXColor){255,255,255,255});
+    txtImg->RenderText("Loading...");
+    Sprite *txtSpr = new Sprite;
+    txtSpr->SetImage(txtImg->GetImage());
+    txtSpr->SetPosition(320-72, 240-30);
+    manager->Append(txtSpr);
+
+    // Container
+    GuiContainer *grWinList = new GuiContainer(320-200, 240-80, 400, 160);
+    manager->Append(grWinList->GetLayer());
+
+    // Background
+    Sprite *sprBackground = new Sprite;
+    sprBackground->SetImage(g_imgBackground);
+    sprBackground->SetPosition(0, 0);
+    manager->Append(sprBackground);
+
+    manager->Draw(0,0);
+    gwd->Flush();
+
+    delete sprBackground;
+    delete grWinList;
+    delete txtSpr;
+    delete txtImg;
+    delete manager;
+#endif
+    delete gwd;
+
     // Init Console
-    ogc_video__init(0, 0, 0);
+    ogc_video__init(0, 0, 0, CONSOLE_DEBUG);
+
+    // GUI DeInit
+    GuiFontClose();
+    GuiImageClose();
 
     printf("Title        : '%s'\n", game->GetName());
     printf("Command line : '%s'\n", game->GetCommandLine());
@@ -352,10 +405,10 @@ int main(int argc, char **argv)
 
     printf("Waiting for quit event...\n");
 
-    disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
-
     // Start displaying error messages top-left
     printf("\x1b[2;0H");
+
+    disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
 
     // Loop while the user hasn't quit
     while(!g_doQuit) {
