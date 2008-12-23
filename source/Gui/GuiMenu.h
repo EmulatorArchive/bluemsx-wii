@@ -23,8 +23,6 @@ private:
     int current_index;
     GameElement *gameInfo[NUM_LIST_ITEMS];
     char *gameList[NUM_LIST_ITEMS];
-    Image imgNoise;
-    Image imgArrow;
     Sprite titleTxtSprite[NUM_LIST_ITEMS];
     Sprite sprSelector;
     Sprite sprScreenShot[2];

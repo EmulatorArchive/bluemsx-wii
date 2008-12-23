@@ -23,7 +23,7 @@ void GuiMenu::InitTitleList(LayerManager *manager,
                             int x, int y, int sx, int sy, int pitch)
 {
     // Arrows
-	sprArrowUp.SetImage(&imgArrow);
+	sprArrowUp.SetImage(g_imgArrow);
 	sprArrowUp.SetPosition(x, y + 6);
     sprArrowUp.SetStretchWidth(0.5f);
     sprArrowUp.SetStretchHeight(0.5f);
@@ -31,7 +31,7 @@ void GuiMenu::InitTitleList(LayerManager *manager,
     sprArrowUp.SetVisible(false);
 	manager->Append(&sprArrowUp);
 
-	sprArrowDown.SetImage(&imgArrow);
+	sprArrowDown.SetImage(g_imgArrow);
 	sprArrowDown.SetPosition(x, y+(NUM_LIST_ITEMS-1)*pitch + 6);
     sprArrowDown.SetStretchWidth(0.5f);
     sprArrowDown.SetStretchHeight(0.5f);
@@ -49,7 +49,7 @@ void GuiMenu::InitTitleList(LayerManager *manager,
         if( img != NULL ) {
             titleTxtSprite[i].SetImage(img);
         }else{
-            titleTxtSprite[i].SetImage(&imgNoise);
+            titleTxtSprite[i].SetImage(g_imgNoise);
         }
         titleTxtSprite[i].SetPosition(x, y);
         manager->Append(&titleTxtSprite[i]);
@@ -61,7 +61,7 @@ void GuiMenu::InitTitleList(LayerManager *manager,
 void GuiMenu::SetScreenShotImage(int index, Image *img)
 {
     if( img == NULL ) {
-        img = &imgNoise;
+        img = g_imgNoise;
     }
     Sprite *spr = &sprScreenShot[index];
     spr->SetImage(img);
@@ -104,7 +104,7 @@ void GuiMenu::SetListIndex(int index)
         if( img != NULL ) {
             titleTxtSprite[i].SetImage(img);
         }else{
-            titleTxtSprite[i].SetImage(&imgNoise);
+            titleTxtSprite[i].SetImage(g_imgNoise);
         }
     }
     // Up button
@@ -163,7 +163,7 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
 
     // Title list
     InitTitleList(&manager, g_fontArial, 24,
-                  36, 32, 264, 36, 33);
+                  36, 32, 264+12, 36, 34);
     SetListIndex(0);
 
     // Selector
@@ -176,17 +176,17 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
 
     // Screen shots (240x186)
 	sprScreenShot[0].SetPosition(344+12-8, 24+12);
-	sprScreenShot[1].SetPosition(344+12-8, 240+12);
+	sprScreenShot[1].SetPosition(344+12-8, 240+12+12);
     SetSelected(0);
 	manager.Append(&sprScreenShot[0]);
 	manager.Append(&sprScreenShot[1]);
 
-    // Windows
-    GuiContainer grWinList(32-8, 24, 288, 420);
+    // Containers
+    GuiContainer grWinList(32-8, 24, 288, 420+12);
 	manager.Append(grWinList.GetLayer());
     GuiContainer grWinTitle(344-8, 24, 264+12, 204);
 	manager.Append(grWinTitle.GetLayer());
-    GuiContainer grWinPlay(344-8, 240, 264+12, 204);
+    GuiContainer grWinPlay(344-8, 240+12, 264+12, 204);
 	manager.Append(grWinPlay.GetLayer());
 
     // Background
