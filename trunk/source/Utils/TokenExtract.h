@@ -31,6 +31,7 @@
 #define TOKEN_EXTRACT_H
 
 char* extractToken(char* szLine, int argNo);
+char* extractTokenEx(char* szLine, int argNo, char *dir);
 char* extractTokens(char* szLine, int argNo);
 
 #endif

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <gccore.h>
 #include <ogc/lwp_watchdog.h>
@@ -45,12 +46,7 @@ void GuiMenu::InitTitleList(LayerManager *manager,
         titleTxtImg[i].SetFont(fontArial);
         titleTxtImg[i].SetColor((GXColor){255,255,255,255});
         titleTxtImg[i].SetSize(fontsize);
-        Image *img = titleTxtImg[i].GetImage();
-        if( img != NULL ) {
-            titleTxtSprite[i].SetImage(img);
-        }else{
-            titleTxtSprite[i].SetImage(g_imgNoise);
-        }
+        titleTxtSprite[i].SetImage(titleTxtImg[i].GetImage());
         titleTxtSprite[i].SetPosition(x, y);
         manager->Append(&titleTxtSprite[i]);
         y += pitch;
@@ -76,6 +72,9 @@ void GuiMenu::SetListIndex(int index)
     // Update game info
     for(int i = 0; i < NUM_LIST_ITEMS; i++) {
         gameInfo[i] = games.GetGame(i+index);
+        if( gameInfo[i] == NULL ) {
+            gameInfo[i] = &emptyGame;
+        }
     }
     // Render text (slow)
     if( index == current_index+1 && current_index != -1 ) {
@@ -100,28 +99,27 @@ void GuiMenu::SetListIndex(int index)
     current_index = index;
     // Update sprites
     for(int i = 0; i < NUM_LIST_ITEMS; i++) {
-        Image *img = titleTxtImgPtr[i]->GetImage();
-        if( img != NULL ) {
-            titleTxtSprite[i].SetImage(img);
-        }else{
-            titleTxtSprite[i].SetImage(g_imgNoise);
-        }
+        titleTxtSprite[i].SetImage(titleTxtImgPtr[i]->GetImage());
     }
     // Up button
-    if( index > 0  ) {
+    if( index > 0 ) {
         titleTxtSprite[0].SetVisible(false);
         sprArrowUp.SetVisible(true);
+        upper_index = 1;
     }else{
         titleTxtSprite[0].SetVisible(true);
         sprArrowUp.SetVisible(false);
+        upper_index = 0;
     }
     // Down button
-    if( index+NUM_LIST_ITEMS-1 < num_games ) {
+    if( index+NUM_LIST_ITEMS < num_games ) {
         titleTxtSprite[NUM_LIST_ITEMS-1].SetVisible(false);
         sprArrowDown.SetVisible(true);
+        lower_index = NUM_LIST_ITEMS-2;
     }else{
         titleTxtSprite[NUM_LIST_ITEMS-1].SetVisible(true);
         sprArrowDown.SetVisible(false);
+        lower_index = NUM_LIST_ITEMS-1;
     }
 }
 
@@ -136,7 +134,7 @@ void GuiMenu::SetSelected(int selected)
     }
 }
 
-GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
+GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *dir, const char *filename)
 {
     GameElement *returnValue = NULL;
 #if RUMBLE
@@ -148,6 +146,7 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
 	int current = -1;
 
     // Load games database
+    chdir(dir);
     games.Load(filename);
     num_games = games.GetNumberOfGames();
 
@@ -217,7 +216,8 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
         // Check mouse cursor colisions
         int cursor_visible = false;
         for(int i = 0; i < NUM_LIST_ITEMS; i++) {
-            if( sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
+            if( gameInfo[i] != &emptyGame &&
+                sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                 cursor_visible = true;
                 selected = i;
                 break;
@@ -241,7 +241,8 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
             // WPAD keys
             if( (buttons & WPAD_BUTTON_LEFT) ||
                 (buttons & WPAD_BUTTON_DOWN) ) {
-                if( current < NUM_LIST_ITEMS-1 ) {
+                if( current < lower_index &&
+                    gameInfo[current+1] != &emptyGame ) {
                     selected++;
                 }else{
                     if( index+current < num_games-1 ) {
@@ -253,7 +254,7 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
             }
             if( (buttons & WPAD_BUTTON_RIGHT) ||
                 (buttons & WPAD_BUTTON_UP) ) {
-                if( current > 0 ) {
+                if( current > upper_index ) {
                     selected--;
                 }else{
                     if( index > 0 ) {
@@ -315,6 +316,8 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *filename)
 
 GuiMenu::GuiMenu()
 {
+    emptyGame.SetName("");
+    emptyGame.SetCommandLine("");
 }
 
 GuiMenu::~GuiMenu()

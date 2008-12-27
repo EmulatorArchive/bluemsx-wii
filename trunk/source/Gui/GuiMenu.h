@@ -15,12 +15,15 @@ public:
     GuiMenu();
     virtual ~GuiMenu();
 
-    GameElement *DoModal(GameWindow *gwd, const char *filename);
+    GameElement *DoModal(GameWindow *gwd, const char *dir, const char *filename);
 private:
     // Game list
     GameList games;
     int num_games;
     int current_index;
+    int upper_index;
+    int lower_index;
+    GameElement emptyGame;
     GameElement *gameInfo[NUM_LIST_ITEMS];
     char *gameList[NUM_LIST_ITEMS];
     Sprite titleTxtSprite[NUM_LIST_ITEMS];

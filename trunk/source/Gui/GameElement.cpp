@@ -3,6 +3,7 @@
 #include <fat.h>
 #include <wiisprite.h>
 #include "GameElement.h"
+#include "GuiImages.h"
 
 /*************************************************
   Game Element
@@ -32,8 +33,12 @@ GameElement::~GameElement()
 void GameElement::SetName(const char *str)
 {
     if( name ) free(name);
-    name = (char *)malloc(strlen(str)+1);
-    strcpy(name, str);
+    if( str ) {
+        name = (char *)malloc(strlen(str)+1);
+        strcpy(name, str);
+    }else{
+        name = NULL;
+    }
 }
 
 void GameElement::SetCommandLine(const char *str)
@@ -86,6 +91,10 @@ wsp::Image* GameElement::GetImage(int number)
             }
         }
     }
-    return image[number];
+    if( image[number] != NULL ) {
+        return image[number];
+    }else{
+        return g_imgNoise;
+    }
 }
 

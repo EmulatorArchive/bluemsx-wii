@@ -33,6 +33,7 @@
 #include <fat.h>
 #include <wiiuse/wpad.h>
 
+#include "GuiDirSelect.h"
 #include "GuiMenu.h"
 extern "C" {
 #include "CommandLine.h"
@@ -75,6 +76,8 @@ int keyboardGetModifiers();
 #include "GuiImages.h"
 
 #define CONSOLE_DEBUG 0
+
+#define MSX_ROOT_DIR "fat:/MSX"
 
 static Properties* properties;
 static Video* video;
@@ -190,15 +193,29 @@ int main(int argc, char **argv)
     GuiFontInit();
     GuiImageInit();
 
-    // Menu
-    archSetCurrentDirectory("fat:/MSX/Games");
-    GuiMenu *menu = new GuiMenu();
-    GameElement *game = menu->DoModal(gwd, "gamelist.xml");
-    delete menu;
-    if( game == NULL ) {
-        exit(0);
+    GameElement *game = NULL;
+    char *game_dir = NULL;
+    for(;;) {
+        // Browse directory
+        GuiDirSelect *dirs = new GuiDirSelect();
+        game_dir = dirs->DoModal(gwd, "fat:/MSX/Games", "dirlist.xml");
+        delete dirs;
+        if( game_dir == NULL ) {
+            exit(0);
+        }
+
+        // Game menu
+        GuiMenu *menu = new GuiMenu();
+        game = menu->DoModal(gwd, game_dir, "gamelist.xml");
+        delete menu;
+        if( game != NULL ) {
+            break;
+        }
+        free(game_dir);
     }
-    archSetCurrentDirectory("fat:/MSX");
+
+    // Set current directory back to the MSX-root
+    archSetCurrentDirectory(MSX_ROOT_DIR);
 
 #if CONSOLE_DEBUG==0
     // Initialize manager
@@ -396,7 +413,8 @@ int main(int argc, char **argv)
     boardSetMoonsoundEnable(0 /*properties->sound.chip.enableMoonsound*/);
     boardSetVideoAutodetect(properties->video.detectActiveMonitor);
 
-    i = emuTryStartWithArguments(properties, game->GetCommandLine());
+    i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
+    free(game_dir);
     if (i < 0) {
         printf("Failed to parse command line\n");
         return 0;
