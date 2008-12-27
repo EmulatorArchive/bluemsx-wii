@@ -252,7 +252,7 @@ void emuCheckFullscreenArgument(Properties* properties, char* cmdLine){
     }
 }
 
-static int emuStartWithArguments(Properties* properties, char* commandLine) {
+static int emuStartWithArguments(Properties* properties, char* commandLine, char *gamedir) {
     int i;
     char    cmdLine[512] = "";
     char*   argument;
@@ -321,64 +321,65 @@ static int emuStartWithArguments(Properties* properties, char* commandLine) {
     // set configuration and then run
 
     for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
+
         if (strcmp(argument, "/rom1") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument
             strcpy(rom1, argument);
             startEmu = 1;
         }
         if (strcmp(argument, "/rom1zip") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0;
             strcpy(rom1zip, argument);
         }
         if (strcmp(argument, "/romtype1") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0; // Invaid argument
             romType1 = romNameToType(argument);
             startEmu = 1;
         }
         if (strcmp(argument, "/rom2") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL || !isRomFileType(argument, rom2zip)) return 0; // Invaid argument
             strcpy(rom2, argument);
             startEmu = 1;
         }
         if (strcmp(argument, "/rom2zip") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0;
             strcpy(rom2zip, argument);
         }
         if (strcmp(argument, "/romtype2") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0; // Invaid argument
             romType2 = romNameToType(argument);
             startEmu = 1;
         }
         if (strcmp(argument, "/diskA") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL || !isDskFileType(argument, diskAzip)) return 0; // Invaid argument
             strcpy(diskA, argument);
             startEmu = 1;
         }
         if (strcmp(argument, "/diskAzip") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0;
             strcpy(diskAzip, argument);
         }
         if (strcmp(argument, "/diskB") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL || !isDskFileType(argument, diskBzip)) return 0; // Invaid argument
             strcpy(diskB, argument);
             startEmu = 1;
         }
         if (strcmp(argument, "/diskBzip") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0;
             strcpy(diskBzip, argument);
         }
         if (strcmp(argument, "/cas") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL || !isCasFileType(argument, caszip)) return 0; // Invaid argument
             strcpy(cas, argument);
             startEmu = 1;
@@ -396,10 +397,11 @@ static int emuStartWithArguments(Properties* properties, char* commandLine) {
             startEmu = 1;
         }
         if (strcmp(argument, "/caszip") == 0) {
-            argument = extractToken(cmdLine, ++i);
+            argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL) return 0;
             strcpy(caszip, argument);
         }
+
         if (strcmp(argument, "/machine") == 0) {
             argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0; // Invaid argument
@@ -491,7 +493,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine) {
     return 1;
 }
 
-int emuTryStartWithArguments(Properties* properties, char* cmdLine) {
+int emuTryStartWithArguments(Properties* properties, char* cmdLine, char *gamedir) {
     if (cmdLine == NULL || *cmdLine == 0) {
         return 0;
     }
@@ -507,10 +509,10 @@ int emuTryStartWithArguments(Properties* properties, char* cmdLine) {
                 *ptr = 0; 
             }
             strcat(args, "\"");
-            success = emuStartWithArguments(properties, args);
+            success = emuStartWithArguments(properties, args, gamedir);
         }
         else {
-            success = emuStartWithArguments(properties, cmdLine);
+            success = emuStartWithArguments(properties, cmdLine, gamedir);
         }
         if (!success) {
             return -1;
