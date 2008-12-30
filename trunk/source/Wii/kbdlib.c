@@ -31,8 +31,15 @@
 #include <string.h>
 #include <malloc.h>
 #include <wiiuse/wpad.h>
+#include <ogc/lwp_watchdog.h>
 
 #include "kbdlib.h"
+
+#define THRESHOLD_NUNCHUCK 50
+#define THRESHOLD_CLASSIC  10
+
+#define TIME_BEFORE_REPEATING 500
+#define TIME_BETWEEN_REPEAT   200
 
 typedef struct {
 	KEY key;
@@ -396,6 +403,72 @@ const char *KBD_GetKeyName(KEY key)
     return keyname;
 }
 
+static u32 GetJoystickDirection(joystick_t *js, int threshold)
+{
+    u32 buttons = 0;
+    // handle right
+    if( js->pos.x > js->center.x + threshold)
+        buttons |= WPAD_CLASSIC_BUTTON_RIGHT;
+    // handle left
+    if( js->pos.x < js->center.x - threshold)
+        buttons |= WPAD_CLASSIC_BUTTON_LEFT;
+    // handle up
+    if( js->pos.y > js->center.y + threshold )
+        buttons |= WPAD_CLASSIC_BUTTON_UP;
+    // handle down
+    if( js->pos.y < js->center.y - threshold )
+        buttons |= WPAD_CLASSIC_BUTTON_DOWN;
+    return buttons;
+}
+
+u32 KBD_GetPadButtonStatus(int channel)
+{
+    u32 extensions;
+    WPADData data;
+    u32 buttons;
+
+    // Check standard buttons
+    buttons = WPAD_ButtonsHeld(channel);
+
+    // Check extensions
+    WPAD_Probe(channel, &extensions);
+    if( extensions == WPAD_EXP_NUNCHUK ) {
+      if( buttons & WPAD_NUNCHUK_BUTTON_Z ) {
+        buttons &= ~WPAD_NUNCHUK_BUTTON_Z;
+        buttons |= WPAD_CLASSIC_BUTTON_A;
+      }
+      if( buttons & WPAD_NUNCHUK_BUTTON_C ) {
+        buttons &= ~WPAD_NUNCHUK_BUTTON_C;
+        buttons |= WPAD_CLASSIC_BUTTON_B;
+      }
+      WPAD_Expansion(channel, &data.exp);
+      buttons |= GetJoystickDirection(&data.exp.nunchuk.js, THRESHOLD_NUNCHUCK);
+    }
+    if( extensions == WPAD_EXP_CLASSIC ) {
+      WPAD_Expansion(channel, &data.exp);
+      buttons |= GetJoystickDirection(&data.exp.classic.ljs, THRESHOLD_CLASSIC);
+      buttons |= GetJoystickDirection(&data.exp.classic.rjs, THRESHOLD_CLASSIC);
+    }
+    return buttons;
+}
+
+u32 KBD_GetPadButtons(int channel)
+{
+    static u32 prev_buttons[WPAD_MAX_WIIMOTES] = {0, 0, 0, 0};
+    static u64 repeat_time = 0;
+    u32 buttons = KBD_GetPadButtonStatus(channel);
+    if( buttons != prev_buttons[channel] ) {
+        prev_buttons[channel] = buttons;
+        repeat_time = ticks_to_millisecs(gettime()) + TIME_BEFORE_REPEATING;
+        return buttons;
+    }
+    if( buttons != 0 && ticks_to_millisecs(gettime()) > repeat_time ) {
+        repeat_time = ticks_to_millisecs(gettime()) + TIME_BETWEEN_REPEAT;
+        return buttons;
+    }
+    return 0;
+ }
+
 void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
 {
 	int i, k;
@@ -419,10 +492,11 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
             hndl->keystatus[idx_new][mods[i].key] = 1;
         }
     }
-    /* handle WPAD keys */
+
+    /* handle WPAD buttons */
     WPAD_ScanPads();
-    hndl->wpad[0] = WPAD_ButtonsHeld(0);
-    hndl->wpad[1] = WPAD_ButtonsHeld(1);
+    hndl->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
+    hndl->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
     for(i = 0; wpad[i].key_a != KEY_NONE; i++)  {
         if( (hndl->wpad[0] & wpad[i].code) != 0  ) {
             hndl->keystatus[idx_new][wpad[i].key_a] = 1;
@@ -431,6 +505,7 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
             hndl->keystatus[idx_new][wpad[i].key_b] = 1;
         }
     }
+
     /* compare with previous and call for each difference */
     for(i = 0; i < KEY_LAST; i++) {
         if( hndl->keystatus[idx_prev][i] != hndl->keystatus[idx_new][i] ) {

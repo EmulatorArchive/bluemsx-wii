@@ -28,6 +28,8 @@
 #ifndef _KBDLIB_H
 #define _KBDLIB_H
 
+#include <gctypes.h>
+
 typedef enum {
     /* The numers maps to ascii where possible */
     KEY_NONE        = 0,
@@ -194,12 +196,22 @@ typedef enum {
 typedef struct _kbd_data KBDDATA, *KBDHANDLE;
 typedef void (*KBD_CALLBACK)(KBDHANDLE, KEY, int);
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 extern void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb);
 extern int KBD_GetKeyStatus(KBDHANDLE hndl, KEY key);
+extern u32 KBD_GetPadButtons(int channel);
+extern u32 KBD_GetPadButtonStatus(int channel);
 extern void KBD_DeInit(KBDHANDLE hndl);
 extern KBDHANDLE KBD_Init(void);
 extern int KBD_IsConnected(KBDHANDLE hndl);
 const char *KBD_GetKeyName(KEY key);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

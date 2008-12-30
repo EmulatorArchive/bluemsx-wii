@@ -17,6 +17,8 @@ public:
 
     GameElement *DoModal(GameWindow *gwd, const char *dir, const char *filename);
 private:
+    u32 KBD_JoystickDirection(joystick_t *js, int threshold);
+
     // Game list
     GameList games;
     int num_games;
