@@ -1,0 +1,22 @@
+<GameList>
+    <Game Title="Dragon Slayer 4">
+        <CommandLine>DragonSlayer4-1</CommandLine>
+        <ScreenShot>DragonSlayer4-1.png</ScreenShot>
+        <ScreenShot>DragonSlayer4-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hydlide">
+        <CommandLine>Hydlide-1</CommandLine>
+        <ScreenShot>Hydlide-1.png</ScreenShot>
+        <ScreenShot>Hydlide-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hydlide 3">
+        <CommandLine>Hydlide3-1</CommandLine>
+        <ScreenShot>Hydlide3-1.png</ScreenShot>
+        <ScreenShot>Hydlide3-2.png</ScreenShot>
+    </Game>
+    <Game Title="Xanadu">
+        <CommandLine>Xanadu-1</CommandLine>
+        <ScreenShot>Xanadu-1.png</ScreenShot>
+        <ScreenShot>Xanadu-2.png</ScreenShot>
+    </Game>
+</GameList>

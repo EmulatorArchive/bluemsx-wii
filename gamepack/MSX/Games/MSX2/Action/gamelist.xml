@@ -1,0 +1,87 @@
+<GameList>"
+    <Game Title="BladeLords (MCCM)">
+        <CommandLine>BladeLordsMCCM-1</CommandLine>
+        <ScreenShot>BladeLordsMCCM-1.png</ScreenShot>
+        <ScreenShot>BladeLordsMCCM-2.png</ScreenShot>
+    </Game>
+    <Game Title="Contra (Gryzor)">
+        <CommandLine>ContraGryzor-1</CommandLine>
+        <ScreenShot>ContraGryzor-1.png</ScreenShot>
+        <ScreenShot>ContraGryzor-2.png</ScreenShot>
+    </Game>
+    <Game Title="Fire Hawk">
+        <CommandLine>FireHawk-1</CommandLine>
+        <ScreenShot>FireHawk-1.png</ScreenShot>
+        <ScreenShot>FireHawk-2.png</ScreenShot>
+    </Game>
+    <Game Title="Frantic">
+        <CommandLine>Frantic-1</CommandLine>
+        <ScreenShot>Frantic-1.png</ScreenShot>
+        <ScreenShot>Frantic-2.png</ScreenShot>
+    </Game>
+    <Game Title="Girly Block">
+        <CommandLine>GirlyBlock-1</CommandLine>
+        <ScreenShot>GirlyBlock-1.png</ScreenShot>
+        <ScreenShot>GirlyBlock-2.png</ScreenShot>
+    </Game>
+    <Game Title="Goemon">
+        <CommandLine>Goemon-1</CommandLine>
+        <ScreenShot>Goemon-1.png</ScreenShot>
+        <ScreenShot>Goemon-2.png</ScreenShot>
+    </Game>
+    <Game Title="Metal Gear">
+        <CommandLine>MetalGear-1</CommandLine>
+        <ScreenShot>MetalGear-1.png</ScreenShot>
+        <ScreenShot>MetalGear-2.png</ScreenShot>
+    </Game>
+    <Game Title="Metal Gear 2 (Solid)">
+        <CommandLine>SolidSnake-1</CommandLine>
+        <ScreenShot>SolidSnake-1.png</ScreenShot>
+        <ScreenShot>SolidSnake-2.png</ScreenShot>
+    </Game>
+    <Game Title="Mon Mon Monster">
+        <CommandLine>MonMonMonster-1</CommandLine>
+        <ScreenShot>MonMonMonster-1.png</ScreenShot>
+        <ScreenShot>MonMonMonster-2.png</ScreenShot>
+    </Game>
+    <Game Title="Nyancle Racing">
+        <CommandLine>NyancleRacing-1</CommandLine>
+        <ScreenShot>NyancleRacing-1.png</ScreenShot>
+        <ScreenShot>NyancleRacing-2.png</ScreenShot>
+    </Game>
+    <Game Title="Pacmania">
+        <CommandLine>Pacmania-1</CommandLine>
+        <ScreenShot>Pacmania-1.png</ScreenShot>
+        <ScreenShot>Pacmania-2.png</ScreenShot>
+    </Game>
+    <Game Title="Predator">
+        <CommandLine>Predator-1</CommandLine>
+        <ScreenShot>Predator-1.png</ScreenShot>
+        <ScreenShot>Predator-2.png</ScreenShot>
+    </Game>
+    <Game Title="Rastan Saga">
+        <CommandLine>RastanSaga-1</CommandLine>
+        <ScreenShot>RastanSaga-1.png</ScreenShot>
+        <ScreenShot>RastanSaga-2.png</ScreenShot>
+    </Game>
+    <Game Title="Seigimatsu 2">
+        <CommandLine>Seigimatsu2-1</CommandLine>
+        <ScreenShot>Seigimatsu2-1.png</ScreenShot>
+        <ScreenShot>Seigimatsu2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Sqeek">
+        <CommandLine>Sqeek-1</CommandLine>
+        <ScreenShot>Sqeek-1.png</ScreenShot>
+        <ScreenShot>Sqeek-2.png</ScreenShot>
+    </Game>
+    <Game Title="Treasure of Usas">
+        <CommandLine>Usas-1</CommandLine>
+        <ScreenShot>Usas-1.png</ScreenShot>
+        <ScreenShot>Usas-2.png</ScreenShot>
+    </Game>
+    <Game Title="Vampire Killer">
+        <CommandLine>VampireKiller-1</CommandLine>
+        <ScreenShot>VampireKiller-1.png</ScreenShot>
+        <ScreenShot>VampireKiller-2.png</ScreenShot>
+    </Game>
+</GameList>

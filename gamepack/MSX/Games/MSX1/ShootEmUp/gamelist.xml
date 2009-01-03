@@ -1,0 +1,132 @@
+<GameList>
+    <Game Title="1942">
+        <CommandLine>1942-1</CommandLine>
+        <ScreenShot>1942-1.png</ScreenShot>
+        <ScreenShot>1942-2.png</ScreenShot>
+    </Game>
+    <Game Title="1942 (Zemina)">
+        <CommandLine>1942Zemina-1</CommandLine>
+        <ScreenShot>1942Zemina-1.png</ScreenShot>
+        <ScreenShot>1942Zemina-2.png</ScreenShot>
+    </Game>
+    <Game Title="D-Day">
+        <CommandLine>DDay-1</CommandLine>
+        <ScreenShot>DDay-1.png</ScreenShot>
+        <ScreenShot>DDay-2.png</ScreenShot>
+    </Game>
+    <Game Title="Final Zone">
+        <CommandLine>FinalZone-1</CommandLine>
+        <ScreenShot>FinalZone-1.png</ScreenShot>
+        <ScreenShot>FinalZone-2.png</ScreenShot>
+    </Game>
+    <Game Title="Galaga">
+        <CommandLine>Galaga-1</CommandLine>
+        <ScreenShot>Galaga-1.png</ScreenShot>
+        <ScreenShot>Galaga-2.png</ScreenShot>
+    </Game>
+    <Game Title="Galaxian">
+        <CommandLine>Galaxian-1</CommandLine>
+        <ScreenShot>Galaxian-1.png</ScreenShot>
+        <ScreenShot>Galaxian-2.png</ScreenShot>
+    </Game>
+    <Game Title="Juno First">
+        <CommandLine>JunoFirst-1</CommandLine>
+        <ScreenShot>JunoFirst-1.png</ScreenShot>
+        <ScreenShot>JunoFirst-2.png</ScreenShot>
+    </Game>
+    <Game Title="Knightmare">
+        <CommandLine>Knightmare-1</CommandLine>
+        <ScreenShot>Knightmare-1.png</ScreenShot>
+        <ScreenShot>Knightmare-2.png</ScreenShot>
+    </Game>
+    <Game Title="Laydock">
+        <CommandLine>Laydock-1</CommandLine>
+        <ScreenShot>Laydock-1.png</ScreenShot>
+        <ScreenShot>Laydock-2.png</ScreenShot>
+    </Game>
+    <Game Title="Laydock Super">
+        <CommandLine>LaydockSuper-1</CommandLine>
+        <ScreenShot>LaydockSuper-1.png</ScreenShot>
+        <ScreenShot>LaydockSuper-2.png</ScreenShot>
+    </Game>
+    <Game Title="Meteorite Kiss">
+        <CommandLine>MeteoriteKiss-1</CommandLine>
+        <ScreenShot>MeteoriteKiss-1.png</ScreenShot>
+        <ScreenShot>MeteoriteKiss-2.png</ScreenShot>
+    </Game>
+    <Game Title="Nemesis">
+        <CommandLine>Nemesis-1</CommandLine>
+        <ScreenShot>Nemesis-1.png</ScreenShot>
+        <ScreenShot>Nemesis-2.png</ScreenShot>
+    </Game>
+    <Game Title="Nemesis 2">
+        <CommandLine>Nemesis2-1</CommandLine>
+        <ScreenShot>Nemesis2-1.png</ScreenShot>
+        <ScreenShot>Nemesis2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Nemesis 3">
+        <CommandLine>Nemesis3-1</CommandLine>
+        <ScreenShot>Nemesis3-1.png</ScreenShot>
+        <ScreenShot>Nemesis3-2.png</ScreenShot>
+    </Game>
+    <Game Title="Parodius">
+        <CommandLine>Parodius-1</CommandLine>
+        <ScreenShot>Parodius-1.png</ScreenShot>
+        <ScreenShot>Parodius-2.png</ScreenShot>
+    </Game>
+    <Game Title="Pippols">
+        <CommandLine>Pippols-1</CommandLine>
+        <ScreenShot>Pippols-1.png</ScreenShot>
+        <ScreenShot>Pippols-2.png</ScreenShot>
+    </Game>
+    <Game Title="RiverRaid">
+        <CommandLine>RiverRaid-1</CommandLine>
+        <ScreenShot>RiverRaid-1.png</ScreenShot>
+        <ScreenShot>RiverRaid-2.png</ScreenShot>
+    </Game>
+    <Game Title="R-Type">
+        <CommandLine>RType-1</CommandLine>
+        <ScreenShot>RType-1.png</ScreenShot>
+        <ScreenShot>RType-2.png</ScreenShot>
+    </Game>
+    <Game Title="Salamander">
+        <CommandLine>Salamander-1</CommandLine>
+        <ScreenShot>Salamander-1.png</ScreenShot>
+        <ScreenShot>Salamander-2.png</ScreenShot>
+    </Game>
+    <Game Title="Sky Jaguar">
+        <CommandLine>SkyJaguar-1</CommandLine>
+        <ScreenShot>SkyJaguar-1.png</ScreenShot>
+        <ScreenShot>SkyJaguar-2.png</ScreenShot>
+    </Game>
+    <Game Title="Super Cobra">
+        <CommandLine>SuperCobra-1</CommandLine>
+        <ScreenShot>SuperCobra-1.png</ScreenShot>
+        <ScreenShot>SuperCobra-2.png</ScreenShot>
+    </Game>
+    <Game Title="Time Pilot">
+        <CommandLine>Timepilot-1</CommandLine>
+        <ScreenShot>Timepilot-1.png</ScreenShot>
+        <ScreenShot>Timepilot-2.png</ScreenShot>
+    </Game>
+    <Game Title="Twin Bee">
+        <CommandLine>TwinBee-1</CommandLine>
+        <ScreenShot>TwinBee-1.png</ScreenShot>
+        <ScreenShot>TwinBee-2.png</ScreenShot>
+    </Game>
+    <Game Title="Zanac">
+        <CommandLine>Zanac-1</CommandLine>
+        <ScreenShot>Zanac-1.png</ScreenShot>
+        <ScreenShot>Zanac-2.png</ScreenShot>
+    </Game>
+    <Game Title="Zanac 2">
+        <CommandLine>Zanac2-1</CommandLine>
+        <ScreenShot>Zanac2-1.png</ScreenShot>
+        <ScreenShot>Zanac2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Zanac Ex">
+        <CommandLine>ZanacEx-1</CommandLine>
+        <ScreenShot>ZanacEx-1.png</ScreenShot>
+        <ScreenShot>ZanacEx-2.png</ScreenShot>
+    </Game>
+</GameList>

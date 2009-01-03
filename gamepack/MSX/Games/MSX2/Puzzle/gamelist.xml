@@ -1,0 +1,57 @@
+<GameList>
+    <Game Title="Columns">
+        <CommandLine>Columns-1</CommandLine>
+        <ScreenShot>Columns-1.png</ScreenShot>
+        <ScreenShot>Columns-2.png</ScreenShot>
+    </Game>
+    <Game Title="Eggbert">
+        <CommandLine>Eggbert-1</CommandLine>
+        <ScreenShot>Eggbert-1.png</ScreenShot>
+        <ScreenShot>Eggbert-2.png</ScreenShot>
+    </Game>
+    <Game Title="Eggerland 2">
+        <CommandLine>Eggerland2-1</CommandLine>
+        <ScreenShot>Eggerland2-1.png</ScreenShot>
+        <ScreenShot>Eggerland2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Gorby's Pipeline">
+        <CommandLine>GorbyPipeline-1</CommandLine>
+        <ScreenShot>GorbyPipeline-1.png</ScreenShot>
+        <ScreenShot>GorbyPipeline-2.png</ScreenShot>
+    </Game>
+    <Game Title="Kings Valley 2">
+        <CommandLine>KingsValley2-1</CommandLine>
+        <ScreenShot>KingsValley2-1.png</ScreenShot>
+        <ScreenShot>KingsValley2-2.png</ScreenShot>
+    </Game>
+    <Game Title="No Fuss">
+        <CommandLine>NoFuss-1</CommandLine>
+        <ScreenShot>NoFuss-1.png</ScreenShot>
+        <ScreenShot>NoFuss-2.png</ScreenShot>
+    </Game>
+    <Game Title="Nosh">
+        <CommandLine>Nosh-1</CommandLine>
+        <ScreenShot>Nosh-1.png</ScreenShot>
+        <ScreenShot>Nosh-2.png</ScreenShot>
+    </Game>
+    <Game Title="Puyo Puyo">
+        <CommandLine>PuyoPuyo-1</CommandLine>
+        <ScreenShot>PuyoPuyo-1.png</ScreenShot>
+        <ScreenShot>PuyoPuyo-2.png</ScreenShot>
+    </Game>
+    <Game Title="Quarth">
+        <CommandLine>Quarth-1</CommandLine>
+        <ScreenShot>Quarth-1.png</ScreenShot>
+        <ScreenShot>Quarth-2.png</ScreenShot>
+    </Game>
+    <Game Title="Quinpl">
+        <CommandLine>Quinpl-1</CommandLine>
+        <ScreenShot>Quinpl-1.png</ScreenShot>
+        <ScreenShot>Quinpl-2.png</ScreenShot>
+    </Game>
+    <Game Title="Tetris">
+        <CommandLine>Tetris-1</CommandLine>
+        <ScreenShot>Tetris-1.png</ScreenShot>
+        <ScreenShot>Tetris-2.png</ScreenShot>
+    </Game>
+</GameList>

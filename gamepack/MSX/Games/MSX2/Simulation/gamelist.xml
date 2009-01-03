@@ -1,0 +1,7 @@
+<GameList>
+    <Game Title="Herzog">
+        <CommandLine>Herzog-1</CommandLine>
+        <ScreenShot>Herzog-1.png</ScreenShot>
+        <ScreenShot>Herzog-2.png</ScreenShot>
+    </Game>
+</GameList>
