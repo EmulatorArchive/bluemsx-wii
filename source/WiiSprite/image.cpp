@@ -27,12 +27,11 @@ namespace wsp{
 	IMG_LOAD_ERROR Image::LoadImage(const unsigned char* path, IMG_LOAD_TYPE loadtype){
 		if(path == NULL)return IMG_LOAD_ERROR_NOT_FOUND;
 		if(_initialized)return IMG_LOAD_ERROR_ALREADY_INIT;
-		png_byte color_type;
-		png_byte bit_depth;
+		int color_type;
+		int bit_depth;
 
 		png_structp png_ptr;
 		png_infop info_ptr;
-		int number_of_passes;
 		png_bytep *row_pointers;
 
 		char header[8]; // Check for support PNG header.
@@ -91,21 +90,40 @@ namespace wsp{
 
 		png_read_info(png_ptr, info_ptr);
 
-		_width = info_ptr->width;
-		_height = info_ptr->height;
+        int interlace_type;
+        png_get_IHDR(png_ptr, info_ptr, &_width, &_height, &bit_depth, &color_type,
+            &interlace_type, NULL, NULL);
+
 		if(_width % 4 != 0 || _height % 4 != 0){
 			if(loadtype == false)fclose(fp);
 			return IMG_LOAD_ERROR_WRONG_SIZE;
 		}
-		color_type = info_ptr->color_type;
-		bit_depth = info_ptr->bit_depth;
-		if(bit_depth!=8){
+		if(bit_depth > 8){
 			if(loadtype == false)fclose(fp);
 			return IMG_LOAD_ERROR_INV_PNG;
 		}
 
-		number_of_passes = png_set_interlace_handling(png_ptr);
+        if (color_type == PNG_COLOR_TYPE_PALETTE)
+            png_set_expand(png_ptr);
+        if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+            png_set_expand(png_ptr);
+        if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+            png_set_expand(png_ptr);
+        if (color_type == PNG_COLOR_TYPE_GRAY ||
+            color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+            png_set_gray_to_rgb(png_ptr);
+		if(color_type == PNG_COLOR_TYPE_RGBA) // Swap RGBA to ARGB
+			png_set_swap_alpha(png_ptr);
+
 		png_read_update_info(png_ptr, info_ptr);
+
+        int rowbytes=png_get_rowbytes(png_ptr, info_ptr);
+        int channels=(int)png_get_channels(png_ptr, info_ptr);
+        if(channels<3 || channels>4) {
+			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+			if(loadtype == false)fclose(fp);
+			return IMG_LOAD_ERROR_PNG_FAIL;
+        }
 
 		// Read File
 		if(setjmp(png_jmpbuf(png_ptr))){
@@ -114,24 +132,13 @@ namespace wsp{
 			return IMG_LOAD_ERROR_PNG_FAIL;
 		}
 
-		// Some helper functions to allow more pngs
-		if(color_type == PNG_COLOR_TYPE_PALETTE)
-			png_set_palette_to_rgb(png_ptr);
-		if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-			png_set_gray_1_2_4_to_8(png_ptr);
-		if(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-			png_set_tRNS_to_alpha(png_ptr);
-
-		if(color_type == PNG_COLOR_TYPE_RGBA) // Swap RGBA to ARGB
-			png_set_swap_alpha(png_ptr);
-
 		row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * _height);
 		if(!row_pointers){
 			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 			return IMG_LOAD_ERROR_PNG_FAIL;
 		}
 		for(u32 y = 0; y<_height; y++)
-			row_pointers[y] = (png_byte*)malloc(info_ptr->rowbytes);
+			row_pointers[y] = (png_byte*)malloc(rowbytes);
 		
 		png_read_image(png_ptr, row_pointers);
 
@@ -141,7 +148,7 @@ namespace wsp{
 			free(_pixels); _pixels = NULL;
 
 		_pixels = (u8*)(memalign(32, _width*_height*4));
-		_ConvertTexture(color_type, row_pointers);
+		_ConvertTexture(color_type, channels, row_pointers);
 		
 		// Free up some memory
 		if(row_pointers){
@@ -217,11 +224,13 @@ namespace wsp{
 		DCFlushRange(_pixels, _width * _height * 4);
 	}
 
-	void Image::_ConvertTexture(png_byte color_type, png_bytep* row_pointers){
+	void Image::_ConvertTexture(png_byte color_type, int channels, png_bytep* row_pointers){
 		// THANKS DHEWG!! My first born is yours.
 		u8 *d = (u8*)(_pixels);
 		u8 *s = NULL;
-		if(color_type == PNG_COLOR_TYPE_RGBA){ // 32bit
+		if(color_type == PNG_COLOR_TYPE_RGBA ||
+          (color_type == PNG_COLOR_TYPE_PALETTE && channels==4) ||
+          (color_type == PNG_COLOR_TYPE_GRAY && channels==4)) { // 32bit
 			for (u32 y = 0; y < _height; y += 4) {
 				for (u32 x = 0; x < _width; x += 4) {
 					for (u32 r = 0; r < 4; ++r) {
@@ -240,7 +249,10 @@ namespace wsp{
 					}
 				}
 			}
-		}else if(color_type == PNG_COLOR_TYPE_RGB){ // 24bit
+		}else
+		if(color_type == PNG_COLOR_TYPE_RGB ||
+          (color_type == PNG_COLOR_TYPE_PALETTE && channels==3) ||
+          (color_type == PNG_COLOR_TYPE_GRAY && channels==3)) { // 24bit
 			for (u32 y = 0; y < _height; y += 4) {
 				for (u32 x = 0; x < _width; x += 4) {
 					for (u32 r = 0; r < 4; ++r) {

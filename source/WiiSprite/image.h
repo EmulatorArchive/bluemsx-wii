@@ -79,9 +79,9 @@ namespace wsp{
 
 			u8* _pixels; //!< Stores the pixeldata of this image. Use carefully.
 		private:
-			void _ConvertTexture(png_byte color_type, png_bytep* row_pointers);
+			void _ConvertTexture(png_byte color_type, int channels, png_bytep* row_pointers);
 			
-			u32 _width, _height;
+			png_uint_32 _width, _height;
 			bool _initialized;
 			GXTexObj _texObj;
 	};
