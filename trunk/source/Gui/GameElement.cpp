@@ -76,6 +76,14 @@ char* GameElement::GetScreenShot(int number)
     }
 }
 
+void GameElement::FreeImage(int number)
+{
+    if( image[number] ) {
+        delete image[number];
+        image[number] = NULL;
+    }
+}
+
 wsp::Image* GameElement::GetImage(int number)
 {
     if( image[number] == NULL ) {

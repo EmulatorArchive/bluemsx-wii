@@ -68,7 +68,7 @@ void GuiMenu::SetScreenShotImage(int index, Image *img)
     spr->SetStretchHeight(180.0f/img->GetHeight());
 }
 
-void GuiMenu::SetListIndex(int index)
+void GuiMenu::SetSelected(int index, int selected)
 {
     // Update game info
     for(int i = 0; i < NUM_LIST_ITEMS; i++) {
@@ -122,16 +122,21 @@ void GuiMenu::SetListIndex(int index)
         sprArrowDown.SetVisible(false);
         lower_index = NUM_LIST_ITEMS-1;
     }
-}
-
-void GuiMenu::SetSelected(int selected)
-{
+    // Update screenshots
     if( selected >= 0 ) {
         Sprite *selectedsprite = &titleTxtSprite[selected];
         sprSelector.SetPosition(selectedsprite->GetX(),selectedsprite->GetY());
         sprSelector.SetVisible(true);
         SetScreenShotImage(0, gameInfo[selected]->GetImage(0));
         SetScreenShotImage(1, gameInfo[selected]->GetImage(1));
+    }
+    // Free images of games that are not on the screen
+    for(int i = 0; i < games.GetNumberOfGames(); i++) {
+        GameElement *game = games.GetGame(i);
+        if( game != NULL && (i < index || i >= (index + NUM_LIST_ITEMS)) ) {
+            game->FreeImage(0);
+            game->FreeImage(1);
+        }
     }
 }
 
@@ -164,7 +169,6 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *dir, const char *file
     // Title list
     InitTitleList(&manager, g_fontArial, 24,
                   36, 32, 264+12, 36, 34);
-    SetListIndex(0);
 
     // Selector
 	sprSelector.SetImage(g_imgSelector);
@@ -177,7 +181,7 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *dir, const char *file
     // Screen shots (240x186)
 	sprScreenShot[0].SetPosition(344+12-8, 24+12);
 	sprScreenShot[1].SetPosition(344+12-8, 240+12+12);
-    SetSelected(0);
+    SetSelected(0, 0);
 	manager.Append(&sprScreenShot[0]);
 	manager.Append(&sprScreenShot[1]);
 
@@ -258,8 +262,7 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *dir, const char *file
                 }else{
                     if( index+current < num_games-1 ) {
                         index++;
-                        SetListIndex(index);
-                        SetSelected(selected);
+                        SetSelected(index, selected);
                     }
                 }
             }
@@ -271,14 +274,13 @@ GameElement* GuiMenu::DoModal(GameWindow *gwd, const char *dir, const char *file
                 }else{
                     if( index > 0 ) {
                         index--;
-                        SetListIndex(index);
-                        SetSelected(selected);
+                        SetSelected(index, selected);
                     }
                 }
             }
 		}
 		if( selected != current ) {
-            SetSelected(selected);
+            SetSelected(index, selected);
 #if RUMBLE
             if( selected >= 0 && !rumbeling ) {
                 time2rumble = ticks_to_millisecs(gettime());

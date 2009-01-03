@@ -40,8 +40,7 @@ private:
                        TextRender *fontArial, int fontsize,
                        int x, int y, int sx, int sy, int pitch);
     void SetScreenShotImage(int index, Image *img);
-    void SetListIndex(int index);
-    void SetSelected(int selected);
+    void SetSelected(int index, int selected);
 };
 
 #endif
