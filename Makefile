@@ -17,9 +17,9 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source/Resource source/Gui source/Expat source/Bios source/Board source/Debugger source/Emulator source/Input source/IoDevice source/Language source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80
+SOURCES		:=	source/Resource source/Gui source/Expat source/Bios source/Board source/Debugger source/Emulator source/Input source/IoDevice source/Language source/WiiSprite source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80
 DATA		:=	data
-INCLUDES	:=	souce source/Resource source/Gui source/Expat source/Arch source/Board source/Common source/Debugger source/Emulator source/Input source/IoDevice source/Language source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80 include/wiisprite include/libpng
+INCLUDES	:=	souce source/Resource source/Gui source/Expat source/Arch source/Board source/Common source/Debugger source/Emulator source/Input source/IoDevice source/Language source/WiiSprite source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80 include/libpng
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -35,7 +35,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 #LIBS	:=	-lwiiuse -lbte -logc -lm
 #LIBS	:=	-lfat -lwiiuse -lbte -logc -lm
-LIBS	:=	 -lfreetype -lwiisprite -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad -lbte 
+LIBS	:=	 -lfreetype -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad -lbte 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
