@@ -1,0 +1,112 @@
+<GameList>
+    <Game Title="A1-Spirit">
+        <CommandLine>A1Spirit-1</CommandLine>
+        <ScreenShot>A1Spirit-1.png</ScreenShot>
+        <ScreenShot>A1Spirit-2.png</ScreenShot>
+    </Game>
+    <Game Title="Dunkshot">
+        <CommandLine>Dunkshot-1</CommandLine>
+        <ScreenShot>Dunkshot-1.png</ScreenShot>
+        <ScreenShot>Dunkshot-2.png</ScreenShot>
+    </Game>
+    <Game Title="F1-Spirit">
+        <CommandLine>F1Spirit-1</CommandLine>
+        <ScreenShot>F1Spirit-1.png</ScreenShot>
+        <ScreenShot>F1Spirit-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hole In One">
+        <CommandLine>HoleInOne-1</CommandLine>
+        <ScreenShot>HoleInOne-1.png</ScreenShot>
+        <ScreenShot>HoleInOne-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hole In One Prof">
+        <CommandLine>HoleInOneProf-1</CommandLine>
+        <ScreenShot>HoleInOneProf-1.png</ScreenShot>
+        <ScreenShot>HoleInOneProf-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hyper Rally">
+        <CommandLine>HyperRally-1</CommandLine>
+        <ScreenShot>HyperRally-1.png</ScreenShot>
+        <ScreenShot>HyperRally-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hyper Sports 1">
+        <CommandLine>HyperSports1-1</CommandLine>
+        <ScreenShot>HyperSports1-1.png</ScreenShot>
+        <ScreenShot>HyperSports1-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hyper Sports 2">
+        <CommandLine>HyperSports2-1</CommandLine>
+        <ScreenShot>HyperSports2-1.png</ScreenShot>
+        <ScreenShot>HyperSports2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hyper Sports 3">
+        <CommandLine>HyperSports3-1</CommandLine>
+        <ScreenShot>HyperSports3-1.png</ScreenShot>
+        <ScreenShot>HyperSports3-2.png</ScreenShot>
+    </Game>
+    <Game Title="Konami Baseball">
+        <CommandLine>KonamiBaseball-1</CommandLine>
+        <ScreenShot>KonamiBaseball-1.png</ScreenShot>
+        <ScreenShot>KonamiBaseball-2.png</ScreenShot>
+    </Game>
+    <Game Title="Konami Boxing">
+        <CommandLine>KonamiBoxing-1</CommandLine>
+        <ScreenShot>KonamiBoxing-1.png</ScreenShot>
+        <ScreenShot>KonamiBoxing-2.png</ScreenShot>
+    </Game>
+    <Game Title="Konami Golf">
+        <CommandLine>KonamiGolf-1</CommandLine>
+        <ScreenShot>KonamiGolf-1.png</ScreenShot>
+        <ScreenShot>KonamiGolf-2.png</ScreenShot>
+    </Game>
+    <Game Title="Konami Soccer">
+        <CommandLine>KonamiSoccer-1</CommandLine>
+        <ScreenShot>KonamiSoccer-1.png</ScreenShot>
+        <ScreenShot>KonamiSoccer-2.png</ScreenShot>
+    </Game>
+    <Game Title="Konami Tennis">
+        <CommandLine>KonamiTennis-1</CommandLine>
+        <ScreenShot>KonamiTennis-1.png</ScreenShot>
+        <ScreenShot>KonamiTennis-2.png</ScreenShot>
+    </Game>
+    <Game Title="Lemans">
+        <CommandLine>Lemans-1</CommandLine>
+        <ScreenShot>Lemans-1.png</ScreenShot>
+        <ScreenShot>Lemans-2.png</ScreenShot>
+    </Game>
+    <Game Title="Mad Rider">
+        <CommandLine>MadRider-1</CommandLine>
+        <ScreenShot>MadRider-1.png</ScreenShot>
+        <ScreenShot>MadRider-2.png</ScreenShot>
+    </Game>
+    <Game Title="Outrun">
+        <CommandLine>Outrun-1</CommandLine>
+        <ScreenShot>Outrun-1.png</ScreenShot>
+        <ScreenShot>Outrun-2.png</ScreenShot>
+    </Game>
+    <Game Title="Ping Pong">
+        <CommandLine>PingPong-1</CommandLine>
+        <ScreenShot>PingPong-1.png</ScreenShot>
+        <ScreenShot>PingPong-2.png</ScreenShot>
+    </Game>
+    <Game Title="Road Fighter">
+        <CommandLine>RoadFighter-1</CommandLine>
+        <ScreenShot>RoadFighter-1.png</ScreenShot>
+        <ScreenShot>RoadFighter-2.png</ScreenShot>
+    </Game>
+    <Game Title="Roller Ball">
+        <CommandLine>RollerBall-1</CommandLine>
+        <ScreenShot>RollerBall-1.png</ScreenShot>
+        <ScreenShot>RollerBall-2.png</ScreenShot>
+    </Game>
+    <Game Title="Track En Field 1">
+        <CommandLine>TrackEnField1-1</CommandLine>
+        <ScreenShot>TrackEnField1-1.png</ScreenShot>
+        <ScreenShot>TrackEnField1-2.png</ScreenShot>
+    </Game>
+    <Game Title="Track En Field 2">
+        <CommandLine>TrackEnField2-1</CommandLine>
+        <ScreenShot>TrackEnField2-1.png</ScreenShot>
+        <ScreenShot>TrackEnField2-2.png</ScreenShot>
+    </Game>
+</GameList>

@@ -1,0 +1,47 @@
+ <GameList>
+    <Game Title="Ash Guine 2">
+        <CommandLine>AshGuine2-1</CommandLine>
+        <ScreenShot>AshGuine2-1.png</ScreenShot>
+        <ScreenShot>AshGuine2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Didaesh">
+        <CommandLine>Didaesh-1</CommandLine>
+        <ScreenShot>Didaesh-1.png</ScreenShot>
+        <ScreenShot>Didaesh-2.png</ScreenShot>
+    </Game>
+    <Game Title="Dragon Buster">
+        <CommandLine>DragonBuster-1</CommandLine>
+        <ScreenShot>DragonBuster-1.png</ScreenShot>
+        <ScreenShot>DragonBuster-2.png</ScreenShot>
+    </Game>
+    <Game Title="Heroes Of The Lance">
+        <CommandLine>HeroesOfTheLance-1</CommandLine>
+        <ScreenShot>HeroesOfTheLance-1.png</ScreenShot>
+        <ScreenShot>HeroesOfTheLance-2.png</ScreenShot>
+    </Game>
+    <Game Title="SD-Snatcher">
+        <CommandLine>SDSnatcher-1</CommandLine>
+        <ScreenShot>SDSnatcher-1.png</ScreenShot>
+        <ScreenShot>SDSnatcher-2.png</ScreenShot>
+    </Game>
+    <Game Title="Super Rambo Special">
+        <CommandLine>SuperRamboSpecial-1</CommandLine>
+        <ScreenShot>SuperRamboSpecial-1.png</ScreenShot>
+        <ScreenShot>SuperRamboSpecial-2.png</ScreenShot>
+    </Game>
+    <Game Title="The Return Of Ishtar">
+        <CommandLine>TheReturnOfIshtar-1</CommandLine>
+        <ScreenShot>TheReturnOfIshtar-1.png</ScreenShot>
+        <ScreenShot>TheReturnOfIshtar-2.png</ScreenShot>
+    </Game>
+    <Game Title="Xak3 The Tower of Gazzel">
+        <CommandLine>Xak3-1</CommandLine>
+        <ScreenShot>Xak3-1.png</ScreenShot>
+        <ScreenShot>Xak3-2.png</ScreenShot>
+    </Game>
+    <Game Title="Ys1 Ancient Vanished Omen">
+        <CommandLine>Ys1-1</CommandLine>
+        <ScreenShot>Ys1-1.png</ScreenShot>
+        <ScreenShot>Ys1-2.png</ScreenShot>
+    </Game>
+</GameList>
