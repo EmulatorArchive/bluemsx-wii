@@ -16,6 +16,7 @@ public:
     char *GetName();
     char *GetCommandLine();
     char *GetScreenShot(int number);
+    void FreeImage(int number);
     wsp::Image* GetImage(int number);
     GameElement *next;
 private:
