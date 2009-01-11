@@ -1,9 +1,9 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Z80/R800Debug.c,v $
 **
-** $Revision: 1.4 $
+** $Revision: 1.9 $
 **
-** $Date: 2006/06/18 07:55:10 $
+** $Date: 2008/04/18 04:09:54 $
 **
 ** Author: Daniel Vik
 **
@@ -11,24 +11,21 @@
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2005 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
-**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -43,6 +40,7 @@
 
 
 extern void debuggerTrace(const char* str);
+extern void archTrap(UInt8 value);
 
 struct R800Debug {
     int debugHandle;
@@ -56,6 +54,7 @@ static void getDebugInfo(R800Debug* dbg, DbgDevice* dbgDevice)
 {
     static UInt8 mappedRAM[0x10000];
     DbgRegisterBank* regBank;
+    int freqAdjust;
     int i;
 
     for (i = 0; i < 0x10000; i++) {
@@ -76,7 +75,7 @@ static void getDebugInfo(R800Debug* dbg, DbgDevice* dbgDevice)
         dbgDeviceAddCallstack(dbgDevice, langDbgCallstack(), dbg->r800->callstack, dbg->r800->callstackSize);
     }
 
-    regBank = dbgDeviceAddRegisterBank(dbgDevice, langDbgRegsCpu(), 17);
+    regBank = dbgDeviceAddRegisterBank(dbgDevice, langDbgRegsCpu(), 20);
 
     dbgRegisterBankAddRegister(regBank,  0, "AF",  16, dbg->r800->regs.AF.W);
     dbgRegisterBankAddRegister(regBank,  1, "BC",  16, dbg->r800->regs.BC.W);
@@ -95,6 +94,20 @@ static void getDebugInfo(R800Debug* dbg, DbgDevice* dbgDevice)
     dbgRegisterBankAddRegister(regBank, 14, "IM",  8,  dbg->r800->regs.im);
     dbgRegisterBankAddRegister(regBank, 15, "IFF1",8,  dbg->r800->regs.iff1);
     dbgRegisterBankAddRegister(regBank, 16, "IFF2",8,  dbg->r800->regs.iff2);
+    
+    switch (dbg->r800->cpuMode) {
+    default:
+    case CPU_Z80:
+        freqAdjust = R800_MASTER_FREQUENCY / (dbg->r800->frequencyZ80 - 1);
+        break;
+    case CPU_R800:
+        freqAdjust = R800_MASTER_FREQUENCY / (dbg->r800->frequencyR800 - 1);
+        break;
+    }
+
+    dbgRegisterBankAddRegister(regBank, 17, "CLKH",16,  (UInt16)(dbg->r800->systemTime / freqAdjust / 0x10000));
+    dbgRegisterBankAddRegister(regBank, 18, "CLKL",16,  (UInt16)(dbg->r800->systemTime / freqAdjust));
+    dbgRegisterBankAddRegister(regBank, 19, "CNT",16,  (UInt16)dbg->r800->instCnt);
 }
 
 
@@ -163,6 +176,11 @@ static void debugCb(R800Debug* dbg, int command, const char* data)
     }
 }
 
+void trapCb(R800* r800, UInt8 value)
+{
+    archTrap(value);
+}
+
 void r800DebugCreate(R800* r800)
 {
     DebugCallbacks dbgCallbacks = { getDebugInfo, dbgWriteMemory, dbgWriteRegister, NULL };
@@ -173,6 +191,7 @@ void r800DebugCreate(R800* r800)
 
     r800->debugCb      = debugCb;
     r800->breakpointCb = breakpointCb;
+    r800->trapCb       = trapCb;
 }
 
 void r800DebugDestroy()

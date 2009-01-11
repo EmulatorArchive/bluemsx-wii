@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Board/SVI.c,v $
 **
-** $Revision: 1.55 $
+** $Revision: 1.63 $
 **
-** $Date: 2006/06/17 21:43:22 $
+** $Date: 2008/04/18 04:09:54 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik, Tomas Karlsson
+** Copyright (C) 2003-2006 Daniel Vik, Tomas Karlsson
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -59,6 +57,7 @@ static R800*           r800;
 static SviJoyIo*       joyIO;
 static UInt8           KeyboardMap[16];
 static UInt32          sviRamSize;
+static UInt32          sviRamStart;
 static UInt8*          sviRam;
 static UInt8           psgAYReg15;
 static int             svi80ColEnabled;
@@ -73,7 +72,7 @@ static void sviMemWrite(void* ref, UInt16 address, UInt8 value)
         svi80colMemWrite(address & 0xfff, value);
     }
     else
-        slotWrite(&ref, address, value);
+        slotWrite(ref, address, value);
 }
 
 static UInt8 sviMemRead(void* ref, UInt16 address)
@@ -81,7 +80,7 @@ static UInt8 sviMemRead(void* ref, UInt16 address)
     if ((svi80ColEnabled && svi80colMemBankCtrlStatus()) && (address & 0xf800) == 0xf000) 
         return svi80colMemRead(address & 0xfff);
     else
-        return slotRead(&ref, address);
+        return slotRead(ref, address);
 }
 
 /*
@@ -148,7 +147,7 @@ static UInt8 sviPsgReadHandler(void* arg, UInt16 address)
 
     switch (address) {
         case 0:
-            value = sviJoyIoRead(joyIO);
+            value = boardCaptureUInt8(17, sviJoyIoRead(joyIO));
             lastJoystickValue = value;
             break;
         case 1:
@@ -290,7 +289,7 @@ int sviCreate(Machine* machine,
     int success;
     int i;
 
-    r800 = r800Create(0, sviMemRead, sviMemWrite, ioPortRead, ioPortWrite, PatchZ80, boardTimerCheckTimeout, NULL, NULL, NULL);
+    r800 = r800Create(0, sviMemRead, sviMemWrite, ioPortRead, ioPortWrite, PatchZ80, boardTimerCheckTimeout, NULL, NULL, NULL, NULL);
 
     boardInfo->cartridgeCount   = 1;
     boardInfo->diskdriveCount   = 2;
@@ -311,6 +310,7 @@ int sviCreate(Machine* machine,
     boardInfo->setCpuTimeout    = r800SetTimeoutAt;
     boardInfo->setBreakpoint    = r800SetBreakpoint;
     boardInfo->clearBreakpoint  = r800ClearBreakpoint;
+    boardInfo->setDataBus       = r800SetDataBus;
 
     deviceManagerCreate();
     boardInit(&r800->systemTime);
@@ -343,7 +343,7 @@ int sviCreate(Machine* machine,
         cartridgeSetSlotInfo(i, machine->cart[i].slot, 0);
     }
 
-    success = machineInitialize(machine, &sviRam, &sviRamSize);
+    success = machineInitialize(machine, &sviRam, &sviRamSize, &sviRamStart);
     success &= sviLoad80Col(machine, vdpSyncMode);
 
     for (i = 0; i < 8; i++) {

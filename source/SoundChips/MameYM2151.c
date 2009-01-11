@@ -9,7 +9,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "ArchSound.h"
 #include "MameYM2151.h"
 #include "SaveState.h"
 
@@ -935,8 +934,8 @@ void YM2151WriteReg(MameYm2151 *chip, int r, int v)
                 if ((chip->status & 3) == 0) ym2151Irq(chip->ref, 0);
 			}
 
-			ym2151TimerStart(chip->ref, 0, v & 1);
-			ym2151TimerStart(chip->ref, 1, v & 2);
+			ym2151TimerStart(chip->ref, 0, v & 4);
+			ym2151TimerStart(chip->ref, 1, v & 8);
 			break;
 
 		case 0x18:	/* LFO frequency */
@@ -1144,7 +1143,11 @@ MameYm2151* YM2151Create(void* ref, int clock, int rate)
 
 	chip->clock = clock;
 	/*rate = clock/64;*/
-	chip->sampfreq = rate ? rate : SAMPLERATE;	/* avoid division by 0 in init_chip_tables() */
+#ifdef WII
+	chip->sampfreq = rate ? rate : 48000;	/* avoid division by 0 in init_chip_tables() */
+#else
+	chip->sampfreq = rate ? rate : 44100;	/* avoid division by 0 in init_chip_tables() */
+#endif
 	init_chip_tables(chip);
 
 	chip->lfo_timer_add = (UInt32)((1<<LFO_SH) * (clock/64.0) / chip->sampfreq);

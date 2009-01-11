@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/IoDevice/MSXMidi.c,v $
 **
-** $Revision: 1.9 $
+** $Revision: 1.11 $
 **
-** $Date: 2006/06/14 19:59:52 $
+** $Date: 2007/03/21 22:27:42 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2005 Daniel Vik, Tomas Karlsson, Johan van Leur
+** Copyright (C) 2003-2006 Daniel Vik, Tomas Karlsson, Johan van Leur
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -267,7 +265,7 @@ static int transmit(MSXMidi* msxMidi, UInt8 value)
     return 1;
 }
 
-static int signal(MSXMidi* msxMidi)
+static int signal8251(MSXMidi* msxMidi)
 {
     return 0;
 }
@@ -369,7 +367,7 @@ int MSXMidiCreate()
     msxMidi->debugHandle = debugDeviceRegister(DBGTYPE_AUDIO, langDbgDevMsxMidi(), &dbgCallbacks, msxMidi);
 
     msxMidi->i8254 = i8254Create(4000000, pitOut0, pitOut1, pitOut2, msxMidi);
-    msxMidi->i8251 = i8251Create(transmit, signal, setDataBits, setStopBits, setParity, 
+    msxMidi->i8251 = i8251Create(transmit, signal8251, setDataBits, setStopBits, setParity, 
                                  setRxReady, setDtr, setRts, getDtr, getRts, msxMidi);
 
     ioPortRegister(0xe8, readIo, writeIo, msxMidi);

@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/SoundChips/AY8910.c,v $
 **
-** $Revision: 1.19 $
+** $Revision: 1.26 $
 **
-** $Date: 2006/06/14 19:59:52 $
+** $Date: 2008/11/23 20:26:12 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -42,7 +40,6 @@
 #else
 #define BASE_PHASE_STEP 0x28959becUL  /* = (1 << 28) * 3579545 / 32 / 44100 */
 #endif
-#define BUFFER_SIZE     10000
 
 static Int16 voltTable[16];
 static Int16 voltEnvTable[32];
@@ -87,7 +84,7 @@ struct AY8910 {
     Int32  oldSampleVolume;
     Int32  daVolume;
 
-    Int32  buffer[BUFFER_SIZE];
+    Int32  buffer[AUDIO_MONO_BUFFER_SIZE];
 };
 
 void ay8910LoadState(AY8910* ay8910)
@@ -215,7 +212,7 @@ AY8910* ay8910Create(Mixer* mixer, Ay8910Connector connector, PsgType type)
     int i;
 
     double v = 0x26a9;
-    for (i = 15; i > 0; i--) {
+    for (i = 15; i >= 0; i--) {
         voltTable[i] = (Int16)v;
         voltEnvTable[2 * i + 0] = (Int16)v;
         voltEnvTable[2 * i + 1] = (Int16)v;
@@ -224,14 +221,18 @@ AY8910* ay8910Create(Mixer* mixer, Ay8910Connector connector, PsgType type)
 
     if ( type == PSGTYPE_YM2149) {
         double v = 0x26a9;
-        for (i = 31; i > 0; i--) {
+        for (i = 31; i >= 0; i--) {
             voltEnvTable[i] = (Int16)v;
             v *= 0.84139514164519509115274189380029;
         }
     }
 
-    voltTable[0] = 0;
-    voltEnvTable[0] = 0;
+    for (i = 0; i < 16; i++) {
+        voltTable[i] -= voltTable[0];
+    }
+    for (i = 0; i < 32; i++) {
+        voltEnvTable[i] -= voltEnvTable[0];
+    }
 
     ay8910->mixer = mixer;
     ay8910->connector = connector;
@@ -315,19 +316,22 @@ void ay8910WriteAddress(AY8910* ay8910, UInt16 ioPort, UInt8 address)
 UInt8 ay8910PeekData(AY8910* ay8910, UInt16 ioPort)
 {
     UInt8  address = ay8910->address;
+    UInt8  value = ay8910->regs[address];
 
     if (address >= 14) {
         int port = address - 14;
         if (ay8910->ioPortPollCb != NULL){// && !(ay8910->regs[7] & (1 << (port + 6)))) {
-            ay8910->regs[address] = ay8910->ioPortPollCb(ay8910->ioPortArg, port);
+            value = ay8910->ioPortPollCb(ay8910->ioPortArg, port);
         }
     }
-    return ay8910->regs[address];
+    return value;
 }
 
 UInt8 ay8910ReadData(AY8910* ay8910, UInt16 ioPort)
 {
     UInt8  address = ay8910->address;
+
+//    if (address > 15) printf("TADA!!\n");
 
     if (address >= 14) {
         int port = address - 14;
@@ -360,12 +364,12 @@ static void updateRegister(AY8910* ay8910, UInt8 regIndex, UInt8 data)
     case 5:
         period = ay8910->regs[regIndex & 6] | ((Int32)(ay8910->regs[regIndex | 1]) << 8);
 //        period *= (~ay8910->enable >> (address >> 1)) & 1;
-        ay8910->toneStep[regIndex >> 1] = period > 4 ? BASE_PHASE_STEP / period : 1 << 31;
+        ay8910->toneStep[regIndex >> 1] = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
         break;
         
     case 6:
         period = data ? data : 1;
-        ay8910->noiseStep = period > 3 ? BASE_PHASE_STEP / period : 1 << 31;
+        ay8910->noiseStep = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
         break;
         
     case 7:
@@ -400,8 +404,23 @@ static void updateRegister(AY8910* ay8910, UInt8 regIndex, UInt8 data)
     }
 }
 
+#if 1
+extern int framecounter;
+int   curFramecounter = 0;
+#endif
+
 void ay8910WriteData(AY8910* ay8910, UInt16 ioPort, UInt8 data)
 {
+#if 0
+    if (ay8910->address < 2 || ay8910->address == 8) {
+        if (framecounter > curFramecounter) {
+            int delta = framecounter - curFramecounter;
+            printf("    dw  $10%.2x     ; Delay %d frames\n", delta, delta);
+            curFramecounter = framecounter;
+        }
+        printf("    dw  $%.2x%.2x\n", ay8910->address, data);
+    }
+#endif
     updateRegister(ay8910, ay8910->address, data);
 }
 

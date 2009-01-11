@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Emulator/LaunchFile.c,v $
 **
-** $Revision: 1.19 $
+** $Revision: 1.29 $
 **
-** $Date: 2006/06/13 17:13:27 $
+** $Date: 2008/10/26 19:48:18 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -36,12 +34,18 @@
 #include "Board.h"
 #include "ArchFile.h"
 #include "Disk.h"
+#include "Casette.h"
 #include "ArchDialog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "ArchDialog.h"
+
+
+// PacketFileSystem.h Need to be included after all other includes
+#include "PacketFileSystem.h"
+
 
 void archUpdateMenu(int show);
 
@@ -80,7 +84,7 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
             char* fileListCol = zipGetFileList(filename, ".col", &countCol);
             char* fileListSg  = zipGetFileList(filename, ".sg",  &countSg);
             char* fileListSc  = zipGetFileList(filename, ".sc",  &countSc);
-            int count = countRom + countRi + countMx1 + countMx2 + countCol + countSg;
+            int count = countRom + countRi + countMx1 + countMx2 + countCol + countSg + countSc;
             int sizeRom = 0;
             int sizeRi  = 0;
             int sizeMx1 = 0;
@@ -111,7 +115,7 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
                 sizeSc += strlen(fileListSc + sizeSc) + 1;
             }
 
-            fileList = malloc(sizeRom + sizeMx1 + sizeMx2 + sizeCol + sizeSg);
+            fileList = malloc(sizeRom + sizeMx1 + sizeMx2 + sizeCol + sizeSg + sizeSc);
             memcpy(fileList, fileListRom, sizeRom);
             memcpy(fileList + sizeRom, fileListMx1, sizeMx1);
             memcpy(fileList + sizeRom + sizeMx1, fileListMx2, sizeMx2);
@@ -166,7 +170,7 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
             }
 
             if (romType == ROM_UNKNOWN) {
-                romType = chkRomType;
+//                romType = chkRomType;
             }
         }
     }
@@ -177,12 +181,14 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
               0 == strcmp(CARTNAME_SCCEXPANDED, filename) ? ROM_SCCEXTENDED :
               0 == strcmp(CARTNAME_SCC,         filename) ? ROM_SCC :
               0 == strcmp(CARTNAME_SCCPLUS,     filename) ? ROM_SCCPLUS :
+              0 == strcmp(CARTNAME_JOYREXPSG,   filename) ? ROM_JOYREXPSG :
               0 == strcmp(CARTNAME_FMPAC,       filename) ? ROM_FMPAC :
               0 == strcmp(CARTNAME_PAC,         filename) ? ROM_PAC :
               0 == strcmp(CARTNAME_GAMEREADER,  filename) ? ROM_GAMEREADER :
               0 == strcmp(CARTNAME_SUNRISEIDE,  filename) ? ROM_SUNRISEIDE :
               0 == strcmp(CARTNAME_GIDE,        filename) ? ROM_GIDE :
               0 == strcmp(CARTNAME_BEERIDE,     filename) ? ROM_BEERIDE :
+              0 == strcmp(CARTNAME_GOUDASCSI,   filename) ? ROM_GOUDASCSI :
               0 == strcmp(CARTNAME_SONYHBI55,   filename) ? ROM_SONYHBI55 :
               0 == strcmp(CARTNAME_EXTRAM512KB, filename) ? ROM_EXTRAM512KB :
               0 == strcmp(CARTNAME_EXTRAM1MB,   filename) ? ROM_EXTRAM1MB :
@@ -193,23 +199,43 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
               0 == strcmp(CARTNAME_MEGARAM512,  filename) ? ROM_MEGARAM512 :
               0 == strcmp(CARTNAME_MEGARAM768,  filename) ? ROM_MEGARAM768 :
               0 == strcmp(CARTNAME_MEGARAM2M,   filename) ? ROM_MEGARAM2M  :
+              0 == strcmp(CARTNAME_MEGASCSI128, filename) ? SRAM_MEGASCSI128 :
+              0 == strcmp(CARTNAME_MEGASCSI256, filename) ? SRAM_MEGASCSI256 :
+              0 == strcmp(CARTNAME_MEGASCSI512, filename) ? SRAM_MEGASCSI512 :
+              0 == strcmp(CARTNAME_MEGASCSI1MB, filename) ? SRAM_MEGASCSI1MB :
+              0 == strcmp(CARTNAME_ESERAM128,   filename) ? SRAM_ESERAM128 :
+              0 == strcmp(CARTNAME_ESERAM256,   filename) ? SRAM_ESERAM256 :
+              0 == strcmp(CARTNAME_ESERAM512,   filename) ? SRAM_ESERAM512 :
+              0 == strcmp(CARTNAME_ESERAM1MB,   filename) ? SRAM_ESERAM1MB :
+              0 == strcmp(CARTNAME_MEGAFLSHSCC, filename) ? ROM_MEGAFLSHSCC :
+              0 == strcmp(CARTNAME_WAVESCSI128, filename) ? SRAM_WAVESCSI128 :
+              0 == strcmp(CARTNAME_WAVESCSI256, filename) ? SRAM_WAVESCSI256 :
+              0 == strcmp(CARTNAME_WAVESCSI512, filename) ? SRAM_WAVESCSI512 :
+              0 == strcmp(CARTNAME_WAVESCSI1MB, filename) ? SRAM_WAVESCSI1MB :
+              0 == strcmp(CARTNAME_ESESCC128,   filename) ? SRAM_ESESCC128 :
+              0 == strcmp(CARTNAME_ESESCC256,   filename) ? SRAM_ESESCC256 :
+              0 == strcmp(CARTNAME_ESESCC512,   filename) ? SRAM_ESESCC512 :
               romType;
 
     if (drive == 0) {
         strcpy(properties->media.carts[0].fileName, filename);
         strcpy(properties->media.carts[0].fileNameInZip, romName);
         properties->media.carts[0].type = romType;
+#ifndef NO_FILE_HISTORY
         updateFileHistory(*properties->filehistory.cartridge[0], 
                           properties->filehistory.cartridgeType[0], 
                           filename, romType);
+#endif
     }
     else {
         strcpy(properties->media.carts[1].fileName, filename);
         strcpy(properties->media.carts[1].fileNameInZip, romName);
         properties->media.carts[1].type = romType;
+#ifndef NO_FILE_HISTORY
         updateFileHistory(*properties->filehistory.cartridge[1], 
                           properties->filehistory.cartridgeType[1], 
                           filename, romType);
+#endif
     }
 
     if (autostart && !noautostart) {
@@ -254,17 +280,20 @@ int insertDiskette(Properties* properties, int drive, const char* fname, const c
             int countDi2;
             int count360;
             int count720;
+            int countSf7;
             char* fileListDsk = zipGetFileList(filename, ".dsk", &countDsk);
             char* fileListDi1 = zipGetFileList(filename, ".di1", &countDi1);
             char* fileListDi2 = zipGetFileList(filename, ".di2", &countDi2);
             char* fileList360 = zipGetFileList(filename, ".360", &count360);
             char* fileList720 = zipGetFileList(filename, ".720", &count720);
-            int count = countDsk + countDi1 + countDi2 + count360 + count720;
+            char* fileListSf7 = zipGetFileList(filename, ".Sf7", &countSf7);
+            int count = countDsk + countDi1 + countDi2 + count360 + count720 + countSf7;
             int sizeDsk = 0;
             int sizeDi1 = 0;
             int sizeDi2 = 0;
             int size360 = 0;
             int size720 = 0;
+            int sizeSf7 = 0;
 
             for (i = 0; i < countDsk; i++) {
                 sizeDsk += strlen(fileListDsk + sizeDsk) + 1;
@@ -279,15 +308,19 @@ int insertDiskette(Properties* properties, int drive, const char* fname, const c
                 sizeDi2 += strlen(fileList360 + size360) + 1;
             }
             for (i = 0; i < count720; i++) {
-                sizeDi2 += strlen(fileList720 + size720) + 1;
+                size720 += strlen(fileList720 + size720) + 1;
+            }
+            for (i = 0; i < countSf7; i++) {
+                sizeSf7 += strlen(fileListSf7 + sizeSf7) + 1;
             }
 
-            fileList = malloc(sizeDsk + sizeDi1 + sizeDi2 + size360 + size720);
+            fileList = malloc(sizeDsk + sizeDi1 + sizeDi2 + size360 + size720 + sizeSf7);
             memcpy(fileList, fileListDsk, sizeDsk);
             memcpy(fileList + sizeDsk, fileListDi1, sizeDi1);
             memcpy(fileList + sizeDsk + sizeDi1, fileListDi2, sizeDi2);
             memcpy(fileList + sizeDsk + sizeDi1 + sizeDi2, fileList360, size360);
             memcpy(fileList + sizeDsk + sizeDi1 + sizeDi2 + size360, fileList720, size720);
+            memcpy(fileList + sizeDsk + sizeDi1 + sizeDi2 + size360 + size720, fileListSf7, sizeSf7);
 
             if (count == 0) {
                 archShowNoDiskInZipDialog();
@@ -311,6 +344,7 @@ int insertDiskette(Properties* properties, int drive, const char* fname, const c
             if(fileListDi2) free(fileListDi2);
             if(fileList360) free(fileList360);
             if(fileList720) free(fileList720);
+            if(fileListSf7) free(fileListSf7);
             free(fileList);
         }
     }
@@ -318,9 +352,11 @@ int insertDiskette(Properties* properties, int drive, const char* fname, const c
     strcpy(properties->media.disks[drive].fileName, filename);
     strcpy(properties->media.disks[drive].fileNameInZip, diskName);
     updateExtendedDiskName(drive, properties->media.disks[drive].fileName, properties->media.disks[drive].fileNameInZip);
+#ifndef NO_FILE_HISTORY
     if (drive < 2) {
         updateFileHistory(*properties->filehistory.diskdrive[drive], NULL, filename, 0);
     }
+#endif
 
     if (autostart && !noautostart) {
         emulatorStop();
@@ -375,7 +411,9 @@ int insertCassette(Properties* properties, int drive, const char* fname, const c
     strcpy(properties->media.tapes[0].fileName, filename);
     strcpy(properties->media.tapes[0].fileNameInZip, tapeName);
     updateExtendedCasName(0, properties->media.tapes[0].fileName, properties->media.tapes[0].fileNameInZip);
+#ifndef NO_FILE_HISTORY
     updateFileHistory(*properties->filehistory.cassette[0], NULL, filename, 0);
+#endif
 
     if (autostart && !noautostart) {
         emulatorStart(NULL);
@@ -396,6 +434,7 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
     int countDi2;
     int count360;
     int count720;
+    int countSf7;
     int countRox;
     int countRi;
     int countMx1;
@@ -411,6 +450,7 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
     char* fileListDi2 = zipGetFileList(fname, ".di2", &countDi2);
     char* fileList360 = zipGetFileList(fname, ".360", &count360);
     char* fileList720 = zipGetFileList(fname, ".720", &count720);
+    char* fileListSf7 = zipGetFileList(fname, ".sf7", &countSf7);
     char* fileListRox = zipGetFileList(fname, ".rom", &countRox);
     char* fileListRi  = zipGetFileList(fname, ".ri",  &countRi);
     char* fileListMx1 = zipGetFileList(fname, ".mx1", &countMx1);
@@ -420,7 +460,7 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
     char* fileListSc  = zipGetFileList(fname, ".sc",  &countSc);
     char* fileListCas = zipGetFileList(fname, ".cas", &countCas);
     int countRom = countRox + countRi + countMx1 + countMx2 + countCol + countSg + countSc;
-    int countDsk = countDsx + countDi1 + countDi2 + count360 + count720;
+    int countDsk = countDsx + countDi1 + countDi2 + count360 + count720 + countSf7;
     char* fileList;
     int sizeDsk = 0;
     int sizeDsx = 0;
@@ -428,6 +468,7 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
     int sizeDi2 = 0;
     int size360 = 0;
     int size720 = 0;
+    int sizeSf7 = 0;
     int sizeRox = 0;
     int sizeRi  = 0;
     int sizeRom = 0;
@@ -457,7 +498,10 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
         sizeDi2 += strlen(fileList360 + size360) + 1;
     }
     for (i = 0; i < count720; i++) {
-        sizeDi2 += strlen(fileList720 + size720) + 1;
+        size720 += strlen(fileList720 + size720) + 1;
+    }
+    for (i = 0; i < countSf7; i++) {
+        sizeSf7 += strlen(fileListSf7 + sizeSf7) + 1;
     }
 
     if (countDsk > 0) {
@@ -467,6 +511,7 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
         memcpy(fileListDsk + sizeDsx + sizeDi1, fileListDi2, sizeDi2);
         memcpy(fileListDsk + sizeDsx + sizeDi1 + sizeDi2, fileList360, size360);
         memcpy(fileListDsk + sizeDsx + sizeDi1 + sizeDi2 + size360, fileList720, size720);
+        memcpy(fileListDsk + sizeDsx + sizeDi1 + sizeDi2 + size360 + size720, fileListSf7, sizeSf7);
     }
 
     // Then merge different dsk formats into one list
@@ -487,6 +532,9 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
     }
     for (i = 0; i < countSg; i++) {
         sizeSg += strlen(fileListSg + sizeSg) + 1;
+    }
+    for (i = 0; i < countSc; i++) {
+        sizeSc += strlen(fileListSc + sizeSc) + 1;
     }
 
     if (countRom > 0) {
@@ -549,7 +597,9 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
         }
         else if (isFileExtension(filename, ".dsk") || 
                 isFileExtension(filename, ".di1") || isFileExtension(filename, ".di2") || 
-                isFileExtension(filename, ".360") || isFileExtension(filename, ".720")) {
+                isFileExtension(filename, ".360") || isFileExtension(filename, ".720") || 
+                isFileExtension(filename, ".sf7")) 
+        {
             success = insertDiskette(properties, drive, fname, filename, autostart);
         }
         else if (isFileExtension(filename, ".cas")) {
@@ -562,6 +612,7 @@ static int insertDisketteOrCartridge(Properties* properties, int drive, const ch
     if(fileListDi2) free(fileListDi2);
     if(fileList360) free(fileList360);
     if(fileList720) free(fileList720);
+    if(fileListSf7) free(fileListSf7);
     if(fileListRom) free(fileListRom);
     if(fileListRox) free(fileListRox);
     if(fileListRi)  free(fileListRi);
@@ -594,7 +645,8 @@ int tryLaunchUnknownFile(Properties* properties, const char* fileName, int force
     }
     else if (isFileExtension(fileName, ".dsk") || 
              isFileExtension(fileName, ".di1") || isFileExtension(fileName, ".di2") || 
-             isFileExtension(fileName, ".360") || isFileExtension(fileName, ".720")) 
+             isFileExtension(fileName, ".360") || isFileExtension(fileName, ".720") || 
+             isFileExtension(fileName, ".sf7")) 
     {
         int drive = properties->diskdrive.quickStartDrive;
         FILE* f = fopen(fileName, "rb");
@@ -609,6 +661,7 @@ int tryLaunchUnknownFile(Properties* properties, const char* fileName, int force
         rv = insertDiskette(properties, drive, fileName, NULL, forceAutostart);
     }
     else if (isFileExtension(fileName, ".cas")) {
+        if (properties->cassette.rewindAfterInsert) tapeRewindNextInsert();
         rv = insertCassette(properties, 0, fileName, NULL, forceAutostart);
     }
     else if (isFileExtension(fileName, ".zip")) {

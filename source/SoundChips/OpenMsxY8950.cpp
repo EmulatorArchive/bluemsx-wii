@@ -1,4 +1,4 @@
-// $Id: OpenMsxY8950.cpp,v 1.3 2005/09/24 00:09:50 dvik Exp $
+// $Id: OpenMsxY8950.cpp,v 1.6 2008/03/31 22:07:05 hap-hap Exp $
 
 /*
   * Based on:
@@ -28,7 +28,7 @@ unsigned int Y8950::Slot::dphaseDRTable[16][16];
 unsigned int Y8950::Slot::dphaseTable[1024][8][16];
 
 
-extern "C" unsigned long boardSystemTime();
+extern "C" UInt32 boardSystemTime();
 extern "C" int switchGetAudio();
 
 //**************************************************//
@@ -519,6 +519,7 @@ void Y8950::reset(const EmuTime &time)
 		reg[i] = 0x00;
 
 	reg[0x04] = 0x18;
+	reg[0x19] = 0x0F; // fixes 'Thunderbirds are Go'
 	status = 0x00;
 	statusMask = 0;
 	irq.reset();

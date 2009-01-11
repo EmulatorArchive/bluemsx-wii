@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Emulator/Properties.h,v $
 **
-** $Revision: 1.53 $
+** $Revision: 1.75 $
 **
-** $Date: 2006/07/04 07:49:03 $
+** $Date: 2008/10/26 19:48:18 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -34,7 +32,7 @@
 #include "VideoRender.h"
 #include "MediaDb.h"
 
-#define PROP_MAX_DISKS  32
+#define PROP_MAX_DISKS  34
 #define PROP_MAX_CARTS  2
 #define PROP_MAX_TAPES  1
 
@@ -45,7 +43,7 @@
 #define CARTNAME_SCCMIRRORED "SCC Mirrored Cartridge"
 #define CARTNAME_SCCEXPANDED "SCC Expanded Cartridge"
 #define CARTNAME_SCC         "SCC Cartridge"
-#define CARTNAME_SCCPLUS     "SCC+ Cartridge"
+#define CARTNAME_SCCPLUS     "SCC-I Cartridge"
 #define CARTNAME_FMPAC       "FM-PAC Cartridge"
 #define CARTNAME_PAC         "PAC Cartridge"
 #define CARTNAME_SONYHBI55   "Sony HBI-55"
@@ -62,7 +60,24 @@
 #define CARTNAME_SUNRISEIDE  "Sunrise IDE"
 #define CARTNAME_BEERIDE     "Beer IDE"
 #define CARTNAME_GIDE        "GIDE"
-
+#define CARTNAME_GOUDASCSI   "Gouda SCSI"
+#define CARTNAME_JOYREXPSG   "Joyrex PSG"
+#define CARTNAME_MEGASCSI128 "128kB MEGA-SCSI"
+#define CARTNAME_MEGASCSI256 "256kB MEGA-SCSI"
+#define CARTNAME_MEGASCSI512 "512kB MEGA-SCSI"
+#define CARTNAME_MEGASCSI1MB "1MB MEGA-SCSI"
+#define CARTNAME_ESERAM128   "128kB Ese-RAM"
+#define CARTNAME_ESERAM256   "256kB Ese-RAM"
+#define CARTNAME_ESERAM512   "512kB Ese-RAM"
+#define CARTNAME_ESERAM1MB   "1MB Ese-RAM"
+#define CARTNAME_MEGAFLSHSCC "MegaFlashRomScc"
+#define CARTNAME_WAVESCSI128 "128kB WAVE-SCSI"
+#define CARTNAME_WAVESCSI256 "256kB WAVE-SCSI"
+#define CARTNAME_WAVESCSI512 "512kB WAVE-SCSI"
+#define CARTNAME_WAVESCSI1MB "1MB WAVE-SCSI"
+#define CARTNAME_ESESCC128   "128kB Ese-SCC"
+#define CARTNAME_ESESCC256   "256kB Ese-SCC"
+#define CARTNAME_ESESCC512   "512kB Ese-SCC"
 
 typedef enum { 
     PROP_EMULATION = 0, 
@@ -70,6 +85,7 @@ typedef enum {
     PROP_SOUND, 
     PROP_PERFORMANCE, 
     PROP_SETTINGS, 
+    PROP_DISK,
     PROP_APEARANCE, 
     PROP_PORTS 
 } PropPage;
@@ -103,15 +119,17 @@ enum {
 enum { 
     P_LPT_RAW, 
     P_LPT_MSXPRN, 
+    P_LPT_SVIPRN, 
     P_LPT_EPSONFX80 
 };
 
 enum { 
+    P_EMU_SYNCIGNORE = -1, 
     P_EMU_SYNCNONE = 0, 
     P_EMU_SYNCAUTO, 
     P_EMU_SYNCFRAMES, 
     P_EMU_SYNCTOVBLANK, 
-    P_EMU_SYNCTOVBLANKASYNC 
+    P_EMU_SYNCTOVBLANKASYNC,
 };
 
 enum { 
@@ -170,6 +188,11 @@ enum {
     P_VIDEO_DRVSDL
 };
 
+enum {
+    P_CDROM_DRVNONE = 0,
+    P_CDROM_DRVIOCTL,
+    P_CDROM_DRVASPI
+};
 
 #define MAX_HISTORY 30
 
@@ -182,6 +205,7 @@ typedef struct {
     int  audioSwitch;
     int  pauseSwitch;
     int  speed;
+    int  ejectMediaOnExit;
     int  registerFileTypes;
     int  disableWinKeys;
     int  priorityBoost;
@@ -193,6 +217,8 @@ typedef struct {
     int monitorColor;
     int monitorType;
     int windowSize;
+    int windowSizeInitial;
+    int windowSizeChanged;
     int windowX;
     int windowY;
     int driver;
@@ -202,6 +228,7 @@ typedef struct {
         int height;
         int bitDepth;
     } fullscreen;
+    int maximizeIsFullscreen;
     int frequency;
     int deInterlace;
     int blendFrames;
@@ -216,6 +243,8 @@ typedef struct {
     int colorSaturationWidth;
     int gamma;
     int detectActiveMonitor;
+    int captureFps;
+    int captureSize;
 } VideoProperties;
 
 typedef struct {
@@ -243,6 +272,7 @@ typedef struct {
 typedef struct {
     int  driver;
     int  bufSize;
+    int  stabilizeDSoundTiming;
     SoundChip chip;
     int  stereo;
     int  masterVolume;
@@ -270,6 +300,10 @@ typedef struct {
         int  mt32ToGm;
     } MidiOut;
 } SoundProperties;
+
+typedef struct {
+	int POV0isAxes;
+} JoystickGeneric;
 
 typedef struct {
     char type[64];
@@ -306,22 +340,27 @@ typedef struct {
     char defDir[PROP_MAXPATH];
     int  autostartA;
     int  quickStartDrive;
+    int  cdromMethod;
+    int  cdromDrive;
 } DiskdriveProperties;
 
 typedef struct {
     char defDir[PROP_MAXPATH];
     int showCustomFiles;
     int readOnly;
-    int autoRewind;
+    int rewindAfterInsert;
 } CassetteProperties;
 
 typedef struct {
+#ifndef NO_FILE_HISTORY
     int     count;
     char    cartridge[2][MAX_HISTORY][PROP_MAXPATH];
     RomType cartridgeType[2][MAX_HISTORY];
     char    diskdrive[2][MAX_HISTORY][PROP_MAXPATH];
     char    cassette[1][MAX_HISTORY][PROP_MAXPATH];
+#endif
     char    quicksave[PROP_MAXPATH];
+    char    videocap[PROP_MAXPATH];
 } FileHistory;
 
 typedef struct {
@@ -338,6 +377,11 @@ typedef struct {
         char portName[PROP_MAXPATH];
         char fileName[PROP_MAXPATH];
     } Com;
+    struct {
+        int disabled;
+        int ethIndex;
+        char macAddress[64];
+    } Eth;
 } PortProperties;
 
 #define DLG_MAX_ID 32
@@ -363,6 +407,7 @@ typedef struct Properties {
     VideoProperties     video;
     VideoInProperties   videoIn;
     SoundProperties     sound;
+    JoystickGeneric     joystick;
     JoystickProperties  joy1;
     JoystickProperties  joy2;
     KeyboardProperties  keyboard;
@@ -376,8 +421,6 @@ typedef struct Properties {
     Settings            settings;
 } Properties;
 
-void propertiesSetDirectory(const char* defDir, const char* altDir);
-
 Properties* propCreate(int useDefault, 
                        int langType, 
                        PropKeyboardLanguage kbdLang, 
@@ -385,6 +428,7 @@ Properties* propCreate(int useDefault,
                        const char* themeName);
 void propSave(Properties* pProperties);
 void propDestroy(Properties* pProperties);
+void propertiesSetDirectory(const char* defDir, const char* altDir);
 
 Properties* propGetGlobalProperties();
 

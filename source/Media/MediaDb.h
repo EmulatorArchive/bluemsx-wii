@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Media/MediaDb.h,v $
 **
-** $Revision: 1.23 $
+** $Revision: 1.49 $
 **
-** $Date: 2006/06/30 22:41:59 $
+** $Date: 2008/12/22 21:33:59 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -136,16 +134,54 @@ enum  {
     ROM_FMDAS       = 104,
     ROM_YAMAHASFG05 = 105,
     ROM_YAMAHASFG01 = 106,
-    ROM_MAXROMID    = 106
+    ROM_SF7000IPL   = 107,
+    ROM_SC3000      = 108,
+    ROM_PLAYBALL    = 109,
+    ROM_OBSONET     = 110,
+    RAM_2KB_MIRRORED= 111,
+    ROM_SEGABASIC   = 112,
+    ROM_CVMEGACART  = 113,
+    ROM_DUMAS       = 114,
+    SRAM_MEGASCSI   = 115,
+    SRAM_MEGASCSI128= 116,
+    SRAM_MEGASCSI256= 117,
+    SRAM_MEGASCSI512= 118,
+    SRAM_MEGASCSI1MB= 119,
+    SRAM_ESERAM     = 120,
+    SRAM_ESERAM128  = 121,
+    SRAM_ESERAM256  = 122,
+    SRAM_ESERAM512  = 123,
+    SRAM_ESERAM1MB  = 124,
+    SRAM_ESESCC     = 125,
+    SRAM_ESESCC128  = 126,
+    SRAM_ESESCC256  = 127,
+    SRAM_ESESCC512  = 128,
+    SRAM_WAVESCSI   = 129,
+    SRAM_WAVESCSI128= 130,
+    SRAM_WAVESCSI256= 131,
+    SRAM_WAVESCSI512= 132,
+    SRAM_WAVESCSI1MB= 133,
+    ROM_NOWIND      = 134,
+    ROM_GOUDASCSI   = 135,
+    ROM_MANBOW2     = 136,
+    ROM_MEGAFLSHSCC = 137,
+    ROM_FORTEII     = 138,
+    ROM_PANASONIC8  = 139,
+    ROM_FSA1FMMODEM = 140,
+    ROM_DRAM        = 141,
+    ROM_PANASONICWX16=142,
+    ROM_TC8566AF_TR = 143,
+    ROM_MATRAINK    = 144,
+    ROM_NETTOUYAKYUU= 145,
+    ROM_YAMAHANET   = 146,
+    ROM_JOYREXPSG   = 147,
+    ROM_OPCODEPSG   = 148,
+    ROM_MAXROMID    = 148
 };
 
 typedef struct MediaType MediaType;
 typedef struct MediaDb MediaDb;
 
-typedef enum { FORMAT_ROM, FORMAT_DISK, FORMAT_CAS } OldFormat;
-
-void mediaDbAddFromOldFile(MediaDb* mediaDb, const char* fileName, 
-                           OldFormat format);
 void mediaDbAddFromXmlFile(MediaDb* mediaDb, const char* fileName, 
                            const char* rootTag, const char* elemTag);
 
@@ -154,9 +190,9 @@ MediaType* mediaDbLookup(MediaDb* mediaDb, const void *buffer, int size);
 
 void mediaDbLoad(const char* directory);
 
-void mediaDbCreateRomdb(const char* oldFileName);
-void mediaDbCreateDiskdb(const char* oldFileName);
-void mediaDbCreateCasdb(const char* oldFileName);
+void mediaDbCreateRomdb();
+void mediaDbCreateDiskdb();
+void mediaDbCreateCasdb();
 
 
 MediaType* mediaDbLookupRom(const void *buffer, int size);
@@ -172,7 +208,7 @@ const char* mediaDbGetRemark(MediaType* mediaType);
 const char* mediaDbGetPrettyString(MediaType* mediaType);
 
 void mediaDbSetDefaultRomType(RomType romType);
-RomType mediaDbOldStringToType(const char* romName);
+RomType mediaDbStringToType(const char* romName);
 const char* romTypeToString(RomType romType);
 const char* romTypeToShortString(RomType romType);
 

@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/SoundChips/MsxPsg.c,v $
 **
-** $Revision: 1.6 $
+** $Revision: 1.15 $
 **
-** $Date: 2006/06/13 06:24:20 $
+** $Date: 2008/09/09 04:40:32 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -34,14 +32,18 @@
 #include "DeviceManager.h"
 #include "Led.h"
 #include "Switches.h"
+#include "Casette.h"
+#include "DAC.h"
 
 #include "MsxJoystickDevice.h"
 #include "MsxJoystick.h"
 #include "MsxGunstick.h"
 #include "MsxAsciiLaser.h"
 #include "MsxMouse.h"
+#include "Board.h"
 #include "MsxTetrisDongle.h"
 #include "MagicKeyDongle.h"
+#include "MsxArkanoidPad.h"
 
 #include <stdlib.h>
 
@@ -49,14 +51,18 @@ struct MsxPsg {
     int deviceHandle;
     AY8910* ay8910;
     int currentPort;
+    int maxPorts;
+    CassetteCb casCb;
+    void*      casRef;
     UInt8 registers[2];
     UInt8 readValue[2];
     MsxJoystickDevice* devFun[2];
+    DAC*   dac;
 };
 
 static void joystickPortHandler(MsxPsg* msxPsg, int port, JoystickPortType type)
 {
-    if (port >= 2) {
+    if (port >= msxPsg->maxPorts) {
         return;
     }
 
@@ -87,33 +93,59 @@ static void joystickPortHandler(MsxPsg* msxPsg, int port, JoystickPortType type)
     case JOYSTICK_PORT_MAGICKEYDONGLE:
         msxPsg->devFun[port] = magicKeyDongleCreate();
         break;
+    case JOYSTICK_PORT_ARKANOID_PAD:
+        msxPsg->devFun[port] = msxArkanoidPadCreate();
+        break;
     }
 }
 
 static UInt8 peek(MsxPsg* msxPsg, UInt16 address)
 {
     if (address & 1) {
-        return msxPsg->registers[1] & 0xf0;
+        /* r15 */
+        return msxPsg->registers[1];
     }
-    return msxPsg->readValue[address & 1];
+    
+    /* r14 */
+    else return msxPsg->readValue[address & 1];
 }
 
 static UInt8 read(MsxPsg* msxPsg, UInt16 address)
 {
+    UInt8 casdat = 0;
+
     if (address & 1) {
-        return msxPsg->registers[1] & 0xf0;
+    	/* r15 */
+        return msxPsg->registers[1];
     }
     else {
+        /* r14 */
+        /* joystick pins */
         int renshaSpeed = switchGetRensha();
 	    UInt8 state = 0x3f;
         if (msxPsg->devFun[msxPsg->currentPort] != NULL &&
             msxPsg->devFun[msxPsg->currentPort]->read != NULL) {
             state = msxPsg->devFun[msxPsg->currentPort]->read(msxPsg->devFun[msxPsg->currentPort]);
         }
+        state = boardCaptureUInt8(16 + msxPsg->currentPort, state);
         if (renshaSpeed) {
             state &= ~((((UInt64)renshaSpeed * boardSystemTime() / boardFrequency()) & 1) << 4);
         }
+        /* pins 6/7 input ANDed with pins 6/7 output */
+        state&=((msxPsg->registers[1]>>(msxPsg->currentPort<<1&2)&3)<<4|0xf);
+        
+        /* ANSI/JIS */
         state |= 0x40;
+        
+        /* cas signal */
+/* IOCCC?
+        if (msxPsg->casCb != NULL && msxPsg->casCb(msxPsg->casRef)) {
+            state |= 0x80;
+        }
+*/
+        tapeRead(&casdat);
+        state |= (casdat) ? 0:0x80;
+       	dacWrite(msxPsg->dac, DAC_CH_MONO, (casdat) ? 0 : 255);
 
         msxPsg->readValue[address & 1] = state;
 
@@ -124,6 +156,7 @@ static UInt8 read(MsxPsg* msxPsg, UInt16 address)
 static void write(MsxPsg* msxPsg, UInt16 address, UInt8 value)
 {
     if (address & 1) {
+        /* r15 */
         if (msxPsg->devFun[0] != NULL && msxPsg->devFun[0]->write != NULL) {
 	        UInt8 val = ((value >> 0) & 0x03) | ((value >> 2) & 0x04);
 	        msxPsg->devFun[0]->write(msxPsg->devFun[0], val);
@@ -188,15 +221,27 @@ static void destroy(MsxPsg* msxPsg)
     ay8910Destroy(msxPsg->ay8910);
     joystickPortUpdateHandlerUnregister();
     deviceManagerUnregister(msxPsg->deviceHandle);
+    dacDestroy(msxPsg->dac);
+    
+    free(msxPsg);
 }
 
-MsxPsg* msxPsgCreate(PsgType type)
+void msxPsgRegisterCassetteRead(MsxPsg* msxPsg, CassetteCb cb, void* ref)
+{
+    msxPsg->casCb  = cb;
+    msxPsg->casRef = ref;
+}
+
+MsxPsg* msxPsgCreate(PsgType type, int maxPorts)
 {
     DeviceCallbacks callbacks = { destroy, reset, saveState, loadState };
     MsxPsg* msxPsg = (MsxPsg*)calloc(1, sizeof(MsxPsg));
 
     msxPsg->ay8910 = ay8910Create(boardGetMixer(), AY8910_MSX, type);
-    
+    msxPsg->maxPorts = maxPorts;
+
+    msxPsg->dac = dacCreate(boardGetMixer(), DAC_MONO);
+
     ay8910SetIoPort(msxPsg->ay8910, read, peek, write, msxPsg);
 
     joystickPortUpdateHandlerRegister(joystickPortHandler, msxPsg);

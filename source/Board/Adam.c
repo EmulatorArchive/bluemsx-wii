@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Board/Adam.c,v $
 **
-** $Revision: 1.2 $
+** $Revision: 1.7 $
 **
-** $Date: 2006/05/30 21:17:16 $
+** $Date: 2008/04/18 04:09:54 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2005 Daniel Vik, Tomas Karlsson
+** Copyright (C) 2003-2006 Daniel Vik, Tomas Karlsson
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -353,7 +351,7 @@ int adamCreate(Machine* machine,
     int success;
     int i;
 
-    r800 = r800Create(0, slotRead, slotWrite, ioPortRead, ioPortWrite, NULL, boardTimerCheckTimeout, NULL, NULL, NULL);
+    r800 = r800Create(0, slotRead, slotWrite, ioPortRead, ioPortWrite, NULL, boardTimerCheckTimeout, NULL, NULL, NULL, NULL);
 
     boardInfo->cartridgeCount   = 1;
     boardInfo->diskdriveCount   = 2;
@@ -374,6 +372,7 @@ int adamCreate(Machine* machine,
     boardInfo->setCpuTimeout    = r800SetTimeoutAt;
     boardInfo->setBreakpoint    = r800SetBreakpoint;
     boardInfo->clearBreakpoint  = r800ClearBreakpoint;
+    boardInfo->setDataBus       = r800SetDataBus;
 
     deviceManagerCreate();
 
@@ -405,7 +404,7 @@ int adamCreate(Machine* machine,
         cartridgeSetSlotInfo(i, machine->cart[i].slot, 0);
     }
 
-    success = machineInitialize(machine, NULL, NULL);
+    success = machineInitialize(machine, NULL, NULL, NULL);
 
     for (i = 0; i < 8; i++) {
         slotMapRamPage(0, 0, i);

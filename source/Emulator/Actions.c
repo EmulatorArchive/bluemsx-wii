@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Emulator/Actions.c,v $
 **
-** $Revision: 1.68 $
+** $Revision: 1.80 $
 **
-** $Date: 2006/06/23 01:33:20 $
+** $Date: 2008/05/14 12:55:31 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -34,6 +32,7 @@
 #include "Board.h"
 #include "Casette.h"
 #include "Debugger.h"
+#include "Disk.h"
 #include "FileHistory.h"
 #include "LaunchFile.h"
 #include "Emulator.h"
@@ -48,6 +47,7 @@
 #include "ArchPrinter.h"
 #include "ArchMidi.h"
 #include "ArchInput.h"
+#include "ArchVideoIn.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,9 +64,11 @@ static struct {
 } state;
 
 static char audioDir[PROP_MAXPATH]  = "";
-static char audioPrefix[64]     = "";
+static char audioPrefix[64]         = "";
+static char videoDir[PROP_MAXPATH]  = "";
+static char videoPrefix[64]         = "";
 static char stateDir[PROP_MAXPATH]  = "";
-static char statePrefix[64]     = "";
+static char statePrefix[64]         = "";
 
 
 void actionCartInsert(int cartNo)
@@ -150,6 +152,14 @@ void actionHarddiskInsert(int diskNo)
     archUpdateMenu(0);
 }
 
+void actionHarddiskInsertCdrom(int diskNo)
+{
+    emulatorSuspend();
+    insertDiskette(state.properties, diskNo, DISK_CDROM, NULL, 0);
+    emulatorResume();
+    archUpdateMenu(0);
+}
+
 void actionHarddiskInsertNew(int diskNo)
 {
     char* filename;
@@ -180,10 +190,42 @@ void actionHarddiskRemove(int diskNo)
     archUpdateMenu(0);
 }
 
+void actionHarddiskRemoveAll()
+{
+    int i, j;
+    int diskNo;
+    int flag;
+
+    flag = (emulatorGetState() != EMU_STOPPED);
+    if (flag) emulatorSuspend();
+
+    for (i = 0; i < MAX_HD_COUNT; i++) {
+        //if (boardGetHdType(i) != HD_NONE) {
+            for (j = 0; j < MAX_DRIVES_PER_HD; j++) {
+                diskNo = diskGetHdDriveId(i, j);
+                if (state.properties->media.disks[diskNo].fileName) {
+                    state.properties->media.disks[diskNo].fileName[0] = 0;
+                    state.properties->media.disks[diskNo].fileNameInZip[0] = 0;
+                    updateExtendedDiskName(diskNo, state.properties->media.disks[diskNo].fileName, state.properties->media.disks[diskNo].fileNameInZip);
+                    if (flag) boardChangeDiskette(diskNo, NULL, NULL);
+                }
+            }
+        //}
+    }
+    if (flag) emulatorResume();
+    archUpdateMenu(0);
+}
+
 void actionSetAudioCaptureSetDirectory(char* dir, char* prefix)
 {
     strcpy(audioDir, dir);
     strcpy(audioPrefix, prefix);
+}
+
+void actionSetVideoCaptureSetDirectory(char* dir, char* prefix)
+{
+    strcpy(videoDir, dir);
+    strcpy(videoPrefix, prefix);
 }
 
 void actionSetQuickSaveSetDirectory(char* dir, char* prefix)
@@ -280,6 +322,69 @@ void actionToggleWaveCapture() {
     archUpdateMenu(0);
 }
 
+void actionVideoCaptureLoad() {
+    char* filename;
+
+    emulatorSuspend();
+    filename = archFilenameGetOpenCapture(state.properties);
+    if (filename != NULL) {
+        strcpy(state.properties->filehistory.videocap, filename);
+        emulatorStop();
+        emulatorStart(filename);
+    }
+    else {
+        emulatorResume();
+    }
+    archUpdateMenu(0);
+}
+
+void actionVideoCapturePlay() {
+    if (emulatorGetState() != EMU_STOPPED) {
+        emulatorStop();
+    }
+
+    if (fileExist(state.properties->filehistory.videocap, NULL)) {
+        emulatorStart(state.properties->filehistory.videocap);
+    }
+    archUpdateMenu(0);
+}
+
+void actionVideoCaptureSave() {
+    if (boardCaptureHasData()) {
+        archVideoCaptureSave();
+    }
+}
+
+void actionVideoCaptureStop() {
+    if (emulatorGetState() == EMU_STOPPED) {
+        return;
+    }
+    
+    emulatorSuspend();
+    
+    boardCaptureStop();
+
+    emulatorResume();
+    archUpdateMenu(0);
+}
+
+void actionVideoCaptureRec() {
+    if (emulatorGetState() == EMU_STOPPED) {
+        strcpy(state.properties->filehistory.videocap, generateSaveFilename(state.properties, videoDir, videoPrefix, ".cap", 2));
+        boardCaptureStart(state.properties->filehistory.videocap);
+        actionEmuTogglePause();
+        archUpdateMenu(0);
+        return;
+    }
+
+    emulatorSuspend();
+
+    strcpy(state.properties->filehistory.videocap, generateSaveFilename(state.properties, videoDir, videoPrefix, ".cap", 2));
+    boardCaptureStart(state.properties->filehistory.videocap);
+
+    emulatorResume();
+    archUpdateMenu(0);
+}
 
 void actionLoadState() {
     char* filename;
@@ -421,6 +526,7 @@ void actionWindowSizeSmall() {
     state.windowedSize = P_VIDEO_SIZEX1;
     if (state.properties->video.windowSize != P_VIDEO_SIZEX1) {
         state.properties->video.windowSize = P_VIDEO_SIZEX1;
+        state.properties->video.windowSizeChanged = 1;
         archUpdateWindow();
     }
 }
@@ -429,6 +535,7 @@ void actionWindowSizeNormal() {
     state.windowedSize = P_VIDEO_SIZEX2;
     if (state.properties->video.windowSize != P_VIDEO_SIZEX2) {
         state.properties->video.windowSize = P_VIDEO_SIZEX2;
+        state.properties->video.windowSizeChanged = 1;
         archUpdateWindow();
     }
 }
@@ -436,6 +543,7 @@ void actionWindowSizeNormal() {
 void actionWindowSizeFullscreen() {
     if (state.properties->video.windowSize != P_VIDEO_SIZEFULLSCREEN) {
         state.properties->video.windowSize = P_VIDEO_SIZEFULLSCREEN;
+        state.properties->video.windowSizeChanged = 1;
         archUpdateWindow();
     }
 }
@@ -487,11 +595,9 @@ void actionCasInsert() {
 
     emulatorSuspend();
     filename = archFilenameGetOpenCas(state.properties);
-    if (filename != NULL) {        
+    if (filename != NULL) {
+        if (state.properties->cassette.rewindAfterInsert) tapeRewindNextInsert();
         insertCassette(state.properties, 0, filename, NULL, 0);
-        if (state.properties->cassette.autoRewind) {
-            tapeSetCurrentPos(0);
-        }
     }
     emulatorResume();
     archUpdateMenu(0);
@@ -652,7 +758,7 @@ void actionCasToggleReadonly() {
 }
 
 void actionToggleCasAutoRewind() {
-    state.properties->cassette.autoRewind ^= 1;
+    state.properties->cassette.rewindAfterInsert ^= 1;
     archUpdateMenu(0);
 }
 
@@ -710,6 +816,10 @@ void actionPropShowPerformance() {
 
 void actionPropShowSettings() {
     archShowPropertiesDialog(PROP_SETTINGS);
+}
+
+void actionPropShowDisk() {
+    archShowPropertiesDialog(PROP_DISK);
 }
 
 void actionPropShowPorts() {
@@ -1199,7 +1309,7 @@ void actionSetCasReadonly(int value) {
 }
 
 void actionSetCasAutoRewind(int value) {
-    state.properties->cassette.autoRewind = value ? 1 : 0;
+    state.properties->cassette.rewindAfterInsert = value ? 1 : 0;
     archUpdateMenu(0);
 }
 

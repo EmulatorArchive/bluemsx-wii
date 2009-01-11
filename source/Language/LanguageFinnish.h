@@ -1,9 +1,9 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Language/LanguageFinnish.h,v $
 **
-** $Revision: 1.32 $
+** $Revision: 1.58 $
 **
-** $Date: 2006/06/30 15:59:34 $
+** $Date: 2008/10/26 19:48:18 $
 **
 ** More info: http://www.bluemsx.com
 **
@@ -11,21 +11,19 @@
 **
 ** Translated By : NYYRIKKI 2006
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -40,6 +38,7 @@ void langInitFinnish(LanguageStrings* ls)
     // Language lines
     //----------------------
 
+    ls->langCatalan             = "Catalan";
     ls->langChineseSimplified   = "Kiina, yksinkertaistettu";
     ls->langChineseTraditional  = "Kiina, perinteinen";
     ls->langDutch               = "Hollanti";
@@ -52,6 +51,7 @@ void langInitFinnish(LanguageStrings* ls)
     ls->langKorean              = "Korea";
     ls->langPolish              = "Puola";
     ls->langPortuguese          = "Portugali";
+    ls->langRussian             = "Russian";            // v2.8
     ls->langSpanish             = "Espanja";
     ls->langSwedish             = "Ruotsi";
 
@@ -92,8 +92,10 @@ void langInitFinnish(LanguageStrings* ls)
     ls->fileRom                 = "ROM-tiedosto";
     ls->fileAll                 = "Kaikki tiedostot";
     ls->fileCpuState            = "Tilannetallenne";
+    ls->fileVideoCapture        = "Videokaappaus"; 
     ls->fileDisk                = "Levytiedosto";
     ls->fileCas                 = "Kasettitiedosto";
+    ls->fileAvi                 = "Videopätkä";    
 
 
     //----------------------
@@ -108,17 +110,26 @@ void langInitFinnish(LanguageStrings* ls)
     ls->menuCartIde             = "IDE";
     ls->menuCartBeerIde         = "Beer";
     ls->menuCartGIde            = "GIDE";
-    ls->menuCartSunriseIde      = "Sunrise";
+    ls->menuCartSunriseIde      = "Sunrise";  
+    ls->menuCartScsi            = "SCSI";                // New in 2.7
+    ls->menuCartMegaSCSI        = "MEGA-SCSI";           // New in 2.7
+    ls->menuCartWaveSCSI        = "WAVE-SCSI";           // New in 2.7
+    ls->menuCartGoudaSCSI       = "Gouda SCSI";          // New in 2.7
+    ls->menuJoyrexPsg           = "Joyrex PSG Moduli"; // New in 2.9
     ls->menuCartSCC             = "SCC Moduli";
-    ls->menuCartSCCPlus         = "SCC+ Moduli";
+    ls->menuCartSCCPlus         = "SCC-I Moduli";
     ls->menuCartFMPac           = "FM-PAC Moduli";
     ls->menuCartPac             = "PAC Moduli";
     ls->menuCartHBI55           = "Sony HBI-55 Moduli";
     ls->menuCartInsertSpecial   = "Erikoismoduli";
     ls->menuCartMegaRam         = "MegaRAM";
     ls->menuCartExternalRam     = "Ulkoinen muisti";
+    ls->menuCartEseRam          = "Ese-RAM";             // New in 2.7
+    ls->menuCartEseSCC          = "Ese-SCC";             // New in 2.7
+    ls->menuCartMegaFlashRom    = "Mega Flash ROM";      // New in 2.7
 
     ls->menuDiskInsertNew       = "Uusi levytiedosto";
+    ls->menuDiskInsertCdrom     = "Insert CD-Rom";       // New in 2.7
     ls->menuDiskDirInsert       = "Aseta hakemisto";
     ls->menuDiskAutoStart       = "Käynnistä uudelleen asettamisen jälkeen";
     ls->menuCartAutoReset       = "Käynnistä uudelleen muutettaessa";
@@ -128,6 +139,14 @@ void langInitFinnish(LanguageStrings* ls)
     ls->lmenuCasSaveAs           = "Tallenna kasetti nimellä";
     ls->menuCasSetPosition      = "Valitse kohta";
     ls->menuCasRewind           = "Kelaa alkuun";
+
+    ls->menuVideoLoad           = "Lataa...";             
+    ls->menuVideoPlay           = "Toista viimeisin kaappaus";   
+    ls->menuVideoRecord         = "Nauhoita";              
+    ls->menuVideoRecording      = "Nauhoittaa";           
+    ls->menuVideoRecAppend      = "Jatka nauhoitusta";     
+    ls->menuVideoStop           = "Pysäytä";                
+    ls->menuVideoRender         = "Koosta videotiedosto";   
 
     ls->menuPrnFormfeed         = "Paperin vaihto";
 
@@ -142,6 +161,7 @@ void langInitFinnish(LanguageStrings* ls)
     ls->menuPropsPerformance    = "Suorituskyky";
     ls->menuPropsSettings       = "Asetukset";
     ls->menuPropsFile           = "Tiedostot";
+    ls->menuPropsDisk           = "Disks";               // New in 2.7
     ls->menuPropsLanguage       = "Kieli";
     ls->menuPropsPorts          = "Liitännät";
     
@@ -150,6 +170,8 @@ void langInitFinnish(LanguageStrings* ls)
     ls->menuVideoChipAutodetect = "Tunnista videopiiri automaattisesti";
     ls->menuVideoInSource       = "Videosisääntulo";
     ls->menuVideoInBitmap       = "Bittikarttatiedosto";
+    
+    ls->menuEthInterface        = "Ethernet Interface"; 
 
     ls->menuHelpHelp            = "Ohjeen aiheet";
     ls->menuHelpAbout           = "Tietoja blueMSX:stä";
@@ -163,10 +185,12 @@ void langInitFinnish(LanguageStrings* ls)
     ls->menuFileQLoadState      = "Tilan pikalataus";
     ls->menuFileQSaveState      = "Tilan pikatallennus";
     ls->menuFileCaptureAudio    = "Tallenna äänet";
+    ls->menuFileCaptureVideo    = "Videokaappaus"; 
     ls->menuFileScreenShot      = "Tallenna kuvaruutukaappaus";
     ls->menuFileExit            = "Poistu";
     ls->menuFileHarddisk        = "Kovalevy";
     ls->menuFileHarddiskNoPesent= "Ohjaimia ei ole kytketty";
+    ls->menuFileHarddiskRemoveAll= "Eject All Harddisk";    // New in 2.7
 
     ls->menuRunRun              = "Käynnistä";
     ls->menuRunPause            = "Keskeytä";
@@ -177,11 +201,11 @@ void langInitFinnish(LanguageStrings* ls)
 
     ls->menuToolsMachine        = "Tietokonemuokkain";
     ls->menuToolsShortcuts      = "Pikanäppäinasetukset";
-    ls->menuToolsKeyboard       = "Peliohjaimet / Näppäimistökartta";
+    ls->menuToolsCtrlEditor     = "Peliohjaimet / Näppäimistökartta"; 
     ls->menuToolsMixer          = "Mikseri";
-    ls->menuToolsDebugger       = "Debugger";               // New in 2.5
-    ls->menuToolsTrainer        = "Trainer";                // New in 2.5
-    ls->menuToolsTraceLogger    = "Seurantalogi";         // New in 2.5
+    ls->menuToolsDebugger       = "Debugger";               
+    ls->menuToolsTrainer        = "Trainer";                
+    ls->menuToolsTraceLogger    = "Seurantalogi";         
 
     ls->menuFile                = "Tiedosto";
     ls->menuRun                 = "Emulaatio";
@@ -212,8 +236,11 @@ void langInitFinnish(LanguageStrings* ls)
     ls->dlgLoadCasDesc          = "Valitse ladattava kasettitiedosto:";
     ls->dlgLoadRomDskCasDesc    = "Valitse ladattava ROM-, kasetti- tai levytiedosto:";
     ls->dlgLoadState            = "Lataa tila";
+    ls->dlgLoadVideoCapture     = "Lataa videokaappaus";      
     ls->dlgSaveState            = "Tallenna tila nimellä";
     ls->dlgSaveCassette         = "blueMSX - Tallenna kasetti";
+    ls->dlgSaveVideoClipAs      = "Tallenna videokaappaus nimellä";      
+    ls->dlgAmountCompleted      = "Valmiina:";          
     ls->dlgInsertRom1           = "Aseta moduli porttiin 1";
     ls->dlgInsertRom2           = "Aseta moduli porttiin 2";
     ls->dlgInsertDiskA          = "Aseta levy asemaan A";
@@ -221,6 +248,7 @@ void langInitFinnish(LanguageStrings* ls)
     ls->dlgInsertHarddisk       = "Aseta kovalevy";
     ls->dlgInsertCas            = "Aseta kasetti";
     ls->dlgRomType              = "ROM-malli:";
+    ls->dlgDiskSize             = "Levyn koko:";             
 
     ls->dlgTapeTitle            = "blueMSX - Kasetin kohta";
     ls->dlgTapeFrameText        = "Kasetin kohta";
@@ -244,7 +272,7 @@ void langInitFinnish(LanguageStrings* ls)
     ls->dlgAboutBuildDate       = "Päiväys:";
     ls->dlgAboutCreat           = "Tekijä: Daniel Vik";
     ls->dlgAboutDevel           = "KEHITTÄJÄT\r\n=======";
-    ls->dlgAboutThanks          = "ERITYIS KIITOKSET\r\n===========";
+    ls->dlgAboutThanks          = "ERITYIS KIITOKSET\r\n===========";       // New in 2.7 (retranslate, see english)
     ls->dlgAboutLisence         = "LISENSSI\r\n"
                                   "=====\r\n\r\n"
                                   "Tämä ohjelmisto toimitetaan sellaisenaan ilman minkäänlaista takuuta. "
@@ -254,6 +282,8 @@ void langInitFinnish(LanguageStrings* ls)
 
     ls->dlgSavePreview          = "Näytä esikatselu";
     ls->dlgSaveDate             = "Tallennettu:";
+
+    ls->dlgRenderVideoCapture   = "blueMSX - Videokaappauksen koostaminen...";  
 
 
     //----------------------
@@ -268,6 +298,7 @@ void langInitFinnish(LanguageStrings* ls)
     ls->propPerformance         = "Suorituskyky";
     ls->propSettings            = "Asetukset";
     ls->propFile                = "Tiedostot";
+    ls->propDisk                = "Disks";              // New in 2.7
     ls->propPorts               = "Liitännät";
 
     ls->propEmuGeneralGB        = "Yleistä ";
@@ -285,11 +316,11 @@ void langInitFinnish(LanguageStrings* ls)
     ls->propVideoFreqText       = "Videotaajuus:";
     ls->propVideoFreqAuto       = "Automaattinen";
     ls->propSndOversampleText   = "Ylinäytteistys:";
-    ls->propSndYkInGB           = "YK-01/YK-10/YK-20 Sisään ";                // New in 2.5
+    ls->propSndYkInGB           = "YK-01/YK-10/YK-20 Sisään ";                
     ls->propSndMidiInGB         = "MIDI Sisään ";
     ls->propSndMidiOutGB        = "MIDI Ulos ";
-    ls->propSndMidiChannel      = "MIDI-kanava:";                      // New in 2.5
-    ls->propSndMidiAll          = "Kaikki";                                // New in 2.5
+    ls->propSndMidiChannel      = "MIDI-kanava:";                      
+    ls->propSndMidiAll          = "Kaikki";                                
 
     ls->propMonMonGB            = "Monitori ";
     ls->propMonTypeText         = "Monitorin tyyppi:";
@@ -344,7 +375,8 @@ void langInitFinnish(LanguageStrings* ls)
     ls->propDisableWinKeys      = " Ota Windows-näppäimet MSX käyttöön";
     ls->propPriorityBoost       = " Nosta blueMSX:n prioriteettia";
     ls->propScreenshotPng       = " Tallenna kuvaruutukaappaukset PNG-muodossa";
-    ls->propClearHistory        = "Oletko varma, että haluat poistaa kaikki tiedostohistorian tiedot ?";
+    ls->propEjectMediaOnExit    = " Eject media when blueMSX exits";        // New in 2.8
+    ls->propClearHistory        = "Oletko varma, että haluat poistaa kaikki tiedostohistorian tiedot?";
     ls->propOpenRomGB           = "ROM-tiedostojen avaus ";
     ls->propDefaultRomType      = "Oletus ROM tyyppi:";
     ls->propGuessRomType        = "Arvaa ROM tyyppi";
@@ -357,6 +389,13 @@ void langInitFinnish(LanguageStrings* ls)
 
     ls->propThemeGB             = "Teemat ";
     ls->propTheme               = "Teema:";
+
+    ls->propCdromGB             = "CD-ROM ";         // New in 2.7
+    ls->propCdromMethod         = "Access Method:";  // New in 2.7
+    ls->propCdromMethodNone     = "None";            // New in 2.7
+    ls->propCdromMethodIoctl    = "IOCTL";           // New in 2.7
+    ls->propCdromMethodAspi     = "ASPI";            // New in 2.7
+    ls->propCdromDrive          = "Drive:";          // New in 2.7
 
 
     //----------------------
@@ -403,23 +442,25 @@ void langInitFinnish(LanguageStrings* ls)
     ls->enumEmuSyncAuto         = "Automaattinen (nopea)";
     ls->enumEmuSyncNone         = "Ei käytössä";
     ls->enumEmuSyncVblank       = "Tahdistus PC:n ruudunpäivitykseen";
-    ls->enumEmuAsyncVblank      = "Tahdistamaton PC:n ruudunpäivitys";           // New in 2.5
+    ls->enumEmuAsyncVblank      = "Tahdistamaton PC:n ruudunpäivitys";           
 
     ls->enumControlsJoyNone     = "Tyhjä";
     ls->enumControlsJoyMouse    = "Hiiri";
     ls->enumControlsJoyTetris2Dongle = "Tetris 2 Dongle";
     ls->enumControlsJoyTMagicKeyDongle = "MagicKey Dongle";
-    ls->enumControlsJoy2Button = "2-näppäiminen Joystick";                   // New in 2.5
-    ls->enumControlsJoyGunstick  = "Gun Stick-valopistooli";                      // New in 2.5
-    ls->enumControlsJoyAsciiLaser="ASCII Plus-X Terminator Laser";      // New in 2.5
-    ls->enumControlsJoyColeco = "ColecoVision Joystick";                // New in 2.5
+    ls->enumControlsJoy2Button = "2-näppäiminen Joystick";                   
+    ls->enumControlsJoyGunstick  = "Gun Stick-valopistooli";                      
+    ls->enumControlsJoyAsciiLaser="ASCII Plus-X Terminator Laser";      
+    ls->enumControlsArkanoidPad  ="Arkanoid Pad";                   // New in 2.7.1
+    ls->enumControlsJoyColeco = "ColecoVision Joystick";                
 
-    ls->enumDiskMsx35Dbl9Sect    = "MSX 3.5 Kaksipuolinen, 9 Sektoria";
-    ls->enumDiskMsx35Dbl8Sect    = "MSX 3.5 Kaksipuolinen, 8 Sektoria";
-    ls->enumDiskMsx35Sgl9Sect    = "MSX 3.5 Yksipuolinen, 9 Sektoria";
-    ls->enumDiskMsx35Sgl8Sect    = "MSX 3.5 Yksipuolinen, 8 Sektoria";
-    ls->enumDiskSvi525Dbl        = "SVI-328 5.25 Kaksipuolinen";
-    ls->enumDiskSvi525Sgl        = "SVI-328 5.25 Yksipuolinen";
+    ls->enumDiskMsx35Dbl9Sect    = "MSX 3.5\" Kaksipuolinen, 9 Sektoria";
+    ls->enumDiskMsx35Dbl8Sect    = "MSX 3.5\" Kaksipuolinen, 8 Sektoria";
+    ls->enumDiskMsx35Sgl9Sect    = "MSX 3.5\" Yksipuolinen, 9 Sektoria";
+    ls->enumDiskMsx35Sgl8Sect    = "MSX 3.5\" Yksipuolinen, 8 Sektoria";
+    ls->enumDiskSvi525Dbl        = "SVI-328 5.25\" Kaksipuolinen";
+    ls->enumDiskSvi525Sgl        = "SVI-328 5.25\" Yksipuolinen";
+    ls->enumDiskSf3Sgl           = "Sega SF-7000 3\" Yksipuolinen";  
 
 
     //----------------------
@@ -579,6 +620,11 @@ void langInitFinnish(LanguageStrings* ls)
     ls->shortcutToggleSpriteEnable = "Näytä/Piilota Spritet";
     ls->shortcutToggleFdcTiming = "Ota käyttöön/Poista käytöstä levyaseman ajoitus";
     ls->shortcutToggleCpuTrace  = "Ota käyttöön/Poista käytöstä Prosessorin jäljitystoiminto";
+    ls->shortcutVideoLoad       = "Lataa Videokaappaus";             
+    ls->shortcutVideoPlay       = "Toista viimeisin videokaappaus";   
+    ls->shortcutVideoRecord     = "Tallenna videokaappaus";              
+    ls->shortcutVideoStop       = "Pysäytä videokaappaus";                
+    ls->shortcutVideoRender     = "Koosta videotiedosto";   
 
 
     //----------------------
@@ -595,84 +641,46 @@ void langInitFinnish(LanguageStrings* ls)
     //----------------------
 
     ls->romTypeStandard         = "Standardi";
-    ls->romTypeMsxdos2          = "MSX-DOS 2";
-    ls->romTypeKonamiScc        = "Konami SCC";
-    ls->romTypeKonami           = "Konami";
-    ls->romTypeAscii8           = "ASCII 8";
-    ls->romTypeAscii16          = "ASCII 16";
-    ls->romTypeGameMaster2      = "Game Master 2 (SRAM)";
-    ls->romTypeAscii8Sram       = "ASCII 8 (SRAM)";
-    ls->romTypeAscii16Sram      = "ASCII 16 (SRAM)";
-    ls->romTypeRtype            = "R-Type";
-    ls->romTypeCrossblaim       = "Cross Blaim";
-    ls->romTypeHarryFox         = "Harry Fox";
-    ls->romTypeMajutsushi       = "Konami Majutsushi";
+
     ls->romTypeZenima80         = "Zemina 80 in 1";
     ls->romTypeZenima90         = "Zemina 90 in 1";
     ls->romTypeZenima126        = "Zemina 126 in 1";
-    ls->romTypeScc              = "SCC";
-    ls->romTypeSccPlus          = "SCC+";
-    ls->romTypeSnatcher         = "The Snatcher";
-    ls->romTypeSdSnatcher       = "SD Snatcher";
+
     ls->romTypeSccMirrored      = "SCC peilattu";
     ls->romTypeSccExtended      = "SCC laajennettu";
-    ls->romTypeFmpac            = "FM-PAC (SRAM)";
-    ls->romTypeFmpak            = "FM-PAK";
+
     ls->romTypeKonamiGeneric    = "Konami Yleinen";
-    ls->romTypeSuperPierrot     = "Super Pierrot";
+
     ls->romTypeMirrored         = "Peilattu ROM";
     ls->romTypeNormal           = "Tavallinen ROM";
     ls->romTypeDiskPatch        = "Tavallinen + korjaus levyltä";
     ls->romTypeCasPatch         = "Tavallinen + korjaus kasetilta";
     ls->romTypeTc8566afFdc      = "TC8566AF Diskettiasemaohjain";
+    ls->romTypeTc8566afTrFdc    = "TC8566AF Turbo-R Diskettiasemaohjain";
     ls->romTypeMicrosolFdc      = "Microsol Diskettiasemaohjain";
     ls->romTypeNationalFdc      = "National Diskettiasemaohjain";
     ls->romTypePhilipsFdc       = "Philips Diskettiasemaohjain";
     ls->romTypeSvi738Fdc        = "SVI-738 Diskettiasemaohjain";
     ls->romTypeMappedRam        = "Mapper RAM";
     ls->romTypeMirroredRam1k    = "1kB peilattu RAM";
+    ls->romTypeMirroredRam2k    = "2kB peilattu RAM";
     ls->romTypeNormalRam        = "Tavallinen RAM";
-    ls->romTypeKanji            = "Kanji";
-    ls->romTypeHolyQuran        = "Holy Quran";
-    ls->romTypeMatsushitaSram   = "Matsushita SRAM";
-    ls->romTypePanasonic16      = "Panasonic 16kB SRAM";
-    ls->romTypePanasonic32      = "Panasonic 32kB SRAM";
-    ls->romTypeBunsetsu         = "Bunsetsu";
-    ls->romTypeJisyo            = "Jisyo";
-    ls->romTypeKanji12          = "Kanji12";
-    ls->romTypeNationalSram     = "National (SRAM)";
-    ls->romTypeS1985            = "S1985";
-    ls->romTypeS1990            = "S1990";
+
     ls->romTypeTurborPause      = "Turbo-R Pause";
     ls->romTypeF4deviceNormal   = "Tavallinen F4 portti";
     ls->romTypeF4deviceInvert   = "Käännetty F4 portti";
-    ls->romTypeMsxMidi          = "MSX-MIDI";
+
     ls->romTypeTurborTimer      = "Turbo-R Ajastin";
-    ls->romTypeKoei             = "Koei (SRAM)";
-    ls->romTypeBasic            = "Basic ROM";
-    ls->romTypeHalnote          = "Halnote";
-    ls->romTypeLodeRunner       = "Lode Runner";
+
     ls->romTypeNormal4000       = "Tavallinen #4000";
     ls->romTypeNormalC000       = "Tavallinen #C000";
-    ls->romTypeKonamiSynth      = "Konami Synthesizer";
-    ls->romTypeKonamiKbdMast    = "Konami Keyboard Master";
-    ls->romTypeKonamiWordPro    = "Konami Word Pro";
-    ls->romTypePac              = "PAC (SRAM)";
-    ls->romTypeMegaRam          = "MegaRAM";
-    ls->romTypeMegaRam128       = "128kB MegaRAM";
-    ls->romTypeMegaRam256       = "256kB MegaRAM";
-    ls->romTypeMegaRam512       = "512kB MegaRAM";
-    ls->romTypeMegaRam768       = "768kB MegaRAM";
-    ls->romTypeMegaRam2mb       = "2MB MegaRAM";
+
     ls->romTypeExtRam           = "Ulkoinen RAM";
     ls->romTypeExtRam512        = "512kB Ulkoinen RAM";
     ls->romTypeExtRam1mb        = "1MB Ulkoinen RAM";
     ls->romTypeExtRam2mb        = "2MB Ulkoinen RAM";
     ls->romTypeExtRam4mb        = "4MB Ulkoinen RAM";
-    ls->romTypeMsxMusic         = "MSX-Music";
-    ls->romTypeMsxAudio         = "MSX-Audio";
-    ls->romTypeY8950            = "Y8950";
-    ls->romTypeMoonsound        = "Moonsound";
+
     ls->romTypeSvi328Cart       = "SVI-328 Moduli";
     ls->romTypeSvi328Fdc        = "SVI-328 Levyasemaohjain";
     ls->romTypeSvi328Prn        = "SVI-328 Tulostin";
@@ -681,21 +689,13 @@ void langInitFinnish(LanguageStrings* ls)
     ls->romTypeSvi727col80      = "SVI-727 80-merkin kortti";
     ls->romTypeColecoCart       = "Coleco Moduli";
     ls->romTypeSg1000Cart       = "SG-1000 Moduli";
-    ls->romTypeTheCastle        = "The Castle";
-    ls->romTypeSonyHbi55        = "Sony HBI-55";
+    ls->romTypeSc3000Cart       = "SC-3000 Moduli";
+
     ls->romTypeMsxPrinter       = "MSX Tulostin";
     ls->romTypeTurborPcm        = "Turbo-R PCM piiri";
-    ls->romTypeGameReader       = "Sunrise GameReader";
-    ls->romTypeSunriseIde       = "Sunrise IDE";
-    ls->romTypeBeerIde          = "Beer IDE";
-    ls->romTypeGide             = "GIDE";
-    ls->romTypeVmx80            = "Microsol VMX-80";
+    
     ls->romTypeNms8280Digitiz   = "Philips NMS-8280 Digitoija";
-
     ls->romTypeHbiV1Digitiz     = "Sony HBI-V1 Digitoija";
-    ls->romTypeFmdas            = "F&M Direct Assembler System";
-    ls->romTypeSfg01            = "Yamaha SFG-01";
-    ls->romTypeSfg05            = "Yamaha SFG-05";
     
     
     //----------------------
@@ -706,62 +706,32 @@ void langInitFinnish(LanguageStrings* ls)
     ls->dbgMemVisible           = "Näkyvä muisti";
     ls->dbgMemRamNormal         = "Normaali";
     ls->dbgMemRamMapped         = "Sivutettu";
-    ls->dbgMemVram              = "VRAM";
     ls->dbgMemYmf278            = "YMF278 Sample RAM";
     ls->dbgMemAy8950            = "AY8950 Sample RAM";
     ls->dbgMemScc               = "Muisti";
-
     ls->dbgCallstack            = "Kutsupino";
-
     ls->dbgRegs                 = "Rekisterit";
     ls->dbgRegsCpu              = "CPU Rekisterit";
     ls->dbgRegsYmf262           = "YMF262 Rekisterit";
     ls->dbgRegsYmf278           = "YMF278 Rekisterit";
     ls->dbgRegsAy8950           = "AY8950 Rekisterit";
     ls->dbgRegsYm2413           = "YM2413 Rekisterit";
-
     ls->dbgDevRamMapper         = "RAM Mapper";
     ls->dbgDevRam               = "RAM";
-    ls->dbgDevIdeBeer           = "Beer IDE";
-    ls->dbgDevIdeGide           = "GIDE";
     ls->dbgDevF4Device          = "F4 Portti";
-    ls->dbgDevFmpac             = "FM-PAC";
-    ls->dbgDevFmpak             = "FM-PAK";
-    ls->dbgDevKanji             = "Kanji";
-    ls->dbgDevKanji12           = "Kanji 12";
-    ls->dbgDevKonamiKbd         = "Konami Keyboard Master";
     ls->dbgDevKorean80          = "Korea 80";
     ls->dbgDevKorean90          = "Korea 90";
     ls->dbgDevKorean128         = "Korea 128";
-    ls->dbgDevMegaRam           = "MegaRAM";
     ls->dbgDevFdcMicrosol       = "Microsol levyohjain";
-    ls->dbgDevMoonsound         = "Moonsound";
-    ls->dbgDevMsxAudio          = "MSX-Audio";
-    ls->dbgDevMsxAudioMidi      = "MSX-Audio MIDI";
-    ls->dbgDevMsxMusic          = "MSX-Music";
+
     ls->dbgDevPrinter           = "Tulostin";
-    ls->dbgDevRs232             = "RS-232";
-    ls->dbgDevS1990             = "S1990";
-    ls->dbgDevSfg05             = "Yamaha SFG-05";
-    ls->dbgDevHbi55             = "Sony HBI-55";
+
     ls->dbgDevSviFdc            = "SVI levyohjain";
     ls->dbgDevSviPrn            = "SVI Tulostin";
     ls->dbgDevSvi80Col          = "SVI 80-merkkiä";
-    ls->dbgDevPcm               = "PCM";
-    ls->dbgDevMatsushita        = "Matsushita";
-    ls->dbgDevS1985             = "S1985";
-    ls->dbgDevCrtc6845          = "CRTC6845";
-    ls->dbgDevTms9929A          = "TMS9929A";
-    ls->dbgDevTms99x8A          = "TMS99x8A";
-    ls->dbgDevV9938             = "V9938";
-    ls->dbgDevV9958             = "V9958";
-    ls->dbgDevZ80               = "Z80";
-    ls->dbgDevMsxMidi           = "MSX MIDI";
-    ls->dbgDevPpi               = "PPI";
+
     ls->dbgDevRtc               = "Kellopiiri";
     ls->dbgDevTrPause           = "tR Pause";
-    ls->dbgDevAy8910            = "AY8910 PSG";
-    ls->dbgDevScc               = "SCC";
 
 
     //----------------------

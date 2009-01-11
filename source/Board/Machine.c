@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Board/Machine.c,v $
 **
-** $Revision: 1.32 $
+** $Revision: 1.69 $
 **
-** $Date: 2006/06/26 19:35:53 $
+** $Date: 2008/11/23 20:26:12 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -38,6 +36,8 @@
 #include "MediaDb.h"
 #include "TokenExtract.h"
 #include "Disk.h"
+
+#include "AppConfig.h"
 
 #include "RomLoader.h"
 #include "MSXMidi.h"
@@ -115,6 +115,33 @@
 #include "romMapperSonyHBIV1.h"
 #include "romMapperFmDas.h"
 #include "romMapperSfg05.h"
+#include "romMapperSf7000Ipl.h"
+#include "romMapperPlayBall.h"
+#include "romMapperObsonet.h"
+#include "romMapperSg1000Castle.h"
+#include "romMapperSg1000.h"
+#include "romMapperSegaBasic.h"
+#include "romMapperDumas.h"
+#include "sramMapperMegaSCSI.h"
+#include "sramMapperEseSCC.h"
+#include "romMapperNoWind.h"
+#include "romMapperGoudaSCSI.h"
+#include "romMapperMegaFlashRomScc.h"
+#include "romMapperForteII.h"
+#include "romMapperA1FMModem.h"
+#include "romMapperA1FM.h"
+#include "romMapperDRAM.h"
+#include "romMapperMatraINK.h"
+#include "romMapperNettouYakyuu.h"
+#include "romMapperNet.h"
+#include "romMapperJoyrexPsg.h"
+#include "romMapperOpcodePsg.h"
+
+
+
+// PacketFileSystem.h Need to be included after all other includes
+#include "PacketFileSystem.h"
+
 
 int toint(char* buffer) 
 {
@@ -149,10 +176,13 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
     else if (0 == strcmp(buffer, "MSX-S1985"))    machine->board.type = BOARD_MSX_S1985;
     else if (0 == strcmp(buffer, "MSX-T9769B"))   machine->board.type = BOARD_MSX_T9769B;
     else if (0 == strcmp(buffer, "MSX-T9769C"))   machine->board.type = BOARD_MSX_T9769C;
+    else if (0 == strcmp(buffer, "MSX-ForteII"))  machine->board.type = BOARD_MSX_FORTE_II;
     else if (0 == strcmp(buffer, "SVI"))          machine->board.type = BOARD_SVI;
     else if (0 == strcmp(buffer, "ColecoVision")) machine->board.type = BOARD_COLECO;
     else if (0 == strcmp(buffer, "ColecoAdam"))   machine->board.type = BOARD_COLECOADAM;
     else if (0 == strcmp(buffer, "SG-1000"))      machine->board.type = BOARD_SG1000;
+    else if (0 == strcmp(buffer, "SF-7000"))      machine->board.type = BOARD_SF7000;
+    else if (0 == strcmp(buffer, "SC-3000"))      machine->board.type = BOARD_SC3000;
     else                                          machine->board.type = BOARD_MSX;
 
     // Read video info
@@ -258,6 +288,7 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
         machine->cpu.hasR800 |= machine->slotInfo[i].romType == ROM_S1990;
         machine->fdc.enabled |= machine->slotInfo[i].romType == ROM_DISKPATCH   ||
                                 machine->slotInfo[i].romType == ROM_TC8566AF    ||
+                                machine->slotInfo[i].romType == ROM_TC8566AF_TR ||
                                 machine->slotInfo[i].romType == ROM_MICROSOL    ||
                                 machine->slotInfo[i].romType == ROM_NATIONALFDC ||
                                 machine->slotInfo[i].romType == ROM_PHILIPSFDC  ||
@@ -317,15 +348,18 @@ void machineSave(Machine* machine)
 
     // Write Board info
     switch (machine->board.type) {
-    case BOARD_MSX:        iniFileWriteString("Board", "type", "MSX"); break;
-    case BOARD_MSX_S3527:  iniFileWriteString("Board", "type", "MSX-S3527"); break;
-    case BOARD_MSX_S1985:  iniFileWriteString("Board", "type", "MSX-S1985"); break;
-    case BOARD_MSX_T9769B: iniFileWriteString("Board", "type", "MSX-T9769B"); break;
-    case BOARD_MSX_T9769C: iniFileWriteString("Board", "type", "MSX-T9769C"); break;
-    case BOARD_SVI:        iniFileWriteString("Board", "type", "SVI"); break;
-    case BOARD_COLECO:     iniFileWriteString("Board", "type", "ColecoVision"); break;
-    case BOARD_COLECOADAM: iniFileWriteString("Board", "type", "ColecoAdam"); break;
-    case BOARD_SG1000:     iniFileWriteString("Board", "type", "SG-1000"); break;
+    case BOARD_MSX:          iniFileWriteString("Board", "type", "MSX"); break;
+    case BOARD_MSX_S3527:    iniFileWriteString("Board", "type", "MSX-S3527"); break;
+    case BOARD_MSX_S1985:    iniFileWriteString("Board", "type", "MSX-S1985"); break;
+    case BOARD_MSX_T9769B:   iniFileWriteString("Board", "type", "MSX-T9769B"); break;
+    case BOARD_MSX_T9769C:   iniFileWriteString("Board", "type", "MSX-T9769C"); break;
+    case BOARD_MSX_FORTE_II: iniFileWriteString("Board", "type", "MSX-ForteII"); break;
+    case BOARD_SVI:          iniFileWriteString("Board", "type", "SVI"); break;
+    case BOARD_COLECO:       iniFileWriteString("Board", "type", "ColecoVision"); break;
+    case BOARD_COLECOADAM:   iniFileWriteString("Board", "type", "ColecoAdam"); break;
+    case BOARD_SG1000:       iniFileWriteString("Board", "type", "SG-1000"); break;
+    case BOARD_SF7000:       iniFileWriteString("Board", "type", "SF-7000"); break;
+    case BOARD_SC3000:       iniFileWriteString("Board", "type", "SC-3000"); break;
     }
 
     // Write video info
@@ -437,46 +471,74 @@ int machineIsValid(const char* machineName, int checkRoms)
 
 char** machineGetAvailable(int checkRoms)
 {
-    static char* machineNames[256];
-    static char  names[256][64];
-    ArchGlob* glob = archGlob("Machines/*", ARCH_GLOB_DIRS);
-    int index = 0;
-    int i;
+    const char* machineName = appConfigGetString("singlemachine", NULL);
 
-    if (glob == NULL) {
-        machineNames[0] = NULL;
-        return machineNames;
-    }
+    if (machineName != NULL) {
+        char filename[128];
+        static char* machineNames[256];
+        static char  names[256][64];
+        int index = 0;
 
-    for (i = 0; i < glob->count; i++) {
-        char fileName[512];
         FILE* file;
-		sprintf(fileName, "%s/config.ini", glob->pathVector[i]);
-        file = fopen(fileName, "rb");
+
+        sprintf(filename, "Machines/%s/config.ini", machineName);
+        file = fopen(filename, "rb");
         if (file != NULL) {
-            const char* name = strrchr(glob->pathVector[i], '/');
-            if (name == NULL) {
-                name = strrchr(glob->pathVector[i], '\\');
-            }
-            if (name == NULL) {
-                name = glob->pathVector[i] - 1;
-            }
-            name++;
-            if (machineIsValid(name, checkRoms)) {
-                strcpy(names[index], name);
+            if (machineIsValid(machineName, checkRoms)) {
+                strcpy(names[index], machineName);
                 machineNames[index] = names[index];
                 index++;
             }
             fclose(file);
         }
+        
+        machineNames[index] = NULL;
+
+        return machineNames;
     }
+    else {
+        static char* machineNames[256];
+        static char  names[256][64];
+        ArchGlob* glob = archGlob("Machines/*", ARCH_GLOB_DIRS);
+        int index = 0;
+        int i;
 
-    archGlobFree(glob);
-    
-    machineNames[index] = NULL;
+        if (glob == NULL) {
+            machineNames[0] = NULL;
+            return machineNames;
+        }
 
-    return machineNames;
+        for (i = 0; i < glob->count; i++) {
+            char fileName[512];
+            FILE* file;
+		    sprintf(fileName, "%s/config.ini", glob->pathVector[i]);
+            file = fopen(fileName, "rb");
+            if (file != NULL) {
+                const char* name = strrchr(glob->pathVector[i], '/');
+                if (name == NULL) {
+                    name = strrchr(glob->pathVector[i], '\\');
+                }
+                if (name == NULL) {
+                    name = glob->pathVector[i] - 1;
+                }
+                name++;
+                if (machineIsValid(name, checkRoms)) {
+                    strcpy(names[index], name);
+                    machineNames[index] = names[index];
+                    index++;
+                }
+                fclose(file);
+            }
+        }
+
+        archGlobFree(glob);
+        
+        machineNames[index] = NULL;
+
+        return machineNames;
+    }
 }
+
 
 void machineUpdate(Machine* machine)
 {
@@ -534,6 +596,7 @@ void machineUpdate(Machine* machine)
         machine->cpu.hasR800 |= machine->slotInfo[i].romType == ROM_S1990;
         machine->fdc.enabled |= machine->slotInfo[i].romType == ROM_DISKPATCH     ||
                                 machine->slotInfo[i].romType == ROM_TC8566AF      ||
+                                machine->slotInfo[i].romType == ROM_TC8566AF_TR   ||
                                 machine->slotInfo[i].romType == ROM_MICROSOL      ||
                                 machine->slotInfo[i].romType == ROM_NATIONALFDC   ||
                                 machine->slotInfo[i].romType == ROM_PHILIPSFDC    ||
@@ -702,11 +765,15 @@ void machineSaveState(Machine* machine)
     saveStateClose(state);
 }
 
-int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
+int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UInt32* mainRamStart)
 {
-    UInt8* ram     = NULL;
-    UInt32 ramSize = 0;
-    void* jisyoRom = NULL;
+    UInt8* ram       = NULL;
+    UInt32 ramSize   = 0;
+    UInt32 ramStart  = 0;
+    UInt8* ram2      = NULL;
+    UInt32 ram2Size  = 0;
+    UInt32 ram2Start = 0;
+    void* jisyoRom   = NULL;
     int jisyoRomSize = 0;
     int success = 1;
     int hdId = FIRST_INTERNAL_HD_INDEX;
@@ -734,7 +801,14 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
         size      = 0x2000 * machine->slotInfo[i].pageCount;
 
         if (machine->slotInfo[i].romType == RAM_1KB_MIRRORED) {
-            success &= ram1kBMirroredCreate(size, slot, subslot, startPage, &ram, &ramSize);
+            success &= ramMirroredCreate(size, slot, subslot, startPage, 0x400, &ram, &ramSize);
+            ramStart = startPage * 0x2000;
+            continue;
+        }
+
+        if (machine->slotInfo[i].romType == RAM_2KB_MIRRORED) {
+            success &= ramMirroredCreate(size, slot, subslot, startPage, 0x800, &ram, &ramSize);
+            ramStart = startPage * 0x2000;
             continue;
         }
     }
@@ -758,17 +832,19 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
         size      = 0x2000 * machine->slotInfo[i].pageCount;
 
         if (machine->slotInfo[i].romType == RAM_NORMAL) {
-            if (ram == NULL) {
+            if (ram == NULL && startPage == 0) {
                 success &= ramNormalCreate(size, slot, subslot, startPage, &ram, &ramSize);
+                ramStart = startPage * 0x2000;
             }
             else {
-                success &= ramNormalCreate(size, slot, subslot, startPage, NULL, NULL);
+                success &= ramNormalCreate(size, slot, subslot, startPage, &ram2, &ram2Size);
+                ram2Start = startPage * 0x2000;
             }
             continue;
         }
 
         if (machine->slotInfo[i].romType == RAM_MAPPER) {
-            if (ram == NULL) {
+            if (ram == NULL && startPage == 0) {
                 success &= ramMapperCreate(size, slot, subslot, startPage, &ram, &ramSize);
             }
             else {
@@ -788,6 +864,12 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             }
             continue;
         }
+    }
+
+    if (ram == NULL) {
+        ram = ram2;
+        ramSize = ram2Size;
+        ramStart = ram2Start;
     }
 
     if (ram == NULL) {
@@ -812,6 +894,10 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
         size      = 0x2000 * machine->slotInfo[i].pageCount;
         
         if (machine->slotInfo[i].romType == RAM_1KB_MIRRORED) {
+            continue;
+        }
+        
+        if (machine->slotInfo[i].romType == RAM_2KB_MIRRORED) {
             continue;
         }
 
@@ -922,6 +1008,16 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             continue;
         }
 
+        if (machine->slotInfo[i].romType == ROM_JOYREXPSG) {
+            success &= romMapperJoyrexPsgCreate();
+            continue;
+        }
+
+        if (machine->slotInfo[i].romType == ROM_OPCODEPSG) {
+            success &= romMapperOpcodePsgCreate();
+            continue;
+        }
+
         if (machine->slotInfo[i].romType == ROM_TURBORPCM) {
             success &= romMapperTurboRPcmCreate();
             continue;
@@ -949,10 +1045,54 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
         }
         // -------------------------------
         
+        // MEGA-SCSI etc
+        switch (machine->slotInfo[i].romType) {
+        case SRAM_MEGASCSI:
+        case SRAM_ESERAM:
+        case SRAM_WAVESCSI:
+        case SRAM_ESESCC:
+            buf = NULL;
+            if (strlen(romName)) {
+                buf = romLoad(machine->slotInfo[i].name, machine->slotInfo[i].inZipName, &size);
+                if (buf == NULL) {
+                    success = 0;
+                    continue;
+                }
+            }
+            {
+                int mode = strlen(machine->slotInfo[i].inZipName) ? 0x80 : 0;
+                if (machine->slotInfo[i].romType == SRAM_MEGASCSI ||
+                    machine->slotInfo[i].romType == SRAM_WAVESCSI) {
+                    mode++;
+                }
+                if (machine->slotInfo[i].romType == SRAM_WAVESCSI ||
+                    machine->slotInfo[i].romType == SRAM_ESESCC) {
+                    success &= sramMapperEseSCCCreate
+                                (romName, buf, size, slot, subslot, startPage,
+                                machine->slotInfo[i].romType == SRAM_WAVESCSI ? hdId++ : 0, mode);
+                } else {
+                    success &= sramMapperMegaSCSICreate
+                                (romName, buf, size, slot, subslot, startPage,
+                                machine->slotInfo[i].romType == SRAM_MEGASCSI ? hdId++ : 0, mode);
+                }
+                if (buf) free(buf);
+            }
+            continue;
+        }
+        // -------------------------------
+
         buf = romLoad(machine->slotInfo[i].name, machine->slotInfo[i].inZipName, &size);
 
         if (buf == NULL) {
-            success = 0;
+
+            switch (machine->slotInfo[i].romType) {
+            case ROM_MEGAFLSHSCC:
+                success &= romMapperMegaFlashRomSccCreate("Manbow2.rom", NULL, 0, slot, subslot, startPage, 0);
+                break;
+            default:
+                success = 0;
+                break;
+            }
             continue;
         }
 
@@ -973,6 +1113,18 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             success &= romMapperPlainCreate(romName, buf, size, slot, subslot, startPage);
             break;
 
+        case ROM_NETTOUYAKYUU:
+            success &= romMapperNettouYakyuuCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_MATRAINK:
+            success &= romMapperMatraINKCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_FORTEII:
+            success &= romMapperForteIICreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
         case ROM_FMDAS:
             success &= romMapperFmDasCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -987,6 +1139,44 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             
         case ROM_KONAMI5:
             success &= romMapperKonami5Create(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_MANBOW2:
+            if (size > 0x70000) size = 0x70000;
+            success &= romMapperMegaFlashRomSccCreate(romName, buf, size, slot, subslot, startPage, 0x7f);
+            break;
+
+        case ROM_MEGAFLSHSCC:
+            success &= romMapperMegaFlashRomSccCreate(romName, buf, size, slot, subslot, startPage, 0);
+            break;
+
+        case ROM_OBSONET:
+            success &= romMapperObsonetCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_NOWIND:
+            success &= romMapperNoWindCreate(hdId++, romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_DUMAS:
+            {
+                char eepromName[512];
+                int eepromSize = 0;
+                UInt8* eepromData;
+                int j;
+
+                strcpy(eepromName, machine->slotInfo[i].name);
+                for (j = strlen(eepromName); j > 0 && eepromName[j] != '.'; j--);
+                eepromName[j] = 0;
+                strcat(eepromName, "_eeprom.rom");
+                    
+                eepromData = romLoad(eepromName, NULL, &eepromSize);
+                success &= romMapperDumasCreate(romName, buf, size, slot, subslot, startPage,
+                                                eepromData, eepromSize);
+                if (eepromData != NULL) {
+                    free(eepromData);
+                }
+            }
             break;
 
         case ROM_MOONSOUND:
@@ -1057,12 +1247,24 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             success &= romMapperASCII16Create(romName, buf, size, slot, subslot, startPage);
             break;
 
+        case ROM_PANASONIC8:
+            success &= romMapperA1FMCreate(romName, buf, size, slot, subslot, startPage, 0x2000);
+            break;
+
+        case ROM_PANASONICWX16:
+            success &= romMapperPanasonicCreate(romName, buf, size, slot, subslot, startPage, 0x4000, 6);
+            break;
+
         case ROM_PANASONIC16:
-            success &= romMapperPanasonicCreate(romName, buf, size, slot, subslot, startPage, 0x4000);
+            success &= romMapperPanasonicCreate(romName, buf, size, slot, subslot, startPage, 0x4000, 8);
             break;
 
         case ROM_PANASONIC32:
-            success &= romMapperPanasonicCreate(romName, buf, size, slot, subslot, startPage, 0x8000);
+            success &= romMapperPanasonicCreate(romName, buf, size, slot, subslot, startPage, 0x8000, 8);
+            break;
+
+        case ROM_FSA1FMMODEM:
+            success &= romMapperA1FMModemCreate(romName, buf, size, slot, subslot, startPage);
             break;
             
         case ROM_ASCII8SRAM:
@@ -1083,6 +1285,14 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
 
         case ROM_YAMAHASFG05:
             success &= romMapperSfg05Create(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_YAMAHANET:
+            success &= romMapperNetCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_SF7000IPL:
+            success &= romMapperSf7000IplCreate(romName, buf, size, slot, subslot, startPage);
             break;
 
         case ROM_KOEI:
@@ -1153,6 +1363,23 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             success &= romMapperNormalCreate(romName, buf, size, slot, subslot, startPage);
             break;
 
+        case ROM_DRAM:
+            success &= romMapperDramCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_SG1000:
+        case ROM_SC3000:
+            success &= romMapperSg1000Create(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_SG1000CASTLE:
+            success &= romMapperSg1000CastleCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_SEGABASIC:
+            success &= romMapperSegaBasicCreate(romName, buf, size, slot, subslot, startPage);
+            break;
+
         case ROM_CASPATCH:
             success &= romMapperCasetteCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1162,7 +1389,10 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
            break;
 
         case ROM_TC8566AF:
-            success &= romMapperTC8566AFCreate(romName, buf, size, slot, subslot, startPage);
+            success &= romMapperTC8566AFCreate(romName, buf, size, slot, subslot, startPage, ROM_TC8566AF);
+            break;
+        case ROM_TC8566AF_TR:
+            success &= romMapperTC8566AFCreate(romName, buf, size, slot, subslot, startPage, ROM_TC8566AF_TR);
             break;
 
         case ROM_MICROSOL:
@@ -1201,8 +1431,16 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
             success &= romMapperBeerIdeCreate(hdId++, romName, buf, size, slot, subslot, startPage);
             break;
 
+        case ROM_GOUDASCSI:
+            success &= romMapperGoudaSCSICreate(hdId++, romName, buf, size, slot, subslot, startPage);
+            break;
+
         case ROM_SONYHBIV1:
             success &= romMapperSonyHbiV1Create(romName, buf, size, slot, subslot, startPage);
+            break;
+
+        case ROM_PLAYBALL:
+            success &= romMapperPlayBallCreate(romName, buf, size, slot, subslot, startPage);
             break;
 
         case ROM_MICROSOL80:
@@ -1244,6 +1482,10 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize)
     
     if (mainRamSize != NULL) {
         *mainRamSize = ramSize;
+    }
+
+    if (mainRamStart != NULL) {
+        *mainRamStart = ramStart;
     }
 
     return success;

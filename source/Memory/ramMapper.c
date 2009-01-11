@@ -1,33 +1,32 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Memory/ramMapper.c,v $
 **
-** $Revision: 1.14 $
+** $Revision: 1.19 $
 **
-** $Date: 2006/06/14 19:59:52 $
+** $Date: 2008/06/07 00:00:23 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
 #include "ramMapper.h"
+#include "romMapperDRAM.h"
 #include "ramMapperIo.h"
 #include "MediaDb.h"
 #include "SlotManager.h"
@@ -46,6 +45,8 @@ typedef struct {
     UInt8* ramData;
     int handle;
     int debugHandle;
+    int dramHandle;
+    int dramMode;
     int slot;
     int sslot;
     int mask;
@@ -58,7 +59,8 @@ static void saveState(RamMapper* rm)
 {
     SaveState* state = saveStateOpenForWrite("mapperRam");
     
-    saveStateSet(state, "mask", rm->mask);
+    saveStateSet(state, "mask",     rm->mask);
+    saveStateSet(state, "dramMode", rm->dramMode);
     
     saveStateSetBuffer(state, "ramData", rm->ramData, 0x4000 * (rm->mask + 1));
 
@@ -70,7 +72,8 @@ static void loadState(RamMapper* rm)
     SaveState* state = saveStateOpenForRead("mapperRam");
     int i;
     
-    rm->mask = saveStateGet(state, "mask", 0);
+    rm->mask     = saveStateGet(state, "mask", 0);
+    rm->dramMode = saveStateGet(state, "dramMode", 0);
     
     saveStateGetBuffer(state, "ramData", rm->ramData, 0x4000 * (rm->mask + 1));
 
@@ -80,19 +83,36 @@ static void loadState(RamMapper* rm)
     rm->handle  = ramMapperIoAdd(0x4000 * (rm->mask + 1), write, rm);
 
     for (i = 0; i < 4; i++) {
-        slotMapPage(rm->slot, rm->sslot, 2 * i, rm->ramData + 0x4000 * (ramMapperIoGetPortValue(i) & rm->mask), 1, 1);
-        slotMapPage(rm->slot, rm->sslot, 2 * i + 1, rm->ramData + 0x4000 * (ramMapperIoGetPortValue(i) & rm->mask) + 0x2000, 1, 1);
+        int value = ramMapperIoGetPortValue(i) & rm->mask;
+        int mapped = rm->dramMode && (rm->mask - value < 4) ? 0 : 1;
+        slotMapPage(rm->slot, rm->sslot, 2 * i,     rm->ramData + 0x4000 * value, 1, mapped);
+        slotMapPage(rm->slot, rm->sslot, 2 * i + 1, rm->ramData + 0x4000 * value + 0x2000, 1, mapped);
     }
 }
 
 static void write(RamMapper* rm, UInt16 page, UInt8 value)
 {
+    int mapped = rm->dramMode && (rm->mask - value < 4) ? 0 : 1;
     value &= rm->mask;
 
-    slotMapPage(rm->slot, rm->sslot, 2 * page,     rm->ramData + 0x4000 * value, 1, 1);
-    slotMapPage(rm->slot, rm->sslot, 2 * page + 1, rm->ramData + 0x4000 * value + 0x2000, 1, 1);
+    slotMapPage(rm->slot, rm->sslot, 2 * page,     rm->ramData + 0x4000 * value, 1, mapped);
+    slotMapPage(rm->slot, rm->sslot, 2 * page + 1, rm->ramData + 0x4000 * value + 0x2000, 1, mapped);
 }
 
+static void setDram(RamMapper* rm, int enable)
+{
+    int i;
+
+    rm->dramMode = enable;
+
+    for (i = 0; i < 4; i++) {
+        int value = ramMapperIoGetPortValue(i) & rm->mask;
+        int mapped = rm->dramMode && (rm->mask - value < 4) ? 0 : 1;
+
+        slotMapPage(rm->slot, rm->sslot, 2 * i,     rm->ramData + 0x4000 * value, 1, mapped);
+        slotMapPage(rm->slot, rm->sslot, 2 * i + 1, rm->ramData + 0x4000 * value + 0x2000, 1, mapped);
+    }
+}
 
 static void reset(RamMapper* rm)
 {
@@ -109,6 +129,7 @@ static void destroy(RamMapper* rm)
     ramMapperIoRemove(rm->handle);
     slotUnregister(rm->slot, rm->sslot, 0);
     deviceManagerUnregister(rm->deviceHandle);
+    panasonicDramUnregister(rm->dramHandle);
     free(rm->ramData);
 
     free(rm);
@@ -154,11 +175,12 @@ int ramMapperCreate(int size, int slot, int sslot, int startPage, UInt8** ramPtr
 
     rm = malloc(sizeof(RamMapper));
 
-    rm->ramData = malloc(size);
-    rm->size    = size;
-    rm->slot    = slot;
-    rm->sslot   = sslot;
-    rm->mask    = pages - 1;
+    rm->ramData  = malloc(size);
+    rm->size     = size;
+    rm->slot     = slot;
+    rm->sslot    = sslot;
+    rm->mask     = pages - 1;
+    rm->dramMode = 0;
 
     memset(rm->ramData, 0xff, size);
 
@@ -172,6 +194,8 @@ int ramMapperCreate(int size, int slot, int sslot, int startPage, UInt8** ramPtr
     reset(rm);
 
     if (ramPtr != NULL) {
+        // Main RAM
+        rm->dramHandle = panasonicDramRegister(setDram, rm);
         *ramPtr = rm->ramData;
     }
     if (ramSize != NULL) {
