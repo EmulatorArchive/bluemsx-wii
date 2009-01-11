@@ -98,6 +98,10 @@ extern KBDHANDLE kbdHandle;
 #define EVENT_UPDATE_DISPLAY 2
 #define EVENT_UPDATE_WINDOW  3
 
+extern "C" void archTrap(UInt8 value)
+{
+}
+
 int updateEmuDisplay(int updateAll)
 {
     FrameBuffer* frameBuffer;

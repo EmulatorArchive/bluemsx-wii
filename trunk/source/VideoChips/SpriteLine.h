@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/VideoChips/SpriteLine.h,v $
 **
-** $Revision: 1.16 $
+** $Revision: 1.34 $
 **
-** $Date: 2006/05/13 17:29:06 $
+** $Date: 2008/05/19 19:34:19 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -53,10 +51,13 @@ static UInt8 colChckBuf[384] = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
+static UInt8 lineBufferNull[512];
+
+#define nullSpritesLine() lineBufferNull
 
 static UInt8 lineBuffer[2][384];
-static UInt8* lineBufs[2] = { NULL, NULL };
-static UInt8* lineBuf = NULL;
+static UInt8* lineBufs[2] = { nullSpritesLine(), nullSpritesLine() };
+static UInt8* lineBuf = nullSpritesLine();
 static int nonVisibleLine = -1;
 
 
@@ -65,6 +66,7 @@ UInt8* spritesLine(VDP* vdp, int line) {
     UInt8 collisionBuf[384];
     UInt8* attrib;
     UInt8* attribTable[4];
+    int spriteLine[5];
     UInt8 patternMask;
     int idx;
     int size;
@@ -74,19 +76,19 @@ UInt8* spritesLine(VDP* vdp, int line) {
 
     idx = line;
 
-    line -= vdp->firstLine;
-
     bufIndex = line & 1;
+
+    line -= vdp->firstLine;
 
 //    vdp->vdpStatus[0] &= 0xbf;
 
     if (idx == 0) {
-        lineBufs[bufIndex] = NULL;
-        return NULL;
+        lineBufs[bufIndex] = nullSpritesLine();
+        return nullSpritesLine();
     }
 
     if (!vdp->screenOn || (vdp->vdpStatus[2] & 0x40) ||vdpIsSpritesOff(vdp->vdpRegs)) {
-        lineBufs[bufIndex] = NULL;
+        lineBufs[bufIndex] = nullSpritesLine();
         return lineBufs[bufIndex ^ 1];
     }
 
@@ -100,18 +102,42 @@ UInt8* spritesLine(VDP* vdp, int line) {
     collision = 0;
     /* Find visible sprites on current line */
     for (idx = 0; idx < 32; idx++, attrib += 4) {
-        int spriteLine = attrib[0];
-        if (spriteLine == 208) {
+        if (attrib[0] == 208) {
             break;
         }
        
-        spriteLine = ((line - spriteLine) & 0xff) / scale;
-		if (spriteLine >= size) {
+        spriteLine[visibleCnt] = ((line - attrib[0]) & 0xff) / scale;
+		if (spriteLine[visibleCnt] >= size) {
+#if 1
+            // Disable sprite mirroring for now...
             continue;
+#else
+            if ((vdp->vdpRegs[3] & 0x40) == 0 && (vdp->vdpRegs[4] & 0x01) == 0 &&
+                vdp->screenMode == 2 &&
+                (vdp->vdpVersion == VDP_TMS9929A || vdp->vdpVersion == VDP_TMS99x8A)) 
+            {
+                if (line < 56) {
+                    continue;
+                }
+                spriteLine[visibleCnt] = ((line - 64 - attrib[0]) & 0xff) / scale;
+		        if (spriteLine[visibleCnt] >= size) {
+                    if (line < 120) {
+                        continue;
+                    }
+                    spriteLine[visibleCnt] = ((line - 128 - attrib[0]) & 0xff) / scale;
+    		        if (spriteLine[visibleCnt] >= size) {
+                        continue;
+                    }
+                }
+            }
+            else {
+                continue;
+            }
+#endif
         }
         
         if (visibleCnt == 4) {
-			if (~vdp->vdpStatus[0] & 0x40) {
+			if ((vdp->vdpStatus[0] & 0xc0) == 0) {
 				vdp->vdpStatus[0] = (vdp->vdpStatus[0] & 0xe0) | 0x40 | idx;
 			}
             break;
@@ -121,11 +147,11 @@ UInt8* spritesLine(VDP* vdp, int line) {
     }
 
     if (visibleCnt == 0) {
-        lineBufs[bufIndex] = NULL;
+        lineBufs[bufIndex] = nullSpritesLine();
         return lineBufs[bufIndex ^ 1];
     }
 
-	if (~vdp->vdpStatus[0] & 0x40) {
+	if ((vdp->vdpStatus[0] & 0xc0) == 0) {
 		vdp->vdpStatus[0] = (vdp->vdpStatus[0] & 0xe0) | (idx < 32 ? idx : 31);
 	}
     
@@ -136,7 +162,6 @@ UInt8* spritesLine(VDP* vdp, int line) {
     collision = 0;
     
     while (visibleCnt--) {
-        int    spriteLine;
         UInt8  color;
         UInt8* patternPtr;
         UInt8  pattern;
@@ -146,18 +171,19 @@ UInt8* spritesLine(VDP* vdp, int line) {
         int    colOffset;
 
         attrib     = attribTable[visibleCnt];
-        spriteLine = ((line - attrib[0]) & 0xff) / scale;
 
         colOffset = ((int)attrib[1] + 32 - ((attrib[3] >> 2) & 0x20));
         colPtr     = collisionBuf + colOffset;
         colChck    = colChckBuf   + colOffset;
-        linePtr    = lineBuf + ((int)attrib[1] + 32 - ((attrib[3] >> 2) & 0x20));
+        linePtr    = lineBuf      + colOffset;
         color      = attrib[3] & 0x0f;
-        patternPtr = &vdp->vram[(vdp->sprGenBase & (-1 << 11)) + ((int)(attrib[2] & patternMask) << 3) + spriteLine];
+        patternPtr = &vdp->vram[(vdp->sprGenBase & (-1 << 11)) + ((int)(attrib[2] & patternMask) << 3) + spriteLine[visibleCnt]];
 
+#if 0
         if (!vdpIsColor0Solid(vdp->vdpRegs) && color == 0) {
             continue;
         }
+#endif
         if (scale == 1) {
             pattern = patternPtr[0]; 
             if (pattern & 0x80) { linePtr[0] = color; collision |= colPtr[0]; colPtr[0] = colChck[0]; }
@@ -215,7 +241,7 @@ UInt8* spritesLine(VDP* vdp, int line) {
     lineBufs[bufIndex] = lineBuf + 32;
 
     if (!spritesEnable) {
-        return NULL;
+        return nullSpritesLine();
     }
 
     return lineBufs[bufIndex ^ 1];
@@ -226,7 +252,7 @@ void spriteLineInvalidate(VDP* vdp, int line) {
     nonVisibleLine = line - vdp->firstLine;
 }
 
-UInt8* colorSpritesLine(VDP* vdp, int line) {
+UInt8* colorSpritesLine(VDP* vdp, int line, int scr6) {
     int solidColor;
     int bufIndex;
     UInt8 collisionBuf[384];
@@ -244,13 +270,13 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
 
     idx = line;
 
-    line -= vdp->firstLine;
-
     bufIndex = line & 1;
+
+    line -= vdp->firstLine;
 
 //    vdp->vdpStatus[0] &= 0x80;
 
-    if (line == 0) {
+    if (line == 0xffffffff) {
         nonVisibleLine = -1000;
         // This is an not 100% correct optimization. CC sprites should be shown only when
         // they collide with a non CC sprite. However very few games/demos uses this and
@@ -260,12 +286,13 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
     }
 
     if (idx == 0 || nonVisibleLine == line) {
-        lineBufs[bufIndex] = NULL;
-        return NULL;
+        lineBufs[bufIndex] = nullSpritesLine();
+        return nullSpritesLine();
     }
 
     if (!vdp->screenOn || (vdp->vdpStatus[2] & 0x40) ||vdpIsSpritesOff(vdp->vdpRegs)) {
-        lineBufs[bufIndex] = NULL;
+//    if (!vdp->screenOn ||vdpIsSpritesOff(vdp->vdpRegs)) {
+        lineBufs[bufIndex] = nullSpritesLine();
         return lineBufs[bufIndex ^ 1];
     }
 
@@ -295,8 +322,9 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
         }
 
         if (visibleCnt == 8) {
-			if (~vdp->vdpStatus[0] & 0x40) {
-				vdp->vdpStatus[0] |= 0x40 | sprite;
+//            printf("%d\t%d\t%d\t####\n", idx, line, boardSystemTime());
+			if ((vdp->vdpStatus[0] & 0xc0) == 0) {
+				vdp->vdpStatus[0] = (vdp->vdpStatus[0] & 0xe0) | 0x40 | sprite;
 			}
             break;
         }
@@ -305,6 +333,10 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
         color  = *MAP_VRAM(vdp, vdp->sprTabBase & ((-1 << 10) | (sprite * 16 + spriteLine)));
 
         if (color & 0x40) {
+            if (visibleCnt == 0) {
+                continue;
+            }
+
             color &= ccColorMask;
         }
         else if ((color & 0x0f) || solidColor) {
@@ -322,12 +354,12 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
     }
 
     if (visibleCnt == 0) {
-        lineBufs[bufIndex] = NULL;
+        lineBufs[bufIndex] = nullSpritesLine();
         return lineBufs[bufIndex ^ 1];
     }
 
-    if (~vdp->vdpStatus[0] & 0x40) {
-		vdp->vdpStatus[0] |= sprite < 32 ? sprite : 31;
+	if ((vdp->vdpStatus[0] & 0xc0) == 0) {
+		vdp->vdpStatus[0] = (vdp->vdpStatus[0] & 0xe0) | (sprite < 32 ? sprite : 31);
 	}
     
     lineBuf = lineBuffer[bufIndex];
@@ -345,7 +377,12 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
         int offset;
         int idx2;
 
-        color = ((attrib->color & 0x0f) << 1) | solidColor;
+        if (scr6) {
+            color = ((attrib->color & 0x0c) << 2) | ((attrib->color & 0x03) << 1) | (solidColor * 9);
+        }
+        else {
+            color = ((attrib->color & 0x0f) << 1) | solidColor;
+        }
         if (color == 0) {
             continue;
         }
@@ -405,12 +442,12 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
                 }
             }
         }
-
+#if 0
         /* Skip CC sprites for now */
         if (attrib->color & 0x40) {
             continue;
         }
-
+#endif
         /* Draw CC sprites */
         for (idx2 = idx + 1; idx2 < visibleCnt; idx2++) {
             SpriteAttribute* attrib = &attribTable[idx2];
@@ -418,8 +455,13 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
             if (!(attrib->color & 0x40)) {
                 break;
             }
-            
-            color   = ((attrib->color & 0x0f) << 1) | solidColor;
+                
+            if (scr6) {
+                color = ((attrib->color & 0x0c) << 2) | ((attrib->color & 0x03) << 1) | (solidColor * 9);
+            }
+            else {
+                color = ((attrib->color & 0x0f) << 1) | solidColor;
+            }
             linePtr = lineBuf + attrib->horizontalPos;
             pattern = attrib->pattern;
             offset  = scale * 15;
@@ -453,11 +495,18 @@ UInt8* colorSpritesLine(VDP* vdp, int line) {
     lineBufs[bufIndex] = lineBuf + 32;
 
     if (!spritesEnable) {
-        return NULL;
+        return nullSpritesLine();
     }
 
     return lineBufs[bufIndex ^ 1];
 }
 
+UInt8* getSpritesLine(VDP* vdp, int line) {
+    if (!spritesEnable) {
+        return nullSpritesLine();
+    }
+
+    return lineBufs[(line & 1) ^ 1];
+}
 
 #endif

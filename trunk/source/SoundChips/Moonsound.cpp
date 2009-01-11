@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/SoundChips/Moonsound.cpp,v $
 **
-** $Revision: 1.18 $
+** $Revision: 1.22 $
 **
-** $Date: 2006/06/14 19:59:52 $
+** $Date: 2008/03/30 18:38:45 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -38,7 +36,6 @@ extern "C" {
 }
 
 #define FREQUENCY        3579545
-#define BUFFER_SIZE      2 * 10000
  
 struct Moonsound {
     Moonsound() : opl3latch(0), opl4latch(0),
@@ -51,8 +48,8 @@ struct Moonsound {
 
     YMF278* ymf278;
     YMF262* ymf262;
-    Int32  buffer[BUFFER_SIZE];
-    Int32  defaultBuffer[BUFFER_SIZE];
+    Int32  buffer[AUDIO_STEREO_BUFFER_SIZE];
+    Int32  defaultBuffer[AUDIO_STEREO_BUFFER_SIZE];
     BoardTimer* timer1;
     BoardTimer* timer2;
     UInt32 timeout1;
@@ -355,6 +352,7 @@ UInt8 moonsoundRead(Moonsound* moonsound, UInt16 ioPort)
 	if (ioPort < 0xC0) {
 		switch (ioPort & 0x01) {
 		case 1: // read wave register
+            mixerSync(moonsound->mixer);
 			result = moonsound->ymf278->readRegOPL4(moonsound->opl4latch, systemTime);
 			break;
 		}
@@ -362,11 +360,13 @@ UInt8 moonsoundRead(Moonsound* moonsound, UInt16 ioPort)
 		switch (ioPort & 0x03) {
 		case 0: // read status
 		case 2:
+            mixerSync(moonsound->mixer);
 			result = moonsound->ymf262->readStatus() | 
                      moonsound->ymf278->readStatus(systemTime);
 			break;
 		case 1:
 		case 3: // read fm register
+            mixerSync(moonsound->mixer);
 			result = moonsound->ymf262->readReg(moonsound->opl3latch);
 			break;
 		}
@@ -384,6 +384,7 @@ void moonsoundWrite(Moonsound* moonsound, UInt16 ioPort, UInt8 value)
 			moonsound->opl4latch = value;
 			break;
 		case 1:
+            mixerSync(moonsound->mixer);
   			moonsound->ymf278->writeRegOPL4(moonsound->opl4latch, value, systemTime);
 			break;
 		}
@@ -397,6 +398,7 @@ void moonsoundWrite(Moonsound* moonsound, UInt16 ioPort, UInt8 value)
 			break;
 		case 1:
 		case 3: // write fm register
+            mixerSync(moonsound->mixer);
 			moonsound->ymf262->writeReg(moonsound->opl3latch, value, systemTime);
 			break;
 		}
@@ -418,11 +420,11 @@ Moonsound* moonsoundCreate(Mixer* mixer, void* romData, int romSize, int sramSiz
     moonsound->handle = mixerRegisterChannel(mixer, MIXER_CHANNEL_MOONSOUND, 1, moonsoundSync, moonsound);
 
     moonsound->ymf262 = new YMF262(0, systemTime, moonsound);
-    moonsound->ymf262->setSampleRate(SAMPLERATE, boardGetMoonsoundOversampling());
+    moonsound->ymf262->setSampleRate(AUDIO_SAMPLERATE, boardGetMoonsoundOversampling());
 	moonsound->ymf262->setVolume(32767 * 9 / 10);
 
     moonsound->ymf278 = new YMF278(0, sramSize, romData, romSize, systemTime);
-    moonsound->ymf278->setSampleRate(SAMPLERATE, boardGetMoonsoundOversampling());
+    moonsound->ymf278->setSampleRate(AUDIO_SAMPLERATE, boardGetMoonsoundOversampling());
     moonsound->ymf278->setVolume(32767 * 9 / 10);
 
     return moonsound;

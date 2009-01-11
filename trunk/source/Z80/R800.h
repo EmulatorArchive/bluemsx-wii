@@ -1,9 +1,9 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Z80/R800.h,v $
 **
-** $Revision: 1.11 $
+** $Revision: 1.20 $
 **
-** $Date: 2006/06/13 17:13:28 $
+** $Date: 2008/06/29 07:53:25 $
 **
 ** Author: Daniel Vik
 **
@@ -11,23 +11,21 @@
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 **
@@ -90,7 +88,7 @@
 #define ENABLE_BREAKPOINTS
 #define ENABLE_CALLSTACK
 #define ENABLE_ASMSX_DEBUG_COMMANDS
-
+#define ENABLE_TRAP_CALLBACK
 
 /*****************************************************
 ** CpuMode
@@ -98,7 +96,11 @@
 ** CPU mode definitions
 ******************************************************
 */
-typedef enum { CPU_Z80 = 0, CPU_R800 = 1 } CpuMode;
+typedef enum { 
+    CPU_Z80 = 0, 
+    CPU_R800 = 1, 
+    CPU_UNKNOWN 
+} CpuMode;
 
 
 /*****************************************************
@@ -144,18 +146,18 @@ typedef UInt32 SystemTime;
 /*****************************************************
 ** RegisterPair
 **
-** Defines a register pair. Define LSB_FIRST on
-** little endian host machines.
+** Defines a register pair. Define __BIG_ENDIAN__ on
+** big endian host machines.
 ******************************************************
 */
 typedef union {
   struct { 
-#ifdef LSB_FIRST
-      UInt8 l; 
-      UInt8 h; 
-#else
+#ifdef __BIG_ENDIAN__
       UInt8 h;
       UInt8 l; 
+#else
+      UInt8 l; 
+      UInt8 h; 
 #endif
   } B;
   UInt16 W;
@@ -189,7 +191,7 @@ typedef struct {
     UInt8 iff1;
     UInt8 iff2;
     UInt8 im;
-    UInt8 halt;	UInt8 ei_mode;
+    UInt8 halt;	UInt8 ei_mode;
 } CpuRegs;
 
 
@@ -202,8 +204,9 @@ typedef struct {
 typedef UInt8 (*R800ReadCb)(void*, UInt16);
 typedef void  (*R800WriteCb)(void*, UInt16, UInt8);
 typedef void  (*R800PatchCb)(void*, CpuRegs*);
-typedef void  (*R800BreakptCb)(void* ref, UInt16);
-typedef void  (*R800DebugCb)(void* ref, int command, const char* data);
+typedef void  (*R800BreakptCb)(void*, UInt16);
+typedef void  (*R800DebugCb)(void*, int, const char*);
+typedef void  (*R800TrapCb)(void*, UInt8);
 typedef void  (*R800TimerCb)(void*);
 
 
@@ -237,6 +240,7 @@ typedef struct
     CpuRegs       regs;             /* Active register bank            */
     UInt32        delay[32];        /* Instruction timing table        */
     UInt8         dataBus;          /* Current value on the data bus   */
+    UInt8         defaultDatabus;   /* Value that is set after im2     */
     int           intState;         /* Sate of interrupt line          */
     int           nmiState;         /* Current NMI state               */
 
@@ -244,6 +248,8 @@ typedef struct
     CpuMode       oldCpuMode;       /* CPU mode before CPU switch      */
     CpuRegs       regBanks[2];      /* Z80 and R800 register banks     */
     UInt32        cpuFlags;         /* Current CPU flags               */
+
+    UInt32        instCnt;          /* Instruction counter             */
 
     UInt32        frequencyZ80;     /* Frequency of Z80 (in Hz)        */
     UInt32        frequencyR800;    /* Frequency of R800 (in Hz)       */
@@ -259,6 +265,7 @@ typedef struct
     R800TimerCb   timerCb;
     R800BreakptCb breakpointCb;
     R800DebugCb   debugCb;
+    R800TrapCb    trapCb;
     void*         ref;              /* User defined pointer which is   */
                                     /* passed to the callbacks         */
 
@@ -290,6 +297,8 @@ typedef struct
 **                     is executed. 
 **      timerCb      - Function called on user scheduled timeouts
 **      breakpointCb - Function called when a breakpoint is hit
+**      debugCb      - Function called when a debug trap is hit
+**      trapCb       - Function called when a trap is hit
 **      ref          - User defined reference that will be passed to the
 **                     callbacks.
 **
@@ -302,6 +311,7 @@ R800* r800Create(UInt32 cpuFlags,
                  R800ReadCb readIoPort, R800WriteCb writeIoPort, 
                  R800PatchCb patch,     R800TimerCb timerCb,
                  R800BreakptCb bpCb,    R800DebugCb debugCb,
+                 R800TrapCb trapCb,
                  void* ref);
 
 /************************************************************************
@@ -417,9 +427,11 @@ void r800ClearNmi(R800* r800);
 ** Arguments:
 **      r800        - Pointer to an R800 object
 **      value       - New value on the data bus
+**      defValue    - Value that the data bus restores to after int
+**      useDef      - Tells whether to modify the def value
 *************************************************************************
 */
-void r800SetDataBus(R800* r800, UInt8 value);
+void r800SetDataBus(R800* r800, UInt8 value, UInt8 defValue, int useDef);
 
 /************************************************************************
 ** r800Execute

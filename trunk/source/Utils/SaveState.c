@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Utils/SaveState.c,v $
 **
-** $Revision: 1.2 $
+** $Revision: 1.5 $
 **
-** $Date: 2004/12/06 08:02:49 $
+** $Date: 2008/06/25 22:26:17 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -42,7 +40,7 @@ struct SaveState {
 
 static char stateFile[512];
 
-static UInt32 tagFromName(char* tagName)
+static UInt32 tagFromName(const char* tagName)
 {
     UInt32 tag = 0;
     UInt32 mod = 1;
@@ -56,7 +54,7 @@ static UInt32 tagFromName(char* tagName)
 }
 
 #if 0
-static void checkTag(SaveState* state, char* tagName)
+static void checkTag(SaveState* state, const char* tagName)
 {
     UInt32 tag = tagFromName(tagName);
     UInt32 offset = 0;
@@ -106,7 +104,7 @@ void saveStateCreate(const char* fileName) {
     strcpy(stateFile, fileName);
 }
 
-SaveState* saveStateOpenForRead(char* fileName) {
+SaveState* saveStateOpenForRead(const char* fileName) {
     SaveState* state = (SaveState*)malloc(sizeof(SaveState));
     Int32 size = 0;
     void* buffer = zipLoadFile(stateFile, getIndexedFilename(fileName), &size);
@@ -125,7 +123,7 @@ SaveState* saveStateOpenForRead(char* fileName) {
     return state;
 }
 
-SaveState* saveStateOpenForWrite(char* fileName) {
+SaveState* saveStateOpenForWrite(const char* fileName) {
     SaveState* state = (SaveState*)malloc(sizeof(SaveState));
 
     state->size      = 0;
@@ -143,7 +141,7 @@ void saveStateClose(SaveState* state) {
     free(state);
 }
 
-void saveStateSet(SaveState* state, char* tagName, UInt32 value) 
+void saveStateSet(SaveState* state, const char* tagName, UInt32 value) 
 {
     checkTag(state, tagName);
 
@@ -152,7 +150,7 @@ void saveStateSet(SaveState* state, char* tagName, UInt32 value)
     state->buffer[state->offset++] = value;
 }
 
-void saveStateSetBuffer(SaveState* state, char* tagName, void* buffer, UInt32 length) 
+void saveStateSetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length) 
 {
     checkTag(state, tagName);
 
@@ -162,7 +160,7 @@ void saveStateSetBuffer(SaveState* state, char* tagName, void* buffer, UInt32 le
     state->offset += (length + sizeof(UInt32) - 1) / sizeof(UInt32);
 }
 
-UInt32 saveStateGet(SaveState* state, char* tagName, UInt32 defValue)
+UInt32 saveStateGet(SaveState* state, const char* tagName, UInt32 defValue)
 {
     UInt32 tag = tagFromName(tagName);
     UInt32 startOffset = state->offset;
@@ -194,7 +192,7 @@ UInt32 saveStateGet(SaveState* state, char* tagName, UInt32 defValue)
     return value;
 }
 
-void saveStateGetBuffer(SaveState* state, char* tagName, void* buffer, UInt32 length)
+void saveStateGetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length)
 {
     UInt32 tag = tagFromName(tagName);
     UInt32 startOffset = state->offset;

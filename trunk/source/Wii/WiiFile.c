@@ -68,6 +68,7 @@ char* archFilenameGetOpenHarddisk(Properties* properties, int drive, int allowCr
 char* archFilenameGetOpenCas(Properties* properties) { return NULL; }
 char* archFilenameGetSaveCas(Properties* properties, int* type) { return NULL; }
 char* archFilenameGetOpenState(Properties* properties) { return NULL; }
+char* archFilenameGetOpenCapture(Properties* properties) { return NULL; }
 char* archFilenameGetSaveState(Properties* properties) { return NULL; }
 char* archDirnameGetOpenDisk(Properties* properties, int drive) { return NULL; }
 char* archFilenameGetOpenRomZip(Properties* properties, int cartSlot, const char* fname, const char* fileList, int count, int* autostart, int* romType) { return NULL; }

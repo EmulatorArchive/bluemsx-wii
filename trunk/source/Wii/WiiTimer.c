@@ -34,7 +34,7 @@
 #include <system.h>
 #include <stdio.h>
 
-static void (*timer_callback)(void*);
+static int (*timer_callback)(void*);
 static int timer_period = 0;
 static int timer_count = 0;
 static int timer_running = 0;
@@ -71,7 +71,7 @@ static int timerThreadEntry(void* data)
       (void)LWP_ThreadSleep(timer_queue);
       if( timer_running == 0 )
         break;
-      timer_callback(NULL);
+      (void)timer_callback(NULL);
     }
 
     (void)SYS_RemoveAlarm(alarm);
@@ -80,7 +80,7 @@ static int timerThreadEntry(void* data)
     return 0;
 }
 
-void* archCreateTimer(int period, void (*timerCallback)(void*))
+void* archCreateTimer(int period, int (*timerCallback)(void*))
 {
     if( timer_period ) {
         fprintf(stderr, "ERROR: Only one timer supported!\n");

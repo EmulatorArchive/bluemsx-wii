@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/IoDevice/TC8566AF.c,v $
 **
-** $Revision: 1.8 $
+** $Revision: 1.15 $
 **
-** $Date: 2006/06/24 17:15:57 $
+** $Date: 2008/03/30 18:38:40 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -52,6 +50,8 @@ struct TC8566AF {
     int command;
     int phase;
     int phaseStep;
+    
+    UInt8 fillerByte;
 
     UInt8 cylinderNumber;
     UInt8 side;
@@ -385,6 +385,7 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
             tc->sectorNumber       = value;
 			break;
 		case 4:
+            tc->fillerByte   = value;
             tc->sectorOffset = 0;
             tc->mainStatus  &= ~STM_DIO;
 			tc->phase        = PHASE_DATATRANSFER;
@@ -497,7 +498,7 @@ static void tc8566afExecutionPhaseWrite(TC8566AF* tc, UInt8 value)
             tc->currentTrack = value;
             break;
         case 1:
-            memset(tc->sectorBuf, 0, 512);
+            memset(tc->sectorBuf, tc->fillerByte, 512);
             rv = diskWrite(tc->drive, tc->sectorBuf, tc->sectorNumber - 1 +
                       diskGetSectorsPerTrack(tc->drive) * (tc->currentTrack * diskGetSides(tc->drive) + value));
             if (!rv) {
@@ -560,7 +561,8 @@ UInt8 tc8566afReadRegister(TC8566AF* tc, UInt8 reg)
                 tc->mainStatus |= STM_RQM;
             } 
         }
-        return tc->mainStatus;
+//        return tc->mainStatus;
+  return (tc->mainStatus & ~ STM_NDM) | (tc->phase == PHASE_DATATRANSFER ? STM_NDM : 0);
 
 	case 5:
         switch (tc->phase) {            
@@ -575,7 +577,7 @@ UInt8 tc8566afReadRegister(TC8566AF* tc, UInt8 reg)
         }
     }
 
-    return 0xff;
+    return 0x00;
 }
 
 UInt8 tc8566afPeekRegister(TC8566AF* tc, UInt8 reg)

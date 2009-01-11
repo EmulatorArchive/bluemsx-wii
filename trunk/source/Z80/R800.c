@@ -1,9 +1,9 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Z80/R800.c,v $
 **
-** $Revision: 1.23 $
+** $Revision: 1.38 $
 **
-** $Date: 2006/07/08 19:10:48 $
+** $Date: 2008/06/08 11:49:19 $
 **
 ** Author: Daniel Vik
 **
@@ -11,24 +11,21 @@
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
-**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -48,10 +45,8 @@ static UInt16 DAATable[0x800];
 
 static void cb(R800* r800);
 static void dd(R800* r800);
-static void dd2(R800* r800);
 static void ed(R800* r800);
 static void fd(R800* r800);
-static void fd2(R800* r800);
 static void dd_cb(R800* r800);
 static void fd_cb(R800* r800);
 
@@ -89,6 +84,8 @@ static void fd_cb(R800* r800);
 #define DLY_RET       27
 #define DLY_S1990VDP  28
 #define DLY_T9769VDP  29
+#define DLY_LDSPHL    30
+#define DLY_BITIX     31
 
 #define delayMem(r800)      { r800->systemTime += r800->delay[DLY_MEM];      }
 #define delayMemOp(r800)    { r800->systemTime += r800->delay[DLY_MEMOP];    }
@@ -119,10 +116,12 @@ static void fd_cb(R800* r800);
 #define delayRet(r800)      { r800->systemTime += r800->delay[DLY_RET];      }
 #define delayRld(r800)      { r800->systemTime += r800->delay[DLY_RLD];      }
 #define delayT9769(r800)    { r800->systemTime += r800->delay[DLY_T9769VDP]; }
+#define delayLdSpHl(r800)   { r800->systemTime += r800->delay[DLY_LDSPHL];   }
+#define delayBitIx(r800)    { r800->systemTime += r800->delay[DLY_BITIX];    }
 
-
+/*
 #define delayVdpIO(r800, port) do {                                          \
-    if ((port & 0xfffe) == 0x98) {                                           \
+    if ((port & 0xfffc) == 0x98) {                                           \
         delayT9769(r800);                                                    \
     }                                                                        \
     if ((port & 0xf8) == 0x98) {                                             \
@@ -133,7 +132,20 @@ static void fd_cb(R800* r800);
         }                                                                    \
     }                                                                        \
 } while (0)
+*/
 
+#define delayVdpIO(r800, port) do {                                          \
+    if ((port & 0xfc) == 0x98) {                                             \
+        delayT9769(r800);                                                    \
+    }                                                                        \
+    if ((port & 0xf8) == 0x98) {                                             \
+        if (r800->cpuMode == CPU_R800) {                                     \
+            if (r800->systemTime - r800->vdpTime < r800->delay[DLY_S1990VDP])\
+                r800->systemTime = r800->vdpTime + r800->delay[DLY_S1990VDP];\
+            r800->vdpTime = r800->systemTime;                                \
+        }                                                                    \
+    }                                                                        \
+} while (0)
 
 static UInt8 readPort(R800* r800, UInt16 port) {
     UInt8 value;
@@ -482,6 +494,11 @@ static void M1(R800* r800) {
     delayM1(r800);
 }
 
+static void M1_nodelay(R800* r800) { 
+    UInt8 value = r800->regs.R;
+    r800->regs.R = (value & 0x80) | ((value + 1) & 0x7f); 
+}
+
 
 static void nop(R800* r800) {
 }
@@ -517,14 +534,17 @@ static void ld_sp_word(R800* r800) {
 }
 
 static void ld_sp_hl(R800* r800) { 
+    delayLdSpHl(r800);                  // white cat append
     r800->regs.SP.W = r800->regs.HL.W; 
 }
 
 static void ld_sp_ix(R800* r800) { 
+    delayLdSpHl(r800);                  // white cat append
     r800->regs.SP.W = r800->regs.IX.W; 
 }
 
 static void ld_sp_iy(R800* r800) { 
+    delayLdSpHl(r800);                  // white cat append
     r800->regs.SP.W = r800->regs.IY.W; 
 }
 
@@ -852,7 +872,6 @@ static void ld_b_a(R800* r800) {
 
 static void ld_b_b(R800* r800) { 
 #ifdef ENABLE_ASMSX_DEBUG_COMMANDS
-#if 1
     char debugString[256];
     UInt16 addr = r800->regs.PC.W;
     UInt16 bpAddr = 0;
@@ -860,9 +879,10 @@ static void ld_b_b(R800* r800) {
     UInt16 page = 0xffff;
     UInt16 slot = 0xffff;
 
-    if (r800->readMemory(r800->ref, addr++) != 24) {
+    if (r800->readMemory(r800->ref, addr) != 24) {
         return;
     }
+    addr++;
 
     size = r800->readMemory(r800->ref, addr++);
     switch (size) {
@@ -890,38 +910,6 @@ static void ld_b_b(R800* r800) {
 
     sprintf(debugString, "%.4x %.4x %.4x", slot, page, bpAddr);
     r800->debugCb(r800->ref, ASDBG_SETBP, debugString);
-
-#else
-    char debugString[256];
-    UInt16 addr = r800->regs.PC.W;
-    UInt16 end;
-    UInt16 bpAddr = 0;
-
-    if (r800->readMemory(r800->ref, addr++) != 24) {
-        return;
-    }
-    end = addr + 1 + (Int8)r800->readMemory(r800->ref, addr);
-    if (end < addr + 6 || end - addr > 255) {
-        return;
-    }
-    addr++;
-
-    if (r800->readMemory(r800->ref, addr + 0) != 100 || 
-        r800->readMemory(r800->ref, addr + 1) != 100 || 
-        r800->readMemory(r800->ref, addr + 2) != 0   || 
-        r800->readMemory(r800->ref, addr + 3) != 0) 
-    {
-        return;
-    }
-    addr += 4;
-    
-    bpAddr = r800->readMemory(r800->ref, addr++);
-    bpAddr |= r800->readMemory(r800->ref, addr++) << 8;
-
-    sprintf(debugString, "%.4x", bpAddr);
-
-    r800->debugCb(r800->ref, ASDBG_SETBP, debugString);
-#endif
 #endif
 }
 
@@ -1002,6 +990,19 @@ static void ld_c_b(R800* r800) {
 }
 
 static void ld_c_c(R800* r800) { 
+#ifdef ENABLE_TRAP_CALLBACK
+    UInt16 addr = r800->regs.PC.W;
+    UInt8  value;
+
+    if (r800->readMemory(r800->ref, addr) != 24) {
+        return;
+    }
+    addr++;
+
+    value = r800->readMemory(r800->ref, addr++);
+    
+    r800->trapCb(r800->ref, value);
+#endif
 }
 
 static void ld_c_d(R800* r800) { 
@@ -1087,10 +1088,10 @@ static void ld_d_d(R800* r800) {
     UInt16 end;
     char* ptr = debugString;
 
-    if (r800->readMemory(r800->ref, addr++) != 24) {
+    if (r800->readMemory(r800->ref, addr) != 24) {
         return;
     }
-
+    addr++;
     end = addr + 1 + (Int8)r800->readMemory(r800->ref, addr);
     addr++;
 
@@ -2417,6 +2418,7 @@ static UInt8 SLA_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SLA(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2493,6 +2495,7 @@ static UInt8 SLL_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SLL(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2569,6 +2572,7 @@ static UInt8 SRA_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SRA(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2645,6 +2649,7 @@ static UInt8 SRL_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SRL(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2721,6 +2726,7 @@ static UInt8 RL_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RL(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2797,6 +2803,7 @@ static UInt8 RLC_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RLC(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2873,6 +2880,7 @@ static UInt8 RR_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RR(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -2949,6 +2957,7 @@ static UInt8 RRC_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RRC(r800, &val);
+    delayBit(r800);                 // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3022,6 +3031,7 @@ static void bit_0_xhl(R800* r800) {
 }
 
 static void bit_0_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3064,6 +3074,7 @@ static void bit_1_xhl(R800* r800) {
 }
 
 static void bit_1_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3106,6 +3117,7 @@ static void bit_2_xhl(R800* r800) {
 }
 
 static void bit_2_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3148,6 +3160,7 @@ static void bit_3_xhl(R800* r800) {
 }
 
 static void bit_3_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3190,6 +3203,7 @@ static void bit_4_xhl(R800* r800) {
 }
 
 static void bit_4_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3232,6 +3246,7 @@ static void bit_5_xhl(R800* r800) {
 }
 
 static void bit_5_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3274,6 +3289,7 @@ static void bit_6_xhl(R800* r800) {
 }
 
 static void bit_6_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3316,6 +3332,7 @@ static void bit_7_xhl(R800* r800) {
 }
 
 static void bit_7_xnn(R800* r800, UInt16 addr) { 
+    delayBitIx(r800);           // white cat append
     r800->regs.SH.W   = addr;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         (r800->regs.SH.B.h & (X_FLAG | Y_FLAG)) |
@@ -3361,6 +3378,7 @@ static UInt8 RES_0_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 0, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3437,6 +3455,7 @@ static UInt8 RES_1_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 1, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3513,6 +3532,7 @@ static UInt8 RES_2_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 2, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3589,6 +3609,7 @@ static UInt8 RES_3_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 3, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3665,6 +3686,7 @@ static UInt8 RES_4_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 4, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3741,6 +3763,7 @@ static UInt8 RES_5_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 5, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3809,6 +3832,7 @@ static void res_6_l(R800* r800) {
 static void res_6_xhl(R800* r800) {
     UInt8 val = readMem(r800, r800->regs.HL.W);
     RES(r800, 6, &val); 
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, r800->regs.HL.W, val);
 }
@@ -3893,6 +3917,7 @@ static UInt8 RES_7_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     RES(r800, 7, &val);
+    delayBit(r800)              // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -3971,6 +3996,7 @@ static UInt8 SET_0_XNN(R800* r800, UInt16 addr) {
     r800->regs.SH.W = addr;
 
     SET(r800, 0, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
 
     writeMem(r800, addr, val);
@@ -4048,6 +4074,7 @@ static UInt8 SET_1_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 1, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -4124,6 +4151,7 @@ static UInt8 SET_2_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 2, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -4200,6 +4228,7 @@ static UInt8 SET_3_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 3, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -4276,6 +4305,7 @@ static UInt8 SET_4_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 4, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -4352,6 +4382,7 @@ static UInt8 SET_5_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 5, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -4428,6 +4459,7 @@ static UInt8 SET_6_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 6, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -4504,6 +4536,7 @@ static UInt8 SET_7_XNN(R800* r800, UInt16 addr) {
     UInt8 val = readMem(r800, addr);
     r800->regs.SH.W = addr;
     SET(r800, 7, &val);
+    delayBit(r800);             // white cat append
     delayInc(r800);
     writeMem(r800, addr, val);
     return val;
@@ -5162,6 +5195,7 @@ static void cpir(R800* r800) {
     if (r800->regs.BC.W && !(r800->regs.AF.B.l & Z_FLAG)) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2;
+        r800->instCnt--;
     }
 }
 
@@ -5184,6 +5218,7 @@ static void cpdr(R800* r800) {
     if (r800->regs.BC.W && !(r800->regs.AF.B.l & Z_FLAG)) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2;
+        r800->instCnt--;
     }
 }
 
@@ -5203,6 +5238,7 @@ static void ldir(R800* r800) {
     if (r800->regs.BC.W != 0) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2; 
+        r800->instCnt--;
     }
 }
 
@@ -5222,6 +5258,7 @@ static void lddr(R800* r800) {
     if (r800->regs.BC.W != 0) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2; 
+        r800->instCnt--;
     }
 }
 
@@ -5229,10 +5266,10 @@ static void ini(R800* r800) {  // Diff on flags
     UInt8  val;
     UInt16 tmp;
     delayInOut(r800);
+    r800->regs.BC.B.h--;
     val = readPort(r800, r800->regs.BC.W);
     writeMem(r800, r800->regs.HL.W++, val);
-    r800->regs.BC.B.h--;
-    r800->regs.AF.B.l = (ZSPXYTable[r800->regs.BC.B.h] & (Z_FLAG | S_FLAG)) |
+    r800->regs.AF.B.l = (ZSXYTable[r800->regs.BC.B.h]) |
         ((val >> 6) & N_FLAG);
     tmp = val + ((r800->regs.BC.B.l + 1) & 0xFF);
     r800->regs.AF.B.l |= (tmp >> 8) * (H_FLAG | C_FLAG) |
@@ -5244,6 +5281,7 @@ static void inir(R800* r800) {
     if (r800->regs.BC.B.h != 0) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2; 
+        r800->instCnt--;
     }
 }
 
@@ -5252,10 +5290,10 @@ static void ind(R800* r800) {
     UInt8 val;
     UInt16 tmp;
     delayInOut(r800);
+    r800->regs.BC.B.h--;
     val = readPort(r800, r800->regs.BC.W);
     writeMem(r800, r800->regs.HL.W--, val);
-    r800->regs.BC.B.h--;
-    r800->regs.AF.B.l = (ZSPXYTable[r800->regs.BC.B.h] & (Z_FLAG | S_FLAG)) | 
+    r800->regs.AF.B.l = (ZSXYTable[r800->regs.BC.B.h]) | 
         ((val >> 6) & N_FLAG);
     tmp = val + ((r800->regs.BC.B.l - 1) & 0xFF);
     r800->regs.AF.B.l |= (tmp >> 8) * (H_FLAG | C_FLAG) |
@@ -5267,6 +5305,7 @@ static void indr(R800* r800) {
     if (r800->regs.BC.B.h != 0) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2; 
+        r800->instCnt--;
     }
 }
 
@@ -5275,8 +5314,8 @@ static void outi(R800* r800) {
     UInt16 tmp;
     delayInOut(r800);
     val = readMem(r800, r800->regs.HL.W++);
-    r800->regs.BC.B.h--;
     writePort(r800, r800->regs.BC.W, val);
+    r800->regs.BC.B.h--;
     r800->regs.AF.B.l = (ZSXYTable[r800->regs.BC.B.h]) |
         ((val >> 6) & N_FLAG);
     tmp = val + r800->regs.HL.B.l;
@@ -5289,6 +5328,7 @@ static void otir(R800* r800) {
     if (r800->regs.BC.B.h != 0) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2; 
+        r800->instCnt--;
     }
 }
 
@@ -5297,8 +5337,8 @@ static void outd(R800* r800) {
     UInt16 tmp;
     delayInOut(r800);
     val = readMem(r800, r800->regs.HL.W--);
-    r800->regs.BC.B.h--;
     writePort(r800, r800->regs.BC.W, val);
+    r800->regs.BC.B.h--;
     r800->regs.AF.B.l = (ZSXYTable[r800->regs.BC.B.h]) |
         ((val >> 6) & N_FLAG);
     tmp = val + r800->regs.HL.B.l;
@@ -5311,6 +5351,7 @@ static void otdr(R800* r800) {
     if (r800->regs.BC.B.h != 0) {
         delayBlock(r800); 
         r800->regs.PC.W -= 2; 
+        r800->instCnt--;
     }
 }
 
@@ -5416,11 +5457,11 @@ static Opcode opcodeDd[256] = {
     ret_nz,      pop_bc,      jp_nz,       jp,          call_nz,     push_bc,     add_a_byte,  rst_00,
     ret_z,       ret,         jp_z,        dd_cb,       call_z,      call,        adc_a_byte,  rst_08,
     ret_nc,      pop_de,      jp_nc,       out_byte_a,  call_nc,     push_de,     sub_byte,    rst_10,
-    ret_c,       exx,         jp_c,        in_a_byte,   call_c,      dd2,         sbc_a_byte,  rst_18,
+    ret_c,       exx,         jp_c,        in_a_byte,   call_c,      dd,          sbc_a_byte,  rst_18,
     ret_po,      pop_ix,      jp_po,       ex_xsp_ix,   call_po,     push_ix,     and_byte,    rst_20,
     ret_pe,      jp_ix,       jp_pe,       ex_de_hl,    call_pe,     ed,          xor_byte,    rst_28,
     ret_p,       pop_af,      jp_p,        di,          call_p,      push_af,     or_byte,     rst_30,
-    ret_m,       ld_sp_ix,    jp_m,        ei,          call_m,      fd2,         cp_byte,     rst_38  
+    ret_m,       ld_sp_ix,    jp_m,        ei,          call_m,      fd,          cp_byte,     rst_38  
 };
 
 static Opcode opcodeEd[256] = {
@@ -5486,11 +5527,11 @@ static Opcode opcodeFd[256] = {
     ret_nz,      pop_bc,      jp_nz,       jp,          call_nz,     push_bc,     add_a_byte,  rst_00,
     ret_z,       ret,         jp_z,        fd_cb,       call_z,      call,        adc_a_byte,  rst_08,
     ret_nc,      pop_de,      jp_nc,       out_byte_a,  call_nc,     push_de,     sub_byte,    rst_10,
-    ret_c,       exx,         jp_c,        in_a_byte,   call_c,      dd2,         sbc_a_byte,  rst_18,
+    ret_c,       exx,         jp_c,        in_a_byte,   call_c,      dd,          sbc_a_byte,  rst_18,
     ret_po,      pop_iy,      jp_po,       ex_xsp_iy,   call_po,     push_iy,     and_byte,    rst_20,
     ret_pe,      jp_iy,       jp_pe,       ex_de_hl,    call_pe,     ed,          xor_byte,    rst_28,
     ret_p,       pop_af,      jp_p,        di,          call_p,      push_af,     or_byte,     rst_30,
-    ret_m,       ld_sp_iy,    jp_m,        ei,          call_m,      fd2,         cp_byte,     rst_38  
+    ret_m,       ld_sp_iy,    jp_m,        ei,          call_m,      fd,          cp_byte,     rst_38  
 };
 
 static OpcodeNn opcodeNnCb[256] = {
@@ -5550,18 +5591,7 @@ static void cb(R800* r800) {
 
 static void dd(R800* r800) {
     int opcode = readOpcode(r800, r800->regs.PC.W++);
-    if (opcode != 0xcb && opcode != 0xdd && opcode != 0xfd) {
-        M1(r800);
-    }
-    else {
-        delayXD(r800);
-    }
-    opcodeDd[opcode](r800);
-}
-
-static void dd2(R800* r800) {
-    int opcode = readOpcode(r800, r800->regs.PC.W++);
-    delayXD(r800);
+    M1(r800);
     opcodeDd[opcode](r800);
 }
 
@@ -5573,23 +5603,13 @@ static void ed(R800* r800) {
 
 static void fd(R800* r800) {
     int opcode = readOpcode(r800, r800->regs.PC.W++);
-    if (opcode != 0xcb && opcode != 0xdd && opcode != 0xfd) {
-        M1(r800);
-    }
-    else {
-        delayXD(r800);
-    }
-    opcodeFd[opcode](r800);
-}
-
-static void fd2(R800* r800) {
-    int opcode = readOpcode(r800, r800->regs.PC.W++);
-    delayXD(r800);
+    M1(r800);
     opcodeFd[opcode](r800);
 }
 
 static void executeInstruction(R800* r800, UInt8 opcode) {
     M1(r800);
+    r800->instCnt++;
     opcodeMain[opcode](r800);
 }
 
@@ -5617,6 +5637,9 @@ static void breakpointCbDummy(void* ref, UInt16 pc) {
 }
 
 static void debugCbDummy(void* ref, int command, const char* data) {
+}
+
+static void trapCbDummy(void* ref, UInt8 value) {
 }
 
 static void r800InitTables() {
@@ -5682,7 +5705,7 @@ static void r800SwitchCpu(R800* r800) {
         break;
     }
 
-    r800->oldCpuMode = -1;
+    r800->oldCpuMode = CPU_UNKNOWN;
 
     switch (r800->cpuMode) {
     case CPU_Z80:
@@ -5713,7 +5736,7 @@ static void r800SwitchCpu(R800* r800) {
         r800->delay[DLY_POSTIO]    = freqAdjust * 3;
         r800->delay[DLY_M1]        = freqAdjust * ((r800->cpuFlags & CPU_ENABLE_M1) ? 2 : 0);
         r800->delay[DLY_XD]        = freqAdjust * 1;
-        r800->delay[DLY_IM]        = freqAdjust * 2;
+        r800->delay[DLY_IM]        = freqAdjust * 2; // should be 4, but currently will break vdp timing
         r800->delay[DLY_IM2]       = freqAdjust * 19;
         r800->delay[DLY_NMI]       = freqAdjust * 11;
         r800->delay[DLY_PARALLEL]  = freqAdjust * 2;
@@ -5736,6 +5759,8 @@ static void r800SwitchCpu(R800* r800) {
         r800->delay[DLY_RLD]       = freqAdjust * 4;
         r800->delay[DLY_S1990VDP]  = freqAdjust * 0;
         r800->delay[DLY_T9769VDP]  = freqAdjust * ((r800->cpuFlags & CPU_VDP_IO_DELAY) ? 1 : 0);
+        r800->delay[DLY_LDSPHL]    = freqAdjust * 2;
+        r800->delay[DLY_BITIX]     = freqAdjust * 2;
         break;
 
     case CPU_R800:
@@ -5769,6 +5794,8 @@ static void r800SwitchCpu(R800* r800) {
         r800->delay[DLY_RLD]       = freqAdjust * 1;
         r800->delay[DLY_S1990VDP]  = freqAdjust * 57;
         r800->delay[DLY_T9769VDP]  = freqAdjust * ((r800->cpuFlags & CPU_VDP_IO_DELAY) ? 1 : 0);
+        r800->delay[DLY_LDSPHL]    = freqAdjust * 0;
+        r800->delay[DLY_BITIX]     = freqAdjust * 0;
         break;
     }
 }
@@ -5778,6 +5805,7 @@ R800* r800Create(UInt32 cpuFlags,
                  R800ReadCb readIoPort, R800WriteCb writeIoPort, 
                  R800PatchCb patch,     R800TimerCb timerCb,
                  R800BreakptCb bpCb,    R800DebugCb debugCb,
+                 R800TrapCb trapCb,
                  void* ref)
 {
     R800* r800 = calloc(1, sizeof(R800));
@@ -5792,6 +5820,7 @@ R800* r800Create(UInt32 cpuFlags,
     r800->timerCb     = timerCb     ? timerCb     : timerCbDummy;
     r800->breakpointCb= bpCb        ? bpCb        : breakpointCbDummy;
     r800->debugCb     = debugCb     ? debugCb     : debugCbDummy;
+    r800->trapCb      = trapCb      ? trapCb      : trapCbDummy;
     r800->ref         = ref;
 
     r800->frequencyZ80  = 3579545;
@@ -5800,8 +5829,10 @@ R800* r800Create(UInt32 cpuFlags,
     r800->terminate       = 0;
     r800->breakpointCount = 0;
     r800->systemTime      = 0;
-    r800->cpuMode         = -1;
-    r800->oldCpuMode      = -1;
+    r800->cpuMode         = CPU_UNKNOWN;
+    r800->oldCpuMode      = CPU_UNKNOWN;
+
+    r800->instCnt         = 0;
 
     r800Reset(r800, 0);
 
@@ -5863,8 +5894,8 @@ void r800Reset(R800 *r800, UInt32 cpuTime) {
 	r800->regBanks[1].R2    = 0;
 	r800->regBanks[1].PC.W  = 0x0000;
 
-    r800->regBanks[0].iff1  = 0;
-    r800->regBanks[0].iff2  = 0;
+    r800->regBanks[1].iff1  = 0;
+    r800->regBanks[1].iff2  = 0;
     r800->regBanks[1].im    = 0;
     r800->regBanks[1].halt  = 0;
     r800->regBanks[1].ei_mode  = 0;
@@ -5872,15 +5903,19 @@ void r800Reset(R800 *r800, UInt32 cpuTime) {
     r800SetMode(r800, CPU_Z80);
     r800SwitchCpu(r800);
 
-    r800->dataBus   = 0xff;
-    r800->intState  = INT_HIGH;
-    r800->nmiState  = INT_HIGH;
+    r800->dataBus        = 0xff;
+    r800->defaultDatabus = 0xff;
+    r800->intState       = INT_HIGH;
+    r800->nmiState       = INT_HIGH;
 
     r800->callstackSize = 0;
 }
 
-void r800SetDataBus(R800* r800, UInt8 value) {
+void r800SetDataBus(R800* r800, UInt8 value, UInt8 defaultValue, int setDefault) {
     r800->dataBus = value;
+    if (setDefault) {
+        r800->defaultDatabus = defaultValue;
+    }
 }
 
 void r800SetInt(R800* r800) {
@@ -5894,9 +5929,6 @@ void r800ClearInt(R800* r800) {
 void r800SetNmi(R800* r800) {
     if (r800->nmiState == INT_HIGH) {
         r800->nmiState = INT_EDGE;
-    }
-    else {
-//        r800->nmiState = INT_HIGH;
     }
 }
 
@@ -5972,7 +6004,7 @@ void r800Execute(R800* r800) {
             }
         }
 
-        if (r800->oldCpuMode != -1) {
+        if (r800->oldCpuMode != CPU_UNKNOWN) {
             r800SwitchCpu(r800);
         }
 
@@ -6020,7 +6052,7 @@ void r800Execute(R800* r800) {
 #endif
 	        r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.h);
 	        r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.l);
-            r800->regs.iff2 = r800->regs.iff1;
+//            r800->regs.iff2 = r800->regs.iff1;
             r800->regs.iff1 = 0;
             r800->regs.PC.W = 0x0066;
             M1(r800);
@@ -6035,7 +6067,9 @@ void r800Execute(R800* r800) {
 
         case 0:
             delayIm(r800);
-            executeInstruction(r800, r800->dataBus);
+            address = r800->dataBus;
+            r800->dataBus = r800->defaultDatabus;
+            executeInstruction(r800, address);
             break;
 
         case 1:
@@ -6045,6 +6079,7 @@ void r800Execute(R800* r800) {
 
         case 2:
             address = r800->dataBus | ((Int16)r800->regs.I << 8);
+            r800->dataBus = r800->defaultDatabus;
 #ifdef ENABLE_CALLSTACK
             r800->callstack[r800->callstackSize++ & 0xff] = r800->regs.PC.W;
 #endif
@@ -6052,7 +6087,7 @@ void r800Execute(R800* r800) {
 	        r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.l);
             r800->regs.PC.B.l = r800->readMemory(r800->ref, address++);
             r800->regs.PC.B.h = r800->readMemory(r800->ref, address);
-            M1(r800);
+            M1_nodelay(r800);
             delayIm2(r800);
             break;
         }
@@ -6066,7 +6101,7 @@ void r800ExecuteUntil(R800* r800, UInt32 endTime) {
         UInt16 address;
         int iff1 = 0;
 
-        if (r800->oldCpuMode != -1) {
+        if (r800->oldCpuMode != CPU_UNKNOWN) {
             r800SwitchCpu(r800);
         }
 
@@ -6105,14 +6140,14 @@ void r800ExecuteUntil(R800* r800, UInt32 endTime) {
 
         /* If it is NMI... */
         if (r800->nmiState == INT_EDGE) {
-            r800->nmiState = INT_HIGH;
+            r800->nmiState = INT_LOW;
 #ifdef ENABLE_CALLSTACK
             r800->callstack[r800->callstackSize++ & 0xff] = r800->regs.PC.W;
 #endif
 	        r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.h);
 	        r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.l);
 
-            r800->regs.iff2 = r800->regs.iff1;
+//            r800->regs.iff2 = r800->regs.iff1;
             r800->regs.iff1 = 0;
             r800->regs.PC.W = 0x0066;
             M1(r800);
@@ -6127,6 +6162,7 @@ void r800ExecuteUntil(R800* r800, UInt32 endTime) {
         case 0:
             delayIm(r800);
             executeInstruction(r800, r800->dataBus);
+            r800->dataBus = r800->defaultDatabus;
             break;
 
         case 1:
@@ -6136,6 +6172,7 @@ void r800ExecuteUntil(R800* r800, UInt32 endTime) {
 
         case 2:
             address = r800->dataBus | ((Int16)r800->regs.I << 8);
+            r800->dataBus = r800->defaultDatabus;
 #ifdef ENABLE_CALLSTACK
             r800->callstack[r800->callstackSize++ & 0xff] = r800->regs.PC.W;
 #endif
@@ -6144,7 +6181,7 @@ void r800ExecuteUntil(R800* r800, UInt32 endTime) {
 
             r800->regs.PC.B.l = r800->readMemory(r800->ref, address++);
             r800->regs.PC.B.h = r800->readMemory(r800->ref, address);
-            M1(r800);
+            M1_nodelay(r800);
             delayIm2(r800);
             break;
         }
@@ -6191,14 +6228,14 @@ void r800ExecuteInstruction(R800* r800) {
 
     /* If it is NMI... */
     if (r800->nmiState == INT_EDGE) {
-        r800->nmiState = INT_HIGH;
+        r800->nmiState = INT_LOW;
 #ifdef ENABLE_CALLSTACK
         r800->callstack[r800->callstackSize++ & 0xff] = r800->regs.PC.W;
 #endif
 	    r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.h);
 	    r800->writeMemory(r800->ref, --r800->regs.SP.W, r800->regs.PC.B.l);
 
-        r800->regs.iff2 = r800->regs.iff1;
+//        r800->regs.iff2 = r800->regs.iff1;
         r800->regs.iff1 = 0;
         r800->regs.PC.W = 0x0066;
         M1(r800);
@@ -6213,6 +6250,7 @@ void r800ExecuteInstruction(R800* r800) {
     case 0:
         delayIm(r800);
         executeInstruction(r800, r800->dataBus);
+        r800->dataBus = r800->defaultDatabus;
         break;
 
     case 1:
@@ -6222,6 +6260,7 @@ void r800ExecuteInstruction(R800* r800) {
 
     case 2:
         address = r800->dataBus | ((Int16)r800->regs.I << 8);
+        r800->dataBus = r800->defaultDatabus;
 #ifdef ENABLE_CALLSTACK
         r800->callstack[r800->callstackSize++ & 0xff] = r800->regs.PC.W;
 #endif
@@ -6230,7 +6269,7 @@ void r800ExecuteInstruction(R800* r800) {
 
         r800->regs.PC.B.l = r800->readMemory(r800->ref, address++);
         r800->regs.PC.B.h = r800->readMemory(r800->ref, address);
-        M1(r800);
+        M1_nodelay(r800);
         delayIm2(r800);
         break;
     }

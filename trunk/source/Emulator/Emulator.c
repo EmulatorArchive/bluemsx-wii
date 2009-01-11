@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Emulator/Emulator.c,v $
 **
-** $Revision: 1.54 $
+** $Revision: 1.65 $
 **
-** $Date: 2006/06/19 18:20:39 $
+** $Date: 2008/05/19 12:41:13 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -184,6 +182,10 @@ static void emuCalcCpuUsage() {
 
 static int emuUseSynchronousUpdate()
 {
+    if (properties->emulation.syncMethod == P_EMU_SYNCIGNORE) {
+        return properties->emulation.syncMethod;
+    }
+
     if (properties->emulation.speed == 50 &&
         enableSynchronousUpdate &&
         emulatorGetMaxSpeed() == 0)
@@ -239,9 +241,6 @@ void emulatorSetState(EmuState state) {
     emuState = state;
 }
 
-void emulatorRunOne() {
-    archEventSet(emuSyncEvent);
-}
 
 int emulatorGetSyncPeriod() {
 #ifdef NO_HIRES_TIMERS
@@ -252,11 +251,12 @@ int emulatorGetSyncPeriod() {
 #endif
 }
 
-void timerCallback(void* timer) {
-    if (properties != NULL) {
+static int timerCallback(void* timer) {
+    if (properties == NULL) {
+        return 1;
+    }
+    else {
         static UInt32 frameCount = 0;
-        static UInt32 emuCount = 0;
-        static UInt32 kbdCount = 0;
         static UInt32 oldSysTime = 0;
         static UInt32 refreshRate = 50;
         UInt32 framePeriod = (properties->video.frameSkip + 1) * 1000;
@@ -266,7 +266,7 @@ void timerCallback(void* timer) {
         int syncMethod = emuUseSynchronousUpdate();
 
         if (diffTime == 0) {
-            return;
+            return 0;
         }
 
         oldSysTime = sysTime;
@@ -289,8 +289,10 @@ void timerCallback(void* timer) {
         }
 
         // Update emulation
-        emulatorRunOne();
+        archEventSet(emuSyncEvent);
     }
+
+    return 1;
 }
 
 static void getDeviceInfo(BoardDeviceInfo* deviceInfo) 
@@ -300,7 +302,8 @@ static void getDeviceInfo(BoardDeviceInfo* deviceInfo)
     for (i = 0; i < PROP_MAX_CARTS; i++) {
         strcpy(properties->media.carts[i].fileName, deviceInfo->carts[i].name);
         strcpy(properties->media.carts[i].fileNameInZip, deviceInfo->carts[i].inZipName);
-        properties->media.carts[i].type = deviceInfo->carts[i].type;
+        // Don't save rom type
+        // properties->media.carts[i].type = deviceInfo->carts[i].type;
         updateExtendedRomName(i, properties->media.carts[i].fileName, properties->media.carts[i].fileNameInZip);
     }
 
@@ -406,9 +409,11 @@ void emulatorStart(const char* stateName) {
 
     boardSetMachine(machine);
 
+#ifndef NO_TIMERS
     emuSyncEvent  = archEventCreate(0);
     emuStartEvent = archEventCreate(0);
     emuTimer = archCreateTimer(emulatorGetSyncPeriod(), timerCallback);
+#endif
 
     setDeviceInfo(&deviceInfo);
 
@@ -423,12 +428,16 @@ void emulatorStart(const char* stateName) {
 
     clearlog();
 
-#ifdef LINUX_TEST
-emuState = EMU_RUNNING;
-emulatorThread();
-return;
-#endif
+#ifdef SINGLE_THREADED
+    emuState = EMU_RUNNING;
+    emulatorThread();
 
+    if (emulationStartFailure) {
+        archEmulationStopNotification();
+        emuState = EMU_STOPPED;
+        archEmulationStartFailure();
+    }
+#else
     emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
     
     archEventWait(emuStartEvent, 3000);
@@ -451,6 +460,7 @@ return;
         
         emuState = EMU_RUNNING;
     }
+#endif
 } 
 
 void emulatorStop() {
@@ -468,8 +478,8 @@ void emulatorStop() {
 
     emuExitFlag = 1;
     archEventSet(emuSyncEvent);
-    archThreadJoin(emuThread, 400);
     archSoundSuspend();
+    archThreadJoin(emuThread, 3000);
     archMidiEnable(0);
     machineDestroy(machine);
     archThreadDestroy(emuThread);
@@ -542,7 +552,11 @@ void emulatorRestart() {
 void emulatorRestartSound() {
     emulatorSuspend();
     archSoundDestroy();
-    archSoundCreate(mixer, SAMPLERATE, properties->sound.bufSize, properties->sound.stereo ? 2 : 1);
+#ifdef WII
+    archSoundCreate(mixer, 48000, properties->sound.bufSize, properties->sound.stereo ? 2 : 1);
+#else
+    archSoundCreate(mixer, 44100, properties->sound.bufSize, properties->sound.stereo ? 2 : 1);
+#endif
     emulatorResume();
 }
 
@@ -593,6 +607,8 @@ void RefreshScreen(int screenMode) {
     }
 }
 
+#ifndef NO_TIMERS
+
 static int WaitForSync(int maxSpeed, int breakpointHit) {
     UInt32 li1;
     UInt32 li2;
@@ -615,17 +631,25 @@ static int WaitForSync(int maxSpeed, int breakpointHit) {
         debuggerNotifyEmulatorPause();
         emuSingleStep = 0;
         emuState = EMU_PAUSED;
+        archSoundSuspend();
+        archMidiEnable(0);
     }
 
     if (breakpointHit) {
         debuggerNotifyEmulatorPause();
         emuState = EMU_PAUSED;
+        archSoundSuspend();
+        archMidiEnable(0);
     }
     
     if (emuState != EMU_RUNNING) {
         archEventSet(emuStartEvent);
         emuSysTime = 0;
     }
+    
+#ifdef SINGLE_THREADED
+    emuExitFlag |= archPollEvent();
+#endif
 
     if (((++kbdPollCnt & 0x03) >> 1) == 0) {
        archPollInput();
@@ -635,13 +659,22 @@ static int WaitForSync(int maxSpeed, int breakpointHit) {
         overflowCount += emulatorSyncScreen() ? 0 : 1;
         while ((!emuExitFlag && emuState != EMU_RUNNING) || overflowCount > 0) {
             archEventWait(emuSyncEvent, -1);
+#ifdef NO_TIMERS
+            while (timerCallback(NULL) == 0) emuExitFlag |= archPollEvent();
+#endif
             overflowCount--;
         }
     }
     else {
         do {
+#ifdef NO_TIMERS
+            while (timerCallback(NULL) == 0) emuExitFlag |= archPollEvent();
+#endif
             archEventWait(emuSyncEvent, -1);
-            if (((emuMaxSpeed || emuMaxEmuSpeed) && !emuExitFlag) || overflowCount > 0) {
+            if (((emuMaxSpeed || emuMaxEmuSpeed) && !emuExitFlag) || overflowCount > 0) {          
+#ifdef NO_TIMERS
+                while (timerCallback(NULL) == 0) emuExitFlag |= archPollEvent();
+#endif
                 archEventWait(emuSyncEvent, -1);
             }
             overflowCount = 0;
@@ -690,3 +723,69 @@ static int WaitForSync(int maxSpeed, int breakpointHit) {
 
     return emuExitFlag ? -1 : diffTime;
 }
+
+#else
+#include <windows.h>
+
+UInt32 getHiresTimer() {
+    static LONGLONG hfFrequency = 0;
+    LARGE_INTEGER li;
+
+    if (!hfFrequency) {
+        if (QueryPerformanceFrequency(&li)) {
+            hfFrequency = li.QuadPart;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    QueryPerformanceCounter(&li);
+
+    return (DWORD)(li.QuadPart * 1000000 / hfFrequency);
+}
+
+static UInt32 busy, total, oldTime;
+
+static int WaitForSync(int maxSpeed, int breakpointHit) {
+    emuSuspendFlag = 1;
+
+    busy += getHiresTimer() - oldTime;
+
+    emuExitFlag |= archPollEvent();
+
+    archPollInput();
+
+    do {
+        for (;;) {
+            UInt32 sysTime = archGetSystemUpTime(1000);
+            UInt32 diffTime = sysTime - emuSysTime;
+            emuExitFlag |= archPollEvent();
+            if (diffTime < 10) {
+                continue;
+            }
+            emuSysTime += 10;
+            if (diffTime > 30) {
+                emuSysTime = sysTime;
+            }
+            break;
+        }
+    } while (!emuExitFlag && emuState != EMU_RUNNING);
+
+    emuSuspendFlag = 0;
+    
+    total += getHiresTimer() - oldTime;
+    oldTime = getHiresTimer();
+#if 0
+    if (total >= 1000000) {
+        UInt32 pct = 10000 * busy / total;
+        printf("CPU Usage = %d.%d%%\n", pct / 100, pct % 100);
+        total = 0;
+        busy = 0;
+    }
+#endif
+
+    return emuExitFlag ? -1 : 10;
+}
+
+#endif

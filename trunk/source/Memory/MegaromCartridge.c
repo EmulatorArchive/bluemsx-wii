@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Memory/MegaromCartridge.c,v $
 **
-** $Revision: 1.31 $
+** $Revision: 1.62 $
 **
-** $Date: 2006/06/26 19:35:55 $
+** $Date: 2008/10/26 19:48:18 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -89,6 +87,23 @@
 #include "romMapperSonyHBIV1.h"
 #include "romMapperFmDas.h"
 #include "romMapperSfg05.h"
+#include "romMapperSf7000Ipl.h"
+#include "romMapperPlayBall.h"
+#include "romMapperObsonet.h"
+#include "romMapperSg1000.h"
+#include "romMapperSegaBasic.h"
+#include "romMapperCvMegaCart.h"
+#include "romMapperDumas.h"
+#include "sramMapperMegaSCSI.h"
+#include "sramMapperEseSCC.h"
+#include "romMapperNoWind.h"
+#include "romMapperGoudaSCSI.h"
+#include "romMapperMegaFlashRomScc.h"
+#include "romMapperForteII.h"
+#include "romMapperMatraINK.h"
+#include "romMapperNettouYakyuu.h"
+#include "romMapperNet.h"
+#include "romMapperJoyrexPsg.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -112,9 +127,10 @@ void cartridgeSetSlotInfo(int cartNo, int slot, int sslot)
     cartridgeInfo.cart[cartNo].sslot = sslot;
 }
 
-void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip) 
+int cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip) 
 {
     char* romName = cartZip != NULL ? cartZip : cart;
+    int success = 1;
     UInt8* buf;
     int size;
     int slot  = cartridgeInfo.cart[cartNo].slot;
@@ -124,65 +140,129 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
     slotRemove(slot, sslot);
 
     if (cart == NULL) {
-        return;
+        return 0;
     }
 
     switch (romType) {
     case ROM_EXTRAM512KB:
-        ramMapperCreate(0x80000, slot, sslot, 0, NULL, NULL);
+        success &= ramMapperCreate(0x80000, slot, sslot, 0, NULL, NULL);
         break;
         
     case ROM_EXTRAM1MB:
-        ramMapperCreate(0x100000, slot, sslot, 0, NULL, NULL);
+        success &= ramMapperCreate(0x100000, slot, sslot, 0, NULL, NULL);
         break;
         
     case ROM_EXTRAM2MB:
-        ramMapperCreate(0x200000, slot, sslot, 0, NULL, NULL);
+        success &= ramMapperCreate(0x200000, slot, sslot, 0, NULL, NULL);
         break;
         
     case ROM_EXTRAM4MB:
-        ramMapperCreate(0x400000, slot, sslot, 0, NULL, NULL);
+        success &= ramMapperCreate(0x400000, slot, sslot, 0, NULL, NULL);
         break;
 
     case ROM_MEGARAM128:
-        romMapperMegaRAMCreate(0x20000, slot, sslot, 0);
+        success &= romMapperMegaRAMCreate(0x20000, slot, sslot, 0);
         break;
 
     case ROM_MEGARAM256:
-        romMapperMegaRAMCreate(0x40000, slot, sslot, 0);
+        success &= romMapperMegaRAMCreate(0x40000, slot, sslot, 0);
         break;
 
     case ROM_MEGARAM512:
-        romMapperMegaRAMCreate(0x80000, slot, sslot, 0);
+        success &= romMapperMegaRAMCreate(0x80000, slot, sslot, 0);
         break;
 
     case ROM_MEGARAM768:
-        romMapperMegaRAMCreate(0xc0000, slot, sslot, 0);
+        success &= romMapperMegaRAMCreate(0xc0000, slot, sslot, 0);
         break;
 
     case ROM_MEGARAM2M:
-        romMapperMegaRAMCreate(0x200000, slot, sslot, 0);
+        success &= romMapperMegaRAMCreate(0x200000, slot, sslot, 0);
         break;
 
     case ROM_PAC:
-        romMapperPACCreate("PacA.rom", NULL, 0, slot, sslot, 2);
+        success &= romMapperPACCreate("PacA.rom", NULL, 0, slot, sslot, 2);
         break;
 
 #ifdef WIN32
     case ROM_GAMEREADER:
-        romMapperGameReaderCreate(cartNo, slot, sslot);
+        success &= romMapperGameReaderCreate(cartNo, slot, sslot);
         break;
 #endif
 
+    case ROM_JOYREXPSG:
+        success &= romMapperJoyrexPsgCreate();
+        break;
+
     case ROM_GIDE:
-        romMapperGIdeCreate(cartNo);
+        success &= romMapperGIdeCreate(cartNo);
+        break;
+
+    case SRAM_MEGASCSI128:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x20000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_MEGASCSI256:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x40000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_MEGASCSI512:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x80000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_MEGASCSI1MB:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x100000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_ESERAM128:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x20000, slot, sslot, 2, 0, 0);
+        break;
+
+    case SRAM_ESERAM256:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x40000, slot, sslot, 2, 0, 0);
+        break;
+
+    case SRAM_ESERAM512:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x80000, slot, sslot, 2, 0, 0);
+        break;
+
+    case SRAM_ESERAM1MB:
+        success &= sramMapperMegaSCSICreate("", NULL, 0x100000, slot, sslot, 2, 0, 0);
+        break;
+
+    case SRAM_WAVESCSI128:
+        success &= sramMapperEseSCCCreate("", NULL, 0x20000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_WAVESCSI256:
+        success &= sramMapperEseSCCCreate("", NULL, 0x40000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_WAVESCSI512:
+        success &= sramMapperEseSCCCreate("", NULL, 0x80000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_WAVESCSI1MB:
+        success &= sramMapperEseSCCCreate("", NULL, 0x100000, slot, sslot, 2, cartNo, 1);
+        break;
+
+    case SRAM_ESESCC128:
+        success &= sramMapperEseSCCCreate("", NULL, 0x20000, slot, sslot, 2, 0, 0);
+        break;
+
+    case SRAM_ESESCC256:
+        success &= sramMapperEseSCCCreate("", NULL, 0x40000, slot, sslot, 2, 0, 0);
+        break;
+
+    case SRAM_ESESCC512:
+        success &= sramMapperEseSCCCreate("", NULL, 0x80000, slot, sslot, 2, 0, 0);
         break;
 
     case ROM_FMPAC:
         if (cart[strlen(cart) - 4] != '.') {
             buf = romLoad("Machines/Shared Roms/FMPAC.rom", "", &size);
             if (buf != NULL) {
-                romMapperFMPACCreate("FmPacA.rom", buf, size, slot, sslot, 2);
+                success &= romMapperFMPACCreate("FmPacA.rom", buf, size, slot, sslot, 2);
                 free(buf);
             }
             else {
@@ -192,7 +272,7 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x50, 0x41, 0x43, 0x32, 0x4f, 0x50, 0x4c, 0x4c
                 };
-                romMapperFMPACCreate("FmPacA.rom", romFMPAC, 0x10000, slot, sslot, 2);
+                success &= romMapperFMPACCreate("FmPacA.rom", romFMPAC, 0x10000, slot, sslot, 2);
             }
             break;
         }
@@ -202,7 +282,7 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
         if (strcmp(cart, "Sunrise IDE") == 0) {
             buf = romLoad("Machines/Shared Roms/sunriseide.rom", cartZip, &size);
             if (buf == 0) {
-                romMapperSunriseIdeCreate(cartNo, romName, NULL, 0, slot, sslot, 0);
+                success &= romMapperSunriseIdeCreate(cartNo, romName, NULL, 0, slot, sslot, 0);
                 break;
             }
         }
@@ -210,7 +290,15 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
         else if (strcmp(cart, "Beer IDE") == 0) {
             buf = romLoad("Machines/Shared Roms/beeride.rom", cartZip, &size);
             if (buf == 0) {
-                romMapperBeerIdeCreate(cartNo, romName, NULL, 0, slot, sslot, 0);
+                success &= romMapperBeerIdeCreate(cartNo, romName, NULL, 0, slot, sslot, 0);
+                break;
+            }
+        }
+        // Load roms for Special Carts
+        else if (strcmp(cart, "Gouda SCSI") == 0) {
+            buf = romLoad("Machines/Shared Roms/novaxis.rom", cartZip, &size);
+            if (buf == 0) {
+                success &= romMapperGoudaSCSICreate(cartNo, romName, NULL, 0, slot, sslot, 2);
                 break;
             }
         }
@@ -220,31 +308,35 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
         if (buf == NULL) {
             switch (romType) {
             case ROM_SNATCHER:
-                romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_SNATCHER);
+                success &= romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_SNATCHER);
                 break;
 
             case ROM_SDSNATCHER:
-                romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_SDSNATCHER);
+                success &= romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_SDSNATCHER);
                 break;
 
             case ROM_SCCMIRRORED:
-                romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_MIRRORED);
+                success &= romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_MIRRORED);
                 break;
 
             case ROM_SCCEXTENDED:
-                romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_EXTENDED);
+                success &= romMapperSCCplusCreate(NULL, NULL, 0, slot, sslot, 2, SCC_EXTENDED);
                 break;
 
             case ROM_SCC:
-                romMapperSCCplusCreate(romName, NULL, 0, slot, sslot, 2, SCC_EXTENDED);
+                success &= romMapperSCCplusCreate(romName, NULL, 0, slot, sslot, 2, SCC_EXTENDED);
                 break;
 
             case ROM_SCCPLUS:
-                romMapperSCCplusCreate(romName, NULL, 0, slot, sslot, 2, SCCP_EXTENDED);
+                success &= romMapperSCCplusCreate(romName, NULL, 0, slot, sslot, 2, SCCP_EXTENDED);
                 break;
 
             case ROM_SONYHBI55:
-                romMapperSonyHBI55Create();
+                success &= romMapperSonyHBI55Create();
+                break;
+
+            case ROM_MEGAFLSHSCC:
+                success &= romMapperMegaFlashRomSccCreate("MegaFlashRomScc.rom", NULL, 0, slot, sslot, 2, 0);
                 break;
             }
             break;
@@ -257,87 +349,137 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
 
         switch (romType) {
         case ROM_0x4000:
-            romMapperNormalCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperNormalCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_0xC000:
-            romMapperNormalCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperNormalCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_BASIC:
-            romMapperBasicCreate(romName, buf, size, slot, sslot, 4);
+            success &= romMapperBasicCreate(romName, buf, size, slot, sslot, 4);
             break;
 
         case ROM_FMDAS:
-            romMapperFmDasCreate(romName, buf, size, slot, sslot, 0);
+            success &= romMapperFmDasCreate(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_PLAIN:
-            romMapperPlainCreate(romName, buf, size, slot, sslot, 0);
+            success &= romMapperPlainCreate(romName, buf, size, slot, sslot, 0);
+            break;
+
+        case ROM_NETTOUYAKYUU:
+            success &= romMapperNettouYakyuuCreate(romName, buf, size, slot, sslot, 2);
+            break;
+
+        case ROM_MATRAINK:
+            success &= romMapperMatraINKCreate(romName, buf, size, slot, sslot, 0);
+            break;
+
+        case ROM_FORTEII:
+            success &= romMapperForteIICreate(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_FMPAK:
-            romMapperFMPAKCreate(romName, buf, size, slot, sslot, 0);
+            success &= romMapperFMPAKCreate(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_STANDARD:
-            romMapperStandardCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperStandardCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_MSXDOS2:
-            romMapperMsxDos2Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperMsxDos2Create(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_KONAMI5:
-            romMapperKonami5Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKonami5Create(romName, buf, size, slot, sslot, 2);
+            break;
+
+        case ROM_MANBOW2:
+            if (size > 0x70000) size = 0x70000;
+            success &= romMapperMegaFlashRomSccCreate(romName, buf, size, slot, sslot, 2, 0x7f);
+            break;
+
+        case ROM_MEGAFLSHSCC:
+            success &= romMapperMegaFlashRomSccCreate(romName, buf, size, slot, sslot, 2, 0);
+            break;
+
+        case ROM_OBSONET:
+            success &= romMapperObsonetCreate(romName, buf, size, slot, sslot, 2);
+            break;
+
+        case ROM_NOWIND:
+            success &= romMapperNoWindCreate(cartNo, romName, buf, size, slot, sslot, 0);
+            break;
+
+        case ROM_DUMAS:
+            {
+                // Try to load voice rom before creating the rom mapper
+                char eepromName[512];
+                int eepromSize = 0;
+                UInt8* eepromData;
+                int i;
+
+                strcpy(eepromName, cart);
+                for (i = strlen(eepromName); i > 0 && eepromName[i] != '.'; i--);
+                eepromName[i] = 0;
+                strcat(eepromName, "_eeprom.rom");
+                    
+                eepromData = romLoad(eepromName, NULL, &eepromSize);
+                success &= romMapperDumasCreate(romName, buf, size, slot, sslot, 2, eepromData, eepromSize);
+                if (eepromData != NULL) {
+                    free(eepromData);
+                }
+            }
             break;
 
         case ROM_SNATCHER:
-            romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_SNATCHER);
+            success &= romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_SNATCHER);
             break;
 
         case ROM_SDSNATCHER:
-            romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_SDSNATCHER);
+            success &= romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_SDSNATCHER);
             break;
 
         case ROM_SCCMIRRORED:
-            romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_MIRRORED);
+            success &= romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_MIRRORED);
             break;
 
         case ROM_SCCEXTENDED:
-            romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_EXTENDED);
+            success &= romMapperSCCplusCreate(NULL, buf, size, slot, sslot, 2, SCC_EXTENDED);
             break;
 
         case ROM_SCC:
-            romMapperSCCplusCreate(romName, buf, size, slot, sslot, 2, SCC_EXTENDED);
+            success &= romMapperSCCplusCreate(romName, buf, size, slot, sslot, 2, SCC_EXTENDED);
             break;
 
         case ROM_SCCPLUS:
-            romMapperSCCplusCreate(romName, buf, size, slot, sslot, 2, SCCP_EXTENDED);
+            success &= romMapperSCCplusCreate(romName, buf, size, slot, sslot, 2, SCCP_EXTENDED);
             break;
 
         case ROM_MOONSOUND:
-            romMapperMoonsoundCreate(romName, buf, size, 640);
+            success &= romMapperMoonsoundCreate(romName, buf, size, 640);
             break;
             
         case ROM_KONAMI4:
-            romMapperKonami4Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKonami4Create(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_MAJUTSUSHI:
-            romMapperMajutsushiCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperMajutsushiCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_HOLYQURAN:
-            romMapperHolyQuranCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperHolyQuranCreate(romName, buf, size, slot, sslot, 2);
             break;
 
 		case ROM_KONAMISYNTH:
-            romMapperKonamiSynthCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKonamiSynthCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_KONWORDPRO:
-            romMapperKonamiWordProCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKonamiWordProCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_KONAMKBDMAS:
@@ -354,7 +496,7 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
                 strcat(voiceName, "_voice.rom");
                     
                 voiceData = romLoad(voiceName, NULL, &voiceSize);
-                romMapperKonamiKeyboardMasterCreate(romName, buf, size, slot, sslot, 2, voiceData, voiceSize);
+                success &= romMapperKonamiKeyboardMasterCreate(romName, buf, size, slot, sslot, 2, voiceData, voiceSize);
                 if (voiceData != NULL) {
                     free(voiceData);
                 }
@@ -362,147 +504,192 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
             break;
             
         case ROM_ASCII8:
-            romMapperASCII8Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperASCII8Create(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_ASCII16:
-            romMapperASCII16Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperASCII16Create(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_ASCII8SRAM:
-            romMapperASCII8sramCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperASCII8sramCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_ASCII16SRAM:
-            romMapperASCII16sramCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperASCII16sramCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_KOEI:
-            romMapperKoeiCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKoeiCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_KONAMI4NF:
-            romMapperKonami4nfCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKonami4nfCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_ASCII16NF:
-            romMapperASCII16nfCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperASCII16nfCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_GAMEMASTER2:
-            romMapperGameMaster2Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperGameMaster2Create(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_HARRYFOX:
-            romMapperHarryFoxCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperHarryFoxCreate(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_HALNOTE:
-            romMapperHalnoteCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperHalnoteCreate(romName, buf, size, slot, sslot, 0);
             break;
             
         case ROM_RTYPE:
-            romMapperRTypeCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperRTypeCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_LODERUNNER:
-            romMapperLodeRunnerCreate(romName, buf, size, slot, sslot, 4);
+            success &= romMapperLodeRunnerCreate(romName, buf, size, slot, sslot, 4);
             break;
             
         case ROM_CROSSBLAIM:
-            romMapperCrossBlaimCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperCrossBlaimCreate(romName, buf, size, slot, sslot, 0);
             break;
             
         case ROM_KOREAN80:
-            romMapperKorean80Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKorean80Create(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_KOREAN90:
-            romMapperKorean90Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKorean90Create(romName, buf, size, slot, sslot, 2);
             break;
             
         case ROM_KOREAN126:
-            romMapperKorean126Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperKorean126Create(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_MSXAUDIO:
-            romMapperMsxAudioCreate(romName, buf, size, slot, sslot, 0);
+            success &= romMapperMsxAudioCreate(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_YAMAHASFG01:
-            romMapperSfg05Create(romName, buf, size, slot, sslot, 0);
+            success &= romMapperSfg05Create(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_YAMAHASFG05:
-            romMapperSfg05Create(romName, buf, size, slot, sslot, 0);
+            success &= romMapperSfg05Create(romName, buf, size, slot, sslot, 0);
+            break;
+
+        case ROM_YAMAHANET:
+            success &= romMapperNetCreate(romName, buf, size, slot, sslot, 2);
+            break;
+
+        case ROM_SF7000IPL:
+            success &= romMapperSf7000IplCreate(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_DISKPATCH:
-            romMapperDiskCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperDiskCreate(romName, buf, size, slot, sslot, 2);
            break;
 
         case ROM_TC8566AF:
-            romMapperTC8566AFCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperTC8566AFCreate(romName, buf, size, slot, sslot, 2, ROM_TC8566AF);
+            break;
+
+        case ROM_TC8566AF_TR:
+            success &= romMapperTC8566AFCreate(romName, buf, size, slot, sslot, 2, ROM_TC8566AF_TR);
             break;
 
         case ROM_MICROSOL:
-            romMapperMicrosolCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperMicrosolCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_NATIONALFDC:
-            romMapperNationalFdcCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperNationalFdcCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_PHILIPSFDC:
-            romMapperPhilipsFdcCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperPhilipsFdcCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_SVI738FDC:
-            romMapperSvi738FdcCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperSvi738FdcCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_SVI328:
-            romMapperNormalCreate(romName, buf, size, 1, 0, 0);
+            success &= romMapperNormalCreate(romName, buf, size, 1, 0, 0);
             break;
 
         case ROM_COLECO:
-            romMapperNormalCreate(romName, buf, size, 0, 0, 4);
+            success &= romMapperNormalCreate(romName, buf, size, 0, 0, 4);
+            break;
+
+        case ROM_CVMEGACART:
+            success &= romMapperCvMegaCartCreate(romName, buf, size, 0, 0, 4);
             break;
 
         case ROM_SG1000:
-            romMapperNormalCreate(romName, buf, size, 0, 0, 0);
+        case ROM_SC3000:
+            success &= romMapperSg1000Create(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_SG1000CASTLE:
-            romMapperSg1000CastleCreate(romName, buf, size, 0, 0, 0);
+            success &= romMapperSg1000CastleCreate(romName, buf, size, slot, sslot, 0);
+            break;
+
+        case ROM_SEGABASIC:
+            success &= romMapperSegaBasicCreate(romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_KANJI:
-            romMapperKanjiCreate(buf, size);
+            success &= romMapperKanjiCreate(buf, size);
             break;
 
         case ROM_KANJI12:
-            romMapperKanji12Create(buf, size);
+            success &= romMapperKanji12Create(buf, size);
             break;
             
         case ROM_FMPAC:
-            romMapperFMPACCreate(romName, buf, size, slot, sslot, 2);
+            success &= romMapperFMPACCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_SUNRISEIDE:
-            romMapperSunriseIdeCreate(cartNo, romName, buf, size, slot, sslot, 0);
+            success &= romMapperSunriseIdeCreate(cartNo, romName, buf, size, slot, sslot, 0);
             break;
 
         case ROM_BEERIDE:
-            romMapperBeerIdeCreate(cartNo, romName, buf, size, slot, sslot, 2);
+            success &= romMapperBeerIdeCreate(cartNo, romName, buf, size, slot, sslot, 2);
+            break;
+
+        case SRAM_MEGASCSI:
+            success &= sramMapperMegaSCSICreate(romName, buf, size, slot, sslot, 2, cartNo, cartZip ? 0x81 : 1);
+            break;
+
+        case SRAM_WAVESCSI:
+            success &= sramMapperEseSCCCreate(romName, buf, size, slot, sslot, 2, cartNo, cartZip ? 0x81 : 1);
+            break;
+
+        case ROM_GOUDASCSI:
+            success &= romMapperGoudaSCSICreate(cartNo, romName, buf, size, slot, sslot, 2);
+            break;
+
+        case SRAM_ESERAM:
+            success &= sramMapperMegaSCSICreate(romName, buf, size, slot, sslot, 2, 0, cartZip ? 0x80 : 0);
+            break;
+
+        case SRAM_ESESCC:
+            success &= sramMapperEseSCCCreate(romName, buf, size, slot, sslot, 2, 0, cartZip ? 0x80 : 0);
             break;
 
         case ROM_SONYHBIV1:
-            romMapperSonyHbiV1Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperSonyHbiV1Create(romName, buf, size, slot, sslot, 2);
+            break;
+
+        case ROM_PLAYBALL:
+            success &= romMapperPlayBallCreate(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_SVI727:
-            romMapperSvi727Create(romName, buf, size, slot, sslot, 2);
+            success &= romMapperSvi727Create(romName, buf, size, slot, sslot, 2);
             break;
 
         case ROM_MICROSOL80:
@@ -519,15 +706,21 @@ void cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
                 strcat(charName, "_char.rom");
                     
                 charData = romLoad(charName, NULL, &charSize);
-                romMapperMicrosolVmx80Create(romName, buf, size, slot, sslot, 2, charData, charSize);
+                success &= romMapperMicrosolVmx80Create(romName, buf, size, slot, sslot, 2, charData, charSize);
                 if (charData != NULL) {
                     free(charData);
                 }
             }
             break;
+
+        default:
+            success = 0;
+            break;
         }
 
         free(buf);
     }
+
+    return success;
 }
 

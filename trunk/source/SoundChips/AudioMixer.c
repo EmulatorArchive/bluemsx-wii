@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/SoundChips/AudioMixer.c,v $
 **
-** $Revision: 1.12 $
+** $Revision: 1.17 $
 **
-** $Date: 2006/06/22 06:14:00 $
+** $Date: 2008/03/30 18:38:45 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -36,7 +34,6 @@
 #include <math.h>
 
 #define BITSPERSAMPLE     16
-#define BUFFER_SIZE       40000
 
 #define str2ul(s) ((UInt32)s[0]<<0|(UInt32)s[1]<<8|(UInt32)s[2]<<16|(UInt32)s[3]<<24)
 
@@ -46,10 +43,22 @@
 
 static int mixerCPUFrequency;
 static int mixerConnector;
+static int mixerCPUFrequencyFixed;
 
 void mixerSetBoardFrequency(int CPUFrequency)
 {
-	mixerCPUFrequency = CPUFrequency;
+    if (mixerCPUFrequencyFixed != 0) {
+    	mixerCPUFrequency = mixerCPUFrequencyFixed;
+    }
+    else {
+    	mixerCPUFrequency = CPUFrequency;
+    }
+}
+
+void mixerSetBoardFrequencyFixed(int CPUFrequency)
+{
+	mixerCPUFrequencyFixed = CPUFrequency;
+    mixerCPUFrequency = mixerCPUFrequencyFixed;
 }
 
 typedef struct {
@@ -106,14 +115,14 @@ struct Mixer
     UInt32 refFrag;
     UInt32 index;
     UInt32 volIndex;
-    Int16   buffer[BUFFER_SIZE];
+    Int16   buffer[AUDIO_STEREO_BUFFER_SIZE];
     AudioTypeInfo audioTypeInfo[MIXER_CHANNEL_TYPE_COUNT];
     MixerChannel channels[MAX_CHANNELS];
     MixerChannel midi; // This channel is only used for meter output
     Int32   channelCount;
     Int32   handleCount;
     UInt32  oldTick;
-    Int32   dummyBuffer[BUFFER_SIZE];
+    Int32   dummyBuffer[AUDIO_STEREO_BUFFER_SIZE];
     Int32   logging;
     Int32   stereo;
     double  masterVolume;
@@ -427,15 +436,15 @@ void mixerSync(Mixer* mixer)
     UInt64 elapsed;
     int i;
 
-    elapsed        = SAMPLERATE * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
+    elapsed        = AUDIO_SAMPLERATE * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
     mixer->refTime = systemTime;
     mixer->refFrag = (UInt32)(elapsed % (mixerCPUFrequency * (boardFrequency() / 3579545)));
     count          = (UInt32)(elapsed / (mixerCPUFrequency * (boardFrequency() / 3579545)));
 
-    if (count == 0 || count > BUFFER_SIZE) {
+    if (count == 0 || count > AUDIO_MONO_BUFFER_SIZE) {
         return;
     }
-
+    
     for (i = 0; i < mixer->channelCount; i++) {
         if (mixer->channels[i].updateCallback != NULL) {
             chBuff[i] = mixer->channels[i].updateCallback(mixer->channels[i].ref, count);
@@ -636,8 +645,8 @@ void mixerStopLog(Mixer* mixer)
     header.wavHeader.chunkSize      = 16;
     header.wavHeader.formatType     = 1;
     header.wavHeader.channels       = (mixer->stereo ? 2 : 1);
-    header.wavHeader.samplesPerSec  = SAMPLERATE;
-    header.wavHeader.avgBytesPerSec = (mixer->stereo ? 2 : 1) * SAMPLERATE * BITSPERSAMPLE / 8;
+    header.wavHeader.samplesPerSec  = AUDIO_SAMPLERATE;
+    header.wavHeader.avgBytesPerSec = (mixer->stereo ? 2 : 1) * AUDIO_SAMPLERATE * BITSPERSAMPLE / 8;
     header.wavHeader.blockAlign     = (mixer->stereo ? 2 : 1) * BITSPERSAMPLE / 8;
     header.wavHeader.bitsPerSample  = BITSPERSAMPLE;
     header.data                     = str2ul("data");

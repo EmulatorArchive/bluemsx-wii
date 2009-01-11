@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/Emulator/Properties.c,v $
 **
-** $Revision: 1.53 $
+** $Revision: 1.74 $
 **
-** $Date: 2006/07/04 07:49:03 $
+** $Date: 2008/05/15 10:23:42 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik
+** Copyright (C) 2003-2006 Daniel Vik
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -38,7 +36,11 @@
 #include "Language.h"
 #include "JoystickPort.h"
 #include "Board.h"
+#include "AppConfig.h"
 
+
+// PacketFileSystem.h Need to be included after all other includes
+#include "PacketFileSystem.h"
 
 static char settFilename[512];
 static char histFilename[512];
@@ -181,7 +183,15 @@ ValueNamePair PrinterTypePair[] = {
 ValueNamePair PrinterEmulationPair[] = {
     { P_LPT_RAW,                   "raw" },
     { P_LPT_MSXPRN,                "msxprinter" },
+    { P_LPT_SVIPRN,                "sviprinter" },
     { P_LPT_EPSONFX80,             "epsonfx80" },
+    { -1,                          "" },
+};
+
+ValueNamePair CdromDrvPair[] = {
+    { P_CDROM_DRVNONE,             "none" },
+    { P_CDROM_DRVIOCTL,            "ioctl" },
+    { P_CDROM_DRVASPI,             "aspi" },
     { -1,                          "" },
 };
 
@@ -207,10 +217,10 @@ int stringToEnum(ValueNamePair* pair, const char* name)
 }
 
 /* Default property settings */
-void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage kbdLang, int syncMode, const char* themeName)
+void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage kbdLang, int syncMode, const char* themeName) 
 {
     int i;
-
+    
     properties->language                      = langType;
     strcpy(properties->settings.language, langToName(properties->language, 0));
 
@@ -218,7 +228,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->settings.usePngScreenshots    = 1;
     properties->settings.disableScreensaver   = 0;
     properties->settings.portable             = 0;
-
+    
     strcpy(properties->settings.themeName, themeName);
 
     memset(properties->settings.windowPos, 0, sizeof(properties->settings.windowPos));
@@ -233,6 +243,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->emulation.frontSwitch       = 0;
     properties->emulation.pauseSwitch       = 0;
     properties->emulation.audioSwitch       = 0;
+    properties->emulation.ejectMediaOnExit  = 0;
     properties->emulation.registerFileTypes = 0;
     properties->emulation.disableWinKeys    = 0;
     properties->emulation.priorityBoost     = 0;
@@ -240,6 +251,8 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->video.monitorColor          = P_VIDEO_COLOR;
     properties->video.monitorType           = P_VIDEO_PALMON;
     properties->video.windowSize            = P_VIDEO_SIZEX2;
+    properties->video.windowSizeInitial     = properties->video.windowSize;
+    properties->video.windowSizeChanged     = 0;
     properties->video.windowX               = -1;
     properties->video.windowY               = -1;
     properties->video.driver                = P_VIDEO_DRVDIRECTX_VIDEO;
@@ -247,6 +260,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->video.fullscreen.width      = 640;
     properties->video.fullscreen.height     = 480;
     properties->video.fullscreen.bitDepth   = 32;
+    properties->video.maximizeIsFullscreen  = 1;
     properties->video.deInterlace           = 1;
     properties->video.blendFrames           = 0;
     properties->video.horizontalStretch     = 1;
@@ -260,14 +274,17 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->video.scanlinesPct          = 92;
     properties->video.colorSaturationWidth  = 2;
     properties->video.detectActiveMonitor   = 1;
-
+    properties->video.captureFps            = 60;
+    properties->video.captureSize           = 1;
+    
     properties->videoIn.disabled            = 0;
     properties->videoIn.inputIndex          = 0;
     properties->videoIn.inputName[0]        = 0;
 
-    properties->sound.driver           = P_SOUND_DRVDIRECTX;
-    properties->sound.bufSize          = 100;
-
+    properties->sound.driver                = P_SOUND_DRVDIRECTX;
+    properties->sound.bufSize               = 100;
+    properties->sound.stabilizeDSoundTiming = 1;
+    
     properties->sound.stereo = 1;
     properties->sound.masterVolume = 75;
     properties->sound.masterEnable = 1;
@@ -275,21 +292,21 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->sound.chip.enableY8950 = 1;
     properties->sound.chip.enableMoonsound = 1;
     properties->sound.chip.moonsoundSRAMSize = 640;
-
+    
     properties->sound.chip.ym2413Oversampling = 1;
     properties->sound.chip.y8950Oversampling = 1;
     properties->sound.chip.moonsoundOversampling = 1;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_PSG].enable = 1;
-    properties->sound.mixerChannel[MIXER_CHANNEL_PSG].pan = 42;
+    properties->sound.mixerChannel[MIXER_CHANNEL_PSG].pan = 40;
     properties->sound.mixerChannel[MIXER_CHANNEL_PSG].volume = 100;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_SCC].enable = 1;
-    properties->sound.mixerChannel[MIXER_CHANNEL_SCC].pan = 58;
+    properties->sound.mixerChannel[MIXER_CHANNEL_SCC].pan = 60;
     properties->sound.mixerChannel[MIXER_CHANNEL_SCC].volume = 100;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].enable = 1;
-    properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].pan = 58;
+    properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].pan = 60;
     properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].volume = 95;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_MSXAUDIO].enable = 1;
@@ -305,7 +322,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->sound.mixerChannel[MIXER_CHANNEL_YAMAHA_SFG].volume = 95;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_PCM].enable = 1;
-    properties->sound.mixerChannel[MIXER_CHANNEL_PCM].pan = 48;
+    properties->sound.mixerChannel[MIXER_CHANNEL_PCM].pan = 50;
     properties->sound.mixerChannel[MIXER_CHANNEL_PCM].volume = 95;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_IO].enable = 0;
@@ -317,9 +334,9 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->sound.mixerChannel[MIXER_CHANNEL_MIDI].volume = 90;
 
     properties->sound.mixerChannel[MIXER_CHANNEL_KEYBOARD].enable = 1;
-    properties->sound.mixerChannel[MIXER_CHANNEL_KEYBOARD].pan = 54;
+    properties->sound.mixerChannel[MIXER_CHANNEL_KEYBOARD].pan = 55;
     properties->sound.mixerChannel[MIXER_CHANNEL_KEYBOARD].volume = 65;
-
+    
     properties->sound.YkIn.type               = P_MIDI_NONE;
     properties->sound.YkIn.name[0]            = 0;
     strcpy(properties->sound.YkIn.fileName, "midiin.dat");
@@ -334,15 +351,17 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     strcpy(properties->sound.MidiOut.fileName, "midiout.dat");
     properties->sound.MidiOut.desc[0]         = 0;
     properties->sound.MidiOut.mt32ToGm        = 0;
-
+    
+    properties->joystick.POV0isAxes    = 0;
+    
     strcpy(properties->joy1.type, "joystick");
     properties->joy1.typeId            = JOYSTICK_PORT_JOYSTICK;
     properties->joy1.autofire          = 0;
-
+    
     strcpy(properties->joy2.type, "joystick");
     properties->joy2.typeId            = JOYSTICK_PORT_JOYSTICK;
     properties->joy2.autofire          = 0;
-
+    
     properties->keyboard.configFile[0] = 0;
 
     if (kbdLang == P_KBD_JAPANESE) {
@@ -373,7 +392,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
         properties->media.tapes[i].extensionFilter = 0;
         properties->media.tapes[i].type = 0;
     }
-
+    
     properties->cartridge.defDir[0]    = 0;
     properties->cartridge.defaultType  = ROM_UNKNOWN;
     properties->cartridge.autoReset    = 1;
@@ -382,23 +401,30 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->diskdrive.defDir[0]    = 0;
     properties->diskdrive.autostartA   = 0;
     properties->diskdrive.quickStartDrive = 0;
+    properties->diskdrive.cdromMethod     = P_CDROM_DRVNONE;
+    properties->diskdrive.cdromDrive      = 0;
 
     properties->cassette.defDir[0]       = 0;
     properties->cassette.showCustomFiles = 1;
     properties->cassette.readOnly        = 1;
-    properties->cassette.autoRewind      = 0;
+    properties->cassette.rewindAfterInsert = 0;
 
     properties->ports.Lpt.type           = P_LPT_NONE;
     properties->ports.Lpt.emulation      = P_LPT_MSXPRN;
     properties->ports.Lpt.name[0]        = 0;
     strcpy(properties->ports.Lpt.fileName, "printer.dat");
     properties->ports.Lpt.portName[0]    = 0;
-
+    
     properties->ports.Com.type           = P_COM_NONE;
     properties->ports.Com.name[0]        = 0;
     strcpy(properties->ports.Com.fileName, "uart.dat");
     properties->ports.Com.portName[0]    = 0;
 
+    properties->ports.Eth.ethIndex       = -1;
+    properties->ports.Eth.disabled       = 0;
+    strcpy(properties->ports.Eth.macAddress, "00:00:00:00:00:00");
+
+#ifndef NO_FILE_HISTORY
     for (i = 0; i < MAX_HISTORY; i++) {
         properties->filehistory.cartridge[0][i][0] = 0;
         properties->filehistory.cartridgeType[0][i] = ROM_UNKNOWN;
@@ -410,7 +436,9 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     }
 
     properties->filehistory.quicksave[0] = 0;
+    properties->filehistory.videocap[0]  = 0;
     properties->filehistory.count        = 10;
+#endif
 }
 
 #define ROOT_ELEMENT "config"
@@ -458,22 +486,23 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
 #define SET_ENUM_VALUE_2i1(v1, v2, i, a1, p) { char s[64]; sprintf(s, "%s.%s.i%d.%s",#v1,#v2,i,#a1); iniFileWriteString(ROOT_ELEMENT, s, enumToString(p, properties->v1.v2[i].a1)); }
 
 
-static void propLoad(Properties* properties)
+static void propLoad(Properties* properties) 
 {
     int i;
-
+    
     iniFileOpen(settFilename);
 
     GET_STR_VALUE_2(settings, language);
     i = langFromName(properties->settings.language, 0);
     if (i != EMU_LANG_UNKNOWN) properties->language = i;
 
-    GET_ENUM_VALUE_2(settings, disableScreensaver, BoolPair);
+    GET_ENUM_VALUE_2(settings, disableScreensaver, BoolPair);    
     GET_ENUM_VALUE_2(settings, showStatePreview, BoolPair);
     GET_ENUM_VALUE_2(settings, usePngScreenshots, BoolPair);
     GET_ENUM_VALUE_2(settings, portable, BoolPair);
     GET_STR_VALUE_2(settings, themeName);
 
+    GET_ENUM_VALUE_2(emulation, ejectMediaOnExit, BoolPair);
     GET_ENUM_VALUE_2(emulation, registerFileTypes, BoolPair);
     GET_ENUM_VALUE_2(emulation, disableWinKeys, BoolPair);
     GET_STR_VALUE_2(emulation, statsDefDir);
@@ -487,10 +516,11 @@ static void propLoad(Properties* properties)
     GET_ENUM_VALUE_2(emulation, pauseSwitch, BoolPair);
     GET_ENUM_VALUE_2(emulation, audioSwitch, BoolPair);
     GET_ENUM_VALUE_2(emulation, priorityBoost, BoolPair);
-
+    
     GET_ENUM_VALUE_2(video, monitorColor, MonitorColorPair);
     GET_ENUM_VALUE_2(video, monitorType, MonitorTypePair);
     GET_ENUM_VALUE_2(video, windowSize, WindowSizePair);
+    properties->video.windowSizeInitial = properties->video.windowSize;
     GET_INT_VALUE_2(video, windowX);
     GET_INT_VALUE_2(video, windowY);
     GET_ENUM_VALUE_2(video, driver, VideoDriverPair);
@@ -498,6 +528,7 @@ static void propLoad(Properties* properties)
     GET_INT_VALUE_3(video, fullscreen, width);
     GET_INT_VALUE_3(video, fullscreen, height);
     GET_INT_VALUE_3(video, fullscreen, bitDepth);
+    GET_ENUM_VALUE_2(video, maximizeIsFullscreen, BoolPair);
     GET_ENUM_VALUE_2(video, deInterlace, BoolPair);
     GET_ENUM_VALUE_2(video, blendFrames, BoolPair);
     GET_ENUM_VALUE_2(video, horizontalStretch, BoolPair);
@@ -511,6 +542,8 @@ static void propLoad(Properties* properties)
     GET_ENUM_VALUE_2(video, colorSaturationEnable, BoolPair);
     GET_INT_VALUE_2(video, colorSaturationWidth);
     GET_ENUM_VALUE_2(video, detectActiveMonitor, BoolPair);
+    GET_INT_VALUE_2(video, captureFps);
+    GET_INT_VALUE_2(video, captureSize);
 
     GET_INT_VALUE_2(videoIn, disabled);
     GET_INT_VALUE_2(videoIn, inputIndex);
@@ -518,10 +551,11 @@ static void propLoad(Properties* properties)
 
     GET_ENUM_VALUE_2(sound, driver, SoundDriverPair);
     GET_INT_VALUE_2(sound, bufSize);
+    GET_ENUM_VALUE_2(sound, stabilizeDSoundTiming, BoolPair);
     GET_ENUM_VALUE_2(sound, stereo, BoolPair);
     GET_INT_VALUE_2(sound, masterVolume);
     GET_ENUM_VALUE_2(sound, masterEnable, BoolPair);
-
+    
     GET_ENUM_VALUE_3(sound, chip, enableYM2413, BoolPair);
     GET_ENUM_VALUE_3(sound, chip, enableY8950, BoolPair);
     GET_ENUM_VALUE_3(sound, chip, enableMoonsound, BoolPair);
@@ -573,15 +607,17 @@ static void propLoad(Properties* properties)
     GET_ENUM_VALUE_2s1(sound, mixerChannel, MIXER_CHANNEL_MIDI, enable, BoolPair);
     GET_INT_VALUE_2s1(sound, mixerChannel, MIXER_CHANNEL_MIDI, pan);
     GET_INT_VALUE_2s1(sound, mixerChannel, MIXER_CHANNEL_MIDI, volume);
-
+    
+    GET_ENUM_VALUE_2(joystick, POV0isAxes, BoolPair);
+    
     GET_STR_VALUE_2(joy1, type);
     properties->joy1.typeId = joystickPortNameToType(0, properties->joy1.type, 0);
     GET_ENUM_VALUE_2(joy1, autofire, OnOffPair);
-
+    
     GET_STR_VALUE_2(joy2, type);
     properties->joy2.typeId = joystickPortNameToType(1, properties->joy2.type, 0);
     GET_ENUM_VALUE_2(joy2, autofire, OnOffPair);
-
+    
     GET_STR_VALUE_2(keyboard, configFile);
 
     GET_ENUM_VALUE_3(ports, Lpt, type, PrinterTypePair);
@@ -594,10 +630,25 @@ static void propLoad(Properties* properties)
     GET_STR_VALUE_3(ports, Com, fileName);
     GET_STR_VALUE_3(ports, Com, portName);
 
+    GET_INT_VALUE_3(ports, Eth, ethIndex);
+    GET_INT_VALUE_3(ports, Eth, disabled);
+    GET_STR_VALUE_3(ports, Eth, macAddress);
+    
+    
+    GET_INT_VALUE_2(cartridge, defaultType);
+
+    GET_ENUM_VALUE_2(diskdrive, cdromMethod, CdromDrvPair);
+    GET_INT_VALUE_2(diskdrive, cdromDrive);
+    
+    GET_INT_VALUE_2(cassette, showCustomFiles);
+    GET_ENUM_VALUE_2(cassette, readOnly, BoolPair);
+    GET_ENUM_VALUE_2(cassette, rewindAfterInsert, BoolPair);
+
     iniFileClose();
-
+    
+#ifndef NO_FILE_HISTORY
     iniFileOpen(histFilename);
-
+    
     GET_STR_VALUE_2(cartridge, defDir);
     GET_INT_VALUE_2(cartridge, autoReset);
     GET_INT_VALUE_2(cartridge, quickStartDrive);
@@ -605,11 +656,8 @@ static void propLoad(Properties* properties)
     GET_STR_VALUE_2(diskdrive, defDir);
     GET_INT_VALUE_2(diskdrive, autostartA);
     GET_INT_VALUE_2(diskdrive, quickStartDrive);
-
+    
     GET_STR_VALUE_2(cassette, defDir);
-    GET_INT_VALUE_2(cassette, showCustomFiles);
-    GET_INT_VALUE_2(cassette, readOnly);
-    GET_INT_VALUE_2(cassette, autoRewind);
 
     for (i = 0; i < PROP_MAX_CARTS; i++) {
         GET_STR_VALUE_2i1(media, carts, i, fileName);
@@ -618,7 +666,7 @@ static void propLoad(Properties* properties)
         GET_INT_VALUE_2i1(media, carts, i, extensionFilter);
         GET_INT_VALUE_2i1(media, carts, i, type);
     }
-
+    
     for (i = 0; i < PROP_MAX_DISKS; i++) {
         GET_STR_VALUE_2i1(media, disks, i, fileName);
         GET_STR_VALUE_2i1(media, disks, i, fileNameInZip);
@@ -626,7 +674,7 @@ static void propLoad(Properties* properties)
         GET_INT_VALUE_2i1(media, disks, i, extensionFilter);
         GET_INT_VALUE_2i1(media, disks, i, type);
     }
-
+    
     for (i = 0; i < PROP_MAX_TAPES; i++) {
         GET_STR_VALUE_2i1(media, tapes, i, fileName);
         GET_STR_VALUE_2i1(media, tapes, i, fileNameInZip);
@@ -634,7 +682,7 @@ static void propLoad(Properties* properties)
         GET_INT_VALUE_2i1(media, tapes, i, extensionFilter);
         GET_INT_VALUE_2i1(media, tapes, i, type);
     }
-
+    
     for (i = 0; i < MAX_HISTORY; i++) {
         GET_STR_VALUE_2i(filehistory, cartridge[0], i);
         GET_INT_VALUE_2i(filehistory, cartridgeType[0], i);
@@ -646,6 +694,7 @@ static void propLoad(Properties* properties)
     }
 
     GET_STR_VALUE_2(filehistory, quicksave);
+    GET_STR_VALUE_2(filehistory, videocap);
     GET_INT_VALUE_2(filehistory, count);
 
     for (i = 0; i < DLG_MAX_ID; i++) {
@@ -654,29 +703,35 @@ static void propLoad(Properties* properties)
         GET_INT_VALUE_2i1(settings, windowPos, i, width);
         GET_INT_VALUE_2i1(settings, windowPos, i, height);
     }
-
+    
     iniFileClose();
+#endif
 }
 
-void propSave(Properties* properties)
+void propSave(Properties* properties) 
 {
     int i;
-
+    
     iniFileOpen(settFilename);
 
     strcpy(properties->settings.language, langToName(properties->language, 0));
     SET_STR_VALUE_2(settings, language);
-
-    SET_ENUM_VALUE_2(settings, disableScreensaver, YesNoPair);
+    
+    SET_ENUM_VALUE_2(settings, disableScreensaver, YesNoPair);    
     SET_ENUM_VALUE_2(settings, showStatePreview, YesNoPair);
     SET_ENUM_VALUE_2(settings, usePngScreenshots, YesNoPair);
     SET_ENUM_VALUE_2(settings, portable, YesNoPair);
-    SET_STR_VALUE_2(settings, themeName);
+    if (appConfigGetString("singletheme", NULL) == NULL) {
+        SET_STR_VALUE_2(settings, themeName);
+    }
 
+    SET_ENUM_VALUE_2(emulation, ejectMediaOnExit, YesNoPair);
     SET_ENUM_VALUE_2(emulation, registerFileTypes, YesNoPair);
     SET_ENUM_VALUE_2(emulation, disableWinKeys, YesNoPair);
     SET_STR_VALUE_2(emulation, statsDefDir);
-    SET_STR_VALUE_2(emulation, machineName);
+    if (appConfigGetString("singlemachine", NULL) == NULL) {
+        SET_STR_VALUE_2(emulation, machineName);
+    }
     SET_STR_VALUE_2(emulation, shortcutProfile);
     SET_INT_VALUE_2(emulation, speed);
     SET_ENUM_VALUE_2(emulation, syncMethod, EmuSyncPair);
@@ -686,7 +741,7 @@ void propSave(Properties* properties)
     SET_ENUM_VALUE_2(emulation, pauseSwitch, OnOffPair);
     SET_ENUM_VALUE_2(emulation, audioSwitch, OnOffPair);
     SET_ENUM_VALUE_2(emulation, priorityBoost, YesNoPair);
-
+    
     SET_ENUM_VALUE_2(video, monitorColor, MonitorColorPair);
     SET_ENUM_VALUE_2(video, monitorType, MonitorTypePair);
     SET_INT_VALUE_2(video, contrast);
@@ -703,24 +758,37 @@ void propSave(Properties* properties)
     SET_ENUM_VALUE_2(video, horizontalStretch, YesNoPair);
     SET_ENUM_VALUE_2(video, verticalStretch, YesNoPair);
     SET_INT_VALUE_2(video, frameSkip);
-    SET_ENUM_VALUE_2(video, windowSize, WindowSizePair);
+    if (properties->video.windowSizeChanged) {
+    	SET_ENUM_VALUE_2(video, windowSize, WindowSizePair);
+    }
+    else {
+    	int temp=properties->video.windowSize;
+    	properties->video.windowSize=properties->video.windowSizeInitial;
+    	SET_ENUM_VALUE_2(video, windowSize, WindowSizePair);
+    	properties->video.windowSize=temp;
+    }
     SET_INT_VALUE_2(video, windowX);
     SET_INT_VALUE_2(video, windowY);
     SET_INT_VALUE_3(video, fullscreen, width);
     SET_INT_VALUE_3(video, fullscreen, height);
     SET_INT_VALUE_3(video, fullscreen, bitDepth);
+    SET_ENUM_VALUE_2(video, maximizeIsFullscreen, YesNoPair);
     SET_ENUM_VALUE_2(video, driver, VideoDriverPair);
-
+    SET_INT_VALUE_2(video, captureFps);
+    
+    SET_INT_VALUE_2(video, captureSize);
+    
     SET_INT_VALUE_2(videoIn, disabled);
     SET_INT_VALUE_2(videoIn, inputIndex);
     SET_STR_VALUE_2(videoIn, inputName);
 
     SET_ENUM_VALUE_2(sound, driver, SoundDriverPair);
     SET_INT_VALUE_2(sound, bufSize);
+    SET_ENUM_VALUE_2(sound, stabilizeDSoundTiming, YesNoPair);
     SET_ENUM_VALUE_2(sound, stereo, YesNoPair);
     SET_INT_VALUE_2(sound, masterVolume);
     SET_ENUM_VALUE_2(sound, masterEnable, YesNoPair);
-
+    
     SET_ENUM_VALUE_3(sound, chip, enableYM2413, YesNoPair);
     SET_ENUM_VALUE_3(sound, chip, enableY8950, YesNoPair);
     SET_ENUM_VALUE_3(sound, chip, enableMoonsound, YesNoPair);
@@ -772,17 +840,19 @@ void propSave(Properties* properties)
     SET_ENUM_VALUE_2s1(sound, mixerChannel, MIXER_CHANNEL_MIDI, enable, YesNoPair);
     SET_INT_VALUE_2s1(sound, mixerChannel, MIXER_CHANNEL_MIDI, pan);
     SET_INT_VALUE_2s1(sound, mixerChannel, MIXER_CHANNEL_MIDI, volume);
-
-    strcpy(properties->joy1.type, joystickPortTypeToName(0, properties->joy1.typeId, 0));
+    
+    SET_ENUM_VALUE_2(joystick, POV0isAxes, YesNoPair);
+    
+    strcpy(properties->joy1.type, joystickPortTypeToName(0, 0));
     SET_STR_VALUE_2(joy1, type);
     SET_ENUM_VALUE_2(joy1, autofire, OnOffPair);
-
-    strcpy(properties->joy2.type, joystickPortTypeToName(1, properties->joy2.typeId, 0));
+    
+    strcpy(properties->joy2.type, joystickPortTypeToName(1, 0));
     SET_STR_VALUE_2(joy2, type);
     SET_ENUM_VALUE_2(joy2, autofire, OnOffPair);
-
+    
     SET_STR_VALUE_2(keyboard, configFile);
-
+    
     SET_ENUM_VALUE_3(ports, Lpt, type, PrinterTypePair);
     SET_ENUM_VALUE_3(ports, Lpt, emulation, PrinterEmulationPair);
     SET_STR_VALUE_3(ports, Lpt, name);
@@ -793,10 +863,24 @@ void propSave(Properties* properties)
     SET_STR_VALUE_3(ports, Com, fileName);
     SET_STR_VALUE_3(ports, Com, portName);
 
+    SET_INT_VALUE_3(ports, Eth, ethIndex);
+    SET_INT_VALUE_3(ports, Eth, disabled);
+    SET_STR_VALUE_3(ports, Eth, macAddress);
+    
+    SET_INT_VALUE_2(cartridge, defaultType);
+
+    SET_ENUM_VALUE_2(diskdrive, cdromMethod, CdromDrvPair);
+    SET_INT_VALUE_2(diskdrive, cdromDrive);
+    
+    SET_INT_VALUE_2(cassette, showCustomFiles);
+    SET_ENUM_VALUE_2(cassette, readOnly, YesNoPair);
+    SET_ENUM_VALUE_2(cassette, rewindAfterInsert, YesNoPair);
+
     iniFileClose();
 
+#ifndef NO_FILE_HISTORY
     iniFileOpen(histFilename);
-
+    
     SET_STR_VALUE_2(cartridge, defDir);
     SET_INT_VALUE_2(cartridge, autoReset);
     SET_INT_VALUE_2(cartridge, quickStartDrive);
@@ -804,11 +888,8 @@ void propSave(Properties* properties)
     SET_STR_VALUE_2(diskdrive, defDir);
     SET_INT_VALUE_2(diskdrive, autostartA);
     SET_INT_VALUE_2(diskdrive, quickStartDrive);
-
+    
     SET_STR_VALUE_2(cassette, defDir);
-    SET_INT_VALUE_2(cassette, showCustomFiles);
-    SET_INT_VALUE_2(cassette, readOnly);
-    SET_INT_VALUE_2(cassette, autoRewind);
 
     for (i = 0; i < PROP_MAX_CARTS; i++) {
         SET_STR_VALUE_2i1(media, carts, i, fileName);
@@ -817,7 +898,7 @@ void propSave(Properties* properties)
         SET_INT_VALUE_2i1(media, carts, i, extensionFilter);
         SET_INT_VALUE_2i1(media, carts, i, type);
     }
-
+    
     for (i = 0; i < PROP_MAX_DISKS; i++) {
         SET_STR_VALUE_2i1(media, disks, i, fileName);
         SET_STR_VALUE_2i1(media, disks, i, fileNameInZip);
@@ -825,7 +906,7 @@ void propSave(Properties* properties)
         SET_INT_VALUE_2i1(media, disks, i, extensionFilter);
         SET_INT_VALUE_2i1(media, disks, i, type);
     }
-
+    
     for (i = 0; i < PROP_MAX_TAPES; i++) {
         SET_STR_VALUE_2i1(media, tapes, i, fileName);
         SET_STR_VALUE_2i1(media, tapes, i, fileNameInZip);
@@ -833,7 +914,7 @@ void propSave(Properties* properties)
         SET_INT_VALUE_2i1(media, tapes, i, extensionFilter);
         SET_INT_VALUE_2i1(media, tapes, i, type);
     }
-
+    
     for (i = 0; i < MAX_HISTORY; i++) {
         SET_STR_VALUE_2i(filehistory, cartridge[0], i);
         SET_INT_VALUE_2i(filehistory, cartridgeType[0], i);
@@ -845,6 +926,7 @@ void propSave(Properties* properties)
     }
 
     SET_STR_VALUE_2(filehistory, quicksave);
+    SET_STR_VALUE_2(filehistory, videocap);
     SET_INT_VALUE_2(filehistory, count);
 
     for (i = 0; i < DLG_MAX_ID; i++) {
@@ -853,8 +935,9 @@ void propSave(Properties* properties)
         SET_INT_VALUE_2i1(settings, windowPos, i, width);
         SET_INT_VALUE_2i1(settings, windowPos, i, height);
     }
-
+    
     iniFileClose();
+#endif
 }
 
 static Properties* globalProperties = NULL;
@@ -868,7 +951,7 @@ void propertiesSetDirectory(const char* defDir, const char* altDir)
 {
     FILE* f;
 
-    sprintf(settFilename, "%s/bluemsx.ini", defDir);
+    sprintf(settFilename, "bluemsx.ini", defDir);
     f = fopen(settFilename, "r");
     if (f != NULL) {
         fclose(f);
@@ -877,7 +960,7 @@ void propertiesSetDirectory(const char* defDir, const char* altDir)
         sprintf(settFilename, "%s/bluemsx.ini", altDir);
     }
 
-    sprintf(histFilename, "%s/bluemsx_history.ini", defDir);
+    sprintf(histFilename, "bluemsx_history.ini", defDir);
     f = fopen(histFilename, "r");
     if (f != NULL) {
         fclose(f);
@@ -888,7 +971,7 @@ void propertiesSetDirectory(const char* defDir, const char* altDir)
 }
 
 
-Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLang, int syncMode, const char* themeName)
+Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLang, int syncMode, const char* themeName) 
 {
     Properties* properties;
 
@@ -904,13 +987,10 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
         propLoad(properties);
     }
 #ifndef WII
-    printf("Checking available machines\n");
     // Verify machine name
     {
         char** machineNames = machineGetAvailable(1);
-        char **machineNamesBak = machineNames;
-
-        printf("Finding '%s'\n", properties->emulation.machineName);
+        
         while (*machineNames != NULL) {
             if (0 == strcmp(*machineNames, properties->emulation.machineName)) {
                 break;
@@ -919,9 +999,8 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
         }
 
         if (*machineNames == NULL) {
-            char** machineNames = machineNamesBak;
+            char** machineNames = machineGetAvailable(1);
             int foundMSX2 = 0;
-            printf("Not found, finding alternative\n");
 
             if (*machineNames != NULL) {
                 strcpy(properties->emulation.machineName, *machineNames);
@@ -939,7 +1018,6 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
                 machineNames++;
             }
         }
-        printf("Found, returning '%s'\n", *machineNames);
     }
 #endif
     return properties;
@@ -952,4 +1030,4 @@ void propDestroy(Properties* properties) {
     free(properties);
 }
 
-
+ 

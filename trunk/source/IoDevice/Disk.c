@@ -1,29 +1,27 @@
 /*****************************************************************************
 ** $Source: /cvsroot/bluemsx/blueMSX/Src/IoDevice/Disk.c,v $
 **
-** $Revision: 1.14 $
+** $Revision: 1.23 $
 **
-** $Date: 2006/06/24 17:15:57 $
+** $Date: 2008/03/30 07:39:56 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2004 Daniel Vik, Tomas Karlsson
+** Copyright (C) 2003-2006 Daniel Vik, Tomas Karlsson
 **
-**  This software is provided 'as-is', without any express or implied
-**  warranty.  In no event will the authors be held liable for any damages
-**  arising from the use of this software.
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
 **
-**  Permission is granted to anyone to use this software for any purpose,
-**  including commercial applications, and to alter it and redistribute it
-**  freely, subject to the following restrictions:
-**
-**  1. The origin of this software must not be misrepresented; you must not
-**     claim that you wrote the original software. If you use this software
-**     in a product, an acknowledgment in the product documentation would be
-**     appreciated but is not required.
-**  2. Altered source versions must be plainly marked as such, and must not be
-**     misrepresented as being the original software.
-**  3. This notice may not be removed or altered from any source distribution.
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ******************************************************************************
 */
@@ -35,14 +33,21 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+
+// PacketFileSystem.h Need to be included after all other includes
+#include "PacketFileSystem.h"
+
+
 #define MAXSECTOR (2 * 9 * 81)
 
 static int   drivesEnabled[MAXDRIVES] = { 1, 1 };
+static int   drivesIsCdrom[MAXDRIVES];
 static FILE* drives[MAXDRIVES];
 static int   RdOnly[MAXDRIVES];
 static char* ramImageBuffer[MAXDRIVES];
 static int   ramImageSize[MAXDRIVES];
 static int   sectorsPerTrack[MAXDRIVES];
+static int   sectorSize[MAXDRIVES];
 static int   fileSize[MAXDRIVES];
 static int   sides[MAXDRIVES];
 static int   tracks[MAXDRIVES];
@@ -114,6 +119,12 @@ UInt8 diskEnabled(int driveId)
     return driveId >= 0 && driveId < MAXDRIVES && drivesEnabled[driveId];
 }
 
+int diskIsCdrom(int driveId)
+{
+    return driveId >= 0 && driveId < MAXDRIVES && drivesIsCdrom[driveId];
+}
+
+
 UInt8 diskReadOnly(int driveId)
 {
     if (!diskPresent(driveId)) {
@@ -162,7 +173,7 @@ int diskGetSectorSize(int driveId, int side, int track, int density)
         secSize = (track==0 && side==0 && density==1) ? 128 : 256;
     }
     else {
-        secSize = 512;
+        secSize = sectorSize[driveId];
     }
 
     return secSize;
@@ -209,19 +220,19 @@ UInt8 diskRead(int driveId, UInt8* buffer, int sector)
         return 0;
 
     if (ramImageBuffer[driveId] != NULL) {
-        int offset = sector * 512;
+        int offset = sector * sectorSize[driveId];
 
-        if (ramImageSize[driveId] < offset + 512) {
+        if (ramImageSize[driveId] < offset + sectorSize[driveId]) {
             return 0;
         }
 
-        memcpy(buffer, ramImageBuffer[driveId] + offset, 512);
+        memcpy(buffer, ramImageBuffer[driveId] + offset, sectorSize[driveId]);
         return 1;
     }
     else {
         if ((drives[driveId] != NULL)) {
-            if (0 == fseek(drives[driveId], sector * 512, SEEK_SET)) {
-                UInt8 success = fread(buffer, 1, 512, drives[driveId]) == 512;
+            if (0 == fseek(drives[driveId], sector * sectorSize[driveId], SEEK_SET)) {
+                UInt8 success = fread(buffer, 1, sectorSize[driveId], drives[driveId]) == sectorSize[driveId];
                 return success;
             }
         }
@@ -272,15 +283,24 @@ UInt8 diskReadSector(int driveId, UInt8* buffer, int sector, int side, int track
 static void diskUpdateInfo(int driveId) 
 {
 	UInt8 buf[512];
-    int sectorSize;
+    int secSize;
     int rv;
 
     sectorsPerTrack[driveId] = 9;
     sides[driveId]           = 2;
     tracks[driveId]          = 80;
     changed[driveId]         = 1;
+    sectorSize[driveId]      = 512;
     diskType[driveId]        = MSX_DISK;
     maxSector[driveId]       = MAXSECTOR;
+
+    if (fileSize[driveId] == 163840) {
+        sectorSize[driveId]      = 256;
+	    sectorsPerTrack[driveId] = 16;
+        tracks[driveId]          = 40;
+	    sides[driveId]           = 1;
+        return;
+    }
 
     if (fileSize[driveId] > 2 * 1024 * 1024) {
         // HD image
@@ -312,7 +332,7 @@ static void diskUpdateInfo(int driveId)
             return;
 	}
 
-    rv = diskReadSector(driveId, buf, 1, 0, 0, 512, &sectorSize);
+    rv = diskReadSector(driveId, buf, 1, 0, 0, 512, &secSize);
     if (!rv) {
         return;
     }
@@ -330,7 +350,7 @@ static void diskUpdateInfo(int driveId)
 	        sectorsPerTrack[driveId] = 9;
             // This check is needed to get the SVI-738 MSX-DOS disks to work
             // Maybe it should be applied to other cases as well
-            rv = diskReadSector(driveId, buf, 2, 0, 0, 512, &sectorSize);
+            rv = diskReadSector(driveId, buf, 2, 0, 0, 512, &secSize);
             if (rv && buf[0] == 0xf8) {
 	            sides[driveId] = 1;
             }
@@ -339,6 +359,9 @@ static void diskUpdateInfo(int driveId)
 	        sides[driveId]           = 1;
             tracks[driveId]          = 80;
 	        sectorsPerTrack[driveId] = 8;
+            if (fileSize[driveId] == 368640) {
+	            sectorsPerTrack[driveId] = 9;
+            }
             return;
         case 0xfb:
 	        sides[driveId]           = 2;
@@ -373,7 +396,7 @@ static void diskUpdateInfo(int driveId)
 	    sides[driveId]           = buf[0x1a] + 256 * buf[0x1b];
     }
     else {
-        rv = diskReadSector(driveId, buf, 2, 0, 0, 512, &sectorSize);
+        rv = diskReadSector(driveId, buf, 2, 0, 0, 512, &secSize);
         if (!rv) {
             return;
         }
@@ -387,6 +410,12 @@ static void diskUpdateInfo(int driveId)
         sectorsPerTrack[driveId] > 255 || sides[driveId] > 2) 
     {
     	switch (fileSize[driveId]) {
+        case 163840:
+            sectorSize[driveId]      = 256;
+	        sectorsPerTrack[driveId] = 16;
+            tracks[driveId]          = 40;
+	        sides[driveId]           = 1;
+            break;
         case 327680:  /* 80 tracks, 1 side, 8 sectors/track */
 	        sectorsPerTrack[driveId] = 8;
 	        sides[driveId] = 1;
@@ -417,19 +446,19 @@ UInt8 diskWrite(int driveId, UInt8 *buffer, int sector)
     }
 
     if (ramImageBuffer[driveId] != NULL) {
-        int offset = sector * 512;
+        int offset = sector * sectorSize[driveId];
 
-        if (ramImageSize[driveId] < offset + 512) {
+        if (ramImageSize[driveId] < offset + sectorSize[driveId]) {
             return 0;
         }
 
-        memcpy(ramImageBuffer[driveId] + offset, buffer, 512);
+        memcpy(ramImageBuffer[driveId] + offset, buffer, sectorSize[driveId]);
         return 1;
     }
     else {
         if (drives[driveId] != NULL && !RdOnly[driveId]) {
-            if (0 == fseek(drives[driveId], sector * 512, SEEK_SET)) {
-                UInt8 success = fwrite(buffer, 1, 512, drives[driveId]) == 512;
+            if (0 == fseek(drives[driveId], sector * sectorSize[driveId], SEEK_SET)) {
+                UInt8 success = fwrite(buffer, 1, sectorSize[driveId], drives[driveId]) == sectorSize[driveId];
                 if (success && sector == 0) {
                     diskUpdateInfo(driveId);
                 }
@@ -452,7 +481,7 @@ UInt8 diskWriteSector(int driveId, UInt8 *buffer, int sector, int side, int trac
         return 0;
 
     if (density == 0) {
-        density = 512;
+        density = sectorSize[driveId];
     }
 
     offset = diskGetSectorOffset(driveId, sector, side, track, density);
@@ -477,6 +506,11 @@ UInt8 diskWriteSector(int driveId, UInt8 *buffer, int sector, int side, int trac
     return 0;
 }
 
+void diskSetInfo(int driveId, char* fileName, const char* fileInZipFile)
+{
+    drivesIsCdrom[driveId] = fileName && strcmp(fileName, DISK_CDROM) == 0;
+}
+
 UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
 {
     struct stat s;
@@ -484,6 +518,8 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
 
     if (driveId >= MAXDRIVES)
         return 0;
+
+    drivesIsCdrom[driveId] = 0;
 
     /* Close previous disk image */
     if(drives[driveId] != NULL) { 
@@ -501,10 +537,15 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
         return 1;
     }
 
+    if (strcmp(fileName, DISK_CDROM) == 0) {
+        drivesIsCdrom[driveId] = 1;
+        return 1;
+    }
+
     rv = stat(fileName, &s);
     if (rv == 0) {
         if (s.st_mode & S_IFDIR) {
-            ramImageBuffer[driveId] = dirLoadFile(fileName, &ramImageSize[driveId]);
+            ramImageBuffer[driveId] = dirLoadFile(DDT_MSX, fileName, &ramImageSize[driveId]);
             fileSize[driveId] = ramImageSize[driveId];
             diskUpdateInfo(driveId);
             return ramImageBuffer[driveId] != NULL;
@@ -536,4 +577,57 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
     diskUpdateInfo(driveId);
 
     return 1;
+}
+
+/*
+    optimized routine for ScsiDevice.c
+*/
+int _diskRead2(int driveId, UInt8* buffer, int sector, int numSectors)
+{
+    int length  = numSectors * 512;
+    if (!diskPresent(driveId))
+        return 0;
+
+    if (ramImageBuffer[driveId] == NULL) {
+        if ((drives[driveId] != NULL)) {
+            if (0 == fseek(drives[driveId], sector * 512, SEEK_SET))
+                return (fread(buffer, 1, length, drives[driveId]) == length);
+        }
+        return 0;
+    }
+
+    memcpy(buffer, ramImageBuffer[driveId] + sector * 512, numSectors * 512);
+    return 1;
+}
+
+/*
+    optimized routine for ScsiDevice.c
+*/
+int _diskWrite2(int driveId, UInt8* buffer, int sector, int numSectors)
+{
+    int length  = numSectors * 512;
+    if (!diskPresent(driveId))
+        return 0;
+
+    if (ramImageBuffer[driveId] == NULL) {
+        if ((drives[driveId] != NULL)) {
+            if (0 == fseek(drives[driveId], sector * 512, SEEK_SET))
+                return (fwrite(buffer, 1, length, drives[driveId]) == length);
+        }
+        return 0;
+    }
+
+    memcpy(ramImageBuffer[driveId] + sector * 512, buffer, length);
+    return 1;
+}
+
+/*
+    for ScsiDevice.c
+    corresponds to harddisk and floppy disk
+*/
+int _diskGetTotalSectors(int driveId)
+{
+    if ((diskPresent(driveId)) && (driveId < MAXDRIVES))
+        return fileSize[driveId] / 512;
+    return 0;
 }
