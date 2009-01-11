@@ -1,66 +1,66 @@
 <GameList>
     <Game Title="Bubble Bobble">
-        <CommandLine>BubbleBobble-1</CommandLine>
+        <CommandLine>/rom1 BubbleBobble.zip</CommandLine>
         <ScreenShot>BubbleBobble-1.png</ScreenShot>
         <ScreenShot>BubbleBobble-2.png</ScreenShot>
     </Game>
     <Game Title="Championship Lode Runner">
-        <CommandLine>ChampionshipLodeRunner-1</CommandLine>
+        <CommandLine>/rom1 ChampionshipLodeRunner.zip</CommandLine>
         <ScreenShot>ChampionshipLodeRunner-1.png</ScreenShot>
         <ScreenShot>ChampionshipLodeRunner-2.png</ScreenShot>
     </Game>
     <Game Title="Crazy Train">
-        <CommandLine>CrazyTrain-1</CommandLine>
+        <CommandLine>/rom1 CrazyTrain.zip</CommandLine>
         <ScreenShot>CrazyTrain-1.png</ScreenShot>
         <ScreenShot>CrazyTrain-2.png</ScreenShot>
     </Game>
     <Game Title="Eggerland">
-        <CommandLine>Eggerland-1</CommandLine>
+        <CommandLine>/rom1 Eggerland.zip</CommandLine>
         <ScreenShot>Eggerland-1.png</ScreenShot>
         <ScreenShot>Eggerland-2.png</ScreenShot>
     </Game>
     <Game Title="Kings Valley">
-        <CommandLine>KingsValley-1</CommandLine>
+        <CommandLine>/rom1 KingsValley.zip</CommandLine>
         <ScreenShot>KingsValley-1.png</ScreenShot>
         <ScreenShot>KingsValley-2.png</ScreenShot>
     </Game>
     <Game Title="LemmingSo">
-        <CommandLine>LemmingSo-1</CommandLine>
+        <CommandLine>/diskA LemmingSo.zip</CommandLine>
         <ScreenShot>LemmingSo-1.png</ScreenShot>
         <ScreenShot>LemmingSo-2.png</ScreenShot>
     </Game>
     <Game Title="Lode Runner">
-        <CommandLine>LodeRunner-1</CommandLine>
+        <CommandLine>/rom1 LodeRunner.zip</CommandLine>
         <ScreenShot>LodeRunner-1.png</ScreenShot>
         <ScreenShot>LodeRunner-2.png</ScreenShot>
     </Game>
     <Game Title="Lode Runner 2">
-        <CommandLine>LodeRunner2-1</CommandLine>
+        <CommandLine>/rom1 LodeRunner2.zip</CommandLine>
         <ScreenShot>LodeRunner2-1.png</ScreenShot>
         <ScreenShot>LodeRunner2-2.png</ScreenShot>
     </Game>
     <Game Title="Qbert">
-        <CommandLine>Qbert-1</CommandLine>
+        <CommandLine>/rom1 Qbert.zip</CommandLine>
         <ScreenShot>Qbert-1.png</ScreenShot>
         <ScreenShot>Qbert-2.png</ScreenShot>
     </Game>
     <Game Title="The Castle">
-        <CommandLine>TheCastle-1</CommandLine>
+        <CommandLine>/rom1 TheCastle.zip</CommandLine>
         <ScreenShot>TheCastle-1.png</ScreenShot>
         <ScreenShot>TheCastle-2.png</ScreenShot>
     </Game>
     <Game Title="The Castle Excellent">
-        <CommandLine>TheCastleExcellent-1</CommandLine>
+        <CommandLine>/rom1 TheCastleExcellent.zip</CommandLine>
         <ScreenShot>TheCastleExcellent-1.png</ScreenShot>
         <ScreenShot>TheCastleExcellent-2.png</ScreenShot>
     </Game>
     <Game Title="The Demon Crystal">
-        <CommandLine>TheDemonCrystal-1</CommandLine>
+        <CommandLine>/rom1 TheDemonCrystal.zip</CommandLine>
         <ScreenShot>TheDemonCrystal-1.png</ScreenShot>
         <ScreenShot>TheDemonCrystal-2.png</ScreenShot>
     </Game>
     <Game Title="The Fairyland Story">
-        <CommandLine>TheFairylandStory-1</CommandLine>
+        <CommandLine>/rom1 TheFairylandStory.zip</CommandLine>
         <ScreenShot>TheFairylandStory-1.png</ScreenShot>
         <ScreenShot>TheFairylandStory-2.png</ScreenShot>
     </Game>
