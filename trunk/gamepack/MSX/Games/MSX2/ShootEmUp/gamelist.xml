@@ -1,76 +1,76 @@
 <GameList>
     <Game Title="Aleste">
-        <CommandLine>Aleste-1</CommandLine>
+        <CommandLine>/rom1 Aleste.zip</CommandLine>
         <ScreenShot>Aleste-1.png</ScreenShot>
         <ScreenShot>Aleste-2.png</ScreenShot>
     </Game>
     <Game Title="Aleste 2">
-        <CommandLine>Aleste2-1</CommandLine>
+        <CommandLine>/diskA Aleste2-1.zip /diskBzip Aleste2-2.zip</CommandLine>
         <ScreenShot>Aleste2-1.png</ScreenShot>
         <ScreenShot>Aleste2-2.png</ScreenShot>
     </Game>
     <Game Title="Aleste Special">
-        <CommandLine>AlesteSpecial-1</CommandLine>
+        <CommandLine>/diskA AlesteSpecial.zip</CommandLine>
         <ScreenShot>AlesteSpecial-1.png</ScreenShot>
         <ScreenShot>AlesteSpecial-2.png</ScreenShot>
     </Game>
     <Game Title="Black Cyclon">
-        <CommandLine>BlackCyclon-1</CommandLine>
+        <CommandLine>/diskA BlackCyclon-1.zip /diskBzip BlackCyclon-2.zip</CommandLine>
         <ScreenShot>BlackCyclon-1.png</ScreenShot>
         <ScreenShot>BlackCyclon-2.png</ScreenShot>
     </Game>
     <Game Title="Famicle Parodic">
-        <CommandLine>FamicleParodic-1</CommandLine>
+        <CommandLine>/rom1 FamicleParodic.zip</CommandLine>
         <ScreenShot>FamicleParodic-1.png</ScreenShot>
         <ScreenShot>FamicleParodic-2.png</ScreenShot>
     </Game>
     <Game Title="Famicle Parodic 2">
-        <CommandLine>FamicleParodic2-1</CommandLine>
+        <CommandLine>/diskA FamicleParodic2-1.zip /diskBzip FamicleParodic2-2.zip</CommandLine>
         <ScreenShot>FamicleParodic2-1.png</ScreenShot>
         <ScreenShot>FamicleParodic2-2.png</ScreenShot>
     </Game>
     <Game Title="Firebird">
-        <CommandLine>Firebird-1</CommandLine>
+        <CommandLine>/rom1 Firebird.rom</CommandLine>
         <ScreenShot>Firebird-1.png</ScreenShot>
         <ScreenShot>Firebird-2.png</ScreenShot>
     </Game>
     <Game Title="Hydefos">
-        <CommandLine>Hydefos-1</CommandLine>
+        <CommandLine>/diskA Hydefos.zip</CommandLine>
         <ScreenShot>Hydefos-1.png</ScreenShot>
         <ScreenShot>Hydefos-2.png</ScreenShot>
     </Game>
     <Game Title="Ikari">
-        <CommandLine>Ikari-1</CommandLine>
+        <CommandLine>/diskA Ikari.zip</CommandLine>
         <ScreenShot>Ikari-1.png</ScreenShot>
         <ScreenShot>Ikari-2.png</ScreenShot>
     </Game>
     <Game Title="Laydock 2">
-        <CommandLine>Laydock2-1</CommandLine>
+        <CommandLine>/diskA Laydock2-1.zip /diskBzip Laydock2-2.zip</CommandLine>
         <ScreenShot>Laydock2-1.png</ScreenShot>
         <ScreenShot>Laydock2-2.png</ScreenShot>
     </Game>
     <Game Title="Scramble Formation">
-        <CommandLine>ScrambleFormation-1</CommandLine>
+        <CommandLine>/rom1 ScrambleFormation.rom</CommandLine>
         <ScreenShot>ScrambleFormation-1.png</ScreenShot>
         <ScreenShot>ScrambleFormation-2.png</ScreenShot>
     </Game>
     <Game Title="Space Manbow">
-        <CommandLine>SpaceManbow-1</CommandLine>
+        <CommandLine>/rom1 SpaceManbow.zip</CommandLine>
         <ScreenShot>SpaceManbow-1.png</ScreenShot>
         <ScreenShot>SpaceManbow-2.png</ScreenShot>
     </Game>
     <Game Title="Undeadline">
-        <CommandLine>Undeadline-1</CommandLine>
+        <CommandLine>/diskA Undeadline.zip</CommandLine>
         <ScreenShot>Undeadline-1.png</ScreenShot>
         <ScreenShot>Undeadline-2.png</ScreenShot>
     </Game>
     <Game Title="Xevious">
-        <CommandLine>Xevious-1</CommandLine>
+        <CommandLine>/rom1 Xevious.zip</CommandLine>
         <ScreenShot>Xevious-1.png</ScreenShot>
         <ScreenShot>Xevious-2.png</ScreenShot>
     </Game>
     <Game Title="Zanac Ex">
-        <CommandLine>ZanacEx-1</CommandLine>
+        <CommandLine>/rom1 ZanacEx.zip</CommandLine>
         <ScreenShot>ZanacEx-1.png</ScreenShot>
         <ScreenShot>ZanacEx-2.png</ScreenShot>
     </Game>

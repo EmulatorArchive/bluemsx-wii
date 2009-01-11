@@ -1,86 +1,86 @@
 <GameList>"
     <Game Title="BladeLords (MCCM)">
-        <CommandLine>BladeLordsMCCM-1</CommandLine>
+        <CommandLine>/diskA BladeLordsMCCM.zip</CommandLine>
         <ScreenShot>BladeLordsMCCM-1.png</ScreenShot>
         <ScreenShot>BladeLordsMCCM-2.png</ScreenShot>
     </Game>
     <Game Title="Contra (Gryzor)">
-        <CommandLine>ContraGryzor-1</CommandLine>
+        <CommandLine>/rom1 ContraGryzor.zip</CommandLine>
         <ScreenShot>ContraGryzor-1.png</ScreenShot>
         <ScreenShot>ContraGryzor-2.png</ScreenShot>
     </Game>
     <Game Title="Fire Hawk">
-        <CommandLine>FireHawk-1</CommandLine>
+        <CommandLine>/diskA FireHawk-1.zip /diskB FireHawk-2.zip</CommandLine>
         <ScreenShot>FireHawk-1.png</ScreenShot>
         <ScreenShot>FireHawk-2.png</ScreenShot>
     </Game>
     <Game Title="Frantic">
-        <CommandLine>Frantic-1</CommandLine>
+        <CommandLine>/diskA Frantic.zip</CommandLine>
         <ScreenShot>Frantic-1.png</ScreenShot>
         <ScreenShot>Frantic-2.png</ScreenShot>
     </Game>
     <Game Title="Girly Block">
-        <CommandLine>GirlyBlock-1</CommandLine>
+        <CommandLine>/rom1 GirlyBlock.zip</CommandLine>
         <ScreenShot>GirlyBlock-1.png</ScreenShot>
         <ScreenShot>GirlyBlock-2.png</ScreenShot>
     </Game>
     <Game Title="Goemon">
-        <CommandLine>Goemon-1</CommandLine>
+        <CommandLine>/diskA Goemon.zip</CommandLine>
         <ScreenShot>Goemon-1.png</ScreenShot>
         <ScreenShot>Goemon-2.png</ScreenShot>
     </Game>
     <Game Title="Metal Gear">
-        <CommandLine>MetalGear-1</CommandLine>
+        <CommandLine>/rom1 MetalGear.zip</CommandLine>
         <ScreenShot>MetalGear-1.png</ScreenShot>
         <ScreenShot>MetalGear-2.png</ScreenShot>
     </Game>
     <Game Title="Metal Gear 2 (Solid)">
-        <CommandLine>SolidSnake-1</CommandLine>
+        <CommandLine>/rom1 SolidSnake.zip</CommandLine>
         <ScreenShot>SolidSnake-1.png</ScreenShot>
         <ScreenShot>SolidSnake-2.png</ScreenShot>
     </Game>
     <Game Title="Mon Mon Monster">
-        <CommandLine>MonMonMonster-1</CommandLine>
+        <CommandLine>/rom1 MonMonMonster.zip</CommandLine>
         <ScreenShot>MonMonMonster-1.png</ScreenShot>
         <ScreenShot>MonMonMonster-2.png</ScreenShot>
     </Game>
     <Game Title="Nyancle Racing">
-        <CommandLine>NyancleRacing-1</CommandLine>
+        <CommandLine>/diskA NyancleRacing</CommandLine>
         <ScreenShot>NyancleRacing-1.png</ScreenShot>
         <ScreenShot>NyancleRacing-2.png</ScreenShot>
     </Game>
     <Game Title="Pacmania">
-        <CommandLine>Pacmania-1</CommandLine>
+        <CommandLine>/diskA Pacmania.zip</CommandLine>
         <ScreenShot>Pacmania-1.png</ScreenShot>
         <ScreenShot>Pacmania-2.png</ScreenShot>
     </Game>
     <Game Title="Predator">
-        <CommandLine>Predator-1</CommandLine>
+        <CommandLine>/rom1 Predator.zip</CommandLine>
         <ScreenShot>Predator-1.png</ScreenShot>
         <ScreenShot>Predator-2.png</ScreenShot>
     </Game>
     <Game Title="Rastan Saga">
-        <CommandLine>RastanSaga-1</CommandLine>
+        <CommandLine>/rom1 RastanSaga.zip</CommandLine>
         <ScreenShot>RastanSaga-1.png</ScreenShot>
         <ScreenShot>RastanSaga-2.png</ScreenShot>
     </Game>
     <Game Title="Seigimatsu 2">
-        <CommandLine>Seigimatsu2-1</CommandLine>
+        <CommandLine>/rom1 Seigimatsu2.zip</CommandLine>
         <ScreenShot>Seigimatsu2-1.png</ScreenShot>
         <ScreenShot>Seigimatsu2-2.png</ScreenShot>
     </Game>
     <Game Title="Sqeek">
-        <CommandLine>Sqeek-1</CommandLine>
+        <CommandLine>/diskA Sqeek.rom</CommandLine>
         <ScreenShot>Sqeek-1.png</ScreenShot>
         <ScreenShot>Sqeek-2.png</ScreenShot>
     </Game>
     <Game Title="Treasure of Usas">
-        <CommandLine>Usas-1</CommandLine>
+        <CommandLine>/rom1 Usas.zip</CommandLine>
         <ScreenShot>Usas-1.png</ScreenShot>
         <ScreenShot>Usas-2.png</ScreenShot>
     </Game>
     <Game Title="Vampire Killer">
-        <CommandLine>VampireKiller-1</CommandLine>
+        <CommandLine>/rom1 VampireKiller.zip</CommandLine>
         <ScreenShot>VampireKiller-1.png</ScreenShot>
         <ScreenShot>VampireKiller-2.png</ScreenShot>
     </Game>

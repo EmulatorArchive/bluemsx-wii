@@ -1,16 +1,16 @@
 <GameList>
     <Game Title="Topografie Europa">
-        <CommandLine>TopografieEuropa-1</CommandLine>
+        <CommandLine>/diskA TopografieEuropa.zip</CommandLine>
         <ScreenShot>TopografieEuropa-1.png</ScreenShot>
         <ScreenShot>TopografieEuropa-2.png</ScreenShot>
     </Game>
     <Game Title="Topografie Nederland">
-        <CommandLine>TopografieNederland-1</CommandLine>
+        <CommandLine>/diskA TopografieNederland.zip</CommandLine>
         <ScreenShot>TopografieNederland-1.png</ScreenShot>
         <ScreenShot>TopografieNederland-2.png</ScreenShot>
     </Game>
     <Game Title="Topografie Wereld">
-        <CommandLine>TopografieWereld-1</CommandLine>
+        <CommandLine>/diskA TopografieWereld.zip</CommandLine>
         <ScreenShot>TopografieWereld-1.png</ScreenShot>
         <ScreenShot>TopografieWereld-2.png</ScreenShot>
     </Game>
