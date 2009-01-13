@@ -125,16 +125,12 @@ void GuiDirSelect::SetSelected(int selected)
     }
 }
 
-char *GuiDirSelect::DoModal(GameWindow *gwd, const char *startdir, const char *filename)
+char *GuiDirSelect::DoModal(void)
 {
-    char *current_dir;
 #if RUMBLE
     u64 time2rumble = 0;
     bool rumbeling = false;
 #endif
-
-    current_dir = (char *)malloc(MAX_PATH);
-    *current_dir = '\0';
 
     // Initialize manager
     LayerManager manager(NUM_DIR_ITEMS + 6);
@@ -170,11 +166,17 @@ char *GuiDirSelect::DoModal(GameWindow *gwd, const char *startdir, const char *f
     sprBackground.SetPosition(0, 0);
     manager.Append(&sprBackground);
 
-    // Set current directory
-    strcpy(current_dir, startdir);
+    // On re-entry, go back one level if not on root level
+    char *prevsel = NULL;
+    if( dir_level > 0 ) {
+        char *p = current_dir + strlen(current_dir) - 1;
+        while(*p != '/') p--;
+        *p = '\0';
+        prevsel = p + 1;
+        dir_level--;
+    }
 
     // Seletion loop
-    int dir_level = 0;
     for(;;) {
         int index = 0;
         int selected = 0;
@@ -183,15 +185,33 @@ char *GuiDirSelect::DoModal(GameWindow *gwd, const char *startdir, const char *f
 
         // Load dirs database
         chdir(current_dir);
-        dirs.Load(filename);
+        dirs.Load(xmlfile);
         num_dirs = dirs.GetNumberOfDirs();
         if( num_dirs == 0 ) {
             return current_dir;
         }
 
+        // When just gone back one level, find entry comming from
+        if( prevsel ) {
+            for( int i = 0; i < num_dirs; i++ ) {
+                if( strcmp(prevsel, dirs.GetDir(i)->GetDirectory()) == 0 ) {
+                    if( i < NUM_DIR_ITEMS-1 ) {
+                        selected = i;
+                    }else{
+                        index = i-1;
+                        selected = 1;
+                        if( index + NUM_DIR_ITEMS - num_dirs > 0 ) {
+                            selected += index + NUM_DIR_ITEMS - num_dirs;
+                            index -= index + NUM_DIR_ITEMS - num_dirs;
+                        }
+                    }
+                }
+            }
+        }
+
         // Update title list
         ClearTitleList();
-        SetListIndex(0);
+        SetListIndex(index);
 
         // Menu loop
         u64 scroll_time = 0;
@@ -323,26 +343,33 @@ char *GuiDirSelect::DoModal(GameWindow *gwd, const char *startdir, const char *f
             if( dir_level == 0 ) {
                 // on root level, leave
                 dirs.Clear();
-                free(current_dir);
                 return NULL;
             }else{
                 // go back one level
                 char *p = current_dir + strlen(current_dir) - 1;
                 while(*p != '/') p--;
                 *p = '\0';
+                prevsel = p + 1;
                 dir_level--;
             }
         }
     }
 }
 
-GuiDirSelect::GuiDirSelect()
+GuiDirSelect::GuiDirSelect(GameWindow *gamewin, const char *startdir, const char *filename)
 {
+    gwd = gamewin;
+    current_dir = (char *)malloc(1024);
+    strcpy(current_dir, startdir);
+    xmlfile = strdup(filename);
+    dir_level = 0;
     emptyDir.SetName("");
     emptyDir.SetDirectory("");
 }
 
 GuiDirSelect::~GuiDirSelect()
 {
+    free(xmlfile);
+    free(current_dir);
 }
 
