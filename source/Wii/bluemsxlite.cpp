@@ -200,12 +200,12 @@ int main(int argc, char **argv)
 
     GameElement *game = NULL;
     char *game_dir = NULL;
+    GuiDirSelect *dirs = new GuiDirSelect(gwd, "fat:/MSX/Games", "dirlist.xml");
     for(;;) {
         // Browse directory
-        GuiDirSelect *dirs = new GuiDirSelect();
-        game_dir = dirs->DoModal(gwd, "fat:/MSX/Games", "dirlist.xml");
-        delete dirs;
+        game_dir = dirs->DoModal();
         if( game_dir == NULL ) {
+            delete dirs;
             exit(0);
         }
 
@@ -216,8 +216,9 @@ int main(int argc, char **argv)
         if( game != NULL ) {
             break;
         }
-        free(game_dir);
     }
+    game_dir = strdup(game_dir);
+    delete dirs;
 
     // Set current directory back to the MSX-root
     archSetCurrentDirectory(MSX_ROOT_DIR);
@@ -420,6 +421,7 @@ int main(int argc, char **argv)
 
     i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
     free(game_dir);
+    delete game;
     if (i < 0) {
         printf("Failed to parse command line\n");
         return 0;

@@ -12,17 +12,20 @@
 
 class GuiDirSelect {
 public:
-    GuiDirSelect();
+    GuiDirSelect(GameWindow *gamewin, const char *startdir, const char *filename);
     virtual ~GuiDirSelect();
 
-    char *DoModal(GameWindow *gwd, const char *startdir, const char *filename);
+    char *DoModal(void);
 private:
-    // Dir list
     DirList dirs;
+    GameWindow *gwd;
     int num_dirs;
     int current_index;
     int upper_index;
     int lower_index;
+    int dir_level;
+    char *current_dir;
+    char *xmlfile;
     DirElement emptyDir;
     DirElement *dirInfo[NUM_DIR_ITEMS];
     char *dirList[NUM_DIR_ITEMS];
