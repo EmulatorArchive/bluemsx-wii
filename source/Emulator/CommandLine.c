@@ -345,12 +345,12 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
             startEmu = 1;
         }
         if (checkArg(argument, "rom1zip")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0;
             strcpy(rom1zip, argument);
         }
         if (checkArg(argument, "romtype1")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0; // Invaid argument
             romType1 = romNameToType(argument);
             startEmu = 1;
@@ -362,12 +362,12 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
             startEmu = 1;
         }
         if (checkArg(argument, "rom2zip")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0;
             strcpy(rom2zip, argument);
         }
         if (checkArg(argument, "romtype2")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0; // Invaid argument
             romType2 = romNameToType(argument);
             startEmu = 1;
@@ -379,7 +379,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
             startEmu = 1;
         }
         if (checkArg(argument, "diskAzip")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0;
             strcpy(diskAzip, argument);
         }
@@ -390,7 +390,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
             startEmu = 1;
         }
         if (checkArg(argument, "diskBzip")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0;
             strcpy(diskBzip, argument);
         }
@@ -413,7 +413,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
             startEmu = 1;
         }
         if (checkArg(argument, "caszip")) {
-            argument = extractTokenEx(cmdLine, ++i, gamedir);
+            argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0;
             strcpy(caszip, argument);
         }
