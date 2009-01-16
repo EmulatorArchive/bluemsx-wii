@@ -25,20 +25,22 @@ DrawableImage::~DrawableImage()
 	}
 }
 
-void DrawableImage::CreateImage(int width, int height)
+void DrawableImage::CreateImage(int width, int height, int format)
 {
 	// Set parameters
+	_format = format;
 	_width = width;
 	_height = height;
+    int bytespp = (format == GX_TF_RGB565)? 2 : 4;
 
 	// Allocate room
-	_pixels = (u8 *)memalign(32, _width * _height * 4);
+	_pixels = (u8 *)memalign(32, _width * _height * bytespp);
 
 	// Set to zero's for now
-	memset(_pixels, 255, _width * _height * 4);
+	memset(_pixels, 0, _width * _height * bytespp);
 
 	// Move flush cached memory
-	DCFlushRange (_pixels, _width * _height * 4);
+	DCFlushRange (_pixels, _width * _height * bytespp);
 
 	// Set sprite as valid
 	_initialized = true;
@@ -51,7 +53,7 @@ void DrawableImage::BindTexture(bool bilinear)
 			if(GameWindow::_lastimage == this)
 				return;
 
-	GX_InitTexObj(&_texObj, _pixels, _width, _height, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+	GX_InitTexObj(&_texObj, _pixels, _width, _height, _format, GX_CLAMP, GX_CLAMP, GX_FALSE);
 
 	// This disables bilinear filtering if applicable
 	if(!bilinear)
@@ -81,6 +83,9 @@ bool DrawableImage::IsInitialized() const
 void DrawableImage::CopyBuffer(u8 *buf)
 {
 	// This function assumes the u8 buffer is RGBA quads
+    if( _format != GX_TF_RGBA8 )
+        return;
+
 	u8 *pixBuf = _pixels;
 
 	// Loop in chunks of 4
@@ -125,6 +130,11 @@ Image *DrawableImage::GetImage()
 	return (Image *)this;
 }
 
+u8 *DrawableImage::GetTextureBuffer(void)
+{
+    return _pixels;
+}
+
 void DrawableImage::SetFont(TextRender* f)
 {
 	font = f;
@@ -142,6 +152,10 @@ void DrawableImage::SetSize(int s)
 
 void DrawableImage::RenderText(const char *fmt, ...)
 {
+	// This function assumes the u8 buffer is RGBA quads
+    if( _format != GX_TF_RGBA8 )
+        return;
+
 	// Need to make room for the sprintf'd text
 	char *out = (char *)memalign(32, 1024);
 

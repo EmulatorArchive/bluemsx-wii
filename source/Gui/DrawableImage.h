@@ -17,7 +17,7 @@ class DrawableImage : public Image
 		DrawableImage();
 		~DrawableImage();
 
-		void CreateImage(int width, int height);
+		void CreateImage(int width, int height, int format = GX_TF_RGBA8);
 
 		u32 GetWidth() const;
 		u32 GetHeight() const;
@@ -31,11 +31,13 @@ class DrawableImage : public Image
 		void SetColor(GXColor c);
 		void SetSize(int s);
 		void RenderText(const char *fmt, ...);
+        u8 *GetTextureBuffer(void);
 	private:
 		u32 _width, _height;
 		bool _initialized;
 		GXTexObj _texObj;
 		u8* _pixels;
+        int _format;
 
 		TextRender* font;
 };

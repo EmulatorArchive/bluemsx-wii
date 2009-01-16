@@ -71,11 +71,12 @@ void keyboardUpdate();
 int keyboardGetModifiers();
 }
 
+#include "GuiConsole.h"
 #include "GuiContainer.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
 
-#define CONSOLE_DEBUG 0
+#define CONSOLE_DEBUG 1
 
 #define MSX_ROOT_DIR "fat:/MSX"
 
@@ -88,7 +89,14 @@ static int   bitDepth = 16;
 static int   zoom = 1;
 static int   displayPitch = TEX_WIDTH * 2;
 
-static int g_doQuit = 0;
+static int   g_doQuit = 0;
+
+static LayerManager *manager = NULL;
+static GameWindow gwd;
+static char *g_dpyData = NULL;
+static int g_yOffset = 0;
+static void *g_vidSemaphore = NULL;
+static GuiConsole *console = NULL;
 
 extern KBDHANDLE kbdHandle;
 
@@ -100,26 +108,6 @@ extern KBDHANDLE kbdHandle;
 
 extern "C" void archTrap(UInt8 value)
 {
-}
-
-int updateEmuDisplay(int updateAll)
-{
-    FrameBuffer* frameBuffer;
-    char* dpyData  = (char *)texturemem;
-
-    frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
-    if (frameBuffer == NULL) {
-        frameBuffer = frameBufferGetWhiteNoiseFrame();
-    }
-
-    VIDEO_WaitVSync();
-
-    videoRender(video, frameBuffer, bitDepth, zoom,
-                dpyData, 0, displayPitch, -1);
-
-    ogc_video__update();
-
-    return 0;
 }
 
 int  archUpdateEmuDisplay(int syncMode)
@@ -169,7 +157,25 @@ void setDefaultPaths(const char* rootDir)
 static void displayThread(void)
 {
     while(!g_doQuit) {
-        updateEmuDisplay(1);
+        FrameBuffer* frameBuffer;
+        archSemaphoreWait(g_vidSemaphore, -1);
+        if( g_dpyData != NULL ) {
+        
+            frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
+            if (frameBuffer == NULL) {
+                frameBuffer = frameBufferGetWhiteNoiseFrame();
+            }
+            
+            videoRender(video, frameBuffer, bitDepth, zoom,
+                        g_dpyData, 0, displayPitch, -1);
+            DCFlushRange(g_dpyData, TEX_WIDTH * TEX_HEIGHT * 4);
+        }
+        if( console != NULL && console->IsVisible() ) {
+            console->Render();
+        }
+        manager->Draw(0, g_yOffset);
+        archSemaphoreSignal(g_vidSemaphore);
+        gwd.Flush();
     }
 }
 
@@ -179,12 +185,10 @@ int main(int argc, char **argv)
     int i;
     int width;
     int height;
-    void* disp_thread;
 
     // Initialize GameWindow
-	GameWindow *gwd = new GameWindow;
-	gwd->InitVideo();
-	gwd->SetBackground((GXColor){ 0, 0, 0, 255 });
+	gwd.InitVideo();
+	gwd.SetBackground((GXColor){ 0, 0, 0, 255 });
 
     // Init Wiimote
 	WPAD_Init();
@@ -200,7 +204,7 @@ int main(int argc, char **argv)
 
     GameElement *game = NULL;
     char *game_dir = NULL;
-    GuiDirSelect *dirs = new GuiDirSelect(gwd, "fat:/MSX/Games", "dirlist.xml");
+    GuiDirSelect *dirs = new GuiDirSelect(&gwd, "fat:/MSX/Games", "dirlist.xml");
     for(;;) {
         // Browse directory
         game_dir = dirs->DoModal();
@@ -211,7 +215,7 @@ int main(int argc, char **argv)
 
         // Game menu
         GuiMenu *menu = new GuiMenu();
-        game = menu->DoModal(gwd, game_dir, "gamelist.xml");
+        game = menu->DoModal(&gwd, game_dir, "gamelist.xml");
         delete menu;
         if( game != NULL ) {
             break;
@@ -223,9 +227,8 @@ int main(int argc, char **argv)
     // Set current directory back to the MSX-root
     archSetCurrentDirectory(MSX_ROOT_DIR);
 
-#if CONSOLE_DEBUG==0
     // Initialize manager
-    LayerManager *manager = new LayerManager(3);
+    manager = new LayerManager(3+2);
 
     DrawableImage *txtImg = new DrawableImage;
     txtImg->CreateImage(144, 60);
@@ -249,24 +252,15 @@ int main(int argc, char **argv)
     manager->Append(sprBackground);
 
     manager->Draw(0,0);
-    gwd->Flush();
+    gwd.Flush();
 
-    delete sprBackground;
-    delete grWinList;
-    delete txtSpr;
-    delete txtImg;
-    delete manager;
-#endif
-
+    console = new GuiConsole(manager, 12, 12, 640-24, 480-24);
 #if CONSOLE_DEBUG
-    // Switch to ogc_video
-    delete gwd;
-    ogc_video__init(0, 0, 0, CONSOLE_DEBUG);
+    console->SetVisible(true);
 #endif
 
-    // GUI DeInit
-    GuiFontClose();
-    GuiImageClose();
+    g_vidSemaphore = archSemaphoreCreate(1);
+    void *disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
 
     printf("Title        : '%s'\n", game->GetName());
     printf("Command line : '%s'\n", game->GetCommandLine());
@@ -434,26 +428,59 @@ int main(int argc, char **argv)
 
     printf("Waiting for quit event...\n");
 
-#if CONSOLE_DEBUG==0
-    // Switch to ogc_video
-    delete gwd;
-    ogc_video__init(0, 0, 0, CONSOLE_DEBUG);
+    archSemaphoreWait(g_vidSemaphore, -1);
+    manager->Remove(grWinList->GetLayer());
+    manager->Remove(txtSpr);
+    manager->Remove(sprBackground);
+    delete sprBackground;
+    g_yOffset = -37;
+    console->SetPosition(12, 12+37);
+    DrawableImage emuImg;
+    emuImg.CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
+    g_dpyData = (char *)emuImg.GetTextureBuffer();
+    Sprite emuSpr;
+    emuSpr.SetImage(emuImg.GetImage());
+    emuSpr.SetStretchWidth(640.0f / (float)TEX_WIDTH);
+    emuSpr.SetStretchHeight(548.0f / (float)480);
+    emuSpr.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    emuSpr.SetRefPixelPosition(0, 0);
+    emuSpr.SetPosition(0, 0);
+    manager->Append(&emuSpr);
+    archSemaphoreSignal(g_vidSemaphore);
+
+    // Turn off console by default
+#if CONSOLE_DEBUG
+    console->SetVisible(false);
 #endif
 
-    // Start displaying error messages top-left
-    printf("\x1b[2;0H");
-
-    disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
-
     // Loop while the user hasn't quit
-    while(!g_doQuit) {
+    for(;;) {
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
-            g_doQuit = 1;
+            break;
+        }
+        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_MINUS) ) {
+            if( console->IsVisible() ) {
+                console->SetVisible(false);
+            }
+        }
+        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_PLUS) ) {
+            if( !console->IsVisible() ) {
+                console->SetVisible(true);
+            }
         }
         archThreadSleep(100);
     }
+    g_doQuit = 1;
+    archThreadJoin(disp_thread, -1);
+    archSemaphoreDestroy(g_vidSemaphore);
 
     fprintf(stderr, "Clean-up\n");
+
+    delete manager;
+
+    // GUI DeInit
+    GuiFontClose();
+    GuiImageClose();
 
     videoDestroy(video);
     propDestroy(properties);
