@@ -49,17 +49,18 @@ namespace wsp{
 		bool shift = false;
 
 		for(u32 i = 0; i < _size; i++){
-			// Layer found and shifting everything forward
-			if(shift){
-				_layers[i] = _layers[i+1];
-				if(i+2 == _size){ // One position before stop
-					_layers[i+1] = NULL; break;
-				}
 			// Or check if the layers are equal and turn shifting on
-			}else if(layer == _layers[i]){
+			if(layer == _layers[i]){
 				_layers[i] = NULL;
 				shift = true;
-				if(i+1 == _size)break;
+			}
+			// Layer found and shifting everything forward
+			if(shift) {
+                if( i+1 < _size){
+				    _layers[i] = _layers[i+1];
+                }else{
+                    _layers[i] = NULL;
+                }
 			}
 		}
 
