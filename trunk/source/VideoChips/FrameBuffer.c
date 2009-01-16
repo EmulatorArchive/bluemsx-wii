@@ -31,21 +31,31 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef WII
+#define MAX_FRAMES_PER_FRAMEBUFFER 3
+#else
 #define MAX_FRAMES_PER_FRAMEBUFFER 4
+#endif
 
 struct FrameBufferData {
     int viewFrame;
     int drawFrame;
     int currentAge;
+#ifndef WII
     int currentBlendFrame;
+#endif
     FrameBuffer frame[MAX_FRAMES_PER_FRAMEBUFFER];
+#ifndef WII
     FrameBuffer blendFrame[2];
+#endif
 };
 
 static int curScanline = 0;
 static void* semaphore = NULL;
 static FrameBuffer* deintBuffer = NULL;
+#ifndef WII
 static int confBlendFrames = 0;
+#endif
 
 static FrameBuffer* mixFrame(FrameBuffer* d, FrameBuffer* a, FrameBuffer* b, int pct);
 static FrameBuffer* mixFrameInterlace(FrameBuffer* d, FrameBuffer* a, FrameBuffer* b, int pct);
@@ -80,6 +90,22 @@ static FrameBuffer* frameBufferFlipViewFrame1(int mixFrames)
     }
     currentBuffer->frame->age = ++currentBuffer->currentAge;
     return currentBuffer->frame;
+}
+
+static FrameBuffer* frameBufferFlipViewFrame2(int mixFrames) 
+{
+    int index;
+
+    if (currentBuffer == NULL) {
+        return NULL;
+    }
+    waitSem();
+    index = currentBuffer->viewFrame == 1 ? 0 : 1;
+    if (currentBuffer->frame[index].age > currentBuffer->frame[currentBuffer->viewFrame].age) {
+        currentBuffer->viewFrame = index;
+    }
+    signalSem();
+    return currentBuffer->frame + currentBuffer->viewFrame;
 }
 
 static FrameBuffer* frameBufferFlipViewFrame3(int mixFrames) 
@@ -144,6 +170,21 @@ static FrameBuffer* frameBufferFlipDrawFrame1()
         return NULL;
     }
     return currentBuffer->frame; 
+}
+
+static FrameBuffer* frameBufferFlipDrawFrame2()
+{
+    FrameBuffer* frame;
+
+    if (currentBuffer == NULL) {
+        return NULL;
+    }
+    waitSem();
+    currentBuffer->drawFrame = currentBuffer->viewFrame;
+    frame = currentBuffer->frame + currentBuffer->drawFrame;
+    frame->age = ++currentBuffer->currentAge;
+    signalSem();
+    return frame;
 }
 
 static FrameBuffer* frameBufferFlipDrawFrame3()
@@ -216,13 +257,17 @@ FrameBuffer* frameBufferGetDrawFrame()
     if (currentBuffer == NULL) {
         return NULL;
     }
-    
+#ifdef WII
+
+    frameBuffer = currentBuffer->frame + currentBuffer->drawFrame;
+#else
     if (confBlendFrames) {
         frameBuffer = currentBuffer->blendFrame + currentBuffer->currentBlendFrame;
     }
     else {
         frameBuffer = currentBuffer->frame + currentBuffer->drawFrame;
     }
+#endif
 
     return frameBuffer;
 }
@@ -252,6 +297,9 @@ FrameBuffer* frameBufferFlipViewFrame(int mixFrames)
     }
 
     switch (frameBufferCount) {
+    case 2:
+        frameBuffer = frameBufferFlipViewFrame2(mixFrames);
+        break;
     case 3:
         frameBuffer = frameBufferFlipViewFrame3(mixFrames);
         break;
@@ -272,12 +320,12 @@ FrameBuffer* frameBufferFlipDrawFrame()
     if (currentBuffer == NULL) {
         return NULL;
     }
-
+#ifndef WII
     if (confBlendFrames) {
         mixFrame(currentBuffer->frame + currentBuffer->drawFrame, 
                  &currentBuffer->blendFrame[0], &currentBuffer->blendFrame[1], 50);
     }
-
+#endif
     curScanline = 0;
 
     if (mixMode == MIXMODE_EXTERNAL) {
@@ -291,6 +339,9 @@ FrameBuffer* frameBufferFlipDrawFrame()
     }
 
     switch (frameBufferCount) {
+    case 2:
+        frameBuffer = frameBufferFlipDrawFrame2();
+        break;
     case 3:
         frameBuffer = frameBufferFlipDrawFrame3();
         break;
@@ -301,18 +352,22 @@ FrameBuffer* frameBufferFlipDrawFrame()
         frameBuffer = frameBufferFlipDrawFrame1();
         break;
     }
-    
+#ifndef WII    
     if (confBlendFrames) {
         currentBuffer->currentBlendFrame ^= 1;
         frameBuffer = currentBuffer->blendFrame + currentBuffer->currentBlendFrame;
     }
-
+#endif
     return frameBuffer;
 }
 
 void frameBufferSetBlendFrames(int blendFrames)
 {
+#ifdef WII
+    (void)blendFrames;
+#else
     confBlendFrames = blendFrames;
+#endif
 }
 
 FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultHorizZoom)
@@ -330,7 +385,7 @@ FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultH
             frameData->frame[i].line[j].doubleWidth = defaultHorizZoom - 1;
         }
     }
-
+#ifndef WII
     for (i = 0; i < 2; i++) {
         int j;
 
@@ -340,7 +395,7 @@ FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultH
             frameData->blendFrame[i].line[j].doubleWidth = defaultHorizZoom - 1;
         }
     }
-
+#endif
     return frameData;
 }
 
