@@ -196,7 +196,7 @@ static void diskNotifyThread(void)
     manager->Insert(floppy, 2);
     // Text
     DrawableImage *image = new DrawableImage;
-    image->CreateImage(200, 60);
+    image->CreateImage(2*280-180-24, 60);
     image->SetFont(g_fontArial);
     image->SetSize(32);
     image->SetColor((GXColor){255,255,255,255});
