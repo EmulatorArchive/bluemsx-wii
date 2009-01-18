@@ -188,11 +188,8 @@ int fileExist(char* fileName, char* zipFile) {
         return 0;
     }
     else {
-        if (archFileExists(fileName)) {
-            int size;
-            char* buf = zipLoadFile(zipFile, fileName, &size);
-            if (buf != NULL) {
-                free(buf);
+        if (archFileExists(zipFile)) {
+            if( zipFileExists(zipFile, fileName) ) {
                 return 1;
             }
         }
@@ -227,7 +224,7 @@ char* fileGetNext(char* filename, char* zipFile) {
                 }
             }
 
-            for (j = 0; j < c; j++) {
+            for (j = '0'; j < c; j++) {
                 name[pos] = j;
                 if (fileExist(name, zipFile)) {
                     return name;

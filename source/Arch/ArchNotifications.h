@@ -34,7 +34,11 @@ void* archScreenCapture(ScreenCaptureType type, int* bitmapSize, int onlyBmp);
 void archUpdateEmuDisplayConfig();
 int  archUpdateEmuDisplay(int synchronous);
 
+#ifdef WII
+void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZipFile);
+#else
 void archDiskQuickChangeNotify();
+#endif
 void archEmulationStartNotification();
 void archEmulationStopNotification();
 void archEmulationStartFailure();

@@ -177,7 +177,50 @@ int zipHasFileType(char* zipName, char* ext) {
     return found;
 }
 
+/******************************************************************************
+*** Description
+***     Checks if a file exists in a zip file.
+***
+*** Arguments
+***     zipName     - Name of zip file
+***     fileName    - Name of file insize zipfile to load
+***
+*** Return
+***     1 = file exists, 0 = non existing zip or file in zip does not exists
+***     failure.
+***
+*******************************************************************************
+*/
+int zipFileExists(const char* zipName, const char* fileName)
+{
+    void* buf;
+    char name[256];
+    unzFile zip;
+    unz_file_info info;
 
+    if (fileName[0] == '*') {
+        strcpy(name, zipName);
+        name[strlen(zipName) - 3] = fileName[strlen(fileName) - 3];   
+        name[strlen(zipName) - 2] = fileName[strlen(fileName) - 2];
+        name[strlen(zipName) - 1] = fileName[strlen(fileName) - 1];
+    }
+    else {
+        strcpy(name, fileName);
+    }
+
+    zip = unzOpen(zipName);
+    if (!zip) {
+        return NULL;
+    }
+
+    if (unzLocateFile(zip, name, 1) == UNZ_END_OF_LIST_OF_FILE) {
+        unzClose(zip);
+        return 0;
+    }else{
+        unzClose(zip);
+        return 1;
+    }
+}
 
 /******************************************************************************
 *** Description

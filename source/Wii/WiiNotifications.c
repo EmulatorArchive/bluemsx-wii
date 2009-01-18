@@ -34,7 +34,9 @@ void* archScreenCapture(ScreenCaptureType type, int* bitmapSize, int onlyBmp) { 
 
 void archUpdateEmuDisplayConfig() {}
 
+/* Moved to Bluemsxlite.cpp
 void archDiskQuickChangeNotify() {}
+*/
 void archEmulationStartNotification() {}
 void archEmulationStopNotification() {}
 void archEmulationStartFailure() {}

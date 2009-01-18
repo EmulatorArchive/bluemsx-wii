@@ -20,7 +20,7 @@
         <ScreenShot>HeroesOfTheLance-2.png</ScreenShot>
     </Game>
     <Game Title="SD-Snatcher">
-        <CommandLine>/diskA SDSnatcher-1.zip /diskBzip SDSnatcher-2.zip</CommandLine>
+        <CommandLine>/diskA SDSnatcher.zip /diskAzip SDSnatcher-1.dsk</CommandLine>
         <ScreenShot>SDSnatcher-1.png</ScreenShot>
         <ScreenShot>SDSnatcher-2.png</ScreenShot>
     </Game>
@@ -35,7 +35,7 @@
         <ScreenShot>TheReturnOfIshtar-2.png</ScreenShot>
     </Game>
     <Game Title="Xak3 The Tower of Gazzel">
-        <CommandLine>/diskA Xak3-1.zip /diskBzip Xak3-2.zip</CommandLine>
+        <CommandLine>/diskA Xak3.zip /diskAzip Xak3-1.dsk</CommandLine>
         <ScreenShot>Xak3-1.png</ScreenShot>
         <ScreenShot>Xak3-2.png</ScreenShot>
     </Game>

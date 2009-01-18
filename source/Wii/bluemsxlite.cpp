@@ -76,14 +76,13 @@ int keyboardGetModifiers();
 #include "GuiFonts.h"
 #include "GuiImages.h"
 
-#define CONSOLE_DEBUG 1
+#define CONSOLE_DEBUG 0
 
 #define MSX_ROOT_DIR "fat:/MSX"
 
 static Properties* properties;
 static Video* video;
 static Mixer* mixer;
-static Shortcuts* shortcuts;
 
 static int   bitDepth = 16;
 static int   zoom = 1;
@@ -179,6 +178,57 @@ static void displayThread(void)
     }
 }
 
+static char currentDisk[256];
+static void diskNotifyThread(void)
+{
+    archSemaphoreWait(g_vidSemaphore, -1);
+    // Container
+    GuiContainer *container = new GuiContainer(320-280, 240-80, 2*280, 2*80, 192);
+    manager->Insert(container->GetLayer(), 2);
+    // Floppy image
+    Sprite *floppy = new Sprite;
+    floppy->SetImage(g_imgFloppyDisk);
+    floppy->SetStretchWidth(0.8f);
+    floppy->SetStretchHeight(0.8f);
+    floppy->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    floppy->SetRefPixelPosition(0, 0);
+    floppy->SetPosition(320-280+24, 240-80+32);
+    manager->Insert(floppy, 2);
+    // Text
+    DrawableImage *image = new DrawableImage;
+    image->CreateImage(200, 60);
+    image->SetFont(g_fontArial);
+    image->SetSize(32);
+    image->SetColor((GXColor){255,255,255,255});
+    image->RenderText(currentDisk);
+    Sprite *sprite = new Sprite;
+    sprite->SetImage(image->GetImage());
+    sprite->SetPosition(320-280+180, 240-30);
+    manager->Insert(sprite, 2);
+    archSemaphoreSignal(g_vidSemaphore);
+
+    // Wait about PI seconds
+    archThreadSleep(3141);
+
+    // Remove the popup again
+    archSemaphoreWait(g_vidSemaphore, -1);
+    manager->Remove(sprite);
+    manager->Remove(container->GetLayer());
+    manager->Remove(floppy);
+    archSemaphoreSignal(g_vidSemaphore);
+}
+
+void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZipFile)
+{
+    printf("DISKCHANGE: %d, '%s', '%s'\n", driveId, fileName, fileInZipFile);
+    if( fileInZipFile ) {
+        strcpy(currentDisk, fileInZipFile);
+    }else{
+        strcpy(currentDisk, fileName);
+    }
+    (void)archThreadCreate(diskNotifyThread, THREAD_PRIO_NORMAL);
+}
+
 int main(int argc, char **argv)
 {
     int resetProperties;
@@ -228,7 +278,7 @@ int main(int argc, char **argv)
     archSetCurrentDirectory(MSX_ROOT_DIR);
 
     // Initialize manager
-    manager = new LayerManager(3+2);
+    manager = new LayerManager(16);
 
     DrawableImage *txtImg = new DrawableImage;
     txtImg->CreateImage(144, 60);
@@ -375,8 +425,6 @@ int main(int argc, char **argv)
 
     videoUpdateAll(video, properties);
 
-    shortcuts = shortcutsCreate();
-
     mediaDbSetDefaultRomType(properties->cartridge.defaultType);
 
     printf("Loading ROMs\n");
@@ -454,19 +502,22 @@ int main(int argc, char **argv)
 #endif
 
     // Loop while the user hasn't quit
+    bool pressed = false;
     for(;;) {
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
             break;
         }
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_MINUS) ) {
-            if( console->IsVisible() ) {
-                console->SetVisible(false);
+            if( !pressed ) {
+                if( console->IsVisible() ) {
+                    console->SetVisible(false);
+                }else{
+                    console->SetVisible(true);
+                }
+                pressed = true;
             }
-        }
-        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_PLUS) ) {
-            if( !console->IsVisible() ) {
-                console->SetVisible(true);
-            }
+        }else{
+            pressed = false;
         }
         archThreadSleep(100);
     }

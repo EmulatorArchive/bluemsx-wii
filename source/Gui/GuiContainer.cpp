@@ -6,14 +6,14 @@
 
 using namespace wsp;
 
-GuiContainer::GuiContainer( int posx,  int posy, int width, int height)
+GuiContainer::GuiContainer( int posx,  int posy, int width, int height, int alpha)
 {
 	cols = (width + TILE_SIZE/2) /TILE_SIZE;
 	rows = (height + TILE_SIZE/2) / TILE_SIZE;
 	win_layer = new TiledLayer(cols+1,rows+1,0);
 	win_img.LoadImage(image_container);
 	win_layer->SetStaticTileset(&win_img, TILE_SIZE, TILE_SIZE);
-    win_layer->SetTransparency(128);
+    win_layer->SetTransparency(alpha);
 	SetPosition(posx, posy);
 	Render();
 }

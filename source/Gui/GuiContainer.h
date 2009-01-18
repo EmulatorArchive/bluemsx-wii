@@ -5,7 +5,7 @@
 
 class GuiContainer {
 	public:
-		GuiContainer(int posx, int posy, int width, int height);
+		GuiContainer(int posx, int posy, int width, int height, int alpha = 128);
 		virtual ~GuiContainer();
 		void SetVisible(bool state);
         void Render(void);

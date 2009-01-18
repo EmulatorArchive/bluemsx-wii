@@ -33,6 +33,7 @@
 #include "Language.h"
 #include "InputEvent.h"
 #include "IniFileParser.h"
+#include "WiiShortcuts.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +44,7 @@
 
 #define KBD_TABLE_LEN 512
 
+static Shortcuts* shortcuts;
 static int kbdTable[KBD_TABLE_LEN];
 static int keyStatus[KBD_TABLE_LEN];
 static int kbdModifiers;
@@ -197,13 +199,13 @@ void keyboardInit()
     sprintf(currentConfigFile, DefaultConfigName);
     fclose(file);
 */
-#if 1
     kbdHandle = KBD_Init();
     if( !kbdHandle ) {
         fprintf(stderr, "Unable to open keyboard!\n");
         exit(0);
     }
-#endif
+
+    shortcuts = shortcutsCreate();
 }
 
 void keyboardSetFocus(int handle, int focus)
@@ -235,6 +237,11 @@ static void keyboardHanldeKeypress(KEY code, int pressed)
 static void keyboardCallbackKeypress(KBDHANDLE kbd, KEY code, int pressed)
 {
     keyboardHanldeKeypress(code, pressed);
+    if( pressed ) {
+        shortcutCheckDown(shortcuts, HOTKEY_TYPE_KEYBOARD, kbdModifiers, (int)code);
+    }else{
+        shortcutCheckUp(shortcuts, HOTKEY_TYPE_KEYBOARD, kbdModifiers, (int)code);
+    }
 }
 
 static void keyboardResetKbd()
