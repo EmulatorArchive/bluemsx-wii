@@ -37,67 +37,38 @@
 #include <ogc/lwp.h>
 #include <ogc/semaphore.h>
 
-#define NUM_BUFFERS 4
-#define BUFFER_SIZE 2*1024
-static char buffer[NUM_BUFFERS][BUFFER_SIZE] __attribute__((aligned(32)));
-static int which_buffer = 0;
-static unsigned int buffer_offset = 0;
-#define NEXT(x) (x=(x+1)%NUM_BUFFERS)
+#define AUDIO_DEBUG 0
 
-static lwp_t audio_thread;
-static sem_t buffer_full;
-static sem_t buffer_empty;
+#define BUFFER_SIZE 16*1024
+static char sample_buffer[BUFFER_SIZE] __attribute__((aligned(32)));
+static unsigned int buffer_offset = 0;
+
 static sem_t audio_free;
-static int   thread_running;
-#define AUDIO_STACK_SIZE 1024 // MEM: I could get away with a smaller stack
-static char  audio_stack[AUDIO_STACK_SIZE];
-#define AUDIO_PRIORITY 100
-static int   thread_buffer = 0;
 static int   audio_paused = 0;
 static int   audio_initialized = 0;
+static int   buffer_tuning = 0;
 static Mixer *audio_mixer;
 
 static void done_playing(void)
 {
-    // We're done playing, so we're releasing a buffer and the audio
-    LWP_SemPost(buffer_empty);
-    LWP_SemPost(audio_free);
-}
-
-static void inline play_buffer(void)
-{
-    // This thread will keep giving buffers to the audio as they come
-    while(thread_running){
-
-        // Wait for a buffer to be processed
-        LWP_SemWait(buffer_full);
-
-        // Make sure the buffer is in RAM, not the cache
-        DCFlushRange(buffer[thread_buffer], BUFFER_SIZE);
-
-        // Wait for the audio interface to be free before playing
+    if( !audio_paused ) {
+        // (re)start DMA
         LWP_SemWait(audio_free);
-
-        // Break-out when quitting
-        if( !thread_running ) {
-            break;
-        }
-
-        // Actually send the buffer out to be played
-        AUDIO_InitDMA((unsigned int)&buffer[thread_buffer], BUFFER_SIZE);
+        buffer_tuning = buffer_offset - BUFFER_SIZE/2;
+        AUDIO_InitDMA((unsigned int)&sample_buffer, BUFFER_SIZE);
         AUDIO_StartDMA();
-
-        // Move the index to the next buffer
-        NEXT(thread_buffer);
+        LWP_SemPost(audio_free);
     }
 }
 
 static void inline copy_to_buffer(char* buffer, char* stream, unsigned int length)
 {
-        memcpy(buffer, stream, length);
+    memcpy(buffer, stream, length);
+    // Make sure the buffer is in RAM, not the cache
+    DCFlushRange(buffer, length);
 }
 
-static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length)
+static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length, Int32 *tuning)
 {
     // This shouldn't lose any data and works for any size
     unsigned int lengthi;
@@ -106,36 +77,45 @@ static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length)
     if( !audio_initialized ) {
         return 0;
     }
+    LWP_SemWait(audio_free);
     while(1){
         lengthi = (buffer_offset + lengthLeft < BUFFER_SIZE) ?
                    lengthLeft : (BUFFER_SIZE - buffer_offset);
 
-        // Wait for a buffer we can copy into
-        LWP_SemWait(buffer_empty);
-
-        copy_to_buffer(buffer[which_buffer] + buffer_offset,
+        copy_to_buffer(sample_buffer + buffer_offset,
                        (char *)stream + stream_offset, lengthi);
 
         if(buffer_offset + lengthLeft < BUFFER_SIZE){
                 buffer_offset += lengthi;
-
-                // This is a little weird, but we didn't fill this buffer.
-                //   So it is still considered 'empty', but since we 'decremented'
-                //   buffer_empty coming in here, we want to set it back how
-                //   it was, so we don't cause a deadlock
-                LWP_SemPost(buffer_empty);
                 break;
         }
 
         lengthLeft    -= lengthi;
         stream_offset += lengthi;
 
-        // Let the audio thread know that we've filled a new buffer
-        LWP_SemPost(buffer_full);
-
-        NEXT(which_buffer);
         buffer_offset = 0;
     }
+    // tuning
+    if( !audio_paused && buffer_tuning ) {
+        int tune = 0;
+        if( buffer_tuning > BUFFER_SIZE / 4 )
+            tune = -100;
+        else if( buffer_tuning > BUFFER_SIZE / 8 )
+            tune = -10;
+        else if( buffer_tuning < -BUFFER_SIZE / 4 )
+            tune = 100;
+        else if( buffer_tuning > -BUFFER_SIZE / 8 )
+            tune = 10;
+        if( tune ) {
+            *tuning += tune;
+#if AUDIO_DEBUG
+            printf("Audio: Tune %d, %d, %d\n", tune, *tuning, buffer_tuning);
+#endif
+        }
+        buffer_tuning = 0;
+    }
+    LWP_SemPost(audio_free);
+
     return 0;
 }
 
@@ -146,29 +126,23 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
     }
     // Check parameters
     if( sampleRate != 48000 ) {
-        fprintf(stderr, "Samplerate of %d not supported\n", sampleRate);
+        fprintf(stderr, "Audio: Samplerate of %d not supported\n", sampleRate);
         exit(1);
     }
     if( channels != 2 ) {
-        fprintf(stderr, "Only two channel stereo suppoorted\n");
+        fprintf(stderr, "Audio: Only two channel stereo supported\n");
         exit(1);
     }
     // Init audio
+    audio_paused = 1;
     AUDIO_Init(NULL);
     AUDIO_SetDSPSampleRate(AI_SAMPLERATE_48KHZ);
-    // Create our semaphores and start/resume the audio thread; reset the buffer index
-    LWP_SemInit(&buffer_full, 0, NUM_BUFFERS);
-    LWP_SemInit(&buffer_empty, NUM_BUFFERS, NUM_BUFFERS);
-    LWP_SemInit(&audio_free, 0, 1);
-    thread_running = 1;
-    LWP_CreateThread(&audio_thread, (void*)play_buffer, NULL, audio_stack, AUDIO_STACK_SIZE, AUDIO_PRIORITY);
+    LWP_SemInit(&audio_free, 1, 0xffffffff);
     AUDIO_RegisterDMACallback(done_playing);
-    thread_buffer = which_buffer = 0;
-    audio_paused = 1;
     // Initialize mixer
     audio_mixer = mixer;
     mixerSetStereo(mixer, channels == 2);
-    mixerSetWriteCallback(mixer, soundWrite, NULL, BUFFER_SIZE/2);
+    mixerSetWriteCallback(mixer, soundWrite, NULL, BUFFER_SIZE/64);
     audio_initialized = 1;
 }
 
@@ -179,14 +153,8 @@ void archSoundDestroy(void)
         mixerSetWriteCallback(audio_mixer, NULL, NULL, 0);
         // Stop DMA
         AUDIO_StopDMA();
-        // Stop thread
-        thread_running = 0;
-        LWP_SemPost(buffer_full);
-        LWP_SemPost(audio_free);
-        LWP_JoinThread(audio_thread, NULL);
         // Destroy semaphores and suspend the thread so audio can't play
-        LWP_SemDestroy(buffer_full);
-        LWP_SemDestroy(buffer_empty);
+        LWP_SemWait(audio_free);
         LWP_SemDestroy(audio_free);
         audio_paused = 0;
         audio_initialized = 0;
@@ -195,20 +163,29 @@ void archSoundDestroy(void)
 
 void archSoundSuspend(void)
 {
-    // We just grab the audio_free 'lock' and don't let go
-    //   when we have this lock, audio_thread must be waiting
-    LWP_SemWait(audio_free);
-    audio_paused = 1;
-
-    AUDIO_StopDMA();
+    if( audio_initialized && !audio_paused ) {
+#if AUDIO_DEBUG
+        printf("Audio: Pause\n");
+#endif
+        AUDIO_StopDMA();
+        audio_paused = 1;
+    }
 }
 
 void archSoundResume(void)
 {
-    if(audio_paused){
-        // When we're want the audio to resume, release the 'lock'
-        LWP_SemPost(audio_free);
+    if( audio_initialized && audio_paused ){
+#if AUDIO_DEBUG
+        printf("Audio: Resume\n");
+#endif
+        LWP_SemWait(audio_free);
+        memset(sample_buffer, 0, sizeof(sample_buffer));
+        DCFlushRange(sample_buffer, sizeof(sample_buffer));
         audio_paused = 0;
+        buffer_offset = BUFFER_SIZE/2;
+        buffer_tuning = 0;
+        LWP_SemPost(audio_free);
+        done_playing();
     }
 }
 

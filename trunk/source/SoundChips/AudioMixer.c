@@ -42,7 +42,6 @@
 
 
 static int mixerCPUFrequency;
-static int mixerConnector;
 static int mixerCPUFrequencyFixed;
 
 void mixerSetBoardFrequency(int CPUFrequency)
@@ -111,6 +110,9 @@ struct Mixer
     MixerWriteCallback writeCallback;
     void*  writeRef;
     Int32  fragmentSize;
+#ifdef WII
+    Int32  sampleRateTuning;
+#endif
     UInt32 refTime;
     UInt32 refFrag;
     UInt32 index;
@@ -340,7 +342,9 @@ Mixer* mixerCreate()
     Mixer* mixer = (Mixer*)calloc(1, sizeof(Mixer));
 
     mixer->fragmentSize = 512;
-
+#ifdef WII
+    mixer->sampleRateTuning = 0;
+#endif
     if (globalMixer == NULL) globalMixer = mixer;
 
     return mixer;
@@ -436,7 +440,13 @@ void mixerSync(Mixer* mixer)
     UInt64 elapsed;
     int i;
 
-    elapsed        = AUDIO_SAMPLERATE * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
+#ifdef WII
+    elapsed        = (AUDIO_SAMPLERATE + mixer->sampleRateTuning) *
+                     (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
+#else
+    elapsed        = AUDIO_SAMPLERATE *
+	                 (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
+#endif
     mixer->refTime = systemTime;
     mixer->refFrag = (UInt32)(elapsed % (mixerCPUFrequency * (boardFrequency() / 3579545)));
     count          = (UInt32)(elapsed / (mixerCPUFrequency * (boardFrequency() / 3579545)));
@@ -500,7 +510,11 @@ void mixerSync(Mixer* mixer)
 
             if (mixer->index == mixer->fragmentSize) {
                 if (mixer->writeCallback != NULL) {
+#ifdef WII
+                    mixer->writeCallback(mixer->writeRef, buffer, mixer->fragmentSize, &mixer->sampleRateTuning);
+#else
                     mixer->writeCallback(mixer->writeRef, buffer, mixer->fragmentSize);
+#endif
                 }
                 if (mixer->logging) {
                     fwrite(buffer, 2 * mixer->fragmentSize, 1, mixer->file);
@@ -547,7 +561,11 @@ void mixerSync(Mixer* mixer)
             
             if (mixer->index == mixer->fragmentSize) {
                 if (mixer->writeCallback != NULL) {
+#ifdef WII
+                    mixer->writeCallback(mixer->writeRef, buffer, mixer->fragmentSize, &mixer->sampleRateTuning);
+#else
                     mixer->writeCallback(mixer->writeRef, buffer, mixer->fragmentSize);
+#endif
                 }
                 if (mixer->logging) {
                     fwrite(buffer, 2 * mixer->fragmentSize, 1, mixer->file);
