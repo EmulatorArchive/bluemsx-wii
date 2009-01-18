@@ -161,8 +161,13 @@ void shortcutsSetDirectory(char* directory)
 
 Shortcuts* shortcutsCreate()
 {
-    char filename[512];
     Shortcuts* shortcuts = (Shortcuts*)calloc(1, sizeof(Shortcuts));
+#if 1
+    shortcuts->diskQuickChange.type = HOTKEY_TYPE_KEYBOARD;
+    shortcuts->diskQuickChange.mods = 0;
+    shortcuts->diskQuickChange.key  = KEY_JOY1_PLUS;
+#else
+    char filename[512];
 
     sprintf(filename, "%s/blueMSX.shortcuts", shortcutsDir);
 
@@ -213,7 +218,7 @@ Shortcuts* shortcutsCreate()
     LOAD_SHORTCUT(volumeStereo);
 
     iniFileClose();
-
+#endif
     return shortcuts;
 }
 

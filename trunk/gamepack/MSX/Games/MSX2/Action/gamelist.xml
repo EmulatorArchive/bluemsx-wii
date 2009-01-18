@@ -10,7 +10,7 @@
         <ScreenShot>ContraGryzor-2.png</ScreenShot>
     </Game>
     <Game Title="Fire Hawk">
-        <CommandLine>/diskA FireHawk-1.zip /diskB FireHawk-2.zip</CommandLine>
+        <CommandLine>/diskA FireHawk.zip /diskAzip FireHawk-1.dsk</CommandLine>
         <ScreenShot>FireHawk-1.png</ScreenShot>
         <ScreenShot>FireHawk-2.png</ScreenShot>
     </Game>

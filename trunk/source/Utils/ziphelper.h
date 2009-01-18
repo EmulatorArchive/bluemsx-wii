@@ -30,6 +30,7 @@
 
 void* zipLoadFile(const char* zipName, const char* fileName, int* size);
 int zipSaveFile(const char* zipName, const char* fileName, int append, void* buffer, int size);
+int zipFileExists(const char* zipName, const char* fileName);
 char* zipGetFileList(const char* zipName, const char* ext, int* count);
 int zipHasFileType(char* zipName, char* ext);
 

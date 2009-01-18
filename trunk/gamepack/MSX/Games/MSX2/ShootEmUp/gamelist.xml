@@ -5,7 +5,7 @@
         <ScreenShot>Aleste-2.png</ScreenShot>
     </Game>
     <Game Title="Aleste 2">
-        <CommandLine>/diskA Aleste2-1.zip /diskBzip Aleste2-2.zip</CommandLine>
+        <CommandLine>/diskA Aleste2.zip /diskAzip Aleste2-1.dsk</CommandLine>
         <ScreenShot>Aleste2-1.png</ScreenShot>
         <ScreenShot>Aleste2-2.png</ScreenShot>
     </Game>
@@ -15,7 +15,7 @@
         <ScreenShot>AlesteSpecial-2.png</ScreenShot>
     </Game>
     <Game Title="Black Cyclon">
-        <CommandLine>/diskA BlackCyclon-1.zip /diskBzip BlackCyclon-2.zip</CommandLine>
+        <CommandLine>/diskA BlackCyclon.zip /diskAzip BlackCyclon-1.dsk</CommandLine>
         <ScreenShot>BlackCyclon-1.png</ScreenShot>
         <ScreenShot>BlackCyclon-2.png</ScreenShot>
     </Game>
@@ -25,7 +25,7 @@
         <ScreenShot>FamicleParodic-2.png</ScreenShot>
     </Game>
     <Game Title="Famicle Parodic 2">
-        <CommandLine>/diskA FamicleParodic2-1.zip /diskBzip FamicleParodic2-2.zip</CommandLine>
+        <CommandLine>/diskA FamicleParodic2.zip /diskAzip FamicleParodic2-1.dsk</CommandLine>
         <ScreenShot>FamicleParodic2-1.png</ScreenShot>
         <ScreenShot>FamicleParodic2-2.png</ScreenShot>
     </Game>
@@ -45,7 +45,7 @@
         <ScreenShot>Ikari-2.png</ScreenShot>
     </Game>
     <Game Title="Laydock 2">
-        <CommandLine>/diskA Laydock2-1.zip /diskBzip Laydock2-2.zip</CommandLine>
+        <CommandLine>/diskA Laydock2.zip /diskAzip Laydock2-1.dsk</CommandLine>
         <ScreenShot>Laydock2-1.png</ScreenShot>
         <ScreenShot>Laydock2-2.png</ScreenShot>
     </Game>

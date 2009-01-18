@@ -8,6 +8,7 @@ extern Image *g_imgBackground;
 extern Image *g_imgMousecursor;
 extern Image *g_imgNoise;
 extern Image *g_imgSelector;
+extern Image *g_imgFloppyDisk;
 
 extern void GuiImageInit(void);
 extern void GuiImageClose(void);
