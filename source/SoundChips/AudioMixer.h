@@ -64,7 +64,11 @@ typedef enum {
 #define MAX_CHANNELS 16
 
 typedef Int32* (*MixerUpdateCallback)(void*, UInt32);
+#ifdef WII
+typedef Int32 (*MixerWriteCallback)(void*, Int16*, UInt32, Int32*);
+#else
 typedef Int32 (*MixerWriteCallback)(void*, Int16*, UInt32);
+#endif
 
 /* Constructor and destructor */
 Mixer* mixerCreate();
