@@ -29,6 +29,11 @@
         <ScreenShot>Goemon-1.png</ScreenShot>
         <ScreenShot>Goemon-2.png</ScreenShot>
     </Game>
+    <Game Title="Gryzor">
+        <CommandLine>/rom1 Gryzor.zip</CommandLine>
+        <ScreenShot>Gryzor-1.png</ScreenShot>
+        <ScreenShot>Gryzor-2.png</ScreenShot>
+    </Game>
     <Game Title="Metal Gear">
         <CommandLine>/rom1 MetalGear.zip</CommandLine>
         <ScreenShot>MetalGear-1.png</ScreenShot>
@@ -73,6 +78,11 @@
         <CommandLine>/diskA Sqeek.rom</CommandLine>
         <ScreenShot>Sqeek-1.png</ScreenShot>
         <ScreenShot>Sqeek-2.png</ScreenShot>
+    </Game>
+    <Game Title="T.N.T.">
+        <CommandLine>/rom1 TNT.zip</CommandLine>
+        <ScreenShot>TNT-1.png</ScreenShot>
+        <ScreenShot>TNT-2.png</ScreenShot>
     </Game>
     <Game Title="Treasure of Usas">
         <CommandLine>/rom1 Usas.zip</CommandLine>

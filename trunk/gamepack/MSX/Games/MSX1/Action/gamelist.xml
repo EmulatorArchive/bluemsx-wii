@@ -64,40 +64,110 @@
         <ScreenShot>BreakIn-1.png</ScreenShot>
         <ScreenShot>BreakIn-2.png</ScreenShot>
     </Game>
+    <Game Title="Burger Time">
+        <CommandLine>/rom1 BurgerTime.zip</CommandLine>
+        <ScreenShot>BurgerTime-1.png</ScreenShot>
+        <ScreenShot>BurgerTime-2.png</ScreenShot>
+    </Game>
+    <Game Title="Butamaru Pants">
+        <CommandLine>/rom1 ButamaruPants.zip</CommandLine>
+        <ScreenShot>ButamaruPants-1.png</ScreenShot>
+        <ScreenShot>ButamaruPants-2.png</ScreenShot>
+    </Game>
     <Game Title="Cabbage Patch Kids">
         <CommandLine>/rom1 CabbagePatchKids.zip</CommandLine>
         <ScreenShot>CabbagePatchKids-1.png</ScreenShot>
         <ScreenShot>CabbagePatchKids-2.png</ScreenShot>
+    </Game>
+    <Game Title="Cannonball">
+        <CommandLine>/rom1 Cannonball.zip</CommandLine>
+        <ScreenShot>Cannonball-1.png</ScreenShot>
+        <ScreenShot>Cannonball-2.png</ScreenShot>
+    </Game>
+    <Game Title="Captain Cosmo">
+        <CommandLine>/rom1 CaptainCosmo.zip</CommandLine>
+        <ScreenShot>CaptainCosmo-1.png</ScreenShot>
+        <ScreenShot>CaptainCosmo-2.png</ScreenShot>
     </Game>
     <Game Title="Car Fighter">
         <CommandLine>/rom1 CarFighter.zip</CommandLine>
         <ScreenShot>CarFighter-1.png</ScreenShot>
         <ScreenShot>CarFighter-2.png</ScreenShot>
     </Game>
+    <Game Title="Car Jamboree">
+        <CommandLine>/rom1 CarJamboree.zip</CommandLine>
+        <ScreenShot>CarJamboree-1.png</ScreenShot>
+        <ScreenShot>CarJamboree-2.png</ScreenShot>
+    </Game>
+    <Game Title="Choplifter">
+        <CommandLine>/rom1 Choplifter.zip</CommandLine>
+        <ScreenShot>Choplifter-1.png</ScreenShot>
+        <ScreenShot>Choplifter-2.png</ScreenShot>
+    </Game>
     <Game Title="Circus Charlie">
         <CommandLine>/rom1 CircusCharlie.zip</CommandLine>
         <ScreenShot>CircusCharlie-1.png</ScreenShot>
         <ScreenShot>CircusCharlie-2.png</ScreenShot>
+    </Game>
+    <Game Title="City Connection">
+        <CommandLine>/rom1 CityConnection.zip</CommandLine>
+        <ScreenShot>CityConnection-1.png</ScreenShot>
+        <ScreenShot>CityConnection-2.png</ScreenShot>
     </Game>
     <Game Title="Coaster Race">
         <CommandLine>/rom1 CoasterRace.zip</CommandLine>
         <ScreenShot>CoasterRace-1.png</ScreenShot>
         <ScreenShot>CoasterRace-2.png</ScreenShot>
     </Game>
+    <Game Title="Color Ball">
+        <CommandLine>/rom1 ColorBall.zip</CommandLine>
+        <ScreenShot>ColorBall-1.png</ScreenShot>
+        <ScreenShot>ColorBall-2.png</ScreenShot>
+    </Game>
     <Game Title="Comic Bakery">
         <CommandLine>/rom1 ComicBakery.zip</CommandLine>
         <ScreenShot>ComicBakery-1.png</ScreenShot>
         <ScreenShot>ComicBakery-2.png</ScreenShot>
+    </Game>
+    <Game Title="Dig Dug">
+        <CommandLine>/rom1 DigDug.zip</CommandLine>
+        <ScreenShot>DigDug-1.png</ScreenShot>
+        <ScreenShot>DigDug-2.png</ScreenShot>
     </Game>
     <Game Title="Donkey Kong">
         <CommandLine>/rom1 DonkeyKong.zip</CommandLine>
         <ScreenShot>DonkeyKong-1.png</ScreenShot>
         <ScreenShot>DonkeyKong-2.png</ScreenShot>
     </Game>
+    <Game Title="Dorodon">
+        <CommandLine>/rom1 Dorodon.zip</CommandLine>
+        <ScreenShot>Dorodon-1.png</ScreenShot>
+        <ScreenShot>Dorodon-2.png</ScreenShot>
+    </Game>
+    <Game Title="Elevator Action">
+        <CommandLine>/rom1 ElevatorAction.zip</CommandLine>
+        <ScreenShot>ElevatorAction-1.png</ScreenShot>
+        <ScreenShot>ElevatorAction-2.png</ScreenShot>
+    </Game>
+    <Game Title="Fairy">
+        <CommandLine>/rom1 Fairy.zip</CommandLine>
+        <ScreenShot>Fairy-1.png</ScreenShot>
+        <ScreenShot>Fairy-2.png</ScreenShot>
+    </Game>
+    <Game Title="Flipper Slipper">
+        <CommandLine>/rom1 FlipperSlipper.zip</CommandLine>
+        <ScreenShot>FlipperSlipper-1.png</ScreenShot>
+        <ScreenShot>FlipperSlipper-2.png</ScreenShot>
+    </Game>
     <Game Title="Frogger">
         <CommandLine>/rom1 Frogger.zip</CommandLine>
         <ScreenShot>Frogger-1.png</ScreenShot>
         <ScreenShot>Frogger-2.png</ScreenShot>
+    </Game>
+    <Game Title="Funky Mouse">
+        <CommandLine>/rom1 FunkyMouse.zip</CommandLine>
+        <ScreenShot>FunkyMouse-1.png</ScreenShot>
+        <ScreenShot>FunkyMouse-2.png</ScreenShot>
     </Game>
     <Game Title="Golvellius">
         <CommandLine>/rom1 Golvellius.zip</CommandLine>
@@ -113,6 +183,21 @@
         <CommandLine>/rom1 Hero.zip</CommandLine>
         <ScreenShot>Hero-1.png</ScreenShot>
         <ScreenShot>Hero-2.png</ScreenShot>
+    </Game>
+    <Game Title="Helitank">
+        <CommandLine>/rom1 Helitank.zip</CommandLine>
+        <ScreenShot>Helitank-1.png</ScreenShot>
+        <ScreenShot>Helitank-2.png</ScreenShot>
+    </Game>
+    <Game Title="High Way Star">
+        <CommandLine>/rom1 HighWayStar.zip</CommandLine>
+        <ScreenShot>HighWayStar-1.png</ScreenShot>
+        <ScreenShot>HighWayStar-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hunchback">
+        <CommandLine>/diskA Hunchback.zip</CommandLine>
+        <ScreenShot>Hunchback-1.png</ScreenShot>
+        <ScreenShot>Hunchback-2.png</ScreenShot>
     </Game>
     <Game Title="Inspecteur Z">
         <CommandLine>/rom1 InspecteurZ.zip</CommandLine>
@@ -149,6 +234,11 @@
         <ScreenShot>MazeOfGalious-1.png</ScreenShot>
         <ScreenShot>MazeOfGalious-2.png</ScreenShot>
     </Game>
+    <Game Title="Midnight Building">
+        <CommandLine>/rom1 MidnightBuilding.zip</CommandLine>
+        <ScreenShot>MidnightBuilding-1.png</ScreenShot>
+        <ScreenShot>MidnightBuilding-2.png</ScreenShot>
+    </Game>
     <Game Title="Mopiranger">
         <CommandLine>/rom1 Mopiranger.zip</CommandLine>
         <ScreenShot>Mopiranger-1.png</ScreenShot>
@@ -158,6 +248,16 @@
         <CommandLine>/rom1 Mouser.zip</CommandLine>
         <ScreenShot>Mouser-1.png</ScreenShot>
         <ScreenShot>Mouser-2.png</ScreenShot>
+    </Game>
+    <Game Title="Mr. Chin">
+        <CommandLine>/rom1 MrChin.zip</CommandLine>
+        <ScreenShot>MrChin-1.png</ScreenShot>
+        <ScreenShot>MrChin-2.png</ScreenShot>
+    </Game>
+    <Game Title="Ninja 2">
+        <CommandLine>/rom1 Ninja2.zip</CommandLine>
+        <ScreenShot>Ninja2-1.png</ScreenShot>
+        <ScreenShot>Ninja2-2.png</ScreenShot>
     </Game>
     <Game Title="Oil's Well">
         <CommandLine>/rom1 OilsWell.zip</CommandLine>
@@ -184,6 +284,11 @@
         <ScreenShot>PenguinAdventure-1.png</ScreenShot>
         <ScreenShot>PenguinAdventure-2.png</ScreenShot>
     </Game>
+    <Game Title="Pine Applin">
+        <CommandLine>/rom1 PineApplin.zip</CommandLine>
+        <ScreenShot>PineApplin-1.png</ScreenShot>
+        <ScreenShot>PineApplin-2.png</ScreenShot>
+    </Game>
     <Game Title="Pitfall">
         <CommandLine>/rom1 Pitfall.zip</CommandLine>
         <ScreenShot>Pitfall-1.png</ScreenShot>
@@ -194,10 +299,25 @@
         <ScreenShot>Pitfall2-1.png</ScreenShot>
         <ScreenShot>Pitfall2-2.png</ScreenShot>
     </Game>
+    <Game Title="Pooyan">
+        <CommandLine>/rom1 Pooyan.zip</CommandLine>
+        <ScreenShot>Pooyan-1.png</ScreenShot>
+        <ScreenShot>Pooyan-2.png</ScreenShot>
+    </Game>
+    <Game Title="Rise Out">
+        <CommandLine>/rom1 RiseOut.zip</CommandLine>
+        <ScreenShot>RiseOut-1.png</ScreenShot>
+        <ScreenShot>RiseOut-2.png</ScreenShot>
+    </Game>
     <Game Title="Spelunker">
         <CommandLine>/rom1 Spelunker.zip</CommandLine>
         <ScreenShot>Spelunker-1.png</ScreenShot>
         <ScreenShot>Spelunker-2.png</ScreenShot>
+    </Game>
+    <Game Title="Squish'em">
+        <CommandLine>/rom1 Squishem.zip</CommandLine>
+        <ScreenShot>Squishem-1.png</ScreenShot>
+        <ScreenShot>Squishem-2.png</ScreenShot>
     </Game>
     <Game Title="Super Boy 2">
         <CommandLine>/rom1 SuperBoy2.zip</CommandLine>
@@ -218,6 +338,21 @@
         <CommandLine>/rom1 TheGoonies.zip</CommandLine>
         <ScreenShot>TheGoonies-1.png</ScreenShot>
         <ScreenShot>TheGoonies-2.png</ScreenShot>
+    </Game>
+    <Game Title="The Heist">
+        <CommandLine>/rom1 TheHeist.zip</CommandLine>
+        <ScreenShot>TheHeist-1.png</ScreenShot>
+        <ScreenShot>TheHeist-2.png</ScreenShot>
+    </Game>
+    <Game Title="The Protector">
+        <CommandLine>/rom1 TheProtector.zip</CommandLine>
+        <ScreenShot>TheProtector-1.png</ScreenShot>
+        <ScreenShot>TheProtector-2.png</ScreenShot>
+    </Game>
+    <Game Title="Theseus">
+        <CommandLine>/rom1 Theseus.zip</CommandLine>
+        <ScreenShot>Theseus-1.png</ScreenShot>
+        <ScreenShot>Theseus-2.png</ScreenShot>
     </Game>
     <Game Title="Thexder">
         <CommandLine>/rom1 Thexder.zip</CommandLine>
