@@ -54,6 +54,11 @@
         <ScreenShot>MeteoriteKiss-1.png</ScreenShot>
         <ScreenShot>MeteoriteKiss-2.png</ScreenShot>
     </Game>
+    <Game Title="Moon Patrol">
+        <CommandLine>/rom1 MoonPatrol.zip</CommandLine>
+        <ScreenShot>MoonPatrol-1.png</ScreenShot>
+        <ScreenShot>MoonPatrol-2.png</ScreenShot>
+    </Game>
     <Game Title="Nemesis">
         <CommandLine>/rom1 Nemesis.zip</CommandLine>
         <ScreenShot>Nemesis-1.png</ScreenShot>
@@ -98,6 +103,11 @@
         <CommandLine>/rom1 SkyJaguar.zip</CommandLine>
         <ScreenShot>SkyJaguar-1.png</ScreenShot>
         <ScreenShot>SkyJaguar-2.png</ScreenShot>
+    </Game>
+    <Game Title="Space Invaders">
+        <CommandLine>/rom1 SpaceInvaders.zip</CommandLine>
+        <ScreenShot>SpaceInvaders-1.png</ScreenShot>
+        <ScreenShot>SpaceInvaders-2.png</ScreenShot>
     </Game>
     <Game Title="Super Cobra">
         <CommandLine>/rom1 SuperCobra.zip</CommandLine>

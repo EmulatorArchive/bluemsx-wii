@@ -14,6 +14,11 @@
         <ScreenShot>Hydlide3-1.png</ScreenShot>
         <ScreenShot>Hydlide3-2.png</ScreenShot>
     </Game>
+    <Game Title="Rambo">
+        <CommandLine>/rom1 Rambo.zip</CommandLine>
+        <ScreenShot>Rambo-1.png</ScreenShot>
+        <ScreenShot>Rambo-2.png</ScreenShot>
+    </Game>
     <Game Title="Xanadu">
         <CommandLine>/rom1 Xanadu.zip</CommandLine>
         <ScreenShot>Xanadu-1.png</ScreenShot>

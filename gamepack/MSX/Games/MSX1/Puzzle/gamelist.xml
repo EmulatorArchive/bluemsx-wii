@@ -1,4 +1,9 @@
 <GameList>
+    <Game Title="Blagger">
+        <CommandLine>/rom1 Blagger.zip</CommandLine>
+        <ScreenShot>Blagger-1.png</ScreenShot>
+        <ScreenShot>Blagger-2.png</ScreenShot>
+    </Game>
     <Game Title="Bubble Bobble">
         <CommandLine>/rom1 BubbleBobble.zip</CommandLine>
         <ScreenShot>BubbleBobble-1.png</ScreenShot>
@@ -39,10 +44,30 @@
         <ScreenShot>LodeRunner2-1.png</ScreenShot>
         <ScreenShot>LodeRunner2-2.png</ScreenShot>
     </Game>
+    <Game Title="Pairs">
+        <CommandLine>/rom1 Pairs.zip</CommandLine>
+        <ScreenShot>Pairs-1.png</ScreenShot>
+        <ScreenShot>Pairs-2.png</ScreenShot>
+    </Game>
     <Game Title="Qbert">
         <CommandLine>/rom1 Qbert.zip</CommandLine>
         <ScreenShot>Qbert-1.png</ScreenShot>
         <ScreenShot>Qbert-2.png</ScreenShot>
+    </Game>
+    <Game Title="Skooter">
+        <CommandLine>/rom1 Skooter.zip</CommandLine>
+        <ScreenShot>Skooter-1.png</ScreenShot>
+        <ScreenShot>Skooter-2.png</ScreenShot>
+    </Game>
+    <Game Title="Snake-It">
+        <CommandLine>/rom1 SnakeIt.zip</CommandLine>
+        <ScreenShot>SnakeIt-1.png</ScreenShot>
+        <ScreenShot>SnakeIt-2.png</ScreenShot>
+    </Game>
+    <Game Title="Sparkie">
+        <CommandLine>/rom1 Sparkie.zip</CommandLine>
+        <ScreenShot>Sparkie-1.png</ScreenShot>
+        <ScreenShot>Sparkie-2.png</ScreenShot>
     </Game>
     <Game Title="The Castle">
         <CommandLine>/rom1 TheCastle.zip</CommandLine>

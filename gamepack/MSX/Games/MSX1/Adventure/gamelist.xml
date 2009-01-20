@@ -1,0 +1,7 @@
+<GameList>
+    <Game Title="Pyramid Warp">
+        <CommandLine>/diskA PyramidWarp.zip</CommandLine>
+        <ScreenShot>PyramidWarp-1.png</ScreenShot>
+        <ScreenShot>PyramidWarp-2.png</ScreenShot>
+    </Game>
+</GameList>

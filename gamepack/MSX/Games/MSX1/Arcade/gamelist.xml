@@ -1,0 +1,12 @@
+<GameList>
+    <Game Title="BC's Quest">
+        <CommandLine>/rom1 BCsQuest.zip</CommandLine>
+        <ScreenShot>BCsQuest-1.png</ScreenShot>
+        <ScreenShot>BCsQuest-2.png</ScreenShot>
+    </Game>
+    <Game Title="Grog's Revenge">
+        <CommandLine>/rom1 GrogsRevenge.zip</CommandLine>
+        <ScreenShot>GrogsRevenge-1.png</ScreenShot>
+        <ScreenShot>GrogsRevenge-2.png</ScreenShot>
+    </Game>
+</GameList>

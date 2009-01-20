@@ -24,6 +24,11 @@
         <ScreenShot>HoleInOneProf-1.png</ScreenShot>
         <ScreenShot>HoleInOneProf-2.png</ScreenShot>
     </Game>
+    <Game Title="Hyper Olympics">
+        <CommandLine>/diskA HyperOlympics12.zip</CommandLine>
+        <ScreenShot>HyperOlympics12-1.png</ScreenShot>
+        <ScreenShot>HyperOlympics12-2.png</ScreenShot>
+    </Game>
     <Game Title="Hyper Rally">
         <CommandLine>/rom1 HyperRally.zip</CommandLine>
         <ScreenShot>HyperRally-1.png</ScreenShot>
