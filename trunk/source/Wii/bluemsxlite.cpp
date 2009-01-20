@@ -35,6 +35,7 @@
 
 #include "GuiDirSelect.h"
 #include "GuiMenu.h"
+#include "GuiHomeMenu.h"
 extern "C" {
 #include "CommandLine.h"
 #include "Properties.h"
@@ -88,7 +89,7 @@ static int   bitDepth = 16;
 static int   zoom = 1;
 static int   displayPitch = TEX_WIDTH * 2;
 
-static int   g_doQuit = 0;
+static bool  g_doQuit = false;
 
 static LayerManager *manager = NULL;
 static GameWindow gwd;
@@ -158,7 +159,7 @@ static void displayThread(void)
     while(!g_doQuit) {
         FrameBuffer* frameBuffer;
         archSemaphoreWait(g_vidSemaphore, -1);
-        if( g_dpyData != NULL ) {
+        if( g_dpyData != NULL && emulatorGetState() == EMU_RUNNING ) {
         
             frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
             if (frameBuffer == NULL) {
@@ -229,12 +230,266 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
     (void)archThreadCreate(diskNotifyThread, THREAD_PRIO_NORMAL);
 }
 
-int main(int argc, char **argv)
+void blueMsxInit(int resetProperties)
 {
-    int resetProperties;
-    int i;
     int width;
     int height;
+
+    // Init timer
+    WiiTimerInit();
+    atexit(WiiTimerDestroy);
+
+    setDefaultPaths(archGetCurrentDirectory());
+
+    properties = propCreate(resetProperties, 0, P_KBD_EUROPEAN, 0, "");
+
+    properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
+
+    if (resetProperties == 2) {
+        propDestroy(properties);
+        return;
+    }
+
+    video = videoCreate();
+
+    videoUpdateAll(video, properties);
+
+    if (properties->video.windowSize == P_VIDEO_SIZEFULLSCREEN) {
+        zoom = properties->video.fullscreen.width / WIDTH;
+        bitDepth = properties->video.fullscreen.bitDepth;
+    }
+    else {
+        if (properties->video.windowSize == P_VIDEO_SIZEX1) {
+            zoom = 1;
+        }
+        else {
+            zoom = 2;
+        }
+        bitDepth = 16;
+    }
+
+    width  = zoom * WIDTH;
+    height = zoom * HEIGHT;
+
+    keyboardInit();
+
+    mixer = mixerCreate();
+
+    emulatorInit(properties, mixer);
+
+    actionInit(video, properties, mixer);
+
+    langInit();
+
+    tapeSetReadOnly(properties->cassette.readOnly);
+
+    langSetLanguage((EmuLanguageType)properties->language);
+
+    joystickPortSetType(0, (JoystickPortType)properties->joy1.typeId);
+    joystickPortSetType(1, (JoystickPortType)properties->joy2.typeId);
+    printerIoSetType((PrinterType)properties->ports.Lpt.type, properties->ports.Lpt.fileName);
+    printerIoSetType((PrinterType)properties->ports.Lpt.type, properties->ports.Lpt.fileName);
+    uartIoSetType((UartType)properties->ports.Com.type, properties->ports.Com.fileName);
+    midiIoSetMidiOutType((MidiType)properties->sound.MidiOut.type, properties->sound.MidiOut.fileName);
+    midiIoSetMidiInType((MidiType)properties->sound.MidiIn.type, properties->sound.MidiIn.fileName);
+    ykIoSetMidiInType((MidiType)properties->sound.YkIn.type, properties->sound.YkIn.fileName);
+
+    emulatorRestartSound();
+
+    for (int i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++) {
+        mixerSetChannelTypeVolume(mixer, i, properties->sound.mixerChannel[i].volume);
+        mixerSetChannelTypePan(mixer, i, properties->sound.mixerChannel[i].pan);
+        mixerEnableChannelType(mixer, i, properties->sound.mixerChannel[i].enable);
+    }
+
+    mixerSetMasterVolume(mixer, properties->sound.masterVolume);
+    mixerEnableMaster(mixer, properties->sound.masterEnable);
+
+    videoUpdateAll(video, properties);
+
+    mediaDbSetDefaultRomType(properties->cartridge.defaultType);
+
+    for (int i = 0; i < PROP_MAX_CARTS; i++) {
+        if (properties->media.carts[i].fileName[0]) insertCartridge(properties, i, properties->media.carts[i].fileName, properties->media.carts[i].fileNameInZip, properties->media.carts[i].type, -1);
+        updateExtendedRomName(i, properties->media.carts[i].fileName, properties->media.carts[i].fileNameInZip);
+    }
+
+    for (int i = 0; i < PROP_MAX_DISKS; i++) {
+        if (properties->media.disks[i].fileName[0]) insertDiskette(properties, i, properties->media.disks[i].fileName, properties->media.disks[i].fileNameInZip, -1);
+        updateExtendedDiskName(i, properties->media.disks[i].fileName, properties->media.disks[i].fileNameInZip);
+    }
+
+    for (int i = 0; i < PROP_MAX_TAPES; i++) {
+        if (properties->media.tapes[i].fileName[0]) insertCassette(properties, i, properties->media.tapes[i].fileName, properties->media.tapes[i].fileNameInZip, 0);
+        updateExtendedCasName(i, properties->media.tapes[i].fileName, properties->media.tapes[i].fileNameInZip);
+    }
+
+    Machine* machine = machineCreate(properties->emulation.machineName);
+    if (machine != NULL) {
+        boardSetMachine(machine);
+        machineDestroy(machine);
+    }
+
+    boardSetFdcTimingEnable(properties->emulation.enableFdcTiming);
+    boardSetY8950Enable(properties->sound.chip.enableY8950);
+    boardSetYm2413Enable(properties->sound.chip.enableYM2413);
+    //NOTE: Disable Moonsound right now since we allready have memory resource problems...
+    //      ... and the Moonsound needs a lot of memory because of its wave table rom.
+    boardSetMoonsoundEnable(0 /*properties->sound.chip.enableMoonsound*/);
+    boardSetVideoAutodetect(properties->video.detectActiveMonitor);
+}
+
+static GuiContainer *grWinList;
+static DrawableImage *txtImg;
+static Sprite *txtSpr;
+static Sprite *sprBackground;
+
+static void MessageBox(const char *txt, int txtwidth)
+{
+    txtImg = new DrawableImage;
+    txtImg->CreateImage(txtwidth, 60);
+    txtImg->SetFont(g_fontArial);
+    txtImg->SetSize(32);
+    txtImg->SetColor((GXColor){255,255,255,255});
+    txtImg->RenderText(txt);
+    txtSpr = new Sprite;
+    txtSpr->SetImage(txtImg->GetImage());
+    txtSpr->SetPosition(320-(txtwidth/2), 240-30);
+    manager->Append(txtSpr);
+
+    // Container
+    grWinList = new GuiContainer(320-200, 240-80, 400, 160);
+    manager->Append(grWinList->GetLayer());
+
+    // Background
+    sprBackground = new Sprite;
+    sprBackground->SetImage(g_imgBackground);
+    sprBackground->SetPosition(0, 0);
+    manager->Append(sprBackground);
+
+    manager->Draw(0,0);
+    gwd.Flush();
+}
+
+static void MessageBoxRemove(void)
+{
+    manager->Remove(grWinList->GetLayer());
+    manager->Remove(txtSpr);
+    manager->Remove(sprBackground);
+    delete sprBackground;
+    delete grWinList;
+    delete txtSpr;
+    delete txtImg;
+}
+
+static void blueMsxRun(GameElement *game, char *game_dir)
+{
+    // Set current directory to the MSX-root
+    archSetCurrentDirectory(MSX_ROOT_DIR);
+
+    // Loading message
+    MessageBox("Loading...", 144);
+
+    console->Add();
+
+    g_doQuit = false;
+    g_vidSemaphore = archSemaphoreCreate(1);
+    void *disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
+
+    printf("Title        : '%s'\n", game->GetName());
+    printf("Command line : '%s'\n", game->GetCommandLine());
+    printf("Screen shot 1: '%s'\n", game->GetScreenShot(0));
+    printf("Screen shot 2: '%s'\n", game->GetScreenShot(1));
+
+    int i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
+
+    if (i < 0) {
+        printf("Failed to parse command line\n");
+    }
+
+    if (i == 0) {
+        printf("Starting emulation\n");
+        emulatorStart(NULL);
+    }
+    printf("Waiting for quit event...\n");
+
+    archSemaphoreWait(g_vidSemaphore, -1);
+    MessageBoxRemove();
+    g_yOffset = -37;
+    console->SetPosition(12, 12+37);
+    DrawableImage emuImg;
+    emuImg.CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
+    g_dpyData = (char *)emuImg.GetTextureBuffer();
+    Sprite emuSpr;
+    emuSpr.SetImage(emuImg.GetImage());
+    emuSpr.SetStretchWidth(640.0f / (float)TEX_WIDTH);
+    emuSpr.SetStretchHeight(548.0f / (float)480);
+    emuSpr.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    emuSpr.SetRefPixelPosition(0, 0);
+    emuSpr.SetPosition(0, 0);
+    manager->Append(&emuSpr);
+    archSemaphoreSignal(g_vidSemaphore);
+
+    // Loop while the user hasn't quit
+    GuiHomeMenu menu(manager, g_vidSemaphore);
+    bool pressed = true;
+    while(!g_doQuit) {
+        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
+            if( !pressed ) {
+                emulatorSuspend();
+                int domenu;
+                do {
+                    int selection = menu.DoModal();
+                    domenu = 0;
+                    switch( selection ) {
+                        case 0: /* Load state */
+                            actionQuickLoadState();
+                            emulatorResume();
+                            break;
+                        case 1: /* Save state */
+                            actionQuickSaveState();
+                            domenu = 1;
+                            break;
+                        case 2: /* Properties */
+                            emulatorResume();
+                            break;
+                        case 3: /* Quit */
+                            g_doQuit = true;
+                            break;
+                        case -1: /* leaved menu */
+                            emulatorResume();
+                            break;
+                    }
+                }while(domenu);
+                pressed = true;
+            }
+        }else
+        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_MINUS) ) {
+            if( !pressed ) {
+                if( console->IsVisible() ) {
+                    console->SetVisible(false);
+                }else{
+                    console->SetVisible(true);
+                }
+                pressed = true;
+            }
+        }else{
+            pressed = false;
+        }
+        archThreadSleep(20);
+    }
+    archThreadJoin(disp_thread, -1);
+    archSemaphoreDestroy(g_vidSemaphore);
+    emulatorStop();
+    console->Remove();
+    console->SetPosition(12, 12);
+    g_yOffset = 0;
+}
+
+int main(int argc, char **argv)
+{
+    // Set main thread priority
+    LWP_SetThreadPriority(LWP_GetSelf(), 100);
 
     // Initialize GameWindow
 	gwd.InitVideo();
@@ -248,9 +503,30 @@ int main(int argc, char **argv)
     // Init SD-Card access
     fatInitDefault();
 
+    // Set current directory to the MSX-root
+    archSetCurrentDirectory(MSX_ROOT_DIR);
+
     // GUI init
     GuiFontInit();
     GuiImageInit();
+
+    // Initialize manager
+    manager = new LayerManager(32);
+
+    // Please wait...
+    MessageBox("Please wait...", 192);
+
+    console = new GuiConsole(manager, 12, 12, 640-24, 480-24);
+#if CONSOLE_DEBUG
+    console->SetVisible(true);
+#endif
+
+    // Init blueMSX emulator
+    blueMsxInit(0);
+
+    MessageBoxRemove();
+
+    console->Remove();
 
     GameElement *game = NULL;
     char *game_dir = NULL;
@@ -268,262 +544,11 @@ int main(int argc, char **argv)
         game = menu->DoModal(&gwd, game_dir, "gamelist.xml");
         delete menu;
         if( game != NULL ) {
-            break;
+            blueMsxRun(game, game_dir);
+            delete game;
         }
     }
-    game_dir = strdup(game_dir);
     delete dirs;
-
-    // Set current directory back to the MSX-root
-    archSetCurrentDirectory(MSX_ROOT_DIR);
-
-    // Initialize manager
-    manager = new LayerManager(16);
-
-    DrawableImage *txtImg = new DrawableImage;
-    txtImg->CreateImage(144, 60);
-    txtImg->SetFont(g_fontArial);
-    txtImg->SetSize(32);
-    txtImg->SetColor((GXColor){255,255,255,255});
-    txtImg->RenderText("Loading...");
-    Sprite *txtSpr = new Sprite;
-    txtSpr->SetImage(txtImg->GetImage());
-    txtSpr->SetPosition(320-72, 240-30);
-    manager->Append(txtSpr);
-
-    // Container
-    GuiContainer *grWinList = new GuiContainer(320-200, 240-80, 400, 160);
-    manager->Append(grWinList->GetLayer());
-
-    // Background
-    Sprite *sprBackground = new Sprite;
-    sprBackground->SetImage(g_imgBackground);
-    sprBackground->SetPosition(0, 0);
-    manager->Append(sprBackground);
-
-    manager->Draw(0,0);
-    gwd.Flush();
-
-    console = new GuiConsole(manager, 12, 12, 640-24, 480-24);
-#if CONSOLE_DEBUG
-    console->SetVisible(true);
-#endif
-
-    g_vidSemaphore = archSemaphoreCreate(1);
-    void *disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
-
-    printf("Title        : '%s'\n", game->GetName());
-    printf("Command line : '%s'\n", game->GetCommandLine());
-    printf("Screen shot 1: '%s'\n", game->GetScreenShot(0));
-    printf("Screen shot 2: '%s'\n", game->GetScreenShot(1));
-
-    // Init timer
-    WiiTimerInit();
-    atexit(WiiTimerDestroy);
-
-    // Set main thread priority
-    LWP_SetThreadPriority(LWP_GetSelf(), 100);
-
-    printf("Setting/creating default paths\n");
-
-    setDefaultPaths(archGetCurrentDirectory());
-
-    printf("Check and reset arguments\n");
-
-    resetProperties = emuCheckResetArgument(game->GetCommandLine());
-
-    printf("Create properties\n");
-
-    properties = propCreate(resetProperties, 0, P_KBD_EUROPEAN, 0, "");
-
-    properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
-
-    if (resetProperties == 2) {
-        propDestroy(properties);
-        return 0;
-    }
-
-    printf("Initialize video renderer\n");
-    video = videoCreate();
-
-    videoUpdateAll(video, properties);
-
-    printf("Create video window\n");
-
-    if (properties->video.windowSize == P_VIDEO_SIZEFULLSCREEN) {
-        zoom = properties->video.fullscreen.width / WIDTH;
-        bitDepth = properties->video.fullscreen.bitDepth;
-        printf("Video mode: Full-screen, %dbit\n", bitDepth);
-    }
-    else {
-        if (properties->video.windowSize == P_VIDEO_SIZEX1) {
-            printf("Video mode: 1x, 16bit\n");
-            zoom = 1;
-        }
-        else {
-            printf("Video mode: 2x, 16bit\n");
-            zoom = 2;
-        }
-        bitDepth = 16;
-    }
-
-    width  = zoom * WIDTH;
-    height = zoom * HEIGHT;
-    printf("Resolution: %dx%d\n", width, height);
-
-    printf("Initialize keyboard\n");
-
-    keyboardInit();
-
-    printf("Initialize mixer\n");
-
-    mixer = mixerCreate();
-
-    printf("Initialize emulator\n");
-
-    emulatorInit(properties, mixer);
-
-    actionInit(video, properties, mixer);
-
-    printf("Initialize languages\n");
-
-    langInit();
-
-    printf("Initialize tape\n");
-
-    tapeSetReadOnly(properties->cassette.readOnly);
-
-    printf("Setting language to %d\n", properties->language);
-
-    langSetLanguage((EmuLanguageType)properties->language);
-
-    printf("Setting types\n");
-
-    joystickPortSetType(0, (JoystickPortType)properties->joy1.typeId);
-    joystickPortSetType(1, (JoystickPortType)properties->joy2.typeId);
-    printerIoSetType((PrinterType)properties->ports.Lpt.type, properties->ports.Lpt.fileName);
-    printerIoSetType((PrinterType)properties->ports.Lpt.type, properties->ports.Lpt.fileName);
-    uartIoSetType((UartType)properties->ports.Com.type, properties->ports.Com.fileName);
-    midiIoSetMidiOutType((MidiType)properties->sound.MidiOut.type, properties->sound.MidiOut.fileName);
-    midiIoSetMidiInType((MidiType)properties->sound.MidiIn.type, properties->sound.MidiIn.fileName);
-    ykIoSetMidiInType((MidiType)properties->sound.YkIn.type, properties->sound.YkIn.fileName);
-
-    printf("Starting sound\n");
-
-    emulatorRestartSound();
-
-    for (i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++) {
-        mixerSetChannelTypeVolume(mixer, i, properties->sound.mixerChannel[i].volume);
-        mixerSetChannelTypePan(mixer, i, properties->sound.mixerChannel[i].pan);
-        mixerEnableChannelType(mixer, i, properties->sound.mixerChannel[i].enable);
-    }
-
-    mixerSetMasterVolume(mixer, properties->sound.masterVolume);
-    mixerEnableMaster(mixer, properties->sound.masterEnable);
-
-    printf("Update video\n");
-
-    videoUpdateAll(video, properties);
-
-    mediaDbSetDefaultRomType(properties->cartridge.defaultType);
-
-    printf("Loading ROMs\n");
-    for (i = 0; i < PROP_MAX_CARTS; i++) {
-        if (properties->media.carts[i].fileName[0]) insertCartridge(properties, i, properties->media.carts[i].fileName, properties->media.carts[i].fileNameInZip, properties->media.carts[i].type, -1);
-        updateExtendedRomName(i, properties->media.carts[i].fileName, properties->media.carts[i].fileNameInZip);
-    }
-
-    printf("Loading Disks\n");
-    for (i = 0; i < PROP_MAX_DISKS; i++) {
-        if (properties->media.disks[i].fileName[0]) insertDiskette(properties, i, properties->media.disks[i].fileName, properties->media.disks[i].fileNameInZip, -1);
-        updateExtendedDiskName(i, properties->media.disks[i].fileName, properties->media.disks[i].fileNameInZip);
-    }
-
-    printf("Loading Tapes\n");
-    for (i = 0; i < PROP_MAX_TAPES; i++) {
-        if (properties->media.tapes[i].fileName[0]) insertCassette(properties, i, properties->media.tapes[i].fileName, properties->media.tapes[i].fileNameInZip, 0);
-        updateExtendedCasName(i, properties->media.tapes[i].fileName, properties->media.tapes[i].fileNameInZip);
-    }
-
-    printf("Create machine\n");
-    {
-        Machine* machine = machineCreate(properties->emulation.machineName);
-        if (machine != NULL) {
-            boardSetMachine(machine);
-            machineDestroy(machine);
-        }
-    }
-    boardSetFdcTimingEnable(properties->emulation.enableFdcTiming);
-    boardSetY8950Enable(properties->sound.chip.enableY8950);
-    boardSetYm2413Enable(properties->sound.chip.enableYM2413);
-    //NOTE: Disable Moonsound right now since we allready have memory resource problems...
-    //      ... and the Moonsound needs a lot of memory because of its wave table rom.
-    boardSetMoonsoundEnable(0 /*properties->sound.chip.enableMoonsound*/);
-    boardSetVideoAutodetect(properties->video.detectActiveMonitor);
-
-    i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
-    free(game_dir);
-    delete game;
-    if (i < 0) {
-        printf("Failed to parse command line\n");
-        return 0;
-    }
-
-    if (i == 0) {
-        printf("Starting emulation\n");
-        emulatorStart(NULL);
-    }
-
-    printf("Waiting for quit event...\n");
-
-    archSemaphoreWait(g_vidSemaphore, -1);
-    manager->Remove(grWinList->GetLayer());
-    manager->Remove(txtSpr);
-    manager->Remove(sprBackground);
-    delete sprBackground;
-    g_yOffset = -37;
-    console->SetPosition(12, 12+37);
-    DrawableImage emuImg;
-    emuImg.CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
-    g_dpyData = (char *)emuImg.GetTextureBuffer();
-    Sprite emuSpr;
-    emuSpr.SetImage(emuImg.GetImage());
-    emuSpr.SetStretchWidth(640.0f / (float)TEX_WIDTH);
-    emuSpr.SetStretchHeight(548.0f / (float)480);
-    emuSpr.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    emuSpr.SetRefPixelPosition(0, 0);
-    emuSpr.SetPosition(0, 0);
-    manager->Append(&emuSpr);
-    archSemaphoreSignal(g_vidSemaphore);
-
-    // Turn off console by default
-#if CONSOLE_DEBUG
-    console->SetVisible(false);
-#endif
-
-    // Loop while the user hasn't quit
-    bool pressed = false;
-    for(;;) {
-        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
-            break;
-        }
-        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_MINUS) ) {
-            if( !pressed ) {
-                if( console->IsVisible() ) {
-                    console->SetVisible(false);
-                }else{
-                    console->SetVisible(true);
-                }
-                pressed = true;
-            }
-        }else{
-            pressed = false;
-        }
-        archThreadSleep(100);
-    }
-    g_doQuit = 1;
-    archThreadJoin(disp_thread, -1);
-    archSemaphoreDestroy(g_vidSemaphore);
 
     fprintf(stderr, "Clean-up\n");
 
@@ -542,3 +567,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+

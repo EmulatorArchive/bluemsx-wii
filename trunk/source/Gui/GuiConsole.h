@@ -9,6 +9,8 @@ class GuiConsole {
 	public:
 		GuiConsole(wsp::LayerManager *manager, int posx, int posy, int width, int height);
 		virtual ~GuiConsole();
+        void Remove(void);
+        void Add(void);
 		void SetVisible(bool state);
         bool IsVisible(void);
         void Render(void);

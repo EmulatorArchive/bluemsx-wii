@@ -12,7 +12,6 @@ GuiConsole::GuiConsole(LayerManager *manager, int posx, int posy, int width, int
     _imgheight = (_height-24)/2;
 
     _container = new GuiContainer(posx, posy, _width, _height);
-    _manager->Insert(_container->GetLayer(), 0);
     _image = new DrawableImage;
     _image->CreateImage(_imgwidth, _imgheight);
     _sprite = new Sprite;
@@ -23,7 +22,6 @@ GuiConsole::GuiConsole(LayerManager *manager, int posx, int posy, int width, int
     _sprite->SetRefPixelPosition(0, 0);
     _sprite->SetPosition(posx+12, posy+12);
     SetVisible(false);
-    _manager->Insert(_sprite, 0);
 
 	_console_buffer = (u16*)malloc(_imgwidth*_imgheight*VI_DISPLAY_PIX_SZ);
 	if( _console_buffer != NULL ) {
@@ -32,6 +30,7 @@ GuiConsole::GuiConsole(LayerManager *manager, int posx, int posy, int width, int
 	}
 
 	Render();
+    Add();
 }
 
 GuiConsole::~GuiConsole()
@@ -41,6 +40,18 @@ GuiConsole::~GuiConsole()
     delete _sprite;
     delete _image;
     delete _container;
+}
+
+void GuiConsole::Add(void)
+{
+    _manager->Insert(_container->GetLayer(), 0);
+    _manager->Insert(_sprite, 0);
+}
+
+void GuiConsole::Remove(void)
+{
+    _manager->Remove(_container->GetLayer());
+    _manager->Remove(_sprite);
 }
 
 void GuiConsole::SetPosition( int posx,  int posy)
