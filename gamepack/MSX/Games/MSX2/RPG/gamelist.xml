@@ -20,7 +20,7 @@
         <ScreenShot>HeroesOfTheLance-2.png</ScreenShot>
     </Game>
     <Game Title="SD-Snatcher">
-        <CommandLine>/diskA SDSnatcher.zip /diskAzip SDSnatcher-1.dsk</CommandLine>
+        <CommandLine>/diskA SDSnatcher.zip /diskAzip SDSnatcher-1.dsk /romtype1 sdsnatcher</CommandLine>
         <ScreenShot>SDSnatcher-1.png</ScreenShot>
         <ScreenShot>SDSnatcher-2.png</ScreenShot>
     </Game>

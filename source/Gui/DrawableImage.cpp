@@ -34,6 +34,10 @@ void DrawableImage::CreateImage(int width, int height, int format)
     int bytespp = (format == GX_TF_RGB565)? 2 : 4;
 
 	// Allocate room
+	if(_pixels)
+	{
+		free(_pixels);
+	}
 	_pixels = (u8 *)memalign(32, _width * _height * bytespp);
 
 	// Set to zero's for now
