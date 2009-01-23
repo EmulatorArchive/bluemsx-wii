@@ -32,10 +32,11 @@
 #include <string.h>
 #include <fat.h>
 #include <wiiuse/wpad.h>
+#include <sys/stat.h>
 
 #include "GuiDirSelect.h"
+#include "GuiGameSelect.h"
 #include "GuiMenu.h"
-#include "GuiHomeMenu.h"
 extern "C" {
 #include "CommandLine.h"
 #include "Properties.h"
@@ -54,6 +55,7 @@ extern "C" {
 #include "Language.h"
 #include "LaunchFile.h"
 #include "ArchEvent.h"
+#include "ArchGlob.h"
 #include "ArchSound.h"
 #include "ArchNotifications.h"
 #include "JoystickPort.h"
@@ -119,6 +121,8 @@ void archUpdateWindow()
 {
 }
 
+static char stateDir[PROP_MAXPATH]  = "";
+
 void setDefaultPaths(const char* rootDir)
 {
     char buffer[512];
@@ -131,6 +135,7 @@ void setDefaultPaths(const char* rootDir)
 
     sprintf(buffer, "%s/QuickSave", rootDir);
     archCreateDirectory(buffer);
+    strcpy(stateDir, buffer);
     actionSetQuickSaveSetDirectory(buffer, "");
 
     sprintf(buffer, "%s/SRAM", rootDir);
@@ -382,6 +387,80 @@ static void MessageBoxRemove(void)
     delete txtImg;
 }
 
+static UInt32 fileWriteTime(const char* filename)
+{
+  struct stat s;
+  int rv;
+  
+  rv = stat(filename, &s);
+
+  return rv < 0 ? 0 : s.st_mtime;
+}
+
+typedef struct {
+    int number_of_saves;
+    char **filenames;
+    char **timestrings;
+} SAVE_STATES;
+
+SAVE_STATES *GetStateFileList(Properties* properties, char* directory, char* prefix, char* extension, int digits)
+{
+    static SAVE_STATES states;
+    static char *filenames[256];
+    static char *timestrings[256];
+    ArchGlob* glob;
+    static char filename[512];
+    char baseName[128];
+    int i, k;
+    int numMod = 1;
+    char filenameFormat[32] = "%s/%s%s_";
+    char destfileFormat[32];
+
+    for (i = 0; i < digits; i++) {
+        strcat(filenameFormat, "?");
+        numMod *= 10;
+    }
+    strcat(filenameFormat, "%s");
+    sprintf(destfileFormat, "%%s/%%s%%s_%%0%di%%s", digits);
+    
+    createSaveFileBaseName(baseName, properties, 0);
+
+    sprintf(filename, filenameFormat, directory, prefix, baseName, extension);
+
+    glob = archGlob(filename, ARCH_GLOB_FILES);
+
+    if (glob) {
+        k = 0;
+        if (glob->count > 0) {
+            for (i = 0; i < glob->count; i++) {
+                struct stat s;
+                if( stat(glob->pathVector[i], &s) >= 0 ) {
+                    timestrings[k] = strdup(ctime(&s.st_mtime));
+                    filenames[k++] = strdup(glob->pathVector[i]);
+                }
+            }
+        }
+        states.timestrings = timestrings;
+        states.filenames = filenames;
+        states.number_of_saves = k;
+        archGlobFree(glob);
+    }else{
+        states.number_of_saves = 0;
+    }
+
+    return &states;
+}
+
+void FreeStateFileList(SAVE_STATES *states)
+{
+    for(int i = 0; i < states->number_of_saves; i++) {
+        free(states->timestrings[i]);
+        states->timestrings[i] = NULL;
+        free(states->filenames[i]);
+        states->filenames[i] = NULL;
+    }
+}
+
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
     // Set current directory to the MSX-root
@@ -431,7 +510,13 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     archSemaphoreSignal(g_vidSemaphore);
 
     // Loop while the user hasn't quit
-    GuiHomeMenu menu(manager, g_vidSemaphore);
+    GuiMenu menu(manager, g_vidSemaphore, 4);
+    const char *menu_items[] = {
+      "Load state",
+      "Save state",
+      "Properties",
+      "Quit"
+    };
     bool pressed = true;
     while(!g_doQuit) {
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
@@ -439,28 +524,43 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 emulatorSuspend();
                 int domenu;
                 do {
-                    int selection = menu.DoModal();
+                    int selection = menu.DoModal(menu_items, 4, 344);
                     domenu = 0;
                     switch( selection ) {
+                        SAVE_STATES *states;
                         case 0: /* Load state */
-                            actionQuickLoadState();
-                            emulatorResume();
+                            states = GetStateFileList(properties, stateDir, "", ".sta", 2);
+                            if( states->number_of_saves > 0 ) {
+                                int statenum = menu.DoModal((const char**)states->timestrings, states->number_of_saves, 360);
+                                if( statenum != -1 ) {
+                                    emulatorStop();
+                                    emulatorStart(states->filenames[statenum]);
+                                    VIDEO_WaitVSync();
+                                    VIDEO_WaitVSync();
+                                    VIDEO_WaitVSync();
+                                    VIDEO_WaitVSync();
+                                    emulatorSuspend();
+                                }
+                            }
+                            domenu = 1;
+                            FreeStateFileList(states);
                             break;
                         case 1: /* Save state */
                             actionQuickSaveState();
+                            emulatorSuspend();
                             domenu = 1;
                             break;
                         case 2: /* Properties */
-                            emulatorResume();
+                            domenu = 1;
                             break;
                         case 3: /* Quit */
                             g_doQuit = true;
                             break;
                         case -1: /* leaved menu */
-                            emulatorResume();
                             break;
                     }
                 }while(domenu);
+                emulatorResume();
                 pressed = true;
             }
         }else
@@ -476,11 +576,13 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         }else{
             pressed = false;
         }
-        archThreadSleep(20);
+        // wait a frame
+		VIDEO_WaitVSync();
     }
     archThreadJoin(disp_thread, -1);
     archSemaphoreDestroy(g_vidSemaphore);
     emulatorStop();
+    manager->Remove(&emuSpr);
     console->Remove();
     console->SetPosition(12, 12);
     g_yOffset = 0;
@@ -540,7 +642,7 @@ int main(int argc, char **argv)
         }
 
         // Game menu
-        GuiMenu *menu = new GuiMenu();
+        GuiGameSelect *menu = new GuiGameSelect();
         game = menu->DoModal(&gwd, game_dir, "gamelist.xml");
         delete menu;
         if( game != NULL ) {

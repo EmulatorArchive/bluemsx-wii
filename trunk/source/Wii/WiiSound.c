@@ -98,16 +98,26 @@ static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length, Int32 *tuning
     // tuning
     if( !audio_paused && buffer_tuning ) {
         int tune = 0;
-        if( buffer_tuning > BUFFER_SIZE / 4 )
+        if( buffer_tuning > (BUFFER_SIZE / 4 + BUFFER_SIZE / 8) )
             tune = -100;
+        else if( buffer_tuning > BUFFER_SIZE / 4 )
+            tune = -50;
         else if( buffer_tuning > BUFFER_SIZE / 8 )
             tune = -10;
-        else if( buffer_tuning < -BUFFER_SIZE / 4 )
+        else if( buffer_tuning < -(BUFFER_SIZE / 4 + BUFFER_SIZE / 8) )
             tune = 100;
+        else if( buffer_tuning > -BUFFER_SIZE / 4 )
+            tune = 50;
         else if( buffer_tuning > -BUFFER_SIZE / 8 )
             tune = 10;
         if( tune ) {
             *tuning += tune;
+            if( *tuning > 500 ) {
+                *tuning = 500;
+            }
+            if( *tuning < -500 ) {
+                *tuning = -500;
+            }
 #if AUDIO_DEBUG
             printf("Audio: Tune %d, %d, %d\n", tune, *tuning, buffer_tuning);
 #endif
