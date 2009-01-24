@@ -29,11 +29,6 @@
         <ScreenShot>Goemon-1.png</ScreenShot>
         <ScreenShot>Goemon-2.png</ScreenShot>
     </Game>
-    <Game Title="Gryzor">
-        <CommandLine>/rom1 Gryzor.zip</CommandLine>
-        <ScreenShot>Gryzor-1.png</ScreenShot>
-        <ScreenShot>Gryzor-2.png</ScreenShot>
-    </Game>
     <Game Title="Metal Gear">
         <CommandLine>/rom1 MetalGear.zip</CommandLine>
         <ScreenShot>MetalGear-1.png</ScreenShot>
