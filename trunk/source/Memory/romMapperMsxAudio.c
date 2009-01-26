@@ -160,6 +160,7 @@ void philipsMidiDestroy(PhilipsMidi* midi)
 {
     midiIoDestroy(midi->midiIo);
     archSemaphoreDestroy(midi->semaphore);
+    free(midi);
 }
 
 UInt8 philipsMidiReadStatus(PhilipsMidi* midi)

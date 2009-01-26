@@ -1491,10 +1491,12 @@ void boardSaveState(const char* stateFile)
     boardInfo.saveState(stateFile);
 
     bitmap = archScreenCapture(SC_SMALL, &size, 1);
-    if (size > 0) {
+    if( bitmap != NULL && size > 0 ) {
         zipSaveFile(stateFile, "screenshot.bmp", 1, bitmap, size);
     }
-    free(bitmap);
+    if( bitmap != NULL ) {
+        free(bitmap);
+    }
 
     memset(buf, 0, 128);
     time(&ltime);

@@ -35,6 +35,12 @@
 
 #include <stdio.h>
 
+typedef struct {
+  lwp_t thread;
+  void *stack;
+  u32 ssize;
+} thread_t;
+
 static int threadEntry(void* data)
 {
     void (*entryPoint)() = data;
@@ -42,7 +48,7 @@ static int threadEntry(void* data)
     return 0;
 }
 
-void* archThreadCreate(void (*entryPoint)(), int priority)
+void* archThreadCreateEx(void (*entryPoint)(), int priority, int stacksize)
 {
     if( priority == THREAD_PRIO_HIGH ) {
         priority = 110;
@@ -50,12 +56,19 @@ void* archThreadCreate(void (*entryPoint)(), int priority)
         priority = 90;
     }
 
-    lwp_t* t = (lwp_t*)malloc(sizeof(lwp_t));
+    thread_t* t = (thread_t*)malloc(sizeof(thread_t));
     if( t == NULL ) {
         fprintf(stderr, "THREAD: Error 1\n");
         return NULL;
     }
-    if( LWP_CreateThread(t, (void *(*)(void *))threadEntry, entryPoint, NULL, 0, priority) != 0 ) {
+    if( stacksize ) {
+        t->stack = malloc(stacksize);
+        t->ssize = (u32)stacksize;
+    }else{
+        t->stack = NULL;
+        t->ssize = 0;
+    }
+    if( LWP_CreateThread(&t->thread, (void *(*)(void *))threadEntry, entryPoint, t->stack, t->ssize, priority) != 0 ) {
         free(t);
         fprintf(stderr, "THREAD: Error 2\n");
         return NULL;
@@ -63,15 +76,27 @@ void* archThreadCreate(void (*entryPoint)(), int priority)
     return t;
 }
 
+void* archThreadCreate(void (*entryPoint)(), int priority)
+{
+    return archThreadCreateEx(entryPoint, priority, 128*1024);
+}
+
 void archThreadJoin(void* thread, int timeout)
 {
-    lwp_t* t = (lwp_t*)thread;
+    thread_t* t = (thread_t*)thread;
 
-    while( LWP_JoinThread(*t, NULL) != 0 );
+    while( LWP_JoinThread(t->thread, NULL) != 0 );
 }
 
 void  archThreadDestroy(void* thread)
 {
+    thread_t* t = (thread_t*)thread;
+
+    if( t->ssize != 0 && t->stack ) {
+        free(t->stack);
+        t->stack = NULL;
+    }
+    free(thread);
 }
 
 void archThreadSleep(int milliseconds)

@@ -12,13 +12,14 @@
 
 class GuiDirSelect {
 public:
-    GuiDirSelect(GameWindow *gamewin, const char *startdir, const char *filename);
+    GuiDirSelect(LayerManager *layman, void *sem, const char *startdir, const char *filename);
     virtual ~GuiDirSelect();
 
     char *DoModal(void);
 private:
     DirList dirs;
-    GameWindow *gwd;
+    LayerManager *manager;
+    void *video_semaphore;
     int num_dirs;
     int current_index;
     int upper_index;
@@ -36,9 +37,9 @@ private:
     DrawableImage titleTxtImg[NUM_DIR_ITEMS];
     DrawableImage *titleTxtImgPtr[NUM_DIR_ITEMS];
 
-    void InitTitleList(LayerManager *manager,
-                       TextRender *fontArial, int fontsize,
+    void InitTitleList(TextRender *fontArial, int fontsize,
                        int x, int y, int sx, int sy, int pitch);
+    void RemoveTitleList(void);
     void ClearTitleList(void);
     void SetListIndex(int index);
     void SetSelected(int selected);

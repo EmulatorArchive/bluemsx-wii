@@ -53,8 +53,12 @@ static int WaitForSync(int maxSpeed, int breakpointHit);
 static void*  emuThread;
 static void*  emuSyncEvent;
 static void*  emuStartEvent;
+static void*  emuStopEvent;
+static void*  emuThreadStartEvent;
+static void*  emuThreadStopEvent;
 static void*  emuTimer;
 static int    emuExitFlag;
+static int    emuThreadExitFlag;
 static UInt32 emuSysTime = 0;
 static UInt32 emuFrequency = 3579545;
 int           emuMaxSpeed = 0;
@@ -78,6 +82,8 @@ static UInt32 emuUsageCurrent   = 0;
 static UInt32 emuCpuSpeed       = 0;
 static UInt32 emuCpuUsage       = 0;
 static int    enableSynchronousUpdate = 1;
+
+static void emulatorThread();
 
 #if 0
 
@@ -212,10 +218,20 @@ void emulatorInit(Properties* theProperties, Mixer* theMixer)
 {
     properties = theProperties;
     mixer      = theMixer;
+
+    emuThreadStartEvent = archEventCreate(0);
+    emuThreadStopEvent = archEventCreate(0);
+    emuThreadExitFlag = 0;
+    emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
 }
 
 void emulatorExit()
 {
+    emuThreadExitFlag = 0;
+    archEventSet(emuThreadStartEvent);
+    archThreadJoin(emuThread, -1);
+    archThreadDestroy(emuThread);
+
     properties = NULL;
     mixer      = NULL;
 }
@@ -355,28 +371,36 @@ static void emulatorThread() {
     int frequency;
     int success = 0;
 
-    emulatorSetFrequency(properties->emulation.speed, &frequency);
+    while( !emuThreadExitFlag ) {
+        archEventWait(emuThreadStartEvent, -1);
+        if( emuThreadExitFlag ) {
+            break;
+        }
 
-    switchSetFront(properties->emulation.frontSwitch);
-    switchSetPause(properties->emulation.pauseSwitch);
-    switchSetAudio(properties->emulation.audioSwitch);
+        emulatorSetFrequency(properties->emulation.speed, &frequency);
 
-    success = boardRun(machine,
-                       &deviceInfo,
-                       mixer,
-                       *emuStateName ? emuStateName : NULL,
-                       frequency, WaitForSync);
+        switchSetFront(properties->emulation.frontSwitch);
+        switchSetPause(properties->emulation.pauseSwitch);
+        switchSetAudio(properties->emulation.audioSwitch);
 
-    ledSetAll(0);
-    emuState = EMU_STOPPED;
+        success = boardRun(machine,
+                           &deviceInfo,
+                           mixer,
+                           *emuStateName ? emuStateName : NULL,
+                           frequency, WaitForSync);
 
-    archTimerDestroy(emuTimer);
+        ledSetAll(0);
+        emuState = EMU_STOPPED;
 
-    if (!success) {
-        emulationStartFailure = 1;
+        archTimerDestroy(emuTimer);
+
+        if (!success) {
+            emulationStartFailure = 1;
+            archEventSet(emuStartEvent);
+        }
+        archEventSet(emuStopEvent);
     }
-    
-    archEventSet(emuStartEvent);
+    archEventSet(emuThreadStopEvent);
 }
 
 void emulatorStart(const char* stateName) {
@@ -412,9 +436,8 @@ void emulatorStart(const char* stateName) {
 #ifndef NO_TIMERS
     emuSyncEvent  = archEventCreate(0);
     emuStartEvent = archEventCreate(0);
-    emuTimer = archCreateTimer(emulatorGetSyncPeriod(), timerCallback);
+    emuStopEvent = archEventCreate(0);
 #endif
-
     setDeviceInfo(&deviceInfo);
 
     inputEventReset();
@@ -438,9 +461,12 @@ void emulatorStart(const char* stateName) {
         archEmulationStartFailure();
     }
 #else
-    emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
-    
+    archEventSet(emuThreadStartEvent);
     archEventWait(emuStartEvent, 3000);
+
+#ifndef NO_TIMERS
+    emuTimer = archCreateTimer(emulatorGetSyncPeriod(), timerCallback);
+#endif
 
     if (emulationStartFailure) {
         archEmulationStopNotification();
@@ -479,12 +505,12 @@ void emulatorStop() {
     emuExitFlag = 1;
     archEventSet(emuSyncEvent);
     archSoundSuspend();
-    archThreadJoin(emuThread, 3000);
+    archEventWait(emuStopEvent, -1);
     archMidiEnable(0);
     machineDestroy(machine);
-    archThreadDestroy(emuThread);
     archEventDestroy(emuSyncEvent);
     archEventDestroy(emuStartEvent);
+    archEventDestroy(emuStopEvent);
     
     // Reset active indicators in mixer
     mixerIsChannelTypeActive(mixer, MIXER_CHANNEL_MOONSOUND, 1);

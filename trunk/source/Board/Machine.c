@@ -887,6 +887,12 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
             continue;
         }
 
+#ifdef WII
+        // TEMP FIX: Skip moonsound!
+        if (machine->slotInfo[i].romType == ROM_MOONSOUND) {
+            continue;
+        }
+#endif
         romName   = strlen(machine->slotInfo[i].inZipName) ? machine->slotInfo[i].inZipName : machine->slotInfo[i].name;
         slot      = machine->slotInfo[i].slot;
         subslot   = machine->slotInfo[i].subslot;

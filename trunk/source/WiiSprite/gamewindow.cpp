@@ -38,8 +38,8 @@ namespace wsp{
 		}
 		
 		// Allocate two framebuffers for double buffering
-		_frameBuffer[0] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(_rmode));
-		_frameBuffer[1] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(_rmode));
+		_frameBuffer[0] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(_rmode));
+		_frameBuffer[1] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(_rmode));
 
 		// Check if they were allocated
 		if(_frameBuffer[0] == NULL || _frameBuffer[1] == NULL){

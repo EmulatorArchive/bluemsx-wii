@@ -80,6 +80,7 @@ int keyboardGetModifiers();
 #include "GuiImages.h"
 
 #define CONSOLE_DEBUG 0
+#define MALLOC_LOG_BLUEMSX_RUN 0
 
 #define MSX_ROOT_DIR "fat:/MSX"
 
@@ -92,6 +93,7 @@ static int   zoom = 1;
 static int   displayPitch = TEX_WIDTH * 2;
 
 static bool  g_doQuit = false;
+static bool  g_doThreadQuit = false;
 
 static LayerManager *manager = NULL;
 static GameWindow gwd;
@@ -161,7 +163,7 @@ void setDefaultPaths(const char* rootDir)
 
 static void displayThread(void)
 {
-    while(!g_doQuit) {
+    while(!g_doThreadQuit) {
         FrameBuffer* frameBuffer;
         archSemaphoreWait(g_vidSemaphore, -1);
         if( g_dpyData != NULL && emulatorGetState() == EMU_RUNNING ) {
@@ -222,6 +224,10 @@ static void diskNotifyThread(void)
     manager->Remove(container->GetLayer());
     manager->Remove(floppy);
     archSemaphoreSignal(g_vidSemaphore);
+    delete sprite;
+    delete image;
+    delete floppy;
+    delete container;
 }
 
 void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZipFile)
@@ -232,7 +238,7 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
     }else{
         strcpy(currentDisk, fileName);
     }
-    (void)archThreadCreate(diskNotifyThread, THREAD_PRIO_NORMAL);
+    (void)archThreadCreateEx(diskNotifyThread, THREAD_PRIO_NORMAL, 64*1024);
 }
 
 void blueMsxInit(int resetProperties)
@@ -351,6 +357,13 @@ static Sprite *sprBackground;
 
 static void MessageBox(const char *txt, int txtwidth)
 {
+    archSemaphoreWait(g_vidSemaphore, -1);
+
+    // Container
+    grWinList = new GuiContainer(320-200, 240-80, 400, 160);
+    manager->Insert(grWinList->GetLayer(), 2);
+
+    // Text
     txtImg = new DrawableImage;
     txtImg->CreateImage(txtwidth, 60);
     txtImg->SetFont(g_fontArial);
@@ -360,31 +373,22 @@ static void MessageBox(const char *txt, int txtwidth)
     txtSpr = new Sprite;
     txtSpr->SetImage(txtImg->GetImage());
     txtSpr->SetPosition(320-(txtwidth/2), 240-30);
-    manager->Append(txtSpr);
+    manager->Insert(txtSpr, 2);
 
-    // Container
-    grWinList = new GuiContainer(320-200, 240-80, 400, 160);
-    manager->Append(grWinList->GetLayer());
-
-    // Background
-    sprBackground = new Sprite;
-    sprBackground->SetImage(g_imgBackground);
-    sprBackground->SetPosition(0, 0);
-    manager->Append(sprBackground);
-
-    manager->Draw(0,0);
-    gwd.Flush();
+    archSemaphoreSignal(g_vidSemaphore);
 }
 
 static void MessageBoxRemove(void)
 {
+    archSemaphoreWait(g_vidSemaphore, -1);
+
     manager->Remove(grWinList->GetLayer());
     manager->Remove(txtSpr);
-    manager->Remove(sprBackground);
-    delete sprBackground;
     delete grWinList;
     delete txtSpr;
     delete txtImg;
+
+    archSemaphoreSignal(g_vidSemaphore);
 }
 
 static UInt32 fileWriteTime(const char* filename)
@@ -463,17 +467,17 @@ void FreeStateFileList(SAVE_STATES *states)
 
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
+#if MALLOC_LOG_BLUEMSX_RUN
+    allocLogSetMarker();
+#endif
+
     // Set current directory to the MSX-root
     archSetCurrentDirectory(MSX_ROOT_DIR);
 
     // Loading message
     MessageBox("Loading...", 144);
 
-    console->Add();
-
     g_doQuit = false;
-    g_vidSemaphore = archSemaphoreCreate(1);
-    void *disp_thread = archThreadCreate(displayThread, THREAD_PRIO_NORMAL);
 
     printf("Title        : '%s'\n", game->GetName());
     printf("Command line : '%s'\n", game->GetCommandLine());
@@ -492,25 +496,27 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     }
     printf("Waiting for quit event...\n");
 
-    archSemaphoreWait(g_vidSemaphore, -1);
     MessageBoxRemove();
+
+    archSemaphoreWait(g_vidSemaphore, -1);
+    manager->Remove(sprBackground);
     g_yOffset = -37;
     console->SetPosition(12, 12+37);
-    DrawableImage emuImg;
-    emuImg.CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
-    g_dpyData = (char *)emuImg.GetTextureBuffer();
-    Sprite emuSpr;
-    emuSpr.SetImage(emuImg.GetImage());
-    emuSpr.SetStretchWidth(640.0f / (float)TEX_WIDTH);
-    emuSpr.SetStretchHeight(548.0f / (float)480);
-    emuSpr.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    emuSpr.SetRefPixelPosition(0, 0);
-    emuSpr.SetPosition(0, 0);
-    manager->Append(&emuSpr);
+    DrawableImage *emuImg = new DrawableImage;
+    emuImg->CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
+    g_dpyData = (char *)emuImg->GetTextureBuffer();
+    Sprite *emuSpr = new Sprite;
+    emuSpr->SetImage(emuImg->GetImage());
+    emuSpr->SetStretchWidth(640.0f / (float)TEX_WIDTH);
+    emuSpr->SetStretchHeight(548.0f / (float)480);
+    emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    emuSpr->SetRefPixelPosition(0, 0);
+    emuSpr->SetPosition(0, 0);
+    manager->Append(emuSpr);
     archSemaphoreSignal(g_vidSemaphore);
 
     // Loop while the user hasn't quit
-    GuiMenu menu(manager, g_vidSemaphore, 4);
+    GuiMenu *menu = new GuiMenu(manager, g_vidSemaphore, 4);
     const char *menu_items[] = {
       "Load state",
       "Save state",
@@ -524,14 +530,14 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 emulatorSuspend();
                 int domenu;
                 do {
-                    int selection = menu.DoModal(menu_items, 4, 344);
+                    int selection = menu->DoModal(menu_items, 4, 344);
                     domenu = 0;
                     switch( selection ) {
                         SAVE_STATES *states;
                         case 0: /* Load state */
                             states = GetStateFileList(properties, stateDir, "", ".sta", 2);
                             if( states->number_of_saves > 0 ) {
-                                int statenum = menu.DoModal((const char**)states->timestrings, states->number_of_saves, 360);
+                                int statenum = menu->DoModal((const char**)states->timestrings, states->number_of_saves, 360);
                                 if( statenum != -1 ) {
                                     emulatorStop();
                                     emulatorStart(states->filenames[statenum]);
@@ -579,17 +585,30 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         // wait a frame
 		VIDEO_WaitVSync();
     }
-    archThreadJoin(disp_thread, -1);
-    archSemaphoreDestroy(g_vidSemaphore);
+    delete menu;
+
     emulatorStop();
-    manager->Remove(&emuSpr);
-    console->Remove();
+
+    // Remove emulator from display
+    archSemaphoreWait(g_vidSemaphore, -1);
+    g_dpyData = NULL;
+    manager->Remove(emuSpr);
+    delete emuImg;
+    delete emuSpr;
     console->SetPosition(12, 12);
     g_yOffset = 0;
+    manager->Insert(sprBackground, 2);
+    archSemaphoreSignal(g_vidSemaphore);
+
+#if MALLOC_LOG_BLUEMSX_RUN
+    allocLogPrint();
+#endif
 }
 
 int main(int argc, char **argv)
 {
+    allocLogStart();
+
     // Set main thread priority
     LWP_SetThreadPriority(LWP_GetSelf(), 100);
 
@@ -615,24 +634,34 @@ int main(int argc, char **argv)
     // Initialize manager
     manager = new LayerManager(32);
 
-    // Please wait...
-    MessageBox("Please wait...", 192);
-
+    // Init console
     console = new GuiConsole(manager, 12, 12, 640-24, 480-24);
 #if CONSOLE_DEBUG
     console->SetVisible(true);
 #endif
 
+    // Background
+    sprBackground = new Sprite;
+    sprBackground->SetImage(g_imgBackground);
+    sprBackground->SetPosition(0, 0);
+    manager->Insert(sprBackground, 2);
+
+    // Display thread
+    g_doThreadQuit = false;
+    g_vidSemaphore = archSemaphoreCreate(1);
+    void *disp_thread = archThreadCreateEx(displayThread, THREAD_PRIO_NORMAL, 64*1024);
+
+    // Please wait...
+    MessageBox("Please wait...", 192);
+
     // Init blueMSX emulator
-    blueMsxInit(0);
+    blueMsxInit(1);
 
     MessageBoxRemove();
 
-    console->Remove();
-
-    GameElement *game = NULL;
+    GameElement game;
     char *game_dir = NULL;
-    GuiDirSelect *dirs = new GuiDirSelect(&gwd, "fat:/MSX/Games", "dirlist.xml");
+    GuiDirSelect *dirs = new GuiDirSelect(manager, g_vidSemaphore, "fat:/MSX/Games", "dirlist.xml");
     for(;;) {
         // Browse directory
         game_dir = dirs->DoModal();
@@ -642,31 +671,41 @@ int main(int argc, char **argv)
         }
 
         // Game menu
-        GuiGameSelect *menu = new GuiGameSelect();
-        game = menu->DoModal(&gwd, game_dir, "gamelist.xml");
+        GuiGameSelect *menu = new GuiGameSelect(manager, g_vidSemaphore);
+        bool sel = menu->DoModal(game_dir, "gamelist.xml", &game);
         delete menu;
-        if( game != NULL ) {
-            blueMsxRun(game, game_dir);
-            delete game;
+        if( sel ) {
+            blueMsxRun(&game, game_dir);
         }
     }
     delete dirs;
 
-    fprintf(stderr, "Clean-up\n");
+    printf("Clean-up\n");
 
-    delete manager;
+    // Stop displaying
+    g_doThreadQuit = true;
+    archThreadJoin(disp_thread, -1);
+    archSemaphoreDestroy(g_vidSemaphore);
 
-    // GUI DeInit
-    GuiFontClose();
-    GuiImageClose();
-
+    // Destroy emulator
+    emulatorExit();
     videoDestroy(video);
     propDestroy(properties);
     archSoundDestroy();
     mixerDestroy(mixer);
 
-    fprintf(stderr, "Leaving...\n");
+    // Destroy background and layer manager
+    manager->Remove(sprBackground);
+    delete sprBackground;
+    delete manager;
 
+    // Free GUI resources
+    GuiFontClose();
+    GuiImageClose();
+
+    printf("Leaving...\n");
+
+    allocLogStop();
     return 0;
 }
 
