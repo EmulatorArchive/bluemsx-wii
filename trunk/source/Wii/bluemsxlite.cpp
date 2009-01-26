@@ -391,16 +391,6 @@ static void MessageBoxRemove(void)
     archSemaphoreSignal(g_vidSemaphore);
 }
 
-static UInt32 fileWriteTime(const char* filename)
-{
-  struct stat s;
-  int rv;
-  
-  rv = stat(filename, &s);
-
-  return rv < 0 ? 0 : s.st_mtime;
-}
-
 typedef struct {
     int number_of_saves;
     char **filenames;
