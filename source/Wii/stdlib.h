@@ -1,7 +1,7 @@
 
 #define MALLOC_LOGGING 1
 
-#include "C:\devkitPro\devkitPPC\powerpc-gekko\include\_stdlib.h"
+#include DEVKITPPC_STDLIB_INCLUDE
 #include <string.h>
 
 #if MALLOC_LOGGING
