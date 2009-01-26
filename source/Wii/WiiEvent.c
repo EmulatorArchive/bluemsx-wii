@@ -109,6 +109,5 @@ void archSemaphoreWait(void* semaphore, int timeout)
 {
     Semaphore* s = (Semaphore*)semaphore;
 
-    while( LWP_SemWait(s->semaphore) != 0 )
-        fprintf(stderr, "s");
+    LWP_SemWait(s->semaphore);
 }

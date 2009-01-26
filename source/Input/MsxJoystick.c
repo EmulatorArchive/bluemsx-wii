@@ -58,11 +58,17 @@ static UInt8 read(MsxJoystick* joystick) {
     return ~state & 0x3f;
 }
 
+void destroy(MsxJoystick* joystick)
+{
+    free(joystick);
+}
+
 MsxJoystickDevice* msxJoystickCreate(int controller)
 {
     MsxJoystick* joystick = (MsxJoystick*)calloc(1, sizeof(MsxJoystick));
-    joystick->joyDevice.read   = read;
-    joystick->controller       = controller;
+    joystick->joyDevice.read    = read;
+    joystick->joyDevice.destroy = destroy;
+    joystick->controller        = controller;
     
     return (MsxJoystickDevice*)joystick;
 }

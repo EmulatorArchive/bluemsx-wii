@@ -8,6 +8,10 @@
 #include <fat.h>
 #include <wiiuse/wpad.h>
 
+extern "C" {
+#include "archEvent.h"
+};
+
 #include "kbdlib.h"
 #include "GuiDirSelect.h"
 #include "GuiContainer.h"
@@ -20,7 +24,7 @@
 #define SCROLL_TIME 500
 #define REPEAT_TIME 200
 
-void GuiDirSelect::InitTitleList(LayerManager *manager,
+void GuiDirSelect::InitTitleList(
                             TextRender *fontArial, int fontsize,
                             int x, int y, int sx, int sy, int pitch)
 {
@@ -31,14 +35,14 @@ void GuiDirSelect::InitTitleList(LayerManager *manager,
     sprArrowUp.SetStretchHeight(0.5f);
     sprArrowUp.SetRotation(180.0f/2);
     sprArrowUp.SetVisible(false);
-    manager->Append(&sprArrowUp);
+    manager->Insert(&sprArrowUp, 2);
 
     sprArrowDown.SetImage(g_imgArrow);
     sprArrowDown.SetPosition(x, y+(NUM_DIR_ITEMS-1)*pitch + 6);
     sprArrowDown.SetStretchWidth(0.5f);
     sprArrowDown.SetStretchHeight(0.5f);
     sprArrowDown.SetVisible(false);
-    manager->Append(&sprArrowDown);
+    manager->Insert(&sprArrowDown, 2);
 
     // Fill titles
     for(int i = 0; i < NUM_DIR_ITEMS; i++) {
@@ -49,10 +53,19 @@ void GuiDirSelect::InitTitleList(LayerManager *manager,
         titleTxtImg[i].SetSize(fontsize);
         titleTxtSprite[i].SetImage(titleTxtImg[i].GetImage());
         titleTxtSprite[i].SetPosition(x, y);
-        manager->Append(&titleTxtSprite[i]);
+        manager->Insert(&titleTxtSprite[i], 2);
         y += pitch;
     }
     current_index = -1;
+}
+
+void GuiDirSelect::RemoveTitleList(void)
+{
+    manager->Remove(&sprArrowUp);
+    manager->Remove(&sprArrowDown);
+    for(int i = 0; i < NUM_DIR_ITEMS; i++) {
+        manager->Remove(&titleTxtSprite[i]);
+    }
 }
 
 void GuiDirSelect::ClearTitleList(void)
@@ -127,24 +140,17 @@ void GuiDirSelect::SetSelected(int selected)
 
 char *GuiDirSelect::DoModal(void)
 {
+    char *return_value = NULL;
 #if RUMBLE
     u64 time2rumble = 0;
     bool rumbeling = false;
 #endif
+    // Claim UI
+    archSemaphoreWait(video_semaphore, -1);
 
-    // Initialize manager
-    LayerManager manager(NUM_DIR_ITEMS + 6);
-
-    // Cursor (top layer)
-    Sprite sprCursor;
-    sprCursor.SetImage(g_imgMousecursor);
-    sprCursor.SetPosition(400, 500);
-    sprCursor.SetVisible(false);
-    manager.Append(&sprCursor);
-
-    // Dir list
-    InitTitleList(&manager, g_fontArial, 32,
-                  320-140, 32+24, 2*140, 48, 64);
+    // Containers
+    GuiContainer containerDirList(320-140-32, 32, 2*140+64, NUM_DIR_ITEMS*64+32);
+    manager->Insert(containerDirList.GetLayer(), 2);
 
     // Selector
     sprSelector.SetImage(g_imgSelector);
@@ -154,17 +160,21 @@ char *GuiDirSelect::DoModal(void)
     sprSelector.SetStretchWidth(1.2f);
     sprSelector.SetStretchHeight(1.5f);
     sprSelector.SetVisible(false);
-    manager.Append(&sprSelector);
+    manager->Insert(&sprSelector, 2);
 
-    // Containers
-    GuiContainer containerDirList(320-140-32, 32, 2*140+64, NUM_DIR_ITEMS*64+32);
-    manager.Append(containerDirList.GetLayer());
+    // Dir list
+    InitTitleList(g_fontArial, 32,
+                  320-140, 32+24, 2*140, 48, 64);
 
-    // Background
-    Sprite sprBackground;
-    sprBackground.SetImage(g_imgBackground);
-    sprBackground.SetPosition(0, 0);
-    manager.Append(&sprBackground);
+    // Cursor
+    Sprite sprCursor;
+    sprCursor.SetImage(g_imgMousecursor);
+    sprCursor.SetPosition(400, 500);
+    sprCursor.SetVisible(false);
+    manager->Insert(&sprCursor, 2);
+
+    // Release UI
+    archSemaphoreSignal(video_semaphore);
 
     // On re-entry, go back one level if not on root level
     char *prevsel = NULL;
@@ -188,7 +198,8 @@ char *GuiDirSelect::DoModal(void)
         dirs.Load(xmlfile);
         num_dirs = dirs.GetNumberOfDirs();
         if( num_dirs == 0 ) {
-            return current_dir;
+            return_value = current_dir;
+            break;
         }
 
         // When just gone back one level, find entry comming from
@@ -229,6 +240,9 @@ char *GuiDirSelect::DoModal(void)
                 break;
             }
 
+            // Claim UI
+            archSemaphoreWait(video_semaphore, -1);
+
             // Infrared
             ir_t ir;
             WPAD_IR(WPAD_CHAN_0, &ir);
@@ -251,6 +265,7 @@ char *GuiDirSelect::DoModal(void)
                     sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                     cursor_visible = true;
                     selected = i;
+                    archSemaphoreSignal(video_semaphore);
                     break;
                 }
             }
@@ -312,21 +327,23 @@ char *GuiDirSelect::DoModal(void)
                 scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
             }
 
+            // Release UI
+            archSemaphoreSignal(video_semaphore);
+
 #if RUMBLE
             //stop rumble after 50ms
             if(ticks_to_millisecs(gettime())>time2rumble+50 && rumbeling){ WPAD_Rumble(0,0); }
             //let it rumble again after 250ms
             if(ticks_to_millisecs(gettime())>time2rumble+250 && rumbeling){ rumbeling = false; }
 #endif
-            manager.Draw(0,0);
-            gwd->Flush();
-
             if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
                 (selected >= 0) ) {
                 selected_dir = dirInfo[selected];
                 break;
             }
 
+            // wait a frame
+    		VIDEO_WaitVSync();
         }
 #if RUMBLE
         if( rumbeling ) {
@@ -343,7 +360,7 @@ char *GuiDirSelect::DoModal(void)
             if( dir_level == 0 ) {
                 // on root level, leave
                 dirs.Clear();
-                return NULL;
+                break;
             }else{
                 // go back one level
                 char *p = current_dir + strlen(current_dir) - 1;
@@ -354,11 +371,24 @@ char *GuiDirSelect::DoModal(void)
             }
         }
     }
+    // Claim UI
+    archSemaphoreWait(video_semaphore, -1);
+
+    manager->Remove(&sprCursor);
+    RemoveTitleList();
+    manager->Remove(&sprSelector);
+    manager->Remove(containerDirList.GetLayer());
+
+    // Release UI
+    archSemaphoreSignal(video_semaphore);
+
+    return return_value;
 }
 
-GuiDirSelect::GuiDirSelect(GameWindow *gamewin, const char *startdir, const char *filename)
+GuiDirSelect::GuiDirSelect(LayerManager *layman, void *sem, const char *startdir, const char *filename)
 {
-    gwd = gamewin;
+    manager = layman;
+    video_semaphore = sem;
     current_dir = (char *)malloc(1024);
     strcpy(current_dir, startdir);
     xmlfile = strdup(filename);

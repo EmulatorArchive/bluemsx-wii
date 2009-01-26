@@ -108,13 +108,8 @@ SaveState* saveStateOpenForRead(const char* fileName) {
     SaveState* state = (SaveState*)malloc(sizeof(SaveState));
     Int32 size = 0;
     void* buffer = zipLoadFile(stateFile, getIndexedFilename(fileName), &size);
-    if (buffer != 0) {
-        state->buffer = buffer;
-    }
-    else {
-        state->buffer = (UInt32*)calloc(1, 32);
-    }
 
+    state->buffer = buffer;
     state->size = size / sizeof(UInt32);
     state->offset = 0;
     state->fileName[0] = 0;

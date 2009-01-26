@@ -143,6 +143,12 @@ int cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
         return 0;
     }
 
+#ifdef WII
+    // TEMP FIX: Skip moonsound
+    if( romType == ROM_MOONSOUND ) {
+        return 0;
+    }
+#endif
     switch (romType) {
     case ROM_EXTRAM512KB:
         success &= ramMapperCreate(0x80000, slot, sslot, 0, NULL, NULL);

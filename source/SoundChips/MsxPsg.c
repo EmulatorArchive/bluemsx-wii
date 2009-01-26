@@ -222,7 +222,12 @@ static void destroy(MsxPsg* msxPsg)
     joystickPortUpdateHandlerUnregister();
     deviceManagerUnregister(msxPsg->deviceHandle);
     dacDestroy(msxPsg->dac);
-    
+    if (msxPsg->devFun[0] != NULL && msxPsg->devFun[0]->destroy != NULL) {
+	    msxPsg->devFun[0]->destroy(msxPsg->devFun[0]);
+    }
+    if (msxPsg->devFun[1] != NULL && msxPsg->devFun[1]->destroy != NULL) {
+	    msxPsg->devFun[1]->destroy(msxPsg->devFun[1]);
+    }
     free(msxPsg);
 }
 

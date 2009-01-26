@@ -32,6 +32,7 @@
 #define THREAD_PRIO_HIGH   1
 
 void* archThreadCreate(void (*entryPoint)(), int priority);
+void* archThreadCreateEx(void (*entryPoint)(), int priority, int stacksize);
 void  archThreadJoin(void* thread, int timeout);
 void  archThreadDestroy(void* thread);
 

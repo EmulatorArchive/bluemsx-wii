@@ -430,8 +430,8 @@ void ogc_video__init(int interlaced, int ntsc, int bilinear, int console)
   VIDEO_Configure (vmode);
 
   /* Configure the framebuffers (double-buffering) */
-  xfb[0] = (u32 *) MEM_K0_TO_K1((u32 *) SYS_AllocateFramebuffer(&TV50hz_576i));
-  xfb[1] = (u32 *) MEM_K0_TO_K1((u32 *) SYS_AllocateFramebuffer(&TV50hz_576i));
+  xfb[0] = (u32 *) MEM_K0_TO_K1((u32 *) _SYS_AllocateFramebuffer(&TV50hz_576i));
+  xfb[1] = (u32 *) MEM_K0_TO_K1((u32 *) _SYS_AllocateFramebuffer(&TV50hz_576i));
 
   /* Clear framebuffers to black */
   VIDEO_ClearFrameBuffer (vmode, xfb[0], COLOR_BLACK);
