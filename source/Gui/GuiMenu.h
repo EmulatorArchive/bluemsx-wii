@@ -7,13 +7,13 @@
 
 class GuiMenu {
 public:
-    GuiMenu(LayerManager *layman, void *sem, int rows);
+    GuiMenu(LayerManager *layman, mutex_t mut, int rows);
     virtual ~GuiMenu();
 
     int DoModal(const char **items, int num, int width);
 private:
     LayerManager *manager;
-    void *video_semaphore;
+    mutex_t video_mutex;
     int num_items;
     int num_item_rows;
     int current_index;

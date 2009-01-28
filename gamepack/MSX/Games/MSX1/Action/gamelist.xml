@@ -265,7 +265,7 @@
         <ScreenShot>OilsWell-2.png</ScreenShot>
     </Game>
     <Game Title="Paccy">
-        <CommandLine>/rom1 Paccy.zip</CommandLine>
+        <CommandLine>/diskA Paccy.zip</CommandLine>
         <ScreenShot>Paccy-1.png</ScreenShot>
         <ScreenShot>Paccy-2.png</ScreenShot>
     </Game>

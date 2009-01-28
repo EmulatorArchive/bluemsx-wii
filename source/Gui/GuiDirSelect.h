@@ -12,14 +12,14 @@
 
 class GuiDirSelect {
 public:
-    GuiDirSelect(LayerManager *layman, void *sem, const char *startdir, const char *filename);
+    GuiDirSelect(LayerManager *layman, mutex_t mut, const char *startdir, const char *filename);
     virtual ~GuiDirSelect();
 
     char *DoModal(void);
 private:
     DirList dirs;
     LayerManager *manager;
-    void *video_semaphore;
+    mutex_t video_mutex;
     int num_dirs;
     int current_index;
     int upper_index;
