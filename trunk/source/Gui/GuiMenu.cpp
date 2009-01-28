@@ -75,7 +75,7 @@ void GuiMenu::ClearTitleList(void)
 void GuiMenu::SetListIndex(int index)
 {
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
     // Update dir info
     for(int i = 0; i < num_item_rows; i++) {
         if( i+index < num_items ) {
@@ -130,7 +130,7 @@ void GuiMenu::SetListIndex(int index)
         lower_index = num_item_rows-1;
     }
     // Release UI
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 }
 
 void GuiMenu::SetSelected(int selected)
@@ -153,7 +153,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     num_items = num;
 
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
 
     // Containers
     int height = num_item_rows*64+32;
@@ -184,7 +184,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->Insert(&sprCursor, 2);
 
     // Start displaying
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 
     // Start menu
     int selected = 0;
@@ -211,7 +211,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
         }
 
         // Claim UI
-        archSemaphoreWait(video_semaphore, -1);
+        LWP_MutexLock(video_mutex);
 
         // Infrared
         ir_t ir;
@@ -235,7 +235,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
                 sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                 cursor_visible = true;
                 selected = i;
-                archSemaphoreSignal(video_semaphore);
+                LWP_MutexUnlock(video_mutex);
                 break;
             }
         }
@@ -305,7 +305,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
 #endif
 
         // Release UI
-        archSemaphoreSignal(video_semaphore);
+        LWP_MutexUnlock(video_mutex);
 
         if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
             (selected >= 0) ) {
@@ -321,7 +321,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     }
 #endif
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
 
     manager->Remove(&sprCursor);
     RemoveTitleList();
@@ -329,15 +329,15 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->Remove(container.GetLayer());
 
     // Release UI
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 
     return selected;
 }
 
-GuiMenu::GuiMenu(LayerManager *layman, void *sem, int rows)
+GuiMenu::GuiMenu(LayerManager *layman, mutex_t mut, int rows)
 {
     manager = layman;
-    video_semaphore = sem;
+    video_mutex = mut;
     num_item_rows = rows;
     visible_items = new const char*[rows];
     titleTxtSprite = new Sprite[rows];

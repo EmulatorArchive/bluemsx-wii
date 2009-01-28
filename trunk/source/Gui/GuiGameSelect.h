@@ -12,13 +12,13 @@
 
 class GuiGameSelect {
 public:
-    GuiGameSelect(LayerManager *layman, void *sem);
+    GuiGameSelect(LayerManager *layman, mutex_t mut);
     virtual ~GuiGameSelect();
 
     bool DoModal(const char *dir, const char *filename, GameElement *game);
 private:
     LayerManager *manager;
-    void *video_semaphore;
+    mutex_t video_mutex;
     GameList games;
     int num_games;
     int current_index;

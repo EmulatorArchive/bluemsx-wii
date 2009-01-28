@@ -99,7 +99,7 @@ static LayerManager *manager = NULL;
 static GameWindow gwd;
 static char *g_dpyData = NULL;
 static int g_yOffset = 0;
-static void *g_vidSemaphore = NULL;
+static mutex_t g_vidMutex = NULL;
 static GuiConsole *console = NULL;
 
 extern KBDHANDLE kbdHandle;
@@ -165,7 +165,7 @@ static void displayThread(void)
 {
     while(!g_doThreadQuit) {
         FrameBuffer* frameBuffer;
-        archSemaphoreWait(g_vidSemaphore, -1);
+        LWP_MutexLock(g_vidMutex);
         if( g_dpyData != NULL && emulatorGetState() == EMU_RUNNING ) {
         
             frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
@@ -181,7 +181,7 @@ static void displayThread(void)
             console->Render();
         }
         manager->Draw(0, g_yOffset);
-        archSemaphoreSignal(g_vidSemaphore);
+        LWP_MutexUnlock(g_vidMutex);
         gwd.Flush();
     }
 }
@@ -189,7 +189,7 @@ static void displayThread(void)
 static char currentDisk[256];
 static void diskNotifyThread(void)
 {
-    archSemaphoreWait(g_vidSemaphore, -1);
+    LWP_MutexLock(g_vidMutex);
     // Container
     GuiContainer *container = new GuiContainer(320-280, 240-80, 2*280, 2*80, 192);
     manager->Insert(container->GetLayer(), 2);
@@ -213,17 +213,17 @@ static void diskNotifyThread(void)
     sprite->SetImage(image->GetImage());
     sprite->SetPosition(320-280+180, 240-30);
     manager->Insert(sprite, 2);
-    archSemaphoreSignal(g_vidSemaphore);
+    LWP_MutexUnlock(g_vidMutex);
 
     // Wait about PI seconds
     archThreadSleep(3141);
 
     // Remove the popup again
-    archSemaphoreWait(g_vidSemaphore, -1);
+    LWP_MutexLock(g_vidMutex);
     manager->Remove(sprite);
     manager->Remove(container->GetLayer());
     manager->Remove(floppy);
-    archSemaphoreSignal(g_vidSemaphore);
+    LWP_MutexUnlock(g_vidMutex);
     delete sprite;
     delete image;
     delete floppy;
@@ -357,8 +357,7 @@ static Sprite *sprBackground;
 
 static void MessageBox(const char *txt, int txtwidth)
 {
-    archSemaphoreWait(g_vidSemaphore, -1);
-
+    LWP_MutexLock(g_vidMutex);
     // Container
     grWinList = new GuiContainer(320-200, 240-80, 400, 160);
     manager->Insert(grWinList->GetLayer(), 2);
@@ -374,21 +373,18 @@ static void MessageBox(const char *txt, int txtwidth)
     txtSpr->SetImage(txtImg->GetImage());
     txtSpr->SetPosition(320-(txtwidth/2), 240-30);
     manager->Insert(txtSpr, 2);
-
-    archSemaphoreSignal(g_vidSemaphore);
+    LWP_MutexUnlock(g_vidMutex);
 }
 
 static void MessageBoxRemove(void)
 {
-    archSemaphoreWait(g_vidSemaphore, -1);
-
+    LWP_MutexLock(g_vidMutex);
     manager->Remove(grWinList->GetLayer());
     manager->Remove(txtSpr);
     delete grWinList;
     delete txtSpr;
     delete txtImg;
-
-    archSemaphoreSignal(g_vidSemaphore);
+    LWP_MutexUnlock(g_vidMutex);
 }
 
 typedef struct {
@@ -486,9 +482,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     }
     printf("Waiting for quit event...\n");
 
+    LWP_MutexLock(g_vidMutex);
     MessageBoxRemove();
-
-    archSemaphoreWait(g_vidSemaphore, -1);
     manager->Remove(sprBackground);
     g_yOffset = -37;
     console->SetPosition(12, 12+37);
@@ -503,10 +498,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     emuSpr->SetRefPixelPosition(0, 0);
     emuSpr->SetPosition(0, 0);
     manager->Append(emuSpr);
-    archSemaphoreSignal(g_vidSemaphore);
+    LWP_MutexUnlock(g_vidMutex);
 
     // Loop while the user hasn't quit
-    GuiMenu *menu = new GuiMenu(manager, g_vidSemaphore, 4);
+    GuiMenu *menu = new GuiMenu(manager, g_vidMutex, 4);
     const char *menu_items[] = {
       "Load state",
       "Save state",
@@ -580,7 +575,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     emulatorStop();
 
     // Remove emulator from display
-    archSemaphoreWait(g_vidSemaphore, -1);
+    LWP_MutexLock(g_vidMutex);
     g_dpyData = NULL;
     manager->Remove(emuSpr);
     delete emuImg;
@@ -588,7 +583,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     console->SetPosition(12, 12);
     g_yOffset = 0;
     manager->Insert(sprBackground, 2);
-    archSemaphoreSignal(g_vidSemaphore);
+    LWP_MutexUnlock(g_vidMutex);
 
 #if MALLOC_LOG_BLUEMSX_RUN
     allocLogPrint();
@@ -636,13 +631,13 @@ int main(int argc, char **argv)
     sprBackground->SetPosition(0, 0);
     manager->Insert(sprBackground, 2);
 
-    // Display thread
-    g_doThreadQuit = false;
-    g_vidSemaphore = archSemaphoreCreate(1);
-    void *disp_thread = archThreadCreateEx(displayThread, THREAD_PRIO_NORMAL, 64*1024);
-
     // Please wait...
     MessageBox("Please wait...", 192);
+
+    // Display thread
+    g_doThreadQuit = false;
+    LWP_MutexInit(&g_vidMutex, 1);
+    void *disp_thread = archThreadCreateEx(displayThread, THREAD_PRIO_NORMAL, 64*1024);
 
     // Init blueMSX emulator
     blueMsxInit(1);
@@ -651,7 +646,7 @@ int main(int argc, char **argv)
 
     GameElement game;
     char *game_dir = NULL;
-    GuiDirSelect *dirs = new GuiDirSelect(manager, g_vidSemaphore, "fat:/MSX/Games", "dirlist.xml");
+    GuiDirSelect *dirs = new GuiDirSelect(manager, g_vidMutex, "fat:/MSX/Games", "dirlist.xml");
     for(;;) {
         // Browse directory
         game_dir = dirs->DoModal();
@@ -661,7 +656,7 @@ int main(int argc, char **argv)
         }
 
         // Game menu
-        GuiGameSelect *menu = new GuiGameSelect(manager, g_vidSemaphore);
+        GuiGameSelect *menu = new GuiGameSelect(manager, g_vidMutex);
         bool sel = menu->DoModal(game_dir, "gamelist.xml", &game);
         delete menu;
         if( sel ) {
@@ -675,7 +670,7 @@ int main(int argc, char **argv)
     // Stop displaying
     g_doThreadQuit = true;
     archThreadJoin(disp_thread, -1);
-    archSemaphoreDestroy(g_vidSemaphore);
+    LWP_MutexDestroy(g_vidMutex);
 
     // Destroy emulator
     emulatorExit();

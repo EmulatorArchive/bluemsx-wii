@@ -146,7 +146,7 @@ char *GuiDirSelect::DoModal(void)
     bool rumbeling = false;
 #endif
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
 
     // Containers
     GuiContainer containerDirList(320-140-32, 32, 2*140+64, NUM_DIR_ITEMS*64+32);
@@ -174,7 +174,7 @@ char *GuiDirSelect::DoModal(void)
     manager->Insert(&sprCursor, 2);
 
     // Release UI
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 
     // On re-entry, go back one level if not on root level
     char *prevsel = NULL;
@@ -241,7 +241,7 @@ char *GuiDirSelect::DoModal(void)
             }
 
             // Claim UI
-            archSemaphoreWait(video_semaphore, -1);
+            LWP_MutexLock(video_mutex);
 
             // Infrared
             ir_t ir;
@@ -265,7 +265,7 @@ char *GuiDirSelect::DoModal(void)
                     sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                     cursor_visible = true;
                     selected = i;
-                    archSemaphoreSignal(video_semaphore);
+                    LWP_MutexUnlock(video_mutex);
                     break;
                 }
             }
@@ -328,7 +328,7 @@ char *GuiDirSelect::DoModal(void)
             }
 
             // Release UI
-            archSemaphoreSignal(video_semaphore);
+            LWP_MutexUnlock(video_mutex);
 
 #if RUMBLE
             //stop rumble after 50ms
@@ -372,7 +372,7 @@ char *GuiDirSelect::DoModal(void)
         }
     }
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
 
     manager->Remove(&sprCursor);
     RemoveTitleList();
@@ -380,15 +380,15 @@ char *GuiDirSelect::DoModal(void)
     manager->Remove(containerDirList.GetLayer());
 
     // Release UI
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 
     return return_value;
 }
 
-GuiDirSelect::GuiDirSelect(LayerManager *layman, void *sem, const char *startdir, const char *filename)
+GuiDirSelect::GuiDirSelect(LayerManager *layman, mutex_t mut, const char *startdir, const char *filename)
 {
     manager = layman;
-    video_semaphore = sem;
+    video_mutex = mut;
     current_dir = (char *)malloc(1024);
     strcpy(current_dir, startdir);
     xmlfile = strdup(filename);

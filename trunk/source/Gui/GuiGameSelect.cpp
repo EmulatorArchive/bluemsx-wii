@@ -173,7 +173,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
     }
 
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
 
     // Containers
     GuiContainer grWinList(32-8, 24, 288, 420+12);
@@ -210,7 +210,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
 	manager->Insert(&sprCursor, 2);
 
     // Release UI
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 
     // Menu loop
     u64 scroll_time = 0;
@@ -225,7 +225,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
 		}
 
         // Claim UI
-        archSemaphoreWait(video_semaphore, -1);
+        LWP_MutexLock(video_mutex);
 
         // Infrared
         ir_t ir;
@@ -249,7 +249,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
                 sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                 cursor_visible = true;
                 selected = i;
-                archSemaphoreSignal(video_semaphore);
+                LWP_MutexUnlock(video_mutex);
                 break;
             }
         }
@@ -310,7 +310,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
 		}
 
         // Release UI
-        archSemaphoreSignal(video_semaphore);
+        LWP_MutexUnlock(video_mutex);
 
 #if RUMBLE
 		//stop rumble after 50ms
@@ -334,7 +334,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
 #endif
 
     // Claim UI
-    archSemaphoreWait(video_semaphore, -1);
+    LWP_MutexLock(video_mutex);
 
     manager->Remove(&sprCursor);
     RemoveTitleList();
@@ -346,7 +346,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
 	manager->Remove(grWinPlay.GetLayer());
 
     // Release UI
-    archSemaphoreSignal(video_semaphore);
+    LWP_MutexUnlock(video_mutex);
 
     if( returnValue != NULL ) {
         game->SetName(returnValue->GetName());
@@ -361,10 +361,10 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
     }
 }
 
-GuiGameSelect::GuiGameSelect(LayerManager *layman, void *sem)
+GuiGameSelect::GuiGameSelect(LayerManager *layman, mutex_t mut)
 {
     manager = layman;
-    video_semaphore = sem;
+    video_mutex = mut;
     emptyGame.SetName("");
     emptyGame.SetCommandLine("");
 }
