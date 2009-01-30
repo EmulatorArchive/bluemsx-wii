@@ -184,6 +184,9 @@ int inputEventStringToCode(const char* eventName)
 {
     int i;
 
+    if (eventNames[0] == 0) {
+        initKeyNameTable();
+    }
     for (i = 0; i < EC_KEYCOUNT; i++) {
         if (eventNames[i] != NULL && 0 == strcmp(eventName, eventNames[i])) {
             return i;

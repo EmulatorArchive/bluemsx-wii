@@ -11,13 +11,30 @@
 
 GameElement::GameElement()
 {
+    next = NULL;
     name = NULL;
     cmdline = NULL;
     screenshot[0] = NULL;
     screenshot[1] = NULL;
     image[0] = NULL;
     image[1] = NULL;
+    memset(key_map, 0xff, sizeof(key_map)); /* set to -1 */
+}
+
+GameElement::GameElement(GameElement *parent)
+{
     next = NULL;
+    name = NULL;
+    cmdline = NULL;
+    screenshot[0] = NULL;
+    screenshot[1] = NULL;
+    image[0] = NULL;
+    image[1] = NULL;
+    if( parent->name != NULL ) name = strdup(parent->name);
+    if( parent->cmdline != NULL ) cmdline = strdup(parent->cmdline);
+    if( parent->screenshot[0] != NULL ) screenshot[0] = strdup(parent->screenshot[0]);
+    if( parent->screenshot[1] != NULL ) screenshot[1] = strdup(parent->screenshot[1]);
+    memcpy(key_map, parent->key_map, sizeof(key_map));
 }
 
 GameElement::~GameElement()
@@ -34,8 +51,7 @@ void GameElement::SetName(const char *str)
 {
     if( name ) free(name);
     if( str ) {
-        name = (char *)malloc(strlen(str)+1);
-        strcpy(name, str);
+        name = strdup(str);
     }else{
         name = NULL;
     }
@@ -44,17 +60,20 @@ void GameElement::SetName(const char *str)
 void GameElement::SetCommandLine(const char *str)
 {
     if( cmdline ) free(cmdline);
-    cmdline = (char *)malloc(strlen(str)+1);
-    strcpy(cmdline, str);
+    cmdline = strdup(str);
 }
 
 void GameElement::SetScreenShot(int number, const char *str)
 {
     if( number < 2 ) {
         if( screenshot[number] ) free(screenshot[number]);
-        screenshot[number] = (char *)malloc(strlen(str)+1);
-        strcpy(screenshot[number], str);
+        screenshot[number] = strdup(str);
     }
+}
+
+void GameElement::SetKeyMapping(KEY key, int event)
+{
+    key_map[key] = event;
 }
 
 char* GameElement::GetName()
@@ -74,6 +93,11 @@ char* GameElement::GetScreenShot(int number)
     }else{
         return NULL;
     }
+}
+
+int GameElement::GetKeyMapping(KEY key)
+{
+    return key_map[key];
 }
 
 void GameElement::FreeImage(int number)

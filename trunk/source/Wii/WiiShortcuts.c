@@ -104,7 +104,7 @@ static int stringToHotkey(const char* name)
 
     for (i = 0; i < KEY_LAST; i++) {
         const char* keyname = KBD_GetKeyName(i);
-        if (0 == strcmpnocase(name, keyname)) {
+        if( keyname && strcmpnocase(name, keyname)==0 ) {
             return i;
         }
     }

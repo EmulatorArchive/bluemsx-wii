@@ -2,6 +2,9 @@
 #include <string.h>
 #include <fat.h>
 #include "GameList.h"
+extern "C" {
+#include "InputEvent.h"
+}
 
 /*************************************************
   Game List
@@ -35,9 +38,52 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
         if( strcmp("ScreenShot", name)==0 ) {
             my->current_container = CONTAINER_SCREENSHOT;
         }
+        if( strcmp("KeyMap", name)==0 ) {
+            my->current_container = CONTAINER_KEYMAP;
+            for(int i = 0; atts[i] != NULL; i += 2) {
+                const char *key = atts[i];
+                const char *val = atts[i+1];
+                if( val != NULL ) {
+                    for(int k = 1; k < KEY_LAST; k++) {
+                        const char *kname = KBD_GetKeyName((KEY)k);
+                        if( kname && strcmp(key, kname)==0 ) {
+                            int event = inputEventStringToCode(val);
+                            if( event ) {
+                                my->current_element->SetKeyMapping((KEY)k, event);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if( strcmp("Settings", name)==0 ) {
+            my->current_container = CONTAINER_SETTINGS;
+            for(int i = 0; atts[i] != NULL; i += 2) {
+                const char *key = atts[i];
+                const char *val = atts[i+1];
+                if( strcmp("KeyboardJoystick", key)==0 && strcmp("true", val)==0 ) {
+                    /* Remap WiiMote 1 to keyboard */
+                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON1, EC_SPACE);
+                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON2, EC_NONE);
+                    my->current_element->SetKeyMapping(KEY_JOY1_UP, EC_UP);
+                    my->current_element->SetKeyMapping(KEY_JOY1_DOWN, EC_DOWN);
+                    my->current_element->SetKeyMapping(KEY_JOY1_LEFT, EC_LEFT);
+                    my->current_element->SetKeyMapping(KEY_JOY1_RIGHT, EC_RIGHT);
+                    /* Remap WiiMote 2 to joystick 1 */
+                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON1, EC_JOY1_BUTTON1);
+                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON2, EC_JOY1_BUTTON2);
+                    my->current_element->SetKeyMapping(KEY_JOY2_UP, EC_JOY1_UP);
+                    my->current_element->SetKeyMapping(KEY_JOY2_DOWN, EC_JOY1_DOWN);
+                    my->current_element->SetKeyMapping(KEY_JOY2_LEFT, EC_JOY1_LEFT);
+                    my->current_element->SetKeyMapping(KEY_JOY2_RIGHT, EC_JOY1_RIGHT);
+                }
+            }
+        }
         break;
     case CONTAINER_COMMANDLINE:
     case CONTAINER_SCREENSHOT:
+    case CONTAINER_KEYMAP:
+    case CONTAINER_SETTINGS:
         break;
     }
 }
@@ -83,6 +129,10 @@ void XMLCALL GameList::endElement(void *userData, const char *name)
         }
         free(my->receiving_string);
         my->receiving_string = NULL;
+        break;
+    case CONTAINER_KEYMAP:
+    case CONTAINER_SETTINGS:
+        my->current_container = CONTAINER_GAME;
         break;
     }
 }

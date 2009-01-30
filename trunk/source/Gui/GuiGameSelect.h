@@ -15,7 +15,7 @@ public:
     GuiGameSelect(LayerManager *layman, mutex_t mut);
     virtual ~GuiGameSelect();
 
-    bool DoModal(const char *dir, const char *filename, GameElement *game);
+    GameElement *DoModal(const char *dir, const char *filename);
 private:
     LayerManager *manager;
     mutex_t video_mutex;

@@ -305,8 +305,8 @@ static void FillKeyNames(void)
     keynames[KEY_INSERT]    = "insert";
     keynames[KEY_HOME]      = "home";
     keynames[KEY_END]       = "end";
-    keynames[KEY_PAGEUP]    = "page up";
-    keynames[KEY_PAGEDOWN]  = "page down";
+    keynames[KEY_PAGEUP]    = "page_up";
+    keynames[KEY_PAGEDOWN]  = "page_down";
 
     keynames[KEY_F1]        = "f1";
     keynames[KEY_F2]        = "f2";
@@ -322,40 +322,40 @@ static void FillKeyNames(void)
     keynames[KEY_F12]       = "f12";
 
     keynames[KEY_NUMLOCK]   = "numlock";
-    keynames[KEY_CAPSLOCK]  = "caps lock";
-    keynames[KEY_SCROLLOCK] = "scroll lock";
-    keynames[KEY_RSHIFT]    = "right shift";
-    keynames[KEY_LSHIFT]    = "left shift";
-    keynames[KEY_RCTRL]     = "right ctrl";
-    keynames[KEY_LCTRL]     = "left ctrl";
-    keynames[KEY_RALT]      = "right alt";
-    keynames[KEY_LALT]      = "left alt";
-    keynames[KEY_LWIN]      = "left win";
-    keynames[KEY_RWIN]      = "right win";
-    keynames[KEY_MODE]      = "alt gr";
+    keynames[KEY_CAPSLOCK]  = "caps_lock";
+    keynames[KEY_SCROLLOCK] = "scroll_lock";
+    keynames[KEY_RSHIFT]    = "right_shift";
+    keynames[KEY_LSHIFT]    = "left_shift";
+    keynames[KEY_RCTRL]     = "right_ctrl";
+    keynames[KEY_LCTRL]     = "left_ctrl";
+    keynames[KEY_RALT]      = "right_alt";
+    keynames[KEY_LALT]      = "left_alt";
+    keynames[KEY_LWIN]      = "left_win";
+    keynames[KEY_RWIN]      = "right_win";
+    keynames[KEY_MODE]      = "alt_gr";
     keynames[KEY_COMPOSE]   = "compose";
 
-    keynames[KEY_PRINT]     = "print screen";
+    keynames[KEY_PRINT]     = "print_screen";
 
-    keynames[KEY_JOY1_BUTTON1] = "joy1a";
-    keynames[KEY_JOY1_BUTTON2] = "joy1b";
-    keynames[KEY_JOY1_UP]      = "joy1up";
-    keynames[KEY_JOY1_DOWN]    = "joy1down";
-    keynames[KEY_JOY1_LEFT]    = "joy1left";
-    keynames[KEY_JOY1_RIGHT]   = "joy1right";
-    keynames[KEY_JOY1_HOME]    = "joy1home";
-    keynames[KEY_JOY1_PLUS]    = "joy1plus";
-    keynames[KEY_JOY1_MINUS]   = "joy1min";
+    keynames[KEY_JOY1_BUTTON1] = "buttona1";
+    keynames[KEY_JOY1_BUTTON2] = "buttonb1";
+    keynames[KEY_JOY1_UP]      = "up1";
+    keynames[KEY_JOY1_DOWN]    = "down1";
+    keynames[KEY_JOY1_LEFT]    = "left1";
+    keynames[KEY_JOY1_RIGHT]   = "right1";
+    keynames[KEY_JOY1_HOME]    = "home1";
+    keynames[KEY_JOY1_PLUS]    = "plus1";
+    keynames[KEY_JOY1_MINUS]   = "minus1";
 
-    keynames[KEY_JOY2_BUTTON1] = "joy2a";
-    keynames[KEY_JOY2_BUTTON2] = "joy2b";
-    keynames[KEY_JOY2_UP]      = "joy2up";
-    keynames[KEY_JOY2_DOWN]    = "joy2down";
-    keynames[KEY_JOY2_LEFT]    = "joy2left";
-    keynames[KEY_JOY2_RIGHT]   = "joy2right";
-    keynames[KEY_JOY2_HOME]    = "joy2home";
-    keynames[KEY_JOY2_PLUS]    = "joy2plus";
-    keynames[KEY_JOY2_MINUS]   = "joy2min";
+    keynames[KEY_JOY2_BUTTON1] = "buttona2";
+    keynames[KEY_JOY2_BUTTON2] = "buttonb2";
+    keynames[KEY_JOY2_UP]      = "up2";
+    keynames[KEY_JOY2_DOWN]    = "down2";
+    keynames[KEY_JOY2_LEFT]    = "left2";
+    keynames[KEY_JOY2_RIGHT]   = "right2";
+    keynames[KEY_JOY2_HOME]    = "home2";
+    keynames[KEY_JOY2_PLUS]    = "plus2";
+    keynames[KEY_JOY2_MINUS]   = "minus2";
 }
 
 s32 keyboardCallback(int ret, void *arg)
@@ -396,9 +396,6 @@ const char *KBD_GetKeyName(KEY key)
     keyname = NULL;
     if ( key < KEY_LAST ) {
         keyname = keynames[key];
-    }
-    if ( keyname == NULL ) {
-        keyname = "unknown key";
     }
     return keyname;
 }

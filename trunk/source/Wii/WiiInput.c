@@ -174,31 +174,23 @@ static void initKbdTable()
     kbdTable[KEY_JOY2_RIGHT  ] = EC_JOY2_RIGHT;
 }
 
+void keyboardRemapKey(KEY key, int event)
+{
+    kbdTable[key] = event;
+}
+
 void keyboardSetDirectory(char* directory)
 {
     strcpy(keyboardConfigDir, directory);
 }
 
-void keyboardInit()
+void keyboardInit(void)
 {
-//    char fileName[512];
-//    FILE* file;
-
     initKbdTable();
-
     inputEventReset();
 
     kbdModifiers = 0;
-/*
-    sprintf(fileName, "%s/%s.config", keyboardConfigDir, DefaultConfigName);
-    file = fopen(fileName, "r");
-    if (file == NULL) {
-//        keyboardSaveConfig(DefaultConfigName);
-        return;
-    }
-    sprintf(currentConfigFile, DefaultConfigName);
-    fclose(file);
-*/
+
     kbdHandle = KBD_Init();
     if( !kbdHandle ) {
         fprintf(stderr, "Unable to open keyboard!\n");
@@ -206,6 +198,12 @@ void keyboardInit()
     }
 
     shortcuts = shortcutsCreate();
+}
+
+void keyboardReset(void)
+{
+    initKbdTable();
+    inputEventReset();
 }
 
 void keyboardSetFocus(int handle, int focus)
@@ -254,7 +252,7 @@ static void keyboardResetKbd()
     inputEventReset();
 }
 
-void keyboardUpdate()
+void keyboardUpdate(void)
 {
     if (!hasFocus) {
         keyboardResetKbd();
@@ -268,7 +266,7 @@ void keyboardUpdate()
                    ((keyStatus[KEY_LWIN]   ? 1 : 0) << 6) | ((keyStatus[KEY_RWIN]   ? 1 : 0) << 7);
 }
 
-int keyboardGetModifiers()
+int keyboardGetModifiers(void)
 {
     return kbdModifiers;
 }

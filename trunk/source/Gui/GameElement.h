@@ -3,19 +3,23 @@
 
 #include <wiisprite.h>
 #include "expat.h"
+#include "kbdlib.h"
 
 class GameElement
 {
 public:
     GameElement();
+    GameElement(GameElement* parent);
     virtual ~GameElement();
 
     void SetName(const char *str);
     void SetCommandLine(const char *str);
     void SetScreenShot(int number, const char *str);
+    void SetKeyMapping(KEY key, int event);
     char *GetName();
     char *GetCommandLine();
     char *GetScreenShot(int number);
+    int GetKeyMapping(KEY key);
     void FreeImage(int number);
     wsp::Image* GetImage(int number);
     GameElement *next;
@@ -24,6 +28,7 @@ private:
     char *cmdline;
     char *screenshot[2];
     wsp::Image *image[2];
+    int key_map[KEY_LAST];
 };
 
 #endif
