@@ -68,10 +68,12 @@ void WiiTimerInit(void);
 void WiiTimerDestroy(void);
 
 void keyboardSetDirectory(char* directory);
-void keyboardInit();
+void keyboardInit(void);
+void keyboardReset(void);
+void keyboardRemapKey(KEY key, int event);
 void keyboardSetFocus(int handle, int focus);
-void keyboardUpdate();
-int keyboardGetModifiers();
+void keyboardUpdate(void);
+int keyboardGetModifiers(void);
 }
 
 #include "GuiConsole.h"
@@ -453,6 +455,7 @@ void FreeStateFileList(SAVE_STATES *states)
 
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
+    int i;
 #if MALLOC_LOG_BLUEMSX_RUN
     allocLogSetMarker();
 #endif
@@ -470,8 +473,16 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     printf("Screen shot 1: '%s'\n", game->GetScreenShot(0));
     printf("Screen shot 2: '%s'\n", game->GetScreenShot(1));
 
-    int i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
+    // Init keyboard and remap keys
+    keyboardReset();
+    for(i = 0; i < KEY_LAST; i++) {
+        int event = game->GetKeyMapping((KEY)i);
+        if( event != -1 ) {
+            keyboardRemapKey((KEY)i, event);
+        }
+    }
 
+    i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
     if (i < 0) {
         printf("Failed to parse command line\n");
     }
@@ -644,7 +655,6 @@ int main(int argc, char **argv)
 
     MessageBoxRemove();
 
-    GameElement game;
     char *game_dir = NULL;
     GuiDirSelect *dirs = new GuiDirSelect(manager, g_vidMutex, "fat:/MSX/Games", "dirlist.xml");
     for(;;) {
@@ -657,10 +667,11 @@ int main(int argc, char **argv)
 
         // Game menu
         GuiGameSelect *menu = new GuiGameSelect(manager, g_vidMutex);
-        bool sel = menu->DoModal(game_dir, "gamelist.xml", &game);
+        GameElement *game = menu->DoModal(game_dir, "gamelist.xml");
         delete menu;
-        if( sel ) {
-            blueMsxRun(&game, game_dir);
+        if( game ) {
+            blueMsxRun(game, game_dir);
+            delete game;
         }
     }
     delete dirs;

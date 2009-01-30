@@ -32,10 +32,6 @@
 
 void inputEventReset();
 
-static void inputEventSet(int eventCode);
-static void inputEventUnset(int eventCode);
-static int  inputEventGetState(int eventCode);
-
 int inputEventStringToCode(const char* eventName);
 const char* inputEventCodeToString(int eventCode);
 
@@ -202,40 +198,22 @@ const char* inputEventCodeToString(int eventCode);
 
 #define EC_KEYCOUNT     152
 
-
-static int inputEventIsJoystick1(int eventCode)
-{
-    return (eventCode >= EC_JOY1_UP   && eventCode <= EC_JOY1_BUTTON6) ||
-           (eventCode >= EC_COLECO1_0 && eventCode <= EC_COLECO1_HASH);
-}
-
-static int inputEventIsJoystick2(int eventCode)
-{
-    return (eventCode >= EC_JOY2_UP   && eventCode <= EC_JOY2_BUTTON6) ||
-           (eventCode >= EC_COLECO2_0 && eventCode <= EC_COLECO2_HASH);
-}
-
-static int inputEventIsKeyboard(int eventCode)
-{
-    return !inputEventIsJoystick1(eventCode) && !inputEventIsJoystick2(eventCode);
-}
-
 // Inlines
 extern int eventMap[256];
 
-static void inputEventSet(int eventCode)
-{
-    eventMap[eventCode] = 1;
-}
+#define inputEventIsJoystick1(eventCode) \
+        ((eventCode >= EC_JOY1_UP   && eventCode <= EC_JOY1_BUTTON6) || \
+         (eventCode >= EC_COLECO1_0 && eventCode <= EC_COLECO1_HASH))
 
-static void inputEventUnset(int eventCode)
-{
-    eventMap[eventCode] = 0;
-}
+#define inputEventIsJoystick2(eventCode) \
+        ((eventCode >= EC_JOY2_UP   && eventCode <= EC_JOY2_BUTTON6) || \
+         (eventCode >= EC_COLECO2_0 && eventCode <= EC_COLECO2_HASH))
 
-static int inputEventGetState(int eventCode)
-{
-    return eventMap[eventCode];
-}
+#define inputEventIsKeyboard(eventCode) \
+        (!inputEventIsJoystick1(eventCode) && !inputEventIsJoystick2(eventCode))
+
+#define inputEventSet(eventCode) eventMap[eventCode] = 1
+#define inputEventUnset(eventCode) eventMap[eventCode] = 0
+#define inputEventGetState(eventCode) eventMap[eventCode]
 
 #endif 

@@ -153,7 +153,7 @@ void GuiGameSelect::SetSelected(int index, int selected)
     }
 }
 
-bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *game)
+GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 {
     GameElement *returnValue = NULL;
 #if RUMBLE
@@ -169,7 +169,7 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
     games.Load(filename);
     num_games = games.GetNumberOfGames();
     if( num_games == 0 ) {
-        return false;
+        return NULL;
     }
 
     // Claim UI
@@ -349,15 +349,12 @@ bool GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *
     LWP_MutexUnlock(video_mutex);
 
     if( returnValue != NULL ) {
-        game->SetName(returnValue->GetName());
-        game->SetCommandLine(returnValue->GetCommandLine());
-        game->SetScreenShot(0, returnValue->GetScreenShot(0));
-        game->SetScreenShot(1, returnValue->GetScreenShot(1));
+        GameElement *game = new GameElement(returnValue);
         games.Clear();
-        return true;
+        return game;
     }else{
         games.Clear();
-        return false;
+        return NULL;
     }
 }
 
