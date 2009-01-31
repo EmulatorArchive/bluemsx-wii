@@ -30,19 +30,11 @@
 #ifndef WII_SHORTCUTS_H
 #define WII_SHORTCUTS_H
 
+typedef struct _Shortcuts Shortcuts;
 
-#define HOTKEY_TYPE_NONE     0
-#define HOTKEY_TYPE_KEYBOARD 1
-#define HOTKEY_TYPE_JOYSTICK 2
-
-
-typedef struct Shortcuts Shortcuts;
-
-void shortcutsSetDirectory(char* directory);
-
-Shortcuts* shortcutsCreate();
+Shortcuts* shortcutsCreate(void);
 void shortcutsDestroy(Shortcuts* shortcuts);
-void shortcutCheckDown(Shortcuts* s, int type, int mods, int keySym);
-void shortcutCheckUp(Shortcuts* s, int type, int mods, int keySym);
+void shortcutCheckDown(Shortcuts* s, int key);
+void shortcutCheckUp(Shortcuts* s, int key);
 
 #endif

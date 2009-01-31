@@ -196,7 +196,46 @@ const char* inputEventCodeToString(int eventCode);
 #define EC_COLECO2_STAR 150
 #define EC_COLECO2_HASH 151
 
-#define EC_KEYCOUNT     152
+#define EC_HOT_QUIT                     160
+#define EC_HOT_TOGGLE_FDC_TIMING        161
+#define EC_HOT_TOGGLE_SPRITE_ENABLE     162
+#define EC_HOT_TOGGLE_MSX_AUDIO_SWITCH  163
+#define EC_HOT_TOGGLE_FRONT_SWITCH      164
+#define EC_HOT_TOGGLE_PAUSE_SWITCH      165
+#define EC_HOT_TOGGLE_WAVE_CAPTURE      166
+#define EC_HOT_SCREEN_CAPTURE           167
+#define EC_HOT_QUICK_LOAD_STATE         168
+#define EC_HOT_QUICK_SAVE_STATE         169
+#define EC_HOT_CARD_REMOVE_1            170
+#define EC_HOT_CARD_REMOVE_2            171
+#define EC_HOT_TOGGLE_CARD_AUTO_RESET   172
+#define EC_HOT_DISK_QUICK_CHANGE        173
+#define EC_HOT_DISK_REMOVE_A            174
+#define EC_HOT_DISK_REMOVE_B            175
+#define EC_HOT_TOGGLE_DISK_AUTO_RESET   176
+#define EC_HOT_CAS_REWIND               177
+#define EC_HOT_CAS_REMOVE               178
+#define EC_HOT_CAS_TOGGLE_READ_ONLY     179
+#define EC_HOT_TOGGLE_CAS_AUTO_REWIND   180
+#define EC_HOT_CAS_SAVE                 181
+#define EC_HOT_EMU_TOGGLE_PAUSE         182
+#define EC_HOT_EMU_STOP                 183
+#define EC_HOT_EMU_SPEED_NORMAL         184
+#define EC_HOT_EMU_SPEED_INCREASE       185
+#define EC_HOT_EMU_SPEED_DECREASE       186
+#define EC_HOT_MAX_SPEED_TOGGLE         187
+#define EC_HOT_EMU_RESET_SOFT           188
+#define EC_HOT_EMU_RESET_HARD           189
+#define EC_HOT_EMU_RESET_CLEAN          190
+#define EC_HOT_VOLUME_INCREASE          191
+#define EC_HOT_VOLUME_DECREASE          192
+#define EC_HOT_MUTE_TOGGLE_MASTER       193
+#define EC_HOT_VOLUME_TOGGLE_STEREO     194
+#define EC_HOT_WINDOW_SIZE_NORMAL       195
+#define EC_HOT_WINDOW_SIZE_FULLSCREEN   196
+#define EC_HOT_FULLSCREEN_TOGGLE        197
+
+#define EC_KEYCOUNT     198
 
 // Inlines
 extern int eventMap[256];

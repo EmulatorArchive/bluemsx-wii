@@ -11,6 +11,7 @@
     </Game>
     <Game Title="Fire Hawk">
         <CommandLine>/diskA FireHawk.zip /diskAzip FireHawk-1.dsk</CommandLine>
+        <KeyMap plus1="hotkey_disk_change"/>
         <ScreenShot>FireHawk-1.png</ScreenShot>
         <ScreenShot>FireHawk-2.png</ScreenShot>
     </Game>
@@ -75,7 +76,7 @@
         <ScreenShot>Sqeek-2.png</ScreenShot>
     </Game>
     <Game Title="T.N.T.">
-        <CommandLine>/rom1 TNT.zip</CommandLine>
+        <CommandLine>/diskA TNT.zip</CommandLine>
         <ScreenShot>TNT-1.png</ScreenShot>
         <ScreenShot>TNT-2.png</ScreenShot>
     </Game>
