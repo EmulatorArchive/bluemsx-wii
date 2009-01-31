@@ -4,13 +4,8 @@
 
 #include <gccore.h>
 #include <ogc/lwp_watchdog.h>
-
 #include <fat.h>
 #include <wiiuse/wpad.h>
-
-extern "C" {
-#include "archEvent.h"
-};
 
 #include "kbdlib.h"
 #include "GuiDirSelect.h"
@@ -35,14 +30,14 @@ void GuiDirSelect::InitTitleList(
     sprArrowUp.SetStretchHeight(0.5f);
     sprArrowUp.SetRotation(180.0f/2);
     sprArrowUp.SetVisible(false);
-    manager->Insert(&sprArrowUp, 2);
+    manager->AddTop(&sprArrowUp);
 
     sprArrowDown.SetImage(g_imgArrow);
     sprArrowDown.SetPosition(x, y+(NUM_DIR_ITEMS-1)*pitch + 6);
     sprArrowDown.SetStretchWidth(0.5f);
     sprArrowDown.SetStretchHeight(0.5f);
     sprArrowDown.SetVisible(false);
-    manager->Insert(&sprArrowDown, 2);
+    manager->AddTop(&sprArrowDown);
 
     // Fill titles
     for(int i = 0; i < NUM_DIR_ITEMS; i++) {
@@ -53,7 +48,7 @@ void GuiDirSelect::InitTitleList(
         titleTxtImg[i].SetSize(fontsize);
         titleTxtSprite[i].SetImage(titleTxtImg[i].GetImage());
         titleTxtSprite[i].SetPosition(x, y);
-        manager->Insert(&titleTxtSprite[i], 2);
+        manager->AddTop(&titleTxtSprite[i]);
         y += pitch;
     }
     current_index = -1;
@@ -146,11 +141,11 @@ char *GuiDirSelect::DoModal(void)
     bool rumbeling = false;
 #endif
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
 
     // Containers
     GuiContainer containerDirList(320-140-32, 32, 2*140+64, NUM_DIR_ITEMS*64+32);
-    manager->Insert(containerDirList.GetLayer(), 2);
+    manager->AddTop(containerDirList.GetLayer());
 
     // Selector
     sprSelector.SetImage(g_imgSelector);
@@ -160,7 +155,7 @@ char *GuiDirSelect::DoModal(void)
     sprSelector.SetStretchWidth(1.2f);
     sprSelector.SetStretchHeight(1.5f);
     sprSelector.SetVisible(false);
-    manager->Insert(&sprSelector, 2);
+    manager->AddTop(&sprSelector);
 
     // Dir list
     InitTitleList(g_fontArial, 32,
@@ -171,10 +166,10 @@ char *GuiDirSelect::DoModal(void)
     sprCursor.SetImage(g_imgMousecursor);
     sprCursor.SetPosition(400, 500);
     sprCursor.SetVisible(false);
-    manager->Insert(&sprCursor, 2);
+    manager->AddTop(&sprCursor);
 
     // Release UI
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 
     // On re-entry, go back one level if not on root level
     char *prevsel = NULL;
@@ -241,7 +236,7 @@ char *GuiDirSelect::DoModal(void)
             }
 
             // Claim UI
-            LWP_MutexLock(video_mutex);
+            manager->Lock();
 
             // Infrared
             ir_t ir;
@@ -265,7 +260,7 @@ char *GuiDirSelect::DoModal(void)
                     sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                     cursor_visible = true;
                     selected = i;
-                    LWP_MutexUnlock(video_mutex);
+                    manager->Unlock();
                     break;
                 }
             }
@@ -328,7 +323,7 @@ char *GuiDirSelect::DoModal(void)
             }
 
             // Release UI
-            LWP_MutexUnlock(video_mutex);
+            manager->Unlock();
 
 #if RUMBLE
             //stop rumble after 50ms
@@ -372,7 +367,7 @@ char *GuiDirSelect::DoModal(void)
         }
     }
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
 
     manager->Remove(&sprCursor);
     RemoveTitleList();
@@ -380,15 +375,14 @@ char *GuiDirSelect::DoModal(void)
     manager->Remove(containerDirList.GetLayer());
 
     // Release UI
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 
     return return_value;
 }
 
-GuiDirSelect::GuiDirSelect(LayerManager *layman, mutex_t mut, const char *startdir, const char *filename)
+GuiDirSelect::GuiDirSelect(GuiManager *man, const char *startdir, const char *filename)
 {
-    manager = layman;
-    video_mutex = mut;
+    manager = man;
     current_dir = (char *)malloc(1024);
     strcpy(current_dir, startdir);
     xmlfile = strdup(filename);

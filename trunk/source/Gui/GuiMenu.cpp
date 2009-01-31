@@ -8,10 +8,6 @@
 #include <fat.h>
 #include <wiiuse/wpad.h>
 
-extern "C" {
-#include "archEvent.h"
-};
-
 #include "kbdlib.h"
 #include "GuiMenu.h"
 #include "GuiContainer.h"
@@ -34,14 +30,14 @@ void GuiMenu::InitTitleList(TextRender *fontArial, int fontsize,
     sprArrowUp.SetStretchHeight(0.5f);
     sprArrowUp.SetRotation(180.0f/2);
     sprArrowUp.SetVisible(false);
-    manager->Insert(&sprArrowUp, 2);
+    manager->AddTop(&sprArrowUp);
 
     sprArrowDown.SetImage(g_imgArrow);
     sprArrowDown.SetPosition(x, y+(num_item_rows-1)*pitch + 6);
     sprArrowDown.SetStretchWidth(0.5f);
     sprArrowDown.SetStretchHeight(0.5f);
     sprArrowDown.SetVisible(false);
-    manager->Insert(&sprArrowDown, 2);
+    manager->AddTop(&sprArrowDown);
 
     // Fill titles
     for(int i = 0; i < num_item_rows; i++) {
@@ -52,7 +48,7 @@ void GuiMenu::InitTitleList(TextRender *fontArial, int fontsize,
         titleTxtImg[i].SetSize(fontsize);
         titleTxtSprite[i].SetImage(titleTxtImg[i].GetImage());
         titleTxtSprite[i].SetPosition(x, y);
-        manager->Insert(&titleTxtSprite[i], 2);
+        manager->AddTop(&titleTxtSprite[i]);
         y += pitch;
     }
     current_index = -1;
@@ -75,7 +71,7 @@ void GuiMenu::ClearTitleList(void)
 void GuiMenu::SetListIndex(int index)
 {
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
     // Update dir info
     for(int i = 0; i < num_item_rows; i++) {
         if( i+index < num_items ) {
@@ -130,7 +126,7 @@ void GuiMenu::SetListIndex(int index)
         lower_index = num_item_rows-1;
     }
     // Release UI
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 }
 
 void GuiMenu::SetSelected(int selected)
@@ -153,14 +149,14 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     num_items = num;
 
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
 
     // Containers
     int height = num_item_rows*64+32;
     int posx = (320-(width >> 1)) & ~3;
     int posy = (240+37-(height >> 1)) & ~3;
     GuiContainer container(posx, posy, width, height, 192);
-    manager->Insert(container.GetLayer(), 2);
+    manager->AddTop(container.GetLayer());
 
     // Selector
     sprSelector.SetImage(g_imgSelector);
@@ -170,7 +166,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     sprSelector.SetStretchWidth((float)width / 286);
     sprSelector.SetStretchHeight(1.5f);
     sprSelector.SetVisible(false);
-    manager->Insert(&sprSelector, 2);
+    manager->AddTop(&sprSelector);
 
     // Menu list
     InitTitleList(g_fontArial, 32,
@@ -181,10 +177,10 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     sprCursor.SetImage(g_imgMousecursor);
     sprCursor.SetPosition(400, 500);
     sprCursor.SetVisible(false);
-    manager->Insert(&sprCursor, 2);
+    manager->AddTop(&sprCursor);
 
     // Start displaying
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 
     // Start menu
     int selected = 0;
@@ -211,7 +207,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
         }
 
         // Claim UI
-        LWP_MutexLock(video_mutex);
+        manager->Lock();
 
         // Infrared
         ir_t ir;
@@ -235,7 +231,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
                 sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                 cursor_visible = true;
                 selected = i;
-                LWP_MutexUnlock(video_mutex);
+                manager->Unlock();
                 break;
             }
         }
@@ -305,7 +301,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
 #endif
 
         // Release UI
-        LWP_MutexUnlock(video_mutex);
+        manager->Unlock();
 
         if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
             (selected >= 0) ) {
@@ -321,7 +317,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     }
 #endif
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
 
     manager->Remove(&sprCursor);
     RemoveTitleList();
@@ -329,15 +325,14 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->Remove(container.GetLayer());
 
     // Release UI
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 
     return selected;
 }
 
-GuiMenu::GuiMenu(LayerManager *layman, mutex_t mut, int rows)
+GuiMenu::GuiMenu(GuiManager *man, int rows)
 {
-    manager = layman;
-    video_mutex = mut;
+    manager = man;
     num_item_rows = rows;
     visible_items = new const char*[rows];
     titleTxtSprite = new Sprite[rows];

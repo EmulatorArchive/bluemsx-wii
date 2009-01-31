@@ -3,7 +3,7 @@
 
 using namespace wsp;
 
-GuiConsole::GuiConsole(LayerManager *manager, int posx, int posy, int width, int height)
+GuiConsole::GuiConsole(GuiManager *manager, int posx, int posy, int width, int height)
 {
     _manager = manager;
     _width = width;
@@ -31,10 +31,12 @@ GuiConsole::GuiConsole(LayerManager *manager, int posx, int posy, int width, int
 
 	Render();
     Add();
+    _manager->AddRenderCallback(RenderWrapper, (void*)this);
 }
 
 GuiConsole::~GuiConsole()
 {
+    _manager->RemoveRenderCallback(RenderWrapper, (void*)this);
     _manager->Remove(_sprite);
     _manager->Remove(_container->GetLayer());
     delete _sprite;
@@ -44,14 +46,16 @@ GuiConsole::~GuiConsole()
 
 void GuiConsole::Add(void)
 {
-    _manager->Insert(_container->GetLayer(), 0);
-    _manager->Insert(_sprite, 0);
+    _manager->AddTop(_container->GetLayer());
+    _manager->AddTop(_sprite);
+    _manager->FixLayers(2);
 }
 
 void GuiConsole::Remove(void)
 {
     _manager->Remove(_container->GetLayer());
     _manager->Remove(_sprite);
+    _manager->UnfixLayers(2);
 }
 
 void GuiConsole::SetPosition( int posx,  int posy)
@@ -72,54 +76,62 @@ bool GuiConsole::IsVisible(void)
     return _visible;
 }
 
+void GuiConsole::RenderWrapper(void *arg)
+{
+    GuiConsole *me = (GuiConsole*)arg;
+    me->Render();
+}
+
 void GuiConsole::Render(void)
 {
-    u16 *pixels = (u16*)_image->GetTextureBuffer();
-    for(int y = 0; y < _imgheight; y += 4) {
-        u16 *s1 = &_console_buffer[y * _imgwidth];
-        u16 *s2 = &_console_buffer[(y+1) * _imgwidth];
-        u16 *s3 = &_console_buffer[(y+2) * _imgwidth];
-        u16 *s4 = &_console_buffer[(y+3) * _imgwidth];
-        u16 *dst = pixels + y * _imgwidth * 2;
-        for(int x = 0; x < _imgwidth; x += 4) {
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            s1 -= 4;
-            s2 -= 4;
-            s3 -= 4;
-            s4 -= 4;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
-            *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+    if( _visible ) {
+        u16 *pixels = (u16*)_image->GetTextureBuffer();
+        for(int y = 0; y < _imgheight; y += 4) {
+            u16 *s1 = &_console_buffer[y * _imgwidth];
+            u16 *s2 = &_console_buffer[(y+1) * _imgwidth];
+            u16 *s3 = &_console_buffer[(y+2) * _imgwidth];
+            u16 *s4 = &_console_buffer[(y+3) * _imgwidth];
+            u16 *dst = pixels + y * _imgwidth * 2;
+            for(int x = 0; x < _imgwidth; x += 4) {
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                s1 -= 4;
+                s2 -= 4;
+                s3 -= 4;
+                s4 -= 4;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s1++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s2++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s3++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+                *dst++ = (*s4++ & 0xff00)? 0xffff : 0x0000;
+            }
         }
+    	DCFlushRange(pixels, _imgwidth * _imgheight * 4);
     }
-	DCFlushRange(pixels, _imgwidth * _imgheight * 4);
 }
 

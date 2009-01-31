@@ -2,9 +2,8 @@
 #ifndef _GUI_GAME_SELECT_H
 #define _GUI_GAME_SELECT_H
 
-#include <wiisprite.h>
-#include "spritemanager.h"
-
+#include "GuiManager.h"
+#include "DrawableImage.h"
 #include "GameElement.h"
 #include "GameList.h"
 
@@ -12,13 +11,12 @@
 
 class GuiGameSelect {
 public:
-    GuiGameSelect(LayerManager *layman, mutex_t mut);
+    GuiGameSelect(GuiManager *man);
     virtual ~GuiGameSelect();
 
     GameElement *DoModal(const char *dir, const char *filename);
 private:
-    LayerManager *manager;
-    mutex_t video_mutex;
+    GuiManager *manager;
     GameList games;
     int num_games;
     int current_index;
