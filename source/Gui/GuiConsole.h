@@ -1,13 +1,13 @@
 #ifndef _GUI_CONSOLE_H
 #define _GUI_CONSOLE_H
 
-#include <wiisprite.h>
+#include "GuiManager.h"
 #include "GuiContainer.h"
 #include "DrawableImage.h"
 
 class GuiConsole {
 	public:
-		GuiConsole(wsp::LayerManager *manager, int posx, int posy, int width, int height);
+		GuiConsole(GuiManager *manager, int posx, int posy, int width, int height);
 		virtual ~GuiConsole();
         void Remove(void);
         void Add(void);
@@ -17,13 +17,14 @@ class GuiConsole {
         void SetPosition( int posx,  int posy);
 
 	private:
+        static void RenderWrapper(void *arg);
         bool _visible;
 		int _width, _height, _imgwidth, _imgheight;
         u16 *_console_buffer;
         GuiContainer *_container;
-        wsp::LayerManager *_manager;
+        GuiManager *_manager;
 		DrawableImage *_image;
-		wsp::Sprite* _sprite;
+		Sprite* _sprite;
 };
 
 #endif

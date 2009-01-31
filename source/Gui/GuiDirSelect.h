@@ -2,9 +2,8 @@
 #ifndef _GUI_DIRSELECT_H
 #define _GUI_DIRSELECT_H
 
-#include <wiisprite.h>
-#include "spritemanager.h"
-
+#include "GuiManager.h"
+#include "DrawableImage.h"
 #include "DirectoryList.h"
 
 #define MAX_PATH        256
@@ -12,13 +11,13 @@
 
 class GuiDirSelect {
 public:
-    GuiDirSelect(LayerManager *layman, mutex_t mut, const char *startdir, const char *filename);
+    GuiDirSelect(GuiManager *man, const char *startdir, const char *filename);
     virtual ~GuiDirSelect();
 
     char *DoModal(void);
 private:
     DirList dirs;
-    LayerManager *manager;
+    GuiManager *manager;
     mutex_t video_mutex;
     int num_dirs;
     int current_index;

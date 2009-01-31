@@ -2,18 +2,17 @@
 #ifndef _GUI_MENU_H
 #define _GUI_MENU_H
 
-#include <wiisprite.h>
-#include "spritemanager.h"
+#include "GuiManager.h"
+#include "DrawableImage.h"
 
 class GuiMenu {
 public:
-    GuiMenu(LayerManager *layman, mutex_t mut, int rows);
+    GuiMenu(GuiManager *man, int rows);
     virtual ~GuiMenu();
 
     int DoModal(const char **items, int num, int width);
 private:
-    LayerManager *manager;
-    mutex_t video_mutex;
+    GuiManager *manager;
     int num_items;
     int num_item_rows;
     int current_index;

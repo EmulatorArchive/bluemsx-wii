@@ -8,10 +8,6 @@
 #include <fat.h>
 #include <wiiuse/wpad.h>
 
-extern "C" {
-#include "archEvent.h"
-};
-
 #include "kbdlib.h"
 #include "GuiGameSelect.h"
 #include "GuiContainer.h"
@@ -34,14 +30,14 @@ void GuiGameSelect::InitTitleList(TextRender *fontArial, int fontsize,
     sprArrowUp.SetStretchHeight(0.5f);
     sprArrowUp.SetRotation(180.0f/2);
     sprArrowUp.SetVisible(false);
-	manager->Insert(&sprArrowUp, 2);
+	manager->AddTop(&sprArrowUp);
 
 	sprArrowDown.SetImage(g_imgArrow);
 	sprArrowDown.SetPosition(x, y+(NUM_LIST_ITEMS-1)*pitch + 6);
     sprArrowDown.SetStretchWidth(0.5f);
     sprArrowDown.SetStretchHeight(0.5f);
     sprArrowDown.SetVisible(false);
-	manager->Insert(&sprArrowDown, 2);
+	manager->AddTop(&sprArrowDown);
 
     // Fill titles
     for(int i = 0; i < NUM_LIST_ITEMS; i++) {
@@ -52,7 +48,7 @@ void GuiGameSelect::InitTitleList(TextRender *fontArial, int fontsize,
         titleTxtImg[i].SetSize(fontsize);
         titleTxtSprite[i].SetImage(titleTxtImg[i].GetImage());
         titleTxtSprite[i].SetPosition(x, y);
-        manager->Insert(&titleTxtSprite[i], 2);
+        manager->AddTop(&titleTxtSprite[i]);
         y += pitch;
     }
 
@@ -173,21 +169,21 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
     }
 
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
 
     // Containers
     GuiContainer grWinList(32-8, 24, 288, 420+12);
-	manager->Insert(grWinList.GetLayer(), 2);
+	manager->AddTop(grWinList.GetLayer());
     GuiContainer grWinTitle(344-8, 24, 264+12, 204);
-	manager->Insert(grWinTitle.GetLayer(), 2);
+	manager->AddTop(grWinTitle.GetLayer());
     GuiContainer grWinPlay(344-8, 240+12, 264+12, 204);
-	manager->Insert(grWinPlay.GetLayer(), 2);
+	manager->AddTop(grWinPlay.GetLayer());
 
     // Screen shots (240x186)
 	sprScreenShot[0].SetPosition(344+12-8, 24+12);
 	sprScreenShot[1].SetPosition(344+12-8, 240+12+12);
-	manager->Insert(&sprScreenShot[0], 2);
-	manager->Insert(&sprScreenShot[1], 2);
+	manager->AddTop(&sprScreenShot[0]);
+	manager->AddTop(&sprScreenShot[1]);
 
     // Selector
 	sprSelector.SetImage(g_imgSelector);
@@ -195,7 +191,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
     sprSelector.SetRefPixelPosition(4, 0);
 	sprSelector.SetPosition(0, 0);
     sprSelector.SetVisible(false);
-	manager->Insert(&sprSelector, 2);
+	manager->AddTop(&sprSelector);
 
     // Title list
     InitTitleList(g_fontArial, 24,
@@ -207,10 +203,10 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 	sprCursor.SetImage(g_imgMousecursor);
 	sprCursor.SetPosition(400, 500);
     sprCursor.SetVisible(false);
-	manager->Insert(&sprCursor, 2);
+	manager->AddTop(&sprCursor);
 
     // Release UI
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 
     // Menu loop
     u64 scroll_time = 0;
@@ -225,7 +221,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 		}
 
         // Claim UI
-        LWP_MutexLock(video_mutex);
+        manager->Lock();
 
         // Infrared
         ir_t ir;
@@ -249,7 +245,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
                 sprCursor.CollidesWith(&titleTxtSprite[i]) ) {
                 cursor_visible = true;
                 selected = i;
-                LWP_MutexUnlock(video_mutex);
+                manager->Unlock();
                 break;
             }
         }
@@ -310,7 +306,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 		}
 
         // Release UI
-        LWP_MutexUnlock(video_mutex);
+        manager->Unlock();
 
 #if RUMBLE
 		//stop rumble after 50ms
@@ -334,7 +330,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 #endif
 
     // Claim UI
-    LWP_MutexLock(video_mutex);
+    manager->Lock();
 
     manager->Remove(&sprCursor);
     RemoveTitleList();
@@ -346,7 +342,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 	manager->Remove(grWinPlay.GetLayer());
 
     // Release UI
-    LWP_MutexUnlock(video_mutex);
+    manager->Unlock();
 
     if( returnValue != NULL ) {
         GameElement *game = new GameElement(returnValue);
@@ -358,10 +354,9 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
     }
 }
 
-GuiGameSelect::GuiGameSelect(LayerManager *layman, mutex_t mut)
+GuiGameSelect::GuiGameSelect(GuiManager *man)
 {
-    manager = layman;
-    video_mutex = mut;
+    manager = man;
     emptyGame.SetName("");
     emptyGame.SetCommandLine("");
 }
