@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -66,49 +66,49 @@ static int isRomFileType(char* filename, char* inZip) {
     if (isFileExtension(filename, ".zip")) {
         int count;
         char* fileList;
-        
+
         fileList = zipGetFileList(filename, ".rom", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".ri", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".mx1", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".mx2", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".col", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".sg", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".sc", &count);
         if (fileList) {
             strcpy(inZip, fileList);
@@ -134,42 +134,42 @@ static int isDskFileType(char* filename, char* inZip) {
     if (isFileExtension(filename, ".zip")) {
         int count;
         char* fileList;
-        
+
         fileList = zipGetFileList(filename, ".dsk", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".di1", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".di2", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".360", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".720", &count);
         if (fileList) {
             strcpy(inZip, fileList);
             free(fileList);
             return 1;
         }
-        
+
         fileList = zipGetFileList(filename, ".sf7", &count);
         if (fileList) {
             strcpy(inZip, fileList);
@@ -194,7 +194,7 @@ static int isCasFileType(char* filename, char* inZip) {
     if (isFileExtension(filename, ".zip")) {
         int count;
         char* fileList;
-        
+
         fileList = zipGetFileList(filename, ".cas", &count);
         if (fileList) {
             strcpy(inZip, fileList);
@@ -219,7 +219,7 @@ static int checkArg(const char* arg, const char* value) {
 int emuCheckResetArgument(char* cmdLine) {
     int i;
     char*   argument;
-    
+
     for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
         if (checkArg(argument, "reset")) {
             return 1;
@@ -236,7 +236,7 @@ char* emuCheckThemeArgument(char* cmdLine){
     static char themeName[PROP_MAXPATH];
     int i;
     char* argument;
-    
+
     themeName[0] = 0;
 
     for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
@@ -289,7 +289,11 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
     char    cas[512] = "";
     char    caszip[256] = "";
     int     fullscreen = 0;
+#ifdef WII
+    int     startEmu = 1; // always start
+#else
     int     startEmu = 0;
+#endif
 
     if (commandLine[0] != '/' && commandLine[1] == ':') {
         char* ptr;
@@ -308,13 +312,13 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
     // If one argument, assume it is a rom or disk to run
     if (!extractToken(cmdLine, 1)) {
         argument = extractToken(cmdLine, 0);
-        
-        if (*argument != '/') {
+
+        if (argument && *argument != '/') {
             if (*argument == '\"') argument++;
 
             if (*argument) {
                 int i;
-                
+
                 for (i = 0; i < PROP_MAX_CARTS; i++) {
                     properties->media.carts[i].fileName[0] = 0;
                     properties->media.carts[i].fileNameInZip[0] = 0;
@@ -525,7 +529,7 @@ int emuTryStartWithArguments(Properties* properties, char* cmdLine, char *gamedi
             sprintf(args, "\"%s", cmdLine + 8);
             ptr = args + strlen(args);
             while(*--ptr == ' ') {
-                *ptr = 0; 
+                *ptr = 0;
             }
             strcat(args, "\"");
             success = emuStartWithArguments(properties, args, gamedir);

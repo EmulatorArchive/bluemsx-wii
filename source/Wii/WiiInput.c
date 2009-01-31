@@ -225,9 +225,11 @@ static void keyboardHanldeKeypress(KEY code, int pressed)
     if (pressed != wasPressed && keyCode != 0) {
         if (pressed) {
             inputEventSet(keyCode);
+            shortcutCheckDown(shortcuts, keyCode);
         }
         else {
             inputEventUnset(keyCode);
+            shortcutCheckUp(shortcuts, keyCode);
         }
     }
 }
@@ -235,11 +237,6 @@ static void keyboardHanldeKeypress(KEY code, int pressed)
 static void keyboardCallbackKeypress(KBDHANDLE kbd, KEY code, int pressed)
 {
     keyboardHanldeKeypress(code, pressed);
-    if( pressed ) {
-        shortcutCheckDown(shortcuts, HOTKEY_TYPE_KEYBOARD, kbdModifiers, (int)code);
-    }else{
-        shortcutCheckUp(shortcuts, HOTKEY_TYPE_KEYBOARD, kbdModifiers, (int)code);
-    }
 }
 
 static void keyboardResetKbd()

@@ -41,6 +41,7 @@ static int loggingEnabled = 0;
 #undef free
 #undef memalign
 
+extern void *memalign(int align, int size);
 extern void VIDEO_SetFramebuffer(void *);
 static void *exception_xfb = (void*)0xC1710000;			//we use a static address above ArenaHi.
 static char exception_str[1024];
@@ -76,9 +77,9 @@ static void allocError(char *error)
 {
     VIDEO_SetFramebuffer(exception_xfb);
     console_init(exception_xfb,20,20,640,574,1280);
-    
+
     kprintf("\n\n%s", error);
-    
+
     waitForReload();
 }
 
@@ -172,7 +173,6 @@ static void checkValidBuffer(void *buf, const char *prefix, const char *file, in
 
 static void addLogEntry(LOGMALLOC *log, int size, const char *file, int line)
 {
-    int fnlen = strlen(file);
     log->size = size;
     log->line = line;
     log->file = file;
@@ -349,7 +349,13 @@ void *my_realloc(void *buf, int size, const char *file, int line)
 
 char *my_strdup(const char *str, const char *file, int line)
 {
-    char *p = (char*)my_malloc(strlen(str)+1, file, line);
+    char *p;
+    if( str == NULL ) {
+        sprintf(exception_str, "strdup: %s line %d on NULL string\n",
+                file, line);
+        allocError(exception_str);
+    }
+    p = (char*)my_malloc(strlen(str)+1, file, line);
     strcpy(p, str);
     return p;
 }

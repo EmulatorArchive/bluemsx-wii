@@ -60,7 +60,11 @@ void GameElement::SetName(const char *str)
 void GameElement::SetCommandLine(const char *str)
 {
     if( cmdline ) free(cmdline);
-    cmdline = strdup(str);
+    if( str ) {
+        cmdline = strdup(str);
+    }else{
+        cmdline = NULL;
+    }
 }
 
 void GameElement::SetScreenShot(int number, const char *str)

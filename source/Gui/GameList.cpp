@@ -117,8 +117,10 @@ void XMLCALL GameList::endElement(void *userData, const char *name)
     case CONTAINER_COMMANDLINE:
         my->current_container = CONTAINER_GAME;
         my->current_element->SetCommandLine(my->receiving_string);
-        free(my->receiving_string);
-        my->receiving_string = NULL;
+        if( my->receiving_string != NULL ) {
+            free(my->receiving_string);
+            my->receiving_string = NULL;
+        }
         break;
     case CONTAINER_SCREENSHOT:
         my->current_container = CONTAINER_GAME;

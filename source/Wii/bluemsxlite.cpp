@@ -153,10 +153,6 @@ void setDefaultPaths(const char* rootDir)
     sprintf(buffer, "%s/Keyboard Config", rootDir);
     archCreateDirectory(buffer);
     keyboardSetDirectory(buffer);
-
-    sprintf(buffer, "%s/Shortcut Profiles", rootDir);
-    archCreateDirectory(buffer);
-    shortcutsSetDirectory(buffer);
 }
 
 static char currentDisk[256];
@@ -385,7 +381,7 @@ SAVE_STATES *GetStateFileList(Properties* properties, char* directory, char* pre
     }
     strcat(filenameFormat, "%s");
     sprintf(destfileFormat, "%%s/%%s%%s_%%0%di%%s", digits);
-    
+
     createSaveFileBaseName(baseName, properties, 0);
 
     sprintf(filename, filenameFormat, directory, prefix, baseName, extension);
@@ -433,7 +429,7 @@ void RenderEmuImage(void *arg)
         if (frameBuffer == NULL) {
             frameBuffer = frameBufferGetWhiteNoiseFrame();
         }
-        
+
         videoRender(video, frameBuffer, bitDepth, zoom,
                     g_dpyData, 0, displayPitch, -1);
         DCFlushRange(g_dpyData, TEX_WIDTH * TEX_HEIGHT * 4);
@@ -551,16 +547,6 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                     }
                 }while(domenu);
                 emulatorResume();
-                pressed = true;
-            }
-        }else
-        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_MINUS) ) {
-            if( !pressed ) {
-                if( console->IsVisible() ) {
-                    console->SetVisible(false);
-                }else{
-                    console->SetVisible(true);
-                }
                 pressed = true;
             }
         }else{
