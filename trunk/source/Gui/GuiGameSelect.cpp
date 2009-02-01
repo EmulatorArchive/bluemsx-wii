@@ -149,7 +149,7 @@ void GuiGameSelect::SetSelected(int index, int selected)
     }
 }
 
-GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
+GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *select)
 {
     GameElement *returnValue = NULL;
 #if RUMBLE
@@ -196,7 +196,6 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
     // Title list
     InitTitleList(g_fontArial, 24,
                   36, 32, 264+12, 36, 34);
-    SetSelected(0, 0);
 
     // Cursor
     Sprite sprCursor;
@@ -204,6 +203,25 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename)
 	sprCursor.SetPosition(400, 500);
     sprCursor.SetVisible(false);
 	manager->AddTop(&sprCursor);
+
+    // On re-enter, find selected entry
+    if( select != NULL ) {
+        for( int i = 0; i < num_games; i++ ) {
+            if( strcmp(select->GetName(), games.GetGame(i)->GetName())==0 ) {
+                if( i < NUM_LIST_ITEMS-1 ) {
+                    selected = i;
+                }else{
+                    index = i-1;
+                    selected = 1;
+                    if( index + NUM_LIST_ITEMS - num_games > 0 ) {
+                        selected += index + NUM_LIST_ITEMS - num_games;
+                        index -= index + NUM_LIST_ITEMS - num_games;
+                    }
+                }
+            }
+        }
+    }
+    SetSelected(index, selected);
 
     // Release UI
     manager->Unlock();

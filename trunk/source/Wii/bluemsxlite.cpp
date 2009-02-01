@@ -83,6 +83,7 @@ int keyboardGetModifiers(void);
 
 #define CONSOLE_DEBUG 0
 #define MALLOC_LOG_BLUEMSX_RUN 0
+#define MALLOC_LOG_GUI         0
 
 #define MSX_ROOT_DIR "fat:/MSX"
 
@@ -468,6 +469,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
     if (i < 0) {
         printf("Failed to parse command line\n");
+        MessageBoxRemove();
+        return;
     }
 
     if (i == 0) {
@@ -620,6 +623,11 @@ int main(int argc, char **argv)
 
     char *game_dir = NULL;
     GuiDirSelect *dirs = new GuiDirSelect(manager, "fat:/MSX/Games", "dirlist.xml");
+
+#if MALLOC_LOG_GUI
+    allocLogSetMarker();
+#endif
+
     for(;;) {
         // Browse directory
         game_dir = dirs->DoModal();
@@ -627,15 +635,30 @@ int main(int argc, char **argv)
             delete dirs;
             exit(0);
         }
-
+#if MALLOC_LOG_GUI
+        allocLogPrint();
+#endif
         // Game menu
-        GuiGameSelect *menu = new GuiGameSelect(manager);
-        GameElement *game = menu->DoModal(game_dir, "gamelist.xml");
-        delete menu;
-        if( game ) {
-            blueMsxRun(game, game_dir);
-            delete game;
+        GameElement *game = NULL;
+        GameElement *prev;
+        for(;;) {
+            GuiGameSelect *menu = new GuiGameSelect(manager);
+            prev = game;
+            game = menu->DoModal(game_dir, "gamelist.xml", prev);
+            if( prev != NULL ) {
+                delete prev;
+            }
+            delete menu;
+
+            if( game == NULL ) {
+                break;
+            }else{
+                blueMsxRun(game, game_dir);
+            }
         }
+#if MALLOC_LOG_GUI
+        allocLogPrint();
+#endif
     }
     delete dirs;
 

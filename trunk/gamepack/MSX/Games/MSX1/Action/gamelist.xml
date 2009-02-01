@@ -1,9 +1,9 @@
 <GameList>
     <Game Title="Alcazar">
         <CommandLine>/rom1 Alcazar.zip</CommandLine>
+        <KeyMap plus1="f5"/>
         <ScreenShot>Alcazar-1.png</ScreenShot>
         <ScreenShot>Alcazar-2.png</ScreenShot>
-        <KeyMap plus1="f5"/>
     </Game>
     <Game Title="Ali Baba">
         <CommandLine>/rom1 AliBaba.zip</CommandLine>
@@ -17,15 +17,15 @@
     </Game>
     <Game Title="American Truck">
         <CommandLine>/rom1 AmericanTruck.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>AmericanTruck-1.png</ScreenShot>
         <ScreenShot>AmericanTruck-2.png</ScreenShot>
-        <Settings KeyboardJoystick="true"/>
     </Game>
     <Game Title="Antarctic Adventure">
         <CommandLine>/rom1 AntarcticAdventure.zip</CommandLine>
+        <KeyMap plus1="1"/>
         <ScreenShot>AntarcticAdventure-1.png</ScreenShot>
         <ScreenShot>AntarcticAdventure-2.png</ScreenShot>
-        <KeyMap plus1="1"/>
     </Game>
     <Game Title="Arkanoid">
         <CommandLine>/rom1 Arkanoid.zip</CommandLine>
@@ -34,15 +34,15 @@
     </Game>
     <Game Title="Arkanoid 2">
         <CommandLine>/rom1 Arkanoid2.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Arkanoid2-1.png</ScreenShot>
         <ScreenShot>Arkanoid2-2.png</ScreenShot>
-        <Settings KeyboardJoystick="true"/>
     </Game>
     <Game Title="Athletic Land">
         <CommandLine>/rom1 AthleticLand.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>AthleticLand-1.png</ScreenShot>
         <ScreenShot>AthleticLand-2.png</ScreenShot>
-        <KeyMap plus1="1" minus1="2"/>
     </Game>
     <Game Title="Back to the Future">
         <CommandLine>/rom1 BackToTheFuture.zip</CommandLine>
@@ -51,9 +51,9 @@
     </Game>
     <Game Title="Bat Man">
         <CommandLine>/rom1 Batman.zip</CommandLine>
+        <KeyMap plus1="return"/>
         <ScreenShot>Batman-1.png</ScreenShot>
         <ScreenShot>Batman-2.png</ScreenShot>
-        <KeyMap plus1="return"/>
     </Game>
     <Game Title="Bomberman">
         <CommandLine>/rom1 Bomberman.zip</CommandLine>
@@ -82,9 +82,9 @@
     </Game>
     <Game Title="Cabbage Patch Kids">
         <CommandLine>/rom1 CabbagePatchKids.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>CabbagePatchKids-1.png</ScreenShot>
         <ScreenShot>CabbagePatchKids-2.png</ScreenShot>
-        <KeyMap plus1="1" minus1="2"/>
     </Game>
     <Game Title="Cannonball">
         <CommandLine>/rom1 Cannonball.zip</CommandLine>
@@ -93,6 +93,7 @@
     </Game>
     <Game Title="Captain Cosmo">
         <CommandLine>/rom1 CaptainCosmo.zip</CommandLine>
+        <KeyMap plus1="f1" minus1="f2"/>
         <ScreenShot>CaptainCosmo-1.png</ScreenShot>
         <ScreenShot>CaptainCosmo-2.png</ScreenShot>
     </Game>
@@ -143,10 +144,10 @@
     </Game>
     <Game Title="Donkey Kong">
         <CommandLine>/rom1 DonkeyKong.zip</CommandLine>
-        <ScreenShot>DonkeyKong-1.png</ScreenShot>
-        <ScreenShot>DonkeyKong-2.png</ScreenShot>
         <KeyMap plus1="0"/>
         <Settings KeyboardJoystick="true"/>
+        <ScreenShot>DonkeyKong-1.png</ScreenShot>
+        <ScreenShot>DonkeyKong-2.png</ScreenShot>
     </Game>
     <Game Title="Dorodon">
         <CommandLine>/rom1 Dorodon.zip</CommandLine>
@@ -170,9 +171,9 @@
     </Game>
     <Game Title="Frogger">
         <CommandLine>/rom1 Frogger.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>Frogger-1.png</ScreenShot>
         <ScreenShot>Frogger-2.png</ScreenShot>
-        <KeyMap plus1="1" minus1="2"/>
     </Game>
     <Game Title="Funky Mouse">
         <CommandLine>/rom1 FunkyMouse.zip</CommandLine>
@@ -191,12 +192,13 @@
     </Game>
     <Game Title="H.E.R.O.">
         <CommandLine>/rom1 Hero.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Hero-1.png</ScreenShot>
         <ScreenShot>Hero-2.png</ScreenShot>
-        <Settings KeyboardJoystick="true"/>
     </Game>
     <Game Title="Helitank">
         <CommandLine>/rom1 Helitank.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Helitank-1.png</ScreenShot>
         <ScreenShot>Helitank-2.png</ScreenShot>
     </Game>
@@ -222,9 +224,9 @@
     </Game>
     <Game Title="Livingstone">
         <CommandLine>/diskA Livingstone.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Livingstone-1.png</ScreenShot>
         <ScreenShot>Livingstone-2.png</ScreenShot>
-        <Settings KeyboardJoystick="true"/>
     </Game>
     <Game Title="Magical Kid Wiz">
         <CommandLine>/rom1 MagicalKidWiz.zip</CommandLine>
@@ -248,6 +250,7 @@
     </Game>
     <Game Title="Midnight Building">
         <CommandLine>/rom1 MidnightBuilding.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>MidnightBuilding-1.png</ScreenShot>
         <ScreenShot>MidnightBuilding-2.png</ScreenShot>
     </Game>
@@ -258,9 +261,9 @@
     </Game>
     <Game Title="Mouser">
         <CommandLine>/rom1 Mouser.zip</CommandLine>
+        <KeyMap plus1="1"/>
         <ScreenShot>Mouser-1.png</ScreenShot>
         <ScreenShot>Mouser-2.png</ScreenShot>
-        <KeyMap plus1="1"/>
     </Game>
     <Game Title="Mr. Chin">
         <CommandLine>/rom1 MrChin.zip</CommandLine>
@@ -279,9 +282,9 @@
     </Game>
     <Game Title="Paccy">
         <CommandLine>/diskA Paccy.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Paccy-1.png</ScreenShot>
         <ScreenShot>Paccy-2.png</ScreenShot>
-        <Settings KeyboardJoystick="true"/>
     </Game>
     <Game Title="Pac Man">
         <CommandLine>/rom1 PacMan.zip</CommandLine>
@@ -290,6 +293,7 @@
     </Game>
     <Game Title="Payload">
         <CommandLine>/rom1 Payload.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Payload-1.png</ScreenShot>
         <ScreenShot>Payload-2.png</ScreenShot>
     </Game>
@@ -330,6 +334,7 @@
     </Game>
     <Game Title="Squish'em">
         <CommandLine>/rom1 Squishem.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Squishem-1.png</ScreenShot>
         <ScreenShot>Squishem-2.png</ScreenShot>
     </Game>
@@ -355,6 +360,7 @@
     </Game>
     <Game Title="The Heist">
         <CommandLine>/rom1 TheHeist.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>TheHeist-1.png</ScreenShot>
         <ScreenShot>TheHeist-2.png</ScreenShot>
     </Game>
@@ -380,6 +386,8 @@
     </Game>
     <Game Title="Yesod">
         <CommandLine>/diskA Yesod.zip</CommandLine>
+        <KeyMap plus1="2"/>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Yesod-1.png</ScreenShot>
         <ScreenShot>Yesod-2.png</ScreenShot>
     </Game>

@@ -24,8 +24,8 @@ private:
     int upper_index;
     int lower_index;
     int dir_level;
-    char *current_dir;
-    char *xmlfile;
+    char current_dir[MAX_PATH];
+    char xmlfile[MAX_PATH];
     DirElement emptyDir;
     DirElement *dirInfo[NUM_DIR_ITEMS];
     char *dirList[NUM_DIR_ITEMS];

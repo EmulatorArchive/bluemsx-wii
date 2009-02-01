@@ -60,6 +60,7 @@ void GuiDirSelect::RemoveTitleList(void)
     manager->Remove(&sprArrowDown);
     for(int i = 0; i < NUM_DIR_ITEMS; i++) {
         manager->Remove(&titleTxtSprite[i]);
+        titleTxtImg[i].DestroyImage();
     }
 }
 
@@ -354,7 +355,6 @@ char *GuiDirSelect::DoModal(void)
         }else{
             if( dir_level == 0 ) {
                 // on root level, leave
-                dirs.Clear();
                 break;
             }else{
                 // go back one level
@@ -366,6 +366,8 @@ char *GuiDirSelect::DoModal(void)
             }
         }
     }
+    dirs.Clear();
+
     // Claim UI
     manager->Lock();
 
@@ -383,9 +385,8 @@ char *GuiDirSelect::DoModal(void)
 GuiDirSelect::GuiDirSelect(GuiManager *man, const char *startdir, const char *filename)
 {
     manager = man;
-    current_dir = (char *)malloc(1024);
     strcpy(current_dir, startdir);
-    xmlfile = strdup(filename);
+    strcpy(xmlfile, filename);
     dir_level = 0;
     emptyDir.SetName("");
     emptyDir.SetDirectory("");
@@ -393,7 +394,5 @@ GuiDirSelect::GuiDirSelect(GuiManager *man, const char *startdir, const char *fi
 
 GuiDirSelect::~GuiDirSelect()
 {
-    free(xmlfile);
-    free(current_dir);
 }
 

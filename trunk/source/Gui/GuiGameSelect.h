@@ -14,7 +14,7 @@ public:
     GuiGameSelect(GuiManager *man);
     virtual ~GuiGameSelect();
 
-    GameElement *DoModal(const char *dir, const char *filename);
+    GameElement *DoModal(const char *dir, const char *filename, GameElement *select = NULL);
 private:
     GuiManager *manager;
     GameList games;

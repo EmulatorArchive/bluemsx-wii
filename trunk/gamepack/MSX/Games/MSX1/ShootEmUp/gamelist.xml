@@ -31,6 +31,7 @@
     </Game>
     <Game Title="Juno First">
         <CommandLine>/rom1 JunoFirst.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>JunoFirst-1.png</ScreenShot>
         <ScreenShot>JunoFirst-2.png</ScreenShot>
     </Game>
@@ -41,6 +42,7 @@
     </Game>
     <Game Title="Laydock">
         <CommandLine>/diskA Laydock.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Laydock-1.png</ScreenShot>
         <ScreenShot>Laydock-2.png</ScreenShot>
     </Game>
@@ -61,21 +63,25 @@
     </Game>
     <Game Title="Nemesis">
         <CommandLine>/rom1 Nemesis.zip</CommandLine>
+        <KeyMap plus1="f5"/>
         <ScreenShot>Nemesis-1.png</ScreenShot>
         <ScreenShot>Nemesis-2.png</ScreenShot>
     </Game>
     <Game Title="Nemesis 2">
         <CommandLine>/rom1 Nemesis2.zip</CommandLine>
+        <KeyMap plus1="f5"/>
         <ScreenShot>Nemesis2-1.png</ScreenShot>
         <ScreenShot>Nemesis2-2.png</ScreenShot>
     </Game>
     <Game Title="Nemesis 3">
         <CommandLine>/rom1 Nemesis3.zip</CommandLine>
+        <KeyMap plus1="f5"/>
         <ScreenShot>Nemesis3-1.png</ScreenShot>
         <ScreenShot>Nemesis3-2.png</ScreenShot>
     </Game>
     <Game Title="Parodius">
         <CommandLine>/rom1 Parodius.zip</CommandLine>
+        <KeyMap plus1="f5"/>
         <ScreenShot>Parodius-1.png</ScreenShot>
         <ScreenShot>Parodius-2.png</ScreenShot>
     </Game>
@@ -86,6 +92,7 @@
     </Game>
     <Game Title="RiverRaid">
         <CommandLine>/rom1 RiverRaid.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>RiverRaid-1.png</ScreenShot>
         <ScreenShot>RiverRaid-2.png</ScreenShot>
     </Game>
@@ -95,7 +102,8 @@
         <ScreenShot>RType-2.png</ScreenShot>
     </Game>
     <Game Title="Salamander">
-        <CommandLine>/rom1 Salamander.zip</CommandLine>
+        <CommandLine>/rom1 Salamand.zip</CommandLine>
+        <KeyMap plus1="f5"/>
         <ScreenShot>Salamander-1.png</ScreenShot>
         <ScreenShot>Salamander-2.png</ScreenShot>
     </Game>
@@ -111,11 +119,13 @@
     </Game>
     <Game Title="Super Cobra">
         <CommandLine>/rom1 SuperCobra.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>SuperCobra-1.png</ScreenShot>
         <ScreenShot>SuperCobra-2.png</ScreenShot>
     </Game>
     <Game Title="Time Pilot">
         <CommandLine>/rom1 Timepilot.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>Timepilot-1.png</ScreenShot>
         <ScreenShot>Timepilot-2.png</ScreenShot>
     </Game>
@@ -131,8 +141,9 @@
     </Game>
     <Game Title="Zanac 3">
         <CommandLine>/diskA Zanac3.zip</CommandLine>
-        <ScreenShot>Zanac2-1.png</ScreenShot>
-        <ScreenShot>Zanac2-2.png</ScreenShot>
+        <KeyMap plus1="return"/>
+        <ScreenShot>Zanac3-1.png</ScreenShot>
+        <ScreenShot>Zanac3-2.png</ScreenShot>
     </Game>
     <Game Title="Zanac Ex">
         <CommandLine>/rom1 ZanacEx.zip</CommandLine>

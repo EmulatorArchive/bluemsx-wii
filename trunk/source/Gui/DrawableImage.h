@@ -18,6 +18,7 @@ class DrawableImage : public Image
 		~DrawableImage();
 
 		void CreateImage(int width, int height, int format = GX_TF_RGBA8);
+        void DestroyImage(void);
 
 		u32 GetWidth() const;
 		u32 GetHeight() const;
