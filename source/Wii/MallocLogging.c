@@ -86,7 +86,11 @@ static void allocError(char *error)
 int printEntry(LOGMALLOC *log)
 {
     if( log->signature == SIGNATURE_VALID ) {
-        printf("%s line %d, size: %d\n", log->file, log->line, log->size);
+        const char *p = log->file;
+        while( strstr(p, "/") ) {
+            p = strstr(p, "/")+1;
+        }
+        printf("%s line %d, size: %d\n", p, log->line, log->size);
         return 1;
     }else
     if( log->signature == SIGNATURE_FREE ) {
@@ -126,7 +130,6 @@ void allocLogPrint(void)
         printf("Malloc log:\n");
         if( marked_entry != NULL ) {
             p = marked_entry->next;
-            marked_entry = NULL;
         }else{
             p = first_entry;
         }

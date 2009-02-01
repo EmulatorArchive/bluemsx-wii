@@ -23,15 +23,13 @@ DirElement::~DirElement()
 void DirElement::SetName(const char *str)
 {
     if( name ) free(name);
-    name = (char *)malloc(strlen(str)+1);
-    strcpy(name, str);
+    name = strdup(str);
 }
 
 void DirElement::SetDirectory(const char *str)
 {
     if( directory ) free(directory);
-    directory = (char *)malloc(strlen(str)+1);
-    strcpy(directory, str);
+    directory = strdup(str);
 }
 
 char* DirElement::GetName()

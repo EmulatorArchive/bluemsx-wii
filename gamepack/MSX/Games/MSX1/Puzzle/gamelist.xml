@@ -11,6 +11,7 @@
     </Game>
     <Game Title="Championship Lode Runner">
         <CommandLine>/rom1 ChampionshipLodeRunner.zip</CommandLine>
+        <KeyMap plus1="return"/>
         <ScreenShot>ChampionshipLodeRunner-1.png</ScreenShot>
         <ScreenShot>ChampionshipLodeRunner-2.png</ScreenShot>
     </Game>
@@ -21,6 +22,7 @@
     </Game>
     <Game Title="Eggerland">
         <CommandLine>/rom1 Eggerland.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>Eggerland-1.png</ScreenShot>
         <ScreenShot>Eggerland-2.png</ScreenShot>
     </Game>
@@ -31,6 +33,7 @@
     </Game>
     <Game Title="LemmingSo">
         <CommandLine>/diskA LemmingSo.zip</CommandLine>
+        <KeyMap plus1="1"/>
         <ScreenShot>LemmingSo-1.png</ScreenShot>
         <ScreenShot>LemmingSo-2.png</ScreenShot>
     </Game>
@@ -46,6 +49,7 @@
     </Game>
     <Game Title="Pairs">
         <CommandLine>/rom1 Pairs.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>Pairs-1.png</ScreenShot>
         <ScreenShot>Pairs-2.png</ScreenShot>
     </Game>
@@ -66,16 +70,19 @@
     </Game>
     <Game Title="Sparkie">
         <CommandLine>/rom1 Sparkie.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>Sparkie-1.png</ScreenShot>
         <ScreenShot>Sparkie-2.png</ScreenShot>
     </Game>
     <Game Title="The Castle">
         <CommandLine>/rom1 TheCastle.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>TheCastle-1.png</ScreenShot>
         <ScreenShot>TheCastle-2.png</ScreenShot>
     </Game>
     <Game Title="The Castle Excellent">
         <CommandLine>/rom1 TheCastleExcellent.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>TheCastleExcellent-1.png</ScreenShot>
         <ScreenShot>TheCastleExcellent-2.png</ScreenShot>
     </Game>

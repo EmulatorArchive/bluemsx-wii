@@ -6,6 +6,7 @@
     </Game>
     <Game Title="Dunkshot">
         <CommandLine>/rom1 Dunkshot.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Dunkshot-1.png</ScreenShot>
         <ScreenShot>Dunkshot-2.png</ScreenShot>
     </Game>
@@ -24,8 +25,13 @@
         <ScreenShot>HoleInOneProf-1.png</ScreenShot>
         <ScreenShot>HoleInOneProf-2.png</ScreenShot>
     </Game>
-    <Game Title="Hyper Olympics">
-        <CommandLine>/diskA HyperOlympics12.zip</CommandLine>
+    <Game Title="Hyper Olympics 1">
+        <CommandLine>/rom1 HyperOlympics1.zip</CommandLine>
+        <ScreenShot>HyperOlympics12-1.png</ScreenShot>
+        <ScreenShot>HyperOlympics12-2.png</ScreenShot>
+    </Game>
+    <Game Title="Hyper Olympics 2">
+        <CommandLine>/rom1 HyperOlympics2.zip</CommandLine>
         <ScreenShot>HyperOlympics12-1.png</ScreenShot>
         <ScreenShot>HyperOlympics12-2.png</ScreenShot>
     </Game>

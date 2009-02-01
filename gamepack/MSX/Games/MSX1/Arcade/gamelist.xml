@@ -6,6 +6,7 @@
     </Game>
     <Game Title="Grog's Revenge">
         <CommandLine>/rom1 GrogsRevenge.zip</CommandLine>
+        <KeyMap plus1="1" minus1="2"/>
         <ScreenShot>GrogsRevenge-1.png</ScreenShot>
         <ScreenShot>GrogsRevenge-2.png</ScreenShot>
     </Game>

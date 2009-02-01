@@ -50,6 +50,15 @@ void DrawableImage::CreateImage(int width, int height, int format)
 	_initialized = true;
 }
 
+void DrawableImage::DestroyImage(void)
+{
+	if(_pixels)
+	{
+		free(_pixels);
+		_pixels = NULL;
+	}
+}
+
 void DrawableImage::BindTexture(bool bilinear)
 {
 	if(!_initialized)return;
