@@ -294,6 +294,7 @@
     <Game Title="Payload">
         <CommandLine>/rom1 Payload.zip</CommandLine>
         <Settings KeyboardJoystick="true"/>
+        <KeyMap plus1="f1"/>
         <ScreenShot>Payload-1.png</ScreenShot>
         <ScreenShot>Payload-2.png</ScreenShot>
     </Game>
@@ -335,6 +336,7 @@
     <Game Title="Squish'em">
         <CommandLine>/rom1 Squishem.zip</CommandLine>
         <Settings KeyboardJoystick="true"/>
+        <KeyMap plus1="return"/>
         <ScreenShot>Squishem-1.png</ScreenShot>
         <ScreenShot>Squishem-2.png</ScreenShot>
     </Game>
@@ -361,6 +363,7 @@
     <Game Title="The Heist">
         <CommandLine>/rom1 TheHeist.zip</CommandLine>
         <Settings KeyboardJoystick="true"/>
+        <KeyMap plus1="return"/>
         <ScreenShot>TheHeist-1.png</ScreenShot>
         <ScreenShot>TheHeist-2.png</ScreenShot>
     </Game>
@@ -387,7 +390,6 @@
     <Game Title="Yesod">
         <CommandLine>/diskA Yesod.zip</CommandLine>
         <KeyMap plus1="2"/>
-        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Yesod-1.png</ScreenShot>
         <ScreenShot>Yesod-2.png</ScreenShot>
     </Game>

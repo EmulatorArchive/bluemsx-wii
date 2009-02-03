@@ -6,6 +6,7 @@
     </Game>
     <Game Title="Didaesh">
         <CommandLine>/diskA Didaesh.zip</CommandLine>
+        <KeyMap plus1="y" minus1="n"/>
         <ScreenShot>Didaesh-1.png</ScreenShot>
         <ScreenShot>Didaesh-2.png</ScreenShot>
     </Game>
@@ -37,12 +38,14 @@
     </Game>
     <Game Title="Xak3 The Tower of Gazzel">
         <CommandLine>/diskA Xak3.zip /diskAzip Xak3-1.dsk</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <KeyMap plus1="hotkey_disk_change"/>
         <ScreenShot>Xak3-1.png</ScreenShot>
         <ScreenShot>Xak3-2.png</ScreenShot>
     </Game>
     <Game Title="Ys1 Ancient Vanished Omen">
         <CommandLine>/diskA Ys1.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <ScreenShot>Ys1-1.png</ScreenShot>
         <ScreenShot>Ys1-2.png</ScreenShot>
     </Game>

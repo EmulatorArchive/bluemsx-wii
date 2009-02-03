@@ -1,6 +1,7 @@
 <GameList>
     <Game Title="F1-Spirit 3D Special">
-        <CommandLine>F1Spirit3DSpecial-1</CommandLine>
+        <CommandLine>/machine MSX2+ /diskA F1Spirit3DSpecial.zip /diskAzip F1Spirit3DSpecial-1.dsk</CommandLine>
+        <KeyMap plus1="hotkey_disk_change"/>
         <ScreenShot>F1Spirit3DSpecial-1.png</ScreenShot>
         <ScreenShot>F1Spirit3DSpecial-2.png</ScreenShot>
     </Game>

@@ -159,19 +159,23 @@ static void initKbdTable()
     kbdTable[KEY_KP_ENTER   ] = EC_PAUSE;
     kbdTable[KEY_PRINT      ] = EC_PRINT;
 
-    kbdTable[KEY_JOY1_BUTTON1] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_BUTTON2] = EC_JOY1_BUTTON2;
-    kbdTable[KEY_JOY1_UP     ] = EC_JOY1_UP;
-    kbdTable[KEY_JOY1_DOWN   ] = EC_JOY1_DOWN;
-    kbdTable[KEY_JOY1_LEFT   ] = EC_JOY1_LEFT;
-    kbdTable[KEY_JOY1_RIGHT  ] = EC_JOY1_RIGHT;
+    kbdTable[KEY_JOY1_BUTTON_A] = EC_JOY1_BUTTON1;
+    kbdTable[KEY_JOY1_BUTTON_B] = EC_JOY1_BUTTON2;
+    kbdTable[KEY_JOY1_BUTTON_1] = EC_JOY1_BUTTON1;
+    kbdTable[KEY_JOY1_BUTTON_2] = EC_JOY1_BUTTON2;
+    kbdTable[KEY_JOY1_UP      ] = EC_JOY1_UP;
+    kbdTable[KEY_JOY1_DOWN    ] = EC_JOY1_DOWN;
+    kbdTable[KEY_JOY1_LEFT    ] = EC_JOY1_LEFT;
+    kbdTable[KEY_JOY1_RIGHT   ] = EC_JOY1_RIGHT;
 
-    kbdTable[KEY_JOY2_BUTTON1] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_BUTTON2] = EC_JOY2_BUTTON2;
-    kbdTable[KEY_JOY2_UP     ] = EC_JOY2_UP;
-    kbdTable[KEY_JOY2_DOWN   ] = EC_JOY2_DOWN;
-    kbdTable[KEY_JOY2_LEFT   ] = EC_JOY2_LEFT;
-    kbdTable[KEY_JOY2_RIGHT  ] = EC_JOY2_RIGHT;
+    kbdTable[KEY_JOY2_BUTTON_A] = EC_JOY2_BUTTON1;
+    kbdTable[KEY_JOY2_BUTTON_B] = EC_JOY2_BUTTON2;
+    kbdTable[KEY_JOY2_BUTTON_1] = EC_JOY2_BUTTON1;
+    kbdTable[KEY_JOY2_BUTTON_2] = EC_JOY2_BUTTON2;
+    kbdTable[KEY_JOY2_UP      ] = EC_JOY2_UP;
+    kbdTable[KEY_JOY2_DOWN    ] = EC_JOY2_DOWN;
+    kbdTable[KEY_JOY2_LEFT    ] = EC_JOY2_LEFT;
+    kbdTable[KEY_JOY2_RIGHT   ] = EC_JOY2_RIGHT;
 }
 
 void keyboardRemapKey(KEY key, int event)
