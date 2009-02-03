@@ -26,17 +26,19 @@
         <ScreenShot>GirlyBlock-2.png</ScreenShot>
     </Game>
     <Game Title="Goemon">
-        <CommandLine>/diskA Goemon.zip</CommandLine>
+        <CommandLine>/rom1 Goemon.zip</CommandLine>
         <ScreenShot>Goemon-1.png</ScreenShot>
         <ScreenShot>Goemon-2.png</ScreenShot>
     </Game>
     <Game Title="Metal Gear">
         <CommandLine>/rom1 MetalGear.zip</CommandLine>
+        <KeyMap plus1="f2" minus1="f3" buttonY1="f4"/>
         <ScreenShot>MetalGear-1.png</ScreenShot>
         <ScreenShot>MetalGear-2.png</ScreenShot>
     </Game>
     <Game Title="Metal Gear 2 (Solid)">
         <CommandLine>/rom1 SolidSnake.zip</CommandLine>
+        <KeyMap plus1="f2" minus1="f3" buttonY1="f4"/>
         <ScreenShot>SolidSnake-1.png</ScreenShot>
         <ScreenShot>SolidSnake-2.png</ScreenShot>
     </Game>
@@ -46,7 +48,7 @@
         <ScreenShot>MonMonMonster-2.png</ScreenShot>
     </Game>
     <Game Title="Nyancle Racing">
-        <CommandLine>/diskA NyancleRacing</CommandLine>
+        <CommandLine>/diskA NyancleRacing.zip</CommandLine>
         <ScreenShot>NyancleRacing-1.png</ScreenShot>
         <ScreenShot>NyancleRacing-2.png</ScreenShot>
     </Game>
@@ -71,7 +73,7 @@
         <ScreenShot>Seigimatsu2-2.png</ScreenShot>
     </Game>
     <Game Title="Sqeek">
-        <CommandLine>/diskA Sqeek.rom</CommandLine>
+        <CommandLine>/diskA Sqeek.zip</CommandLine>
         <ScreenShot>Sqeek-1.png</ScreenShot>
         <ScreenShot>Sqeek-2.png</ScreenShot>
     </Game>

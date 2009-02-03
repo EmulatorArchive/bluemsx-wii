@@ -505,6 +505,9 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
     if (strlen(cas)   && !insertCassette(properties, 0, cas, *caszip ? caszip : NULL, -1)) return 0;
 
     if (strlen(machineName)) strcpy(properties->emulation.machineName, machineName);
+#ifdef WII
+    else strcpy(properties->emulation.machineName, "MSX2"); /* If not specified, use MSX2 as default */
+#endif
 
     emulatorStop();
     emulatorStart(NULL);

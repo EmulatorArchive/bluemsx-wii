@@ -17,6 +17,7 @@
     </Game>
     <Game Title="Black Cyclon">
         <CommandLine>/diskA BlackCyclon.zip /diskAzip BlackCyclon-1.dsk</CommandLine>
+        <Settings KeyboardJoystick="true"/>
         <KeyMap plus1="hotkey_disk_change"/>
         <ScreenShot>BlackCyclon-1.png</ScreenShot>
         <ScreenShot>BlackCyclon-2.png</ScreenShot>
@@ -33,7 +34,7 @@
         <ScreenShot>FamicleParodic2-2.png</ScreenShot>
     </Game>
     <Game Title="Firebird">
-        <CommandLine>/rom1 Firebird.rom</CommandLine>
+        <CommandLine>/rom1 Firebird.zip</CommandLine>
         <ScreenShot>Firebird-1.png</ScreenShot>
         <ScreenShot>Firebird-2.png</ScreenShot>
     </Game>
@@ -44,6 +45,7 @@
     </Game>
     <Game Title="Ikari">
         <CommandLine>/diskA Ikari.zip</CommandLine>
+        <KeyMap plus1="2" minus1="1"/>
         <ScreenShot>Ikari-1.png</ScreenShot>
         <ScreenShot>Ikari-2.png</ScreenShot>
     </Game>
@@ -54,7 +56,7 @@
         <ScreenShot>Laydock2-2.png</ScreenShot>
     </Game>
     <Game Title="Scramble Formation">
-        <CommandLine>/rom1 ScrambleFormation.rom</CommandLine>
+        <CommandLine>/rom1 ScrambleFormation.zip</CommandLine>
         <ScreenShot>ScrambleFormation-1.png</ScreenShot>
         <ScreenShot>ScrambleFormation-2.png</ScreenShot>
     </Game>
