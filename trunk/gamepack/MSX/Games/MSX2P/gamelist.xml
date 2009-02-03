@@ -5,4 +5,10 @@
         <ScreenShot>F1Spirit3DSpecial-1.png</ScreenShot>
         <ScreenShot>F1Spirit3DSpecial-2.png</ScreenShot>
     </Game>
+    <Game Title="Illusion City">
+        <CommandLine>/machine MSXturboR /diskA IllusionCity.zip /diskAzip IllusionCity-1.dsk</CommandLine>
+        <KeyMap plus1="hotkey_disk_change"/>
+        <ScreenShot>IllusionCity-1.png</ScreenShot>
+        <ScreenShot>IllusionCity-2.png</ScreenShot>
+    </Game>
 </GameList>

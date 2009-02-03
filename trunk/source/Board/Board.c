@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -74,7 +74,7 @@ static UInt32 boardVramSize;
 static int boardRunning = 0;
 
 static HdType hdType[MAX_HD_COUNT];
-  
+
 static int cartIdeCount[5];
 
 static int     useRom;
@@ -177,7 +177,7 @@ static void rleEncStartDecode(void* encodedData, int encodedSize)
     rleIdx = 0;
     rleDataSize = encodedSize;
     rleData = (RleData*)encodedData;
-    
+
     memset(rleCache, 0, sizeof(rleCache));
 
     rleCache[rleData[rleIdx].index] = rleData[rleIdx].value;
@@ -202,7 +202,7 @@ static int rleEncEof()
 }
 
 
-typedef enum 
+typedef enum
 {
     CAPTURE_IDLE = 0,
     CAPTURE_REC  = 1,
@@ -271,7 +271,7 @@ static void boardTimerCb(void* dummy, UInt32 time)
             cap.state = CAPTURE_IDLE;
         }
     }
-    
+
     if (cap.state == CAPTURE_REC) {
         cap.state = CAPTURE_IDLE;
         boardCaptureStart(cap.filename);
@@ -313,7 +313,7 @@ void boardCaptureStart(const char* filename) {
 
     strcpy(cap.filename, filename);
 
-    // If emulation is not running we want to start recording once 
+    // If emulation is not running we want to start recording once
     // the emulation is started
     if (cap.timer == NULL) {
         cap.state = CAPTURE_REC;
@@ -365,7 +365,7 @@ void boardCaptureStop() {
         saveStateSet(state, "endTime64Hi", (UInt32)(cap.endTime64 >> 32));
         saveStateSet(state, "endTime64Lo", (UInt32)cap.endTime64);
         saveStateSet(state, "inputCnt", cap.inputCnt);
-        
+
         if (cap.inputCnt > 0) {
             saveStateSetBuffer(state, "inputs", cap.inputs, cap.inputCnt * sizeof(RleData));
         }
@@ -413,7 +413,7 @@ static void boardCaptureSaveState()
         if (cap.inputCnt > 0) {
             saveStateSetBuffer(state, "initState", cap.initState, cap.initStateSize);
         }
-        
+
         saveStateSetBuffer(state, "rleCache", rleCache, sizeof(rleCache));
 
         saveStateClose(state);
@@ -440,7 +440,7 @@ static void boardCaptureLoadState()
     if (cap.initStateSize > 0) {
         saveStateGetBuffer(state, "initState", cap.initState, cap.initStateSize);
     }
-        
+
     saveStateGetBuffer(state, "rleCache", rleCache, sizeof(rleCache));
 
     saveStateClose(state);
@@ -458,7 +458,7 @@ static void boardCaptureLoadState()
         }
         boardTimerAdd(cap.timer, cap.endTime);
     }
-    
+
     if (cap.state == CAPTURE_REC) {
         rleEncStartEncode(cap.inputs, sizeof(cap.inputs), cap.inputCnt);
     }
@@ -525,7 +525,7 @@ static int rleEncEof()
 }
 
 
-typedef enum 
+typedef enum
 {
     CAPTURE_IDLE = 0,
     CAPTURE_REC  = 1,
@@ -594,7 +594,7 @@ static void boardTimerCb(void* dummy, UInt32 time)
             cap.state = CAPTURE_IDLE;
         }
     }
-    
+
     if (cap.state == CAPTURE_REC) {
         cap.state = CAPTURE_IDLE;
         boardCaptureStart(cap.filename);
@@ -636,7 +636,7 @@ void boardCaptureStart(const char* filename) {
 
     strcpy(cap.filename, filename);
 
-    // If emulation is not running we want to start recording once 
+    // If emulation is not running we want to start recording once
     // the emulation is started
     if (cap.timer == NULL) {
         cap.state = CAPTURE_REC;
@@ -688,7 +688,7 @@ void boardCaptureStop() {
         saveStateSet(state, "endTime64Hi", (UInt32)(cap.endTime64 >> 32));
         saveStateSet(state, "endTime64Lo", (UInt32)cap.endTime64);
         saveStateSet(state, "inputCnt", cap.inputCnt);
-        
+
         if (cap.inputCnt > 0) {
             saveStateSetBuffer(state, "inputs", cap.inputs, cap.inputCnt * 2);
         }
@@ -777,7 +777,7 @@ static void boardCaptureLoadState()
         }
         boardTimerAdd(cap.timer, cap.endTime);
     }
-    
+
     if (cap.state == CAPTURE_REC) {
         rleEncStartEncode(cap.inputs, sizeof(cap.inputs), cap.inputCnt);
     }
@@ -785,7 +785,7 @@ static void boardCaptureLoadState()
 
 #else // CAPTURE_VERSION==1
 
-typedef enum 
+typedef enum
 {
     CAPTURE_IDLE = 0,
     CAPTURE_REC  = 1,
@@ -854,7 +854,7 @@ static void boardTimerCb(void* dummy, UInt32 time)
             cap.state = CAPTURE_IDLE;
         }
     }
-    
+
     if (cap.state == CAPTURE_REC) {
         cap.state = CAPTURE_IDLE;
         boardCaptureStart(cap.filename);
@@ -896,7 +896,7 @@ void boardCaptureStart(const char* filename) {
 
     strcpy(cap.filename, filename);
 
-    // If emulation is not running we want to start recording once 
+    // If emulation is not running we want to start recording once
     // the emulation is started
     if (cap.timer == NULL) {
         cap.state = CAPTURE_REC;
@@ -947,7 +947,7 @@ void boardCaptureStop() {
         saveStateSet(state, "endTime64Hi", (UInt32)(cap.endTime64 >> 32));
         saveStateSet(state, "endTime64Lo", (UInt32)cap.endTime64);
         saveStateSet(state, "inputCnt", cap.inputCnt);
-        
+
         if (cap.inputCnt > 0) {
             saveStateSetBuffer(state, "inputs", cap.inputs, cap.inputCnt);
         }
@@ -1118,7 +1118,7 @@ int boardInsertExternalDevices()
     int i;
     for (i = 0; i < 2; i++) {
         if (boardDeviceInfo->carts[i].inserted) {
-            boardChangeCartridge(i, boardDeviceInfo->carts[i].type, 
+            boardChangeCartridge(i, boardDeviceInfo->carts[i].type,
                                  boardDeviceInfo->carts[i].name,
                                  boardDeviceInfo->carts[i].inZipName);
         }
@@ -1148,7 +1148,7 @@ int boardRemoveExternalDevices()
      return 1;
 }
 
-int boardRun(Machine* machine, 
+int boardRun(Machine* machine,
              BoardDeviceInfo* deviceInfo,
              Mixer* mixer,
              char* stateFile,
@@ -1224,7 +1224,7 @@ int boardRun(Machine* machine,
     default:
         success = 0;
     }
-    
+
     boardCaptureInit();
 
     if (success && loadState) {
@@ -1236,10 +1236,10 @@ int boardRun(Machine* machine,
         syncTimer = boardTimerCreate(onSync, NULL);
         fdcTimer = boardTimerCreate(onFdcDone, NULL);
         mixerTimer = boardTimerCreate(onMixerSync, NULL);
-        
+
         boardTimerAdd(syncTimer, boardSystemTime() + 1);
         boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 50);
-        
+
         if (boardPeriodicCallback != NULL) {
             periodicTimer = boardTimerCreate(boardPeriodicCallback, periodicRef);
             boardTimerAdd(periodicTimer, boardSystemTime() + periodicInterval);
@@ -1364,7 +1364,7 @@ static BoardType boardLoadState(const char* stateFile)
     }
 
     free(version);
-            
+
     state = saveStateOpenForRead("board");
 
     boardType      = saveStateGet(state, "boardType", BOARD_MSX);
@@ -1372,7 +1372,7 @@ static BoardType boardLoadState(const char* stateFile)
                      (UInt64)saveStateGet(state, "boardSysTime64Lo", 0);
     oldTime        = saveStateGet(state, "oldTime", 0);
     pendingInt     = saveStateGet(state, "pendingInt", 0);
-    
+
     di->carts[0].inserted = saveStateGet(state, "cartInserted00", 0);
     di->carts[0].type     = saveStateGet(state, "cartType00",     0);
     saveStateGetBuffer(state, "cartName00",  di->carts[0].name, sizeof(di->carts[0].name));
@@ -1432,12 +1432,12 @@ void boardSaveState(const char* stateFile)
     }
 
     saveStateCreate(stateFile);
-    
+
     rv = zipSaveFile(stateFile, "version", 0, saveStateVersion, strlen(saveStateVersion) + 1);
     if (!rv) {
         return;
     }
-    
+
     state = saveStateOpenForWrite("board");
 
     saveStateSet(state, "pendingInt", pendingInt);
@@ -1492,7 +1492,11 @@ void boardSaveState(const char* stateFile)
 
     bitmap = archScreenCapture(SC_SMALL, &size, 1);
     if( bitmap != NULL && size > 0 ) {
+#ifdef WII
+        zipSaveFile(stateFile, "screenshot.png", 1, bitmap, size);
+#else
         zipSaveFile(stateFile, "screenshot.bmp", 1, bitmap, size);
+#endif
     }
     if( bitmap != NULL ) {
         free(bitmap);
@@ -1508,7 +1512,7 @@ void boardSaveState(const char* stateFile)
 void boardSetFrequency(int frequency)
 {
     boardFreq = frequency * (boardFrequency() / 3579545);
-    
+
 	mixerSetBoardFrequency(frequency);
 }
 
@@ -1594,7 +1598,7 @@ void boardChangeCartridge(int cartNo, RomType romType, char* cart, char* cartZip
     if (cartZip && strlen(cartZip) == 0) {
         cartZip = NULL;
     }
-    
+
     if (romType == ROM_UNKNOWN) {
         int size;
         char* buf = romLoad(cart, cartZip, &size);
@@ -1775,7 +1779,7 @@ void boardTimerAdd(BoardTimer* timer, UInt32 timeout)
     if (timeout - timeAnchor - TEST_TIME < currentTime - timeAnchor - TEST_TIME) {
         timer->next = timer;
         timer->prev = timer;
-        
+
         // Time has already expired
         return;
     }
@@ -1838,7 +1842,7 @@ UInt32 boardTimerCheckTimeout(void* dummy)
         timer->callback(timer->ref, timer->timeout);
     }
 
-    timeAnchor = currentTime;    
+    timeAnchor = currentTime;
 
     boardInfo.setCpuTimeout(boardInfo.cpuRef, timerList->next->timeout);
 
