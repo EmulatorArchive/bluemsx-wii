@@ -5,6 +5,8 @@
 #include "GameElement.h"
 #include "GuiImages.h"
 
+#define SCREENSHOT_DIR "Screenshots/"
+
 /*************************************************
   Game Element
  *************************************************/
@@ -71,7 +73,9 @@ void GameElement::SetScreenShot(int number, const char *str)
 {
     if( number < 2 ) {
         if( screenshot[number] ) free(screenshot[number]);
-        screenshot[number] = strdup(str);
+        screenshot[number] = (char*)malloc(strlen(str)+strlen(SCREENSHOT_DIR)+1);
+        strcpy(screenshot[number], SCREENSHOT_DIR);
+        strcat(screenshot[number], str);
     }
 }
 
@@ -115,11 +119,8 @@ void GameElement::FreeImage(int number)
 wsp::Image* GameElement::GetImage(int number)
 {
     if( image[number] == NULL ) {
-        char filename[256];
-        char *p = GetScreenShot(number);
-        if( p ) {
-            strcpy(filename, "Screenshots/");
-            strcat(filename, p);
+        char *filename = GetScreenShot(number);
+        if( filename ) {
             image[number] = new wsp::Image;
             if(image[number]->LoadImage(filename) != wsp::IMG_LOAD_ERROR_NONE) {
                 delete image[number];

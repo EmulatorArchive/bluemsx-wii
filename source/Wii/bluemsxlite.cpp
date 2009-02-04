@@ -81,7 +81,7 @@ int keyboardGetModifiers(void);
 #include "GuiFonts.h"
 #include "GuiImages.h"
 
-#define CONSOLE_DEBUG 0
+#define CONSOLE_DEBUG          0
 #define MALLOC_LOG_BLUEMSX_RUN 0
 #define MALLOC_LOG_GUI         0
 
@@ -123,6 +123,7 @@ void archUpdateWindow()
 }
 
 static char stateDir[PROP_MAXPATH]  = "";
+static char screenShotDir[PROP_MAXPATH]  = "";
 
 void setDefaultPaths(const char* rootDir)
 {
@@ -154,6 +155,10 @@ void setDefaultPaths(const char* rootDir)
     sprintf(buffer, "%s/Keyboard Config", rootDir);
     archCreateDirectory(buffer);
     keyboardSetDirectory(buffer);
+
+    sprintf(buffer, "%s/ScreenShots", rootDir);
+    archCreateDirectory(buffer);
+    strcpy(screenShotDir, buffer);
 }
 
 static char currentDisk[256];
@@ -503,7 +508,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     const char *menu_items[] = {
       "Load state",
       "Save state",
-      "Properties",
+      "Screenshot",
       "Quit"
     };
     bool pressed = true;
@@ -511,10 +516,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
             if( !pressed ) {
                 emulatorSuspend();
-                int domenu;
+                bool leave_menu = false;
                 do {
                     int selection = menu->DoModal(menu_items, 4, 344);
-                    domenu = 0;
                     switch( selection ) {
                         SAVE_STATES *states;
                         case 0: /* Load state */
@@ -531,24 +535,39 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                     emulatorSuspend();
                                 }
                             }
-                            domenu = 1;
                             FreeStateFileList(states);
                             break;
                         case 1: /* Save state */
                             actionQuickSaveState();
                             emulatorSuspend();
-                            domenu = 1;
                             break;
-                        case 2: /* Properties */
-                            domenu = 1;
+                        case 2: /* Screenshot */
+                            char fname1[256], fname2[256];
+                            strcpy(fname1, game_dir);
+                            strcat(fname1, "/");
+                            strcat(fname1, game->GetScreenShot(0));
+                            strcpy(fname2, game_dir);
+                            strcat(fname2, "/");
+                            strcat(fname2, game->GetScreenShot(1));
+                            if( !archFileExists(fname1) ) {
+                                (void)archScreenCaptureToFile(SC_NORMAL, fname1);
+                            }else
+                            if( !archFileExists(fname2) ) {
+                                (void)archScreenCaptureToFile(SC_NORMAL, fname2);
+                            }else{
+                                (void)archScreenCaptureToFile(SC_NORMAL,
+                                      generateSaveFilename(properties, screenShotDir, "", ".png", 2));
+                            }
                             break;
                         case 3: /* Quit */
                             g_doQuit = true;
+                            leave_menu = true;
                             break;
                         case -1: /* leaved menu */
+                            leave_menu = true;
                             break;
                     }
-                }while(domenu);
+                }while(!leave_menu);
                 emulatorResume();
                 pressed = true;
             }
