@@ -60,8 +60,7 @@ static void MyPngFlushData(png_structp png_ptr)
     (void)png_ptr;
 }
 
-static int WritePng(FrameBuffer *frame, png_uint_32 width, png_uint_32 height,
-                    png_uint_32 xoffset, png_uint_32 yoffset)
+static int WritePng(FrameBuffer *frame, FILE *outfp)
 {
     png_structp png_ptr = NULL;
     png_infop  info_ptr = NULL;
@@ -86,9 +85,44 @@ static int WritePng(FrameBuffer *frame, png_uint_32 width, png_uint_32 height,
         goto done;
     }
 
-    png_set_write_fn(png_ptr, NULL, MyPngWriteData, MyPngFlushData);
+    if( outfp ) {
+    	png_init_io(png_ptr, outfp);
+    }else{
+        png_set_write_fn(png_ptr, NULL, MyPngWriteData, MyPngFlushData);
+    }
 
-    png_set_IHDR(png_ptr, info_ptr, width, height, 8,
+    /* find out height/width and adjustment */
+    int right = 0, left = FB_MAX_LINE_WIDTH-1;
+    int top = 0, bottom = 0;
+    int yscale = (frame->lines > 240)? 2 : 1;
+	for(y = 0; y < frame->lines; y += yscale) {
+        LineBuffer *line = &frame->line[y];
+        int xscale = line->doubleWidth? 2 : 1;
+        UInt16 *ps = line->buffer;
+        UInt16 border_color = *ps;
+        int l, r;
+		for(l = 0; l < 272 && ps[l*xscale] == border_color; l++);
+		for(r = 272-1; r > 0 && ps[r*xscale] == border_color; r--);
+        if( l < r ) {
+            if( l < left ) left = l;
+            if( r > right ) right = r;
+            if( top == 0 ) top = y;
+            bottom = y;
+        }
+	}
+    top /= yscale;
+    bottom /= yscale;
+    int height = bottom - top + 1;
+    height = (height > 192)? 212 : 192;
+    left = ((right + left + 1) >> 1) - 128;
+    left = (left < 0)? 0 : ((left > 16)? 16 : left);
+    int min = ((240 - height) / 2) - 8;
+    int max = ((240 - height) / 2) + 8;
+    top = ((bottom + top + 1) >> 1) - (height >> 1);
+    top = (top < min)? min : ((top > max)? max : top);
+
+    /* set png header */
+    png_set_IHDR(png_ptr, info_ptr, 256, height, 8,
         		 PNG_COLOR_TYPE_PALETTE, PNG_FILTER_TYPE_BASE,
         		 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
@@ -96,11 +130,12 @@ static int WritePng(FrameBuffer *frame, png_uint_32 width, png_uint_32 height,
     row_pointers = (unsigned char**)malloc(height * sizeof(char*));
     pal_used = 0;
 	for(y = 0; y < (int)height; y++) {
-        LineBuffer *line = &frame->line[y+yoffset];
-        UInt16 *ps = line->buffer + xoffset;
-        unsigned char *pd = (unsigned char *)malloc(width);
+        LineBuffer *line = &frame->line[(y+top)*yscale];
+        int xscale = line->doubleWidth? 2 : 1;
+        UInt16 *ps = &line->buffer[left*xscale];
+        unsigned char *pd = (unsigned char *)malloc(256);
         row_pointers[y] = pd;
-		for(x = 0; x < (int)width ; x++) {
+		for(x = 0; x < 256 ; x++) {
             int found;
             png_byte red = (png_byte)((*ps >> 11) & 0x1f);
             png_byte green = (png_byte)((*ps >> 6) & 0x1f);
@@ -117,15 +152,16 @@ static int WritePng(FrameBuffer *frame, png_uint_32 width, png_uint_32 height,
                 }
             }
             if( !found ) {
-                palette[pal_used].red = red;
-                palette[pal_used].green = green;
-                palette[pal_used].blue = blue;
-                *pd = pal_used++;
+                if( pal_used < 256 ) {
+                    palette[pal_used].red = red;
+                    palette[pal_used].green = green;
+                    palette[pal_used].blue = blue;
+                    *pd = pal_used++;
+                }else{
+                    *pd = 0;
+                }
             }
-            if( line->doubleWidth ) {
-                ps++;
-            }
-            ps++; pd++;
+            ps += xscale; pd++;
 		}
 	}
 
@@ -166,7 +202,7 @@ void* archScreenCapture(ScreenCaptureType type, int* bitmapSize, int onlyBmp)
     FrameBuffer *frame = frameBufferGetViewFrame();
     if( frame ) {
         png_bytep p;
-        (void)WritePng(frame, 256, 212, 8, 14);
+        (void)WritePng(frame, NULL);
         p = png_data;
         if( bitmapSize ) {
             *bitmapSize = png_data_allocated;
@@ -176,6 +212,20 @@ void* archScreenCapture(ScreenCaptureType type, int* bitmapSize, int onlyBmp)
         return p;
     }
     return NULL;
+}
+
+int archScreenCaptureToFile(ScreenCaptureType type, const char *fname)
+{
+    FrameBuffer *frame = frameBufferGetViewFrame();
+    if( frame ) {
+        FILE *outfp = fopen(fname, "wb");
+        if( outfp ) {
+            int success = WritePng(frame, outfp);
+            fclose(outfp);
+            return success;
+        }
+    }
+    return 0;
 }
 
 void archUpdateEmuDisplayConfig() {}
