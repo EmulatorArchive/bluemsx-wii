@@ -42,7 +42,7 @@ namespace wsp{
 			fp = fopen((const char*)path, "rb");
 			if(!fp)
 				return IMG_LOAD_ERROR_NOT_FOUND;
-		
+
 			if(fread(header, 1, 8, fp)!=8){
 				fclose(fp);
 				return IMG_LOAD_ERROR_INV_PNG;
@@ -139,7 +139,7 @@ namespace wsp{
 		}
 		for(u32 y = 0; y<_height; y++)
 			row_pointers[y] = (png_byte*)malloc(rowbytes);
-		
+
 		png_read_image(png_ptr, row_pointers);
 
 		if(loadtype == false)fclose(fp);
@@ -147,9 +147,14 @@ namespace wsp{
 		if(_pixels)
 			free(_pixels); _pixels = NULL;
 
-		_pixels = (u8*)(memalign(32, _width*_height*4));
+        if(channels == 4) {
+            _bytespp = 4;
+        }else{
+            _bytespp = 2;
+        }
+		_pixels = (u8*)(memalign(32, _width*_height*_bytespp));
 		_ConvertTexture(color_type, channels, row_pointers);
-		
+
 		// Free up some memory
 		if(row_pointers){
 			for(u32 y = 0; y < _height; y++){
@@ -158,8 +163,8 @@ namespace wsp{
 			free(row_pointers); row_pointers = NULL;
 		}
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-		
-		// Everything was loaded fine	
+
+		// Everything was loaded fine
 		_initialized = true;
 		return IMG_LOAD_ERROR_NONE;
 	}
@@ -187,19 +192,19 @@ namespace wsp{
 		if(GameWindow::_lastimagebilinear == bilinear)
 			if(GameWindow::_lastimage == this)
 				return;
-		
-		GX_InitTexObj(&_texObj, (void*)_pixels, _width, _height, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-		
+
+		GX_InitTexObj(&_texObj, (void*)_pixels, _width, _height, (_bytespp==2)? GX_TF_RGB565 : GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+
 		// This disables bilinear filtering if applicable
 		if(!bilinear)GX_InitTexObjLOD(&_texObj, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
-		
+
 		GX_LoadTexObj(&_texObj,GX_TEXMAP0);
-			
+
 		GameWindow::_lastimage = this;
 		GameWindow::_lastimagebilinear = bilinear;
 	}
 
-	bool Image::_InitializeImage(u32 width, u32 height){
+	bool Image::_InitializeImage(u32 width, u32 height, u32 bytespp){
 		if(width % 4 != 0 || height %4 != 0 || height == 0 || width == 0)return false;
 
 		// Check for image data.
@@ -207,14 +212,14 @@ namespace wsp{
 		if(_pixels)
 			free(_pixels); _pixels = NULL;
 
-		_width = width; _height = height;
+		_width = width; _height = height; _bytespp = bytespp;
 
 		// Allocate memory and erase it completely.
-		_pixels = (u8*)(memalign(32, _width*_height*4));
-		memset(_pixels, 0, _width*_height*4);
+		_pixels = (u8*)(memalign(32, _width*_height*_bytespp));
+		memset(_pixels, 0, _width*_height*_bytespp);
 
 		_Flush();
-		
+
 		_initialized = true;
 		return true;
 	}
@@ -225,54 +230,74 @@ namespace wsp{
 	}
 
 	void Image::_ConvertTexture(png_byte color_type, int channels, png_bytep* row_pointers){
-		// THANKS DHEWG!! My first born is yours.
-		u8 *d = (u8*)(_pixels);
-		u8 *s = NULL;
-		if(color_type == PNG_COLOR_TYPE_RGBA ||
-          (color_type == PNG_COLOR_TYPE_PALETTE && channels==4) ||
-          (color_type == PNG_COLOR_TYPE_GRAY && channels==4)) { // 32bit
-			for (u32 y = 0; y < _height; y += 4) {
-				for (u32 x = 0; x < _width; x += 4) {
-					for (u32 r = 0; r < 4; ++r) {
-						s = &row_pointers[y + r][x << 2];
-						*d++ = s[0];  *d++ = s[1];
-						*d++ = s[4];  *d++ = s[5];
-						*d++ = s[8];  *d++ = s[9];
-						*d++ = s[12]; *d++ = s[13];
-					}
-					for (int r = 0; r < 4; ++r) {
-						s = &row_pointers[y + r][x << 2];
-						*d++ = s[2];  *d++ = s[3];
-						*d++ = s[6];  *d++ = s[7];
-						*d++ = s[10]; *d++ = s[11];
-						*d++ = s[14]; *d++ = s[15];
-					}
-				}
-			}
-		}else
-		if(color_type == PNG_COLOR_TYPE_RGB ||
-          (color_type == PNG_COLOR_TYPE_PALETTE && channels==3) ||
-          (color_type == PNG_COLOR_TYPE_GRAY && channels==3)) { // 24bit
-			for (u32 y = 0; y < _height; y += 4) {
-				for (u32 x = 0; x < _width; x += 4) {
-					for (u32 r = 0; r < 4; ++r) {
-						s = &row_pointers[y + r][x * 3];
-						*d++ = 0xff;  *d++ = s[0];
-						*d++ = 0xff;  *d++ = s[3];
-						*d++ = 0xff;  *d++ = s[6];
-						*d++ = 0xff; *d++ = s[9];
-					}
-	
-					for (int r = 0; r < 4; ++r) {
-						s = &row_pointers[y + r][x * 3];
-						*d++ = s[1];  *d++ = s[2];
-						*d++ = s[4];  *d++ = s[5];
-						*d++ = s[7]; *d++ = s[8];
-						*d++ = s[10]; *d++ = s[11];
-					}
-				}
-			}
-		}
+        if(_bytespp == 2) {
+            u16 *d = (u16*)(_pixels);
+            u8 *s = NULL;
+            for (u32 y = 0; y < _height; y += 4) {
+                for (u32 x = 0; x < _width; x += 4) {
+                    for (u32 r = 0; r < 4; ++r) {
+                        s = &row_pointers[y + r][x*channels];
+                        for (u32 k = 0; k < 4; ++k) {
+                            u16 c;
+                            c =  ((u16)(*s++) & 0xf8) << (11-3); //R
+                            c |= ((u16)(*s++) & 0xf8) << (6-3); //G
+                            c |= ((u16)(*s++) & 0xf8) >> 3; //B
+                            if(channels==4) ++s;
+                            *d++ = c;
+                        }
+                    }
+                }
+            }
+        }else{
+            // THANKS DHEWG!! My first born is yours.
+            u8 *d = (u8*)(_pixels);
+            u8 *s = NULL;
+    		if(color_type == PNG_COLOR_TYPE_RGBA ||
+              (color_type == PNG_COLOR_TYPE_PALETTE && channels==4) ||
+              (color_type == PNG_COLOR_TYPE_GRAY && channels==4)) { // 32bit
+    			for (u32 y = 0; y < _height; y += 4) {
+    				for (u32 x = 0; x < _width; x += 4) {
+    					for (u32 r = 0; r < 4; ++r) {
+    						s = &row_pointers[y + r][x << 2];
+    						*d++ = s[0];  *d++ = s[1];
+    						*d++ = s[4];  *d++ = s[5];
+    						*d++ = s[8];  *d++ = s[9];
+    						*d++ = s[12]; *d++ = s[13];
+    					}
+    					for (int r = 0; r < 4; ++r) {
+    						s = &row_pointers[y + r][x << 2];
+    						*d++ = s[2];  *d++ = s[3];
+    						*d++ = s[6];  *d++ = s[7];
+    						*d++ = s[10]; *d++ = s[11];
+    						*d++ = s[14]; *d++ = s[15];
+    					}
+    				}
+    			}
+    		}else
+    		if(color_type == PNG_COLOR_TYPE_RGB ||
+              (color_type == PNG_COLOR_TYPE_PALETTE && channels==3) ||
+              (color_type == PNG_COLOR_TYPE_GRAY && channels==3)) { // 24bit
+    			for (u32 y = 0; y < _height; y += 4) {
+    				for (u32 x = 0; x < _width; x += 4) {
+    					for (u32 r = 0; r < 4; ++r) {
+    						s = &row_pointers[y + r][x * 3];
+    						*d++ = 0xff;  *d++ = s[0];
+    						*d++ = 0xff;  *d++ = s[3];
+    						*d++ = 0xff;  *d++ = s[6];
+    						*d++ = 0xff; *d++ = s[9];
+    					}
+
+    					for (int r = 0; r < 4; ++r) {
+    						s = &row_pointers[y + r][x * 3];
+    						*d++ = s[1];  *d++ = s[2];
+    						*d++ = s[4];  *d++ = s[5];
+    						*d++ = s[7]; *d++ = s[8];
+    						*d++ = s[10]; *d++ = s[11];
+    					}
+    				}
+    			}
+    		}
+        }
 
 		_Flush();
 	}

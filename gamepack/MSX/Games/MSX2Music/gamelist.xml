@@ -1,0 +1,27 @@
+<GameList>
+    <Game Title="DreamScape">
+        <CommandLine>/machine MSX2 /diskA DreamScape.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>DreamScape-1.png</ScreenShot>
+        <ScreenShot>DreamScape-2.png</ScreenShot>
+    </Game>
+    <Game Title="MGFTechnoTrance">
+        <CommandLine>/machine MSX2 /diskA MGFTechnoTrance.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>MGFTechnoTrance-1.png</ScreenShot>
+        <ScreenShot>MGFTechnoTrance-2.png</ScreenShot>
+    </Game>
+    <Game Title="MoonSounds">
+        <CommandLine>/machine MSX2 /diskA MoonSounds.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>MoonSounds-1.png</ScreenShot>
+        <ScreenShot>MoonSounds-2.png</ScreenShot>
+    </Game>
+    <Game Title="Pure">
+        <CommandLine>/machine MSX2 /diskA Pure.zip /diskAzip Pure-1.dsk</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <KeyMap plus1="hotkey_disk_change"/>
+        <ScreenShot>Pure-1.png</ScreenShot>
+        <ScreenShot>Pure-2.png</ScreenShot>
+    </Game>
+</GameList>

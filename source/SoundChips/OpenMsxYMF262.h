@@ -9,7 +9,7 @@ extern "C" {
 #include "Board.h"
 }
 
-//using namespace std;
+using namespace std;
 
 
 typedef unsigned long  EmuTime;

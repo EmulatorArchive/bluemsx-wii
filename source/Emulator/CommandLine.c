@@ -506,7 +506,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
 
     if (strlen(machineName)) strcpy(properties->emulation.machineName, machineName);
 #ifdef WII
-    else strcpy(properties->emulation.machineName, "MSX2"); /* If not specified, use MSX2 as default */
+    else strcpy(properties->emulation.machineName, "MSX2 - No Moonsound"); /* If not specified, use MSX2 without moonsound as default */
 #endif
 
     emulatorStop();

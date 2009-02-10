@@ -4,7 +4,11 @@
 #include <string.h>
 #include "gamewindow.h"
 
+#if 1
+#define DEFAULT_FIFO_SIZE (256*1024)
+#else
 #define DEFAULT_FIFO_SIZE (1024*1024)
+#endif
 
 //extern GXRModeObj TVEurgb60Hz480IntDf;
 
@@ -15,7 +19,7 @@ namespace wsp{
 	bool GameWindow::_initialized = false;
 	Image* GameWindow::_lastimage = NULL;
 	bool GameWindow::_lastimagebilinear = false;
-	
+
 	GameWindow::GameWindow() :
 		_fb(0), _first(true), _rmode(NULL), _gp_fifo(NULL)
 	{
@@ -36,7 +40,7 @@ namespace wsp{
 			exit(0);
 			return;
 		}
-		
+
 		// Allocate two framebuffers for double buffering
 		_frameBuffer[0] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(_rmode));
 		_frameBuffer[1] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(_rmode));
@@ -78,7 +82,7 @@ namespace wsp{
 		GX_SetCopyFilter(_rmode->aa, _rmode->sample_pattern, GX_TRUE, _rmode->vfilter);
 		// Use these values for GetWidth() and GetHeight()
 		_width = (u32)_rmode->fbWidth; _height = (u32)_rmode->efbHeight;
-		
+
 		// Some additional Init code
 		GX_SetFieldMode(_rmode->field_rendering, ((_rmode->viHeight == 2*_rmode->xfbHeight)?GX_ENABLE:GX_DISABLE));
 
@@ -96,10 +100,10 @@ namespace wsp{
 		GX_SetVtxDesc(GX_VA_POS, GX_DIRECT);
 		GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);
 		GX_SetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-	
+
 		GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XY, GX_F32, 0); // Positions given in 2 f32's (f32 x, f32 y)
 		GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0); // Texture coordinates given in 2 f32's
-		GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);		
+		GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
 
 		GX_SetNumChans(1);
 		GX_SetChanCtrl(GX_COLOR0A0, GX_DISABLE, GX_SRC_REG, GX_SRC_VTX, GX_LIGHTNULL, GX_DF_NONE, GX_AF_NONE);
@@ -107,10 +111,10 @@ namespace wsp{
 		GX_SetNumTexGens(1);
 		GX_SetTevOp(GX_TEVSTAGE0, GX_MODULATE);
 		GX_SetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-		GX_SetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);	
+		GX_SetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
 
 		GX_InvalidateTexAll();
-		
+
 		Mtx GXmodelView2D;
 		Mtx44 perspective;
 		// Reset the model view matrix
@@ -135,7 +139,7 @@ namespace wsp{
 		GX_SetViewport(0, 0, _rmode->fbWidth, _rmode->efbHeight, 0, 1);
 		GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
 		GX_SetAlphaUpdate(GX_TRUE);
-	
+
 		// The final scissor box
 		GX_SetScissorBoxOffset(0, 0);
 		GX_SetScissor(0, 0, _width, _height);
@@ -145,7 +149,7 @@ namespace wsp{
 
 	void GameWindow::StopVideo(){
 		if(!_initialized)return;
-		
+
 		// Dhewg.. You rescued our asses again.
 		// This code should be run before exiting the app.
 		GX_AbortFrame();

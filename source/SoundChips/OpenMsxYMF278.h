@@ -6,7 +6,7 @@
 
 #include <string>
 
-//using namespace std;
+using namespace std;
 
 
 typedef unsigned long  EmuTime;

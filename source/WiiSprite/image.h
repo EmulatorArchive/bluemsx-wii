@@ -11,7 +11,7 @@
 
 //!libwiisprite namespace
 namespace wsp{
-	
+
 	//!Error codes when loading images.
 	enum IMG_LOAD_ERROR{
 		IMG_LOAD_ERROR_NONE = 0, //!< Image successfully loaded.
@@ -49,7 +49,7 @@ namespace wsp{
 			//!\param loadtype Set this to how you want to load this image.
 			//!\sa \ref image_loadbuffer_page
 			IMG_LOAD_ERROR LoadImage(const unsigned char* path, IMG_LOAD_TYPE loadtype = IMG_LOAD_TYPE_BUFFER);
-			
+
 			//!Cleans up the image to be able to reload it again.
 			virtual void DestroyImage();
 			//!Gets the width of this image.
@@ -58,7 +58,7 @@ namespace wsp{
 			//!Gets the height of this image.
 			//!\return The height of the image. Returns 0 if no image is loaded.
 			virtual u32 GetHeight() const;
-	
+
 			//!Checks if the image is loaded.
 			//!\return true if an image is stored, false if not.
 			virtual bool IsInitialized() const;
@@ -73,15 +73,15 @@ namespace wsp{
 			//!\param width The new width of the image.
 			//!\param height The new height of the image.
 			//!\return True if it was successfully initialized, false if not.
-			bool _InitializeImage(u32 width, u32 height);
+			bool _InitializeImage(u32 width, u32 height, u32 bytespp = 4);
 			//!Use this method if you've drawn something in the pixeldata.
 			void _Flush();
 
 			u8* _pixels; //!< Stores the pixeldata of this image. Use carefully.
 		private:
 			void _ConvertTexture(png_byte color_type, int channels, png_bytep* row_pointers);
-			
-			png_uint_32 _width, _height;
+
+			png_uint_32 _width, _height, _bytespp;
 			bool _initialized;
 			GXTexObj _texObj;
 	};
@@ -99,7 +99,7 @@ image.LoadImage("/apps/foo/bar.png");
 \code
 image.LoadImage("bar.png");
 \endcode
- * 
+ *
  * If you're using wiiload, think that the boot file is running from root.
  *
  * There are some situations however, where you want to load from a buffer. Say, you have a very small

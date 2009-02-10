@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,22 +36,17 @@
 
 #define FREQUENCY        3579545
 #define FREQINCR         (FREQUENCY / 440)
-#ifdef WII
-#define VLMRATE          48000
-#else
-#define VLMRATE          44100
-#endif
 
 struct VLM5030 {
     Mixer* mixer;
     Int32  handle;
-    
+
     Int32 timer;
     Int32 daVolume;
     Int32 sampleVolume;
     Int32 oldSampleVolume;
     Int32 ctrlVolume;
-    
+
     Int32  buffer[AUDIO_MONO_BUFFER_SIZE];
 };
 
@@ -102,16 +97,16 @@ void vlm5030Write(VLM5030* vlm5030, UInt16 ioPort, UInt8 value)
     }
 }
 
-static Int32* vlm5030Sync(VLM5030* vlm5030, UInt32 count) 
+static Int32* vlm5030Sync(VLM5030* vlm5030, UInt32 count)
 {
     UInt32 i;
 
     for (i = 0; i < count; i++) {
         vlm5030->timer += FREQINCR;
-        if (vlm5030->timer >= VLMRATE) {
+        if (vlm5030->timer >= 44100) {
             vlm5030_update_callback(&vlm5030->sampleVolume, 1);
             vlm5030->sampleVolume *= 10;
-            vlm5030->timer -= VLMRATE;
+            vlm5030->timer -= 44100;
         }
 
         /* Perform DC offset filtering */
@@ -130,7 +125,7 @@ static Int32* vlm5030Sync(VLM5030* vlm5030, UInt32 count)
 void vlm5030SaveState(VLM5030* vlm5030)
 {
     SaveState* state = saveStateOpenForWrite("vlm5030");
-    
+
     saveStateSet(state, "timer",           vlm5030->timer);
     saveStateSet(state, "ctrlVolume",      vlm5030->ctrlVolume);
     saveStateSet(state, "oldSampleVolume", vlm5030->oldSampleVolume);
@@ -143,7 +138,7 @@ void vlm5030SaveState(VLM5030* vlm5030)
 void vlm5030LoadState(VLM5030* vlm5030)
 {
     SaveState* state = saveStateOpenForRead("vlm5030");
-    
+
     vlm5030->timer            = saveStateGet(state, "timer",           0);
     vlm5030->ctrlVolume       = saveStateGet(state, "ctrlVolume",      0);
     vlm5030->oldSampleVolume  = saveStateGet(state, "oldSampleVolume", 0);
@@ -153,7 +148,7 @@ void vlm5030LoadState(VLM5030* vlm5030)
     saveStateClose(state);
 }
 
-void vlm5030Destroy(VLM5030* vlm5030) 
+void vlm5030Destroy(VLM5030* vlm5030)
 {
     mixerUnregisterChannel(vlm5030->mixer, vlm5030->handle);
 
@@ -170,7 +165,7 @@ void vlm5030Reset(VLM5030* vlm5030)
 VLM5030* vlm5030Create(Mixer* mixer, UInt8* voiceData, int length)
 {
     VLM5030* vlm5030;
-    
+
     vlm5030 = (VLM5030*)calloc(1, sizeof(VLM5030));
 
     vlm5030->mixer = mixer;

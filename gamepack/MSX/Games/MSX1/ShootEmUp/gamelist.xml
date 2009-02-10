@@ -67,6 +67,12 @@
         <ScreenShot>Nemesis-1.png</ScreenShot>
         <ScreenShot>Nemesis-2.png</ScreenShot>
     </Game>
+    <Game Title="Nemesis (SCC)">
+        <CommandLine>/rom1 NemesisScc.zip</CommandLine>
+        <KeyMap plus1="f5"/>
+        <ScreenShot>Nemesis-1.png</ScreenShot>
+        <ScreenShot>Nemesis-2.png</ScreenShot>
+    </Game>
     <Game Title="Nemesis 2">
         <CommandLine>/rom1 Nemesis2.zip</CommandLine>
         <KeyMap plus1="f5"/>

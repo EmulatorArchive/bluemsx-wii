@@ -42,5 +42,11 @@ extern void allocLogPrint(void);
 #ifdef __cplusplus
 }
 #endif
+#else
+#define _SYS_AllocateFramebuffer SYS_AllocateFramebuffer
+#define allocLogStart()
+#define allocLogStop()
+#define allocLogSetMarker()
+#define allocLogPrint()
 #endif
 

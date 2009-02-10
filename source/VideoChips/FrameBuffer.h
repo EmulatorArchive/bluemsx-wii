@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -30,7 +30,11 @@
 
 #include "../Common/MsxTypes.h"
 
+#ifdef WII
+#define FB_MAX_LINE_WIDTH 544
+#else
 #define FB_MAX_LINE_WIDTH 640
+#endif
 #define FB_MAX_LINES      480
 
 #ifndef NO_FRAMEBUFFER
@@ -47,7 +51,7 @@ typedef void FrameBuffer;
 #else
 typedef struct {
     int age;           // Internal use
-    InterlaceMode interlace; 
+    InterlaceMode interlace;
     int maxWidth;
     int lines;         // Number of lines in frame buffer
     LineBuffer line[FB_MAX_LINES];
