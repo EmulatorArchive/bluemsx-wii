@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -72,11 +72,7 @@ SamplePlayer* samplePlayerCreate(Mixer* mixer, int mixerChannel, int bitDepth, i
     samplePlayer->mixer    = mixer;
     samplePlayer->bitDepth = bitDepth;
     samplePlayer->stepCur  = 0;
-#ifdef WII
-    samplePlayer->stepCnt  = 48000 / frequency;
-#else
     samplePlayer->stepCnt  = 44100 / frequency;
-#endif
 
     samplePlayerReset(samplePlayer);
 
@@ -144,8 +140,8 @@ void samplePlayerDoSync(SamplePlayer* samplePlayer)
 	mixerSync(samplePlayer->mixer);
 }
 
-void samplePlayerWrite(SamplePlayer* samplePlayer, 
-                       const void* attackBuffer, UInt32 attackBufferSize, 
+void samplePlayerWrite(SamplePlayer* samplePlayer,
+                       const void* attackBuffer, UInt32 attackBufferSize,
                        const void* loopBuffer, UInt32 loopBufferSize)
 {
     if (attackBuffer == NULL) {

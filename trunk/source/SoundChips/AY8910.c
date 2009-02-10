@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -35,17 +35,13 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef WII
-#define BASE_PHASE_STEP 0x2549740dUL  /* = (1 << 28) * 3579545 / 32 / 48000 */
-#else
 #define BASE_PHASE_STEP 0x28959becUL  /* = (1 << 28) * 3579545 / 32 / 44100 */
-#endif
 
 static Int16 voltTable[16];
 static Int16 voltEnvTable[32];
 
 static const UInt8 regMask[16] = {
-    0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x1f, 0x3f, 
+    0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x1f, 0x3f,
     0x1f, 0x1f, 0x1f, 0xff, 0xff, 0x0f, 0xff, 0xff
 };
 
@@ -123,7 +119,7 @@ void ay8910LoadState(AY8910* ay8910)
         sprintf(tag, "ampVol%d", i);
         ay8910->ampVolume[i] = (UInt8)saveStateGet(state, tag, 0);
     }
-    
+
     saveStateClose(state);
 }
 
@@ -163,7 +159,7 @@ void ay8910SaveState(AY8910* ay8910)
         sprintf(tag, "ampVol%d", i);
         saveStateSet(state, tag, ay8910->ampVolume[i]);
     }
-    
+
     saveStateClose(state);
 }
 
@@ -270,7 +266,7 @@ void ay8910Reset(AY8910* ay8910)
 {
     if (ay8910 != NULL) {
         int i;
-    
+
         for (i = 0; i < 16; i++) {
             ay8910WriteAddress(ay8910, 0xa0, i);
             ay8910WriteData(ay8910, 0xa1, 0);
@@ -288,7 +284,7 @@ void ay8910Destroy(AY8910* ay8910)
         ioPortUnregister(0xa1);
         ioPortUnregister(0xa2);
         break;
-        
+
     case AY8910_SVI:
         ioPortUnregister(0x88);
         ioPortUnregister(0x8c);
@@ -366,16 +362,16 @@ static void updateRegister(AY8910* ay8910, UInt8 regIndex, UInt8 data)
 //        period *= (~ay8910->enable >> (address >> 1)) & 1;
         ay8910->toneStep[regIndex >> 1] = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
         break;
-        
+
     case 6:
         period = data ? data : 1;
         ay8910->noiseStep = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
         break;
-        
+
     case 7:
         ay8910->enable = data;
         break;
-        
+
     case 8:
     case 9:
     case 10:
@@ -387,7 +383,7 @@ static void updateRegister(AY8910* ay8910, UInt8 regIndex, UInt8 data)
         period = 16 * (ay8910->regs[11] | ((UInt32)ay8910->regs[12] << 8));
         ay8910->envStep = BASE_PHASE_STEP / (period ? period : 8);
         break;
-        
+
     case 13:
         if (data < 4) data = 0x09;
         if (data < 8) data = 0x0f;
@@ -447,7 +443,7 @@ static Int32* ay8910Sync(void* ref, UInt32 count)
         if ((ay8910->envShape & 1) && (ay8910->envPhase >> 28)) {
             ay8910->envPhase = 0x10000000;
         }
- 
+
         /* Calculate envelope volume */
         envVolume = (Int16)((ay8910->envPhase >> 23) & 0x1f);
         if (((ay8910->envPhase >> 27) & (ay8910->envShape + 1) ^ (~ay8910->envShape >> 1)) & 2) {
@@ -467,7 +463,7 @@ static Int32* ay8910Sync(void* ref, UInt32 count)
             while (count--) {
                 /* Update phase of tone */
                 tonePhase += phaseStep;
-     
+
                 /* Calculate if tone is on or off */
                 tone += (enable | (tonePhase >> 31)) & noiseEnable;
             }
@@ -490,7 +486,7 @@ static Int32* ay8910Sync(void* ref, UInt32 count)
 
         /* Perform simple 1 pole low pass IIR filtering */
         ay8910->daVolume += 2 * (ay8910->ctrlVolume - ay8910->daVolume) / 3;
-        
+
         /* Store calclulated sample value */
         ay8910->buffer[index] = 9 * ay8910->daVolume;
     }

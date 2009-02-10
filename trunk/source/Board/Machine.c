@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -143,7 +143,7 @@
 #include "PacketFileSystem.h"
 
 
-int toint(char* buffer) 
+int toint(char* buffer)
 {
     int i;
 
@@ -230,7 +230,7 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
     else if (0 == strcmp(buffer, "3")) machine->fdc.count = 3;
     else if (0 == strcmp(buffer, "4")) machine->fdc.count = 4;
     else { iniFileClose(); return 0; }
-    
+
     iniFileGetString("CMOS", "Battery Backed", "none", buffer, 10000);
     if (0 == strcmp(buffer, "none")) machine->cmos.batteryBacked = 1;
     else if (0 == strcmp(buffer, "0")) machine->cmos.batteryBacked = 0;
@@ -242,17 +242,17 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
     if (0 == strcmp(buffer, "0")) machine->slot[0].subslotted = 0;
     else if (0 == strcmp(buffer, "1")) machine->slot[0].subslotted = 1;
     else { iniFileClose(); return 0; }
-    
+
     iniFileGetString("Subslotted Slots", "slot 1", "none", buffer, 10000);
     if (0 == strcmp(buffer, "0")) machine->slot[1].subslotted = 0;
     else if (0 == strcmp(buffer, "1")) machine->slot[1].subslotted = 1;
     else { iniFileClose(); return 0; }
-    
+
     iniFileGetString("Subslotted Slots", "slot 2", "none", buffer, 10000);
     if (0 == strcmp(buffer, "0")) machine->slot[2].subslotted = 0;
     else if (0 == strcmp(buffer, "1")) machine->slot[2].subslotted = 1;
     else { iniFileClose(); return 0; }
-    
+
     iniFileGetString("Subslotted Slots", "slot 3", "none", buffer, 10000);
     if (0 == strcmp(buffer, "0")) machine->slot[3].subslotted = 0;
     else if (0 == strcmp(buffer, "1")) machine->slot[3].subslotted = 1;
@@ -260,16 +260,16 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
 
     // Read external slot info
     iniFileGetString("External Slots", "slot A", "none", buffer, 10000);
-    machine->cart[0].slot = toint(extractToken(buffer, 0));        
-    machine->cart[0].subslot = toint(extractToken(buffer, 1));    
+    machine->cart[0].slot = toint(extractToken(buffer, 0));
+    machine->cart[0].subslot = toint(extractToken(buffer, 1));
     if (machine->cart[0].slot < 0 || machine->cart[0].slot >= 4) { iniFileClose(); return 0; }
-    if (machine->cart[0].subslot < 0 || machine->cart[0].subslot >= 4) { iniFileClose(); return 0; }  
+    if (machine->cart[0].subslot < 0 || machine->cart[0].subslot >= 4) { iniFileClose(); return 0; }
 
     iniFileGetString("External Slots", "slot B", "none", buffer, 10000);
-    machine->cart[1].slot = toint(extractToken(buffer, 0));        
-    machine->cart[1].subslot = toint(extractToken(buffer, 1));    
+    machine->cart[1].slot = toint(extractToken(buffer, 0));
+    machine->cart[1].subslot = toint(extractToken(buffer, 1));
     if (machine->cart[1].slot < 0 || machine->cart[1].slot >= 4) { iniFileClose(); return 0; }
-    if (machine->cart[1].subslot < 0 || machine->cart[1].subslot >= 4) { iniFileClose(); return 0; }   
+    if (machine->cart[1].subslot < 0 || machine->cart[1].subslot >= 4) { iniFileClose(); return 0; }
 
     // Read slots
     iniFileGetSection("Slots", buffer, 10000);
@@ -280,7 +280,7 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
     for (i = 0; i < sizeof(machine->slotInfo) / sizeof(SlotInfo) && *slotBuf; i++) {
         char* arg;
 
-        machine->slotInfo[i].slot = toint(extractToken(slotBuf, 0));    
+        machine->slotInfo[i].slot = toint(extractToken(slotBuf, 0));
         machine->slotInfo[i].subslot = toint(extractToken(slotBuf, 1));
         machine->slotInfo[i].startPage = toint(extractToken(slotBuf, 2));
         machine->slotInfo[i].pageCount = toint(extractToken(slotBuf, 3));
@@ -309,7 +309,7 @@ static int readMachine(Machine* machine, const char* machineName, const char* fi
     }
 
     machine->slotInfoCount = i;
- 
+
     iniFileClose();
 
     return 1;
@@ -448,9 +448,9 @@ int machineIsValid(const char* machineName, int checkRoms)
     }
 
     for (i = 0; i < machine->slotInfoCount; i++) {
-        if (strlen(machine->slotInfo[i].name) || 
+        if (strlen(machine->slotInfo[i].name) ||
             strlen(machine->slotInfo[i].inZipName))
-        {        
+        {
             FILE* file = fopen(machine->slotInfo[i].name, "r");
             if (file == NULL) {
                 if (success) {
@@ -491,7 +491,7 @@ char** machineGetAvailable(int checkRoms)
             }
             fclose(file);
         }
-        
+
         machineNames[index] = NULL;
 
         return machineNames;
@@ -532,7 +532,7 @@ char** machineGetAvailable(int checkRoms)
         }
 
         archGlobFree(glob);
-        
+
         machineNames[index] = NULL;
 
         return machineNames;
@@ -575,9 +575,9 @@ void machineUpdate(Machine* machine)
         for (entry = 0; entry < machine->slotInfoCount - 1; entry++) {
             SlotInfo* si1 = &machine->slotInfo[entry];
             SlotInfo* si2 = &machine->slotInfo[entry + 1];
-            int tst1 = (si1->slot << 24) + (si1->subslot << 20) + 
+            int tst1 = (si1->slot << 24) + (si1->subslot << 20) +
                        (si1->startPage << 12) + si1->pageCount;
-            int tst2 = (si2->slot << 24) + (si2->subslot << 20) + 
+            int tst2 = (si2->slot << 24) + (si2->subslot << 20) +
                        (si2->startPage << 12) + si2->pageCount;
 
             if (tst2 < tst1) {
@@ -652,49 +652,49 @@ void machineLoadState(Machine* machine)
     machine->cart[0].subslot       = saveStateGet(state, "cartSubslot00",     0);
     machine->cart[1].slot          = saveStateGet(state, "cartSlot01",        0);
     machine->cart[1].subslot       = saveStateGet(state, "cartSubslot01",     0);
-    
+
     machine->video.vdpVersion      = saveStateGet(state, "videoVersion",      0);
     machine->video.vramSize        = saveStateGet(state, "videoVramSize",     0x10000);
-    
+
     machine->cmos.enable           = saveStateGet(state, "cmosEnable",        0);
     machine->cmos.batteryBacked    = saveStateGet(state, "cmosBatteryBacked", 0);
-    
+
     machine->fdc.count             = saveStateGet(state, "fdcCount",          2);
     machine->cpu.freqZ80           = saveStateGet(state, "cpuFreqZ80",        3579545);
     machine->cpu.freqR800          = saveStateGet(state, "cpuFreqR800",       7159090);
-    
+
     machine->slotInfoCount         = saveStateGet(state, "slotInfoCount",     0);
 
     for (i = 0; i < sizeof(machine->slotInfo) / sizeof(machine->slotInfo[0]); i++) {
         char tag[32];
-        
+
         sprintf(tag, "slotRomType%.2d", i);
         machine->slotInfo[i].romType = saveStateGet(state, tag, 0);
-        
+
         hasR800 |= machine->slotInfo[i].romType == ROM_S1990;
 
         sprintf(tag, "slot%.2d", i);
         machine->slotInfo[i].slot = saveStateGet(state, tag, 0);
-        
+
         sprintf(tag, "subslot%.2d", i);
         machine->slotInfo[i].subslot = saveStateGet(state, tag, 0);
-        
+
         sprintf(tag, "slotStartPage%.2d", i);
         machine->slotInfo[i].startPage = saveStateGet(state, tag, 0);
-        
+
         sprintf(tag, "slotPageCount%.2d", i);
         machine->slotInfo[i].pageCount = saveStateGet(state, tag, 0);
-        
+
         sprintf(tag, "slotError%.2d", i);
         machine->slotInfo[i].error = saveStateGet(state, tag, 0);
-        
+
         sprintf(tag, "slotName%.2d", i);
         saveStateGetBuffer(state, tag, machine->slotInfo[i].name, 512);
-        
+
         sprintf(tag, "slotInZipName%.2d", i);
         saveStateGetBuffer(state, tag, machine->slotInfo[i].inZipName, 128);
     }
-    
+
     machine->cpu.hasR800 = hasR800;
 
     saveStateClose(state);
@@ -720,44 +720,44 @@ void machineSaveState(Machine* machine)
     saveStateSet(state, "cartSubslot00",     machine->cart[0].subslot);
     saveStateSet(state, "cartSlot01",        machine->cart[1].slot);
     saveStateSet(state, "cartSubslot01",     machine->cart[1].subslot);
-    
+
     saveStateSet(state, "videoVersion",      machine->video.vdpVersion);
     saveStateSet(state, "videoVramSize",     machine->video.vramSize);
-    
+
 
     saveStateSet(state, "cmosEnable",        machine->cmos.enable);
     saveStateSet(state, "cmosBatteryBacked", machine->cmos.batteryBacked);
-    
+
     saveStateSet(state, "fdcCount",          machine->fdc.count);
     saveStateSet(state, "cpuFreqZ80",        machine->cpu.freqZ80);
     saveStateSet(state, "cpuFreqR800",       machine->cpu.freqR800);
-    
+
     saveStateSet(state, "slotInfoCount",     machine->slotInfoCount);
 
     for (i = 0; i < sizeof(machine->slotInfo) / sizeof(machine->slotInfo[0]); i++) {
         char tag[32];
-        
+
         sprintf(tag, "slotRomType%.2d", i);
         saveStateSet(state, tag, machine->slotInfo[i].romType);
-        
+
         sprintf(tag, "slot%.2d", i);
         saveStateSet(state, tag, machine->slotInfo[i].slot);
-        
+
         sprintf(tag, "subslot%.2d", i);
         saveStateSet(state, tag, machine->slotInfo[i].subslot);
-        
+
         sprintf(tag, "slotStartPage%.2d", i);
         saveStateSet(state, tag, machine->slotInfo[i].startPage);
-        
+
         sprintf(tag, "slotPageCount%.2d", i);
         saveStateSet(state, tag, machine->slotInfo[i].pageCount);
-        
+
         sprintf(tag, "slotError%.2d", i);
         saveStateSet(state, tag, machine->slotInfo[i].error);
-        
+
         sprintf(tag, "slotName%.2d", i);
         saveStateSetBuffer(state, tag, machine->slotInfo[i].name, 512);
-        
+
         sprintf(tag, "slotInZipName%.2d", i);
         saveStateSetBuffer(state, tag, machine->slotInfo[i].inZipName, 128);
     }
@@ -788,7 +788,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         int subslot;
         int startPage;
         char* romName;
-        
+
         // Don't map slots with error
         if (machine->slotInfo[i].error) {
             continue;
@@ -819,7 +819,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         int subslot;
         int startPage;
         char* romName;
-        
+
         // Don't map slots with error
         if (machine->slotInfo[i].error) {
             continue;
@@ -881,28 +881,22 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         int subslot;
         int startPage;
         char* romName;
-        
+
         // Don't map slots with error
         if (machine->slotInfo[i].error) {
             continue;
         }
 
-#ifdef WII
-        // TEMP FIX: Skip moonsound!
-        if (machine->slotInfo[i].romType == ROM_MOONSOUND) {
-            continue;
-        }
-#endif
         romName   = strlen(machine->slotInfo[i].inZipName) ? machine->slotInfo[i].inZipName : machine->slotInfo[i].name;
         slot      = machine->slotInfo[i].slot;
         subslot   = machine->slotInfo[i].subslot;
         startPage = machine->slotInfo[i].startPage;
         size      = 0x2000 * machine->slotInfo[i].pageCount;
-        
+
         if (machine->slotInfo[i].romType == RAM_1KB_MIRRORED) {
             continue;
         }
-        
+
         if (machine->slotInfo[i].romType == RAM_2KB_MIRRORED) {
             continue;
         }
@@ -910,11 +904,11 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         if (machine->slotInfo[i].romType == RAM_NORMAL) {
             continue;
         }
-        
+
         if (machine->slotInfo[i].romType == RAM_MAPPER) {
             continue;
         }
-        
+
         if (machine->slotInfo[i].romType == ROM_JISYO) {
             continue;
         }
@@ -1050,7 +1044,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
             continue;
         }
         // -------------------------------
-        
+
         // MEGA-SCSI etc
         switch (machine->slotInfo[i].romType) {
         case SRAM_MEGASCSI:
@@ -1138,11 +1132,11 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_STANDARD:
             success &= romMapperStandardCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_MSXDOS2:
             success &= romMapperMsxDos2Create(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_KONAMI5:
             success &= romMapperKonami5Create(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1175,7 +1169,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
                 for (j = strlen(eepromName); j > 0 && eepromName[j] != '.'; j--);
                 eepromName[j] = 0;
                 strcat(eepromName, "_eeprom.rom");
-                    
+
                 eepromData = romLoad(eepromName, NULL, &eepromSize);
                 success &= romMapperDumasCreate(romName, buf, size, slot, subslot, startPage,
                                                 eepromData, eepromSize);
@@ -1187,6 +1181,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
 
         case ROM_MOONSOUND:
             success &= romMapperMoonsoundCreate(romName, buf, size, 640);
+            buf = NULL;
             break;
 
         case ROM_SCC:
@@ -1196,7 +1191,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_SCCPLUS:
             success &= romMapperSCCplusCreate(romName, buf, size, slot, subslot, startPage, SCCP_EXTENDED);
             break;
-            
+
         case ROM_KONAMI4:
             success &= romMapperKonami4Create(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1210,7 +1205,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_MAJUTSUSHI:
             success &= romMapperMajutsushiCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_HOLYQURAN:
             success &= romMapperHolyQuranCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1218,7 +1213,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_KONAMISYNTH:
             success &= romMapperKonamiSynthCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_KONWORDPRO:
             success &= romMapperKonamiWordProCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1234,9 +1229,9 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
                 for (j = strlen(voiceName); j > 0 && voiceName[j] != '.'; j--);
                 voiceName[j] = 0;
                 strcat(voiceName, "_voice.rom");
-                    
+
                 voiceData = romLoad(voiceName, NULL, &voiceSize);
-                success &= romMapperKonamiKeyboardMasterCreate(romName, buf, size, 
+                success &= romMapperKonamiKeyboardMasterCreate(romName, buf, size,
                                                                slot, subslot, startPage,
                                                                voiceData, voiceSize);
                 if (voiceData != NULL) {
@@ -1244,7 +1239,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
                 }
             }
             break;
-            
+
         case ROM_ASCII8:
             success &= romMapperASCII8Create(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1272,11 +1267,11 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_FSA1FMMODEM:
             success &= romMapperA1FMModemCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_ASCII8SRAM:
             success &= romMapperASCII8sramCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_ASCII16SRAM:
             success &= romMapperASCII16sramCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1304,7 +1299,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_KOEI:
             success &= romMapperKoeiCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_NATIONAL:
             success &= romMapperNationalCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1312,27 +1307,27 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_KONAMI4NF:
             success &= romMapperKonami4nfCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_ASCII16NF:
             success &= romMapperASCII16nfCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_GAMEMASTER2:
             success &= romMapperGameMaster2Create(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_HARRYFOX:
             success &= romMapperHarryFoxCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_HALNOTE:
             success &= romMapperHalnoteCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_RTYPE:
             success &= romMapperRTypeCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_CROSSBLAIM:
             success &= romMapperCrossBlaimCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1340,15 +1335,15 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_LODERUNNER:
             success &= romMapperLodeRunnerCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_KOREAN80:
             success &= romMapperKorean80Create(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_KOREAN90:
             success &= romMapperKorean90Create(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_KOREAN126:
             success &= romMapperKorean126Create(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1360,7 +1355,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
         case ROM_FMPAC:
             success &= romMapperFMPACCreate(romName, buf, size, slot, subslot, startPage);
             break;
-            
+
         case ROM_MSXMUSIC:
             success &= romMapperMsxMusicCreate(romName, buf, size, slot, subslot, startPage);
             break;
@@ -1460,9 +1455,9 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
                 for (j = strlen(charName); j > 0 && charName[j] != '.'; j--);
                 charName[j] = 0;
                 strcat(charName, "_char.rom");
-                    
+
                 charData = romLoad(charName, NULL, &charSize);
-                success &= romMapperMicrosolVmx80Create(romName, buf, size, 
+                success &= romMapperMicrosolVmx80Create(romName, buf, size,
                                                         slot, subslot, startPage,
                                                         charData, charSize);
                 if (charData != NULL) {
@@ -1475,7 +1470,9 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
             success &= romMapperSvi727Create(romName, buf, size, slot, subslot, startPage);
             break;
         }
-        free(buf);
+        if( buf != NULL ) {
+            free(buf);
+        }
     }
 
     if (jisyoRom != NULL) {
@@ -1485,7 +1482,7 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
     if (mainRam != NULL) {
         *mainRam = ram;
     }
-    
+
     if (mainRamSize != NULL) {
         *mainRamSize = ramSize;
     }

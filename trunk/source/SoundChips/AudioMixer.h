@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,13 +36,9 @@ typedef struct Mixer Mixer;
 #define AUDIO_MONO_BUFFER_SIZE    10000
 #define AUDIO_STEREO_BUFFER_SIZE  (2 * AUDIO_MONO_BUFFER_SIZE)
 
-#ifdef WII
-#define AUDIO_SAMPLERATE       48000
-#else
 #define AUDIO_SAMPLERATE       44100
-#endif
 
-typedef enum { 
+typedef enum {
     MIXER_CHANNEL_PSG = 0,
     MIXER_CHANNEL_SCC,
     MIXER_CHANNEL_MSXMUSIC,
@@ -64,11 +60,7 @@ typedef enum {
 #define MAX_CHANNELS 16
 
 typedef Int32* (*MixerUpdateCallback)(void*, UInt32);
-#ifdef WII
-typedef Int32 (*MixerWriteCallback)(void*, Int16*, UInt32, Int32*);
-#else
 typedef Int32 (*MixerWriteCallback)(void*, Int16*, UInt32);
-#endif
 
 /* Constructor and destructor */
 Mixer* mixerCreate();
@@ -99,7 +91,7 @@ void mixerStopLog(Mixer* mixer);
 void mixerReset(Mixer* mixer);
 void mixerSync(Mixer* mixer);
 
-Int32 mixerRegisterChannel(Mixer* mixer, Int32 audioType, Int32 stereo, 
+Int32 mixerRegisterChannel(Mixer* mixer, Int32 audioType, Int32 stereo,
                            MixerUpdateCallback callback, void*param);
 void mixerUnregisterChannel(Mixer* mixer, Int32 handle);
 

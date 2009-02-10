@@ -39,91 +39,107 @@
 
 #define AUDIO_DEBUG 0
 
-#define BUFFER_SIZE 16*1024
-static char sample_buffer[BUFFER_SIZE] __attribute__((aligned(32)));
+#define SAMPLE_SIZE 2
+#define BUFFER_SIZE_BYTES (32*1024) /* 32 kB */
+#define BUFFER_SIZE_SAMPLES (BUFFER_SIZE_BYTES / SAMPLE_SIZE)
+#define SAMPLERATE_IN  44100
+#define SAMPLERATE_OUT 48000
+
+static Int16 sample_buffer[BUFFER_SIZE_SAMPLES] __attribute__((aligned(32)));
 static unsigned int buffer_offset = 0;
 
 static sem_t audio_free;
 static int   audio_paused = 0;
 static int   audio_initialized = 0;
 static int   buffer_tuning = 0;
+static Int32 samplerate_tuning_p = 0;
+static Int32 samplerate_tuning_i = 0;
 static Mixer *audio_mixer;
+static Int32 resample_divider;
+static Int16 prev_sample[2];
 
 static void done_playing(void)
 {
     if( !audio_paused ) {
         // (re)start DMA
         LWP_SemWait(audio_free);
-        buffer_tuning = buffer_offset - BUFFER_SIZE/2;
-        AUDIO_InitDMA((unsigned int)&sample_buffer, BUFFER_SIZE);
+        buffer_tuning = buffer_offset - BUFFER_SIZE_SAMPLES / 2;
+        AUDIO_InitDMA((unsigned int)&sample_buffer, BUFFER_SIZE_BYTES);
         AUDIO_StartDMA();
         LWP_SemPost(audio_free);
     }
 }
 
-static void inline copy_to_buffer(char* buffer, char* stream, unsigned int length)
-{
-    memcpy(buffer, stream, length);
-    // Make sure the buffer is in RAM, not the cache
-    DCFlushRange(buffer, length);
-}
-
-static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length, Int32 *tuning)
+static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length)
 {
     // This shouldn't lose any data and works for any size
-    unsigned int lengthi;
-    unsigned int lengthLeft = length * 2; /* length is in samples, convert to bytes */
-    unsigned int stream_offset = 0;
     if( !audio_initialized ) {
         return 0;
     }
     LWP_SemWait(audio_free);
-    while(1){
-        lengthi = (buffer_offset + lengthLeft < BUFFER_SIZE) ?
-                   lengthLeft : (BUFFER_SIZE - buffer_offset);
 
-        copy_to_buffer(sample_buffer + buffer_offset,
-                       (char *)stream + stream_offset, lengthi);
-
-        if(buffer_offset + lengthLeft < BUFFER_SIZE){
-                buffer_offset += lengthi;
-                break;
-        }
-
-        lengthLeft    -= lengthi;
-        stream_offset += lengthi;
-
-        buffer_offset = 0;
-    }
-    // tuning
+    // Tuning
     if( !audio_paused && buffer_tuning ) {
-        int tune = 0;
-        if( buffer_tuning > (BUFFER_SIZE / 4 + BUFFER_SIZE / 8) )
-            tune = -100;
-        else if( buffer_tuning > BUFFER_SIZE / 4 )
-            tune = -50;
-        else if( buffer_tuning > BUFFER_SIZE / 8 )
-            tune = -10;
-        else if( buffer_tuning < -(BUFFER_SIZE / 4 + BUFFER_SIZE / 8) )
-            tune = 100;
-        else if( buffer_tuning > -BUFFER_SIZE / 4 )
-            tune = 50;
-        else if( buffer_tuning > -BUFFER_SIZE / 8 )
-            tune = 10;
-        if( tune ) {
-            *tuning += tune;
-            if( *tuning > 500 ) {
-                *tuning = 500;
-            }
-            if( *tuning < -500 ) {
-                *tuning = -500;
-            }
-#if AUDIO_DEBUG
-            printf("Audio: Tune %d, %d, %d\n", tune, *tuning, buffer_tuning);
-#endif
+        samplerate_tuning_p = -buffer_tuning / (BUFFER_SIZE_SAMPLES / 256);
+        if( samplerate_tuning_p > 0 ) {
+            samplerate_tuning_i++;
         }
+        if( samplerate_tuning_p < 0 ) {
+            samplerate_tuning_i--;
+        }
+#if AUDIO_DEBUG
+        printf("Audio: Tune %d, %d, %d\n", samplerate_tuning_p, samplerate_tuning_i, buffer_tuning);
+#endif
         buffer_tuning = 0;
     }
+
+    // Copy to buffer
+    // Includes resampling from 44k1 to 48kHz.
+    while(length){
+        Int32 samplerate_out = SAMPLERATE_OUT + samplerate_tuning_i + samplerate_tuning_p;
+        Int16 sample_in1 = *stream++;
+        Int16 sample_in2 = *stream++;
+        Int16 sample_out1, sample_out2;
+        // Calculate samples
+        sample_out1 = (resample_divider * sample_in1
+                       + (samplerate_out - resample_divider) * prev_sample[0])
+                      / samplerate_out;
+        sample_out2 = (resample_divider * sample_in2
+                       + (samplerate_out - resample_divider) * prev_sample[1])
+                      / samplerate_out;
+        // Store
+        sample_buffer[buffer_offset++] = sample_out1;
+        sample_buffer[buffer_offset++] = sample_out2;
+        if( buffer_offset >= BUFFER_SIZE_SAMPLES ) {
+            buffer_offset = 0;
+        }
+        // Increment resample divider
+        resample_divider += SAMPLERATE_IN;
+        // If still in samplerate_out range, need to produce another sample
+        if( resample_divider < samplerate_out ) {
+            // Calculate samples
+            sample_out1 = (resample_divider * sample_in1
+                           + (samplerate_out - resample_divider) * prev_sample[0])
+                          / samplerate_out;
+            sample_out2 = (resample_divider * sample_in2
+                           + (samplerate_out - resample_divider) * prev_sample[1])
+                          / samplerate_out;
+            // Store
+            sample_buffer[buffer_offset++] = sample_out1;
+            sample_buffer[buffer_offset++] = sample_out2;
+            if( buffer_offset >= BUFFER_SIZE_SAMPLES ) {
+                buffer_offset = 0;
+            }
+            // Increment resample divider
+            resample_divider += SAMPLERATE_IN;
+        }
+        resample_divider -= samplerate_out;
+        prev_sample[0] = sample_in1;
+        prev_sample[1] = sample_in2;
+        length -= 2;
+    }
+    DCFlushRange(sample_buffer, sizeof(sample_buffer));
+
     LWP_SemPost(audio_free);
 
     return 0;
@@ -135,7 +151,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
         archSoundDestroy();
     }
     // Check parameters
-    if( sampleRate != 48000 ) {
+    if( sampleRate != SAMPLERATE_IN ) {
         fprintf(stderr, "Audio: Samplerate of %d not supported\n", sampleRate);
         exit(1);
     }
@@ -152,7 +168,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
     // Initialize mixer
     audio_mixer = mixer;
     mixerSetStereo(mixer, channels == 2);
-    mixerSetWriteCallback(mixer, soundWrite, NULL, BUFFER_SIZE/64);
+    mixerSetWriteCallback(mixer, soundWrite, NULL, BUFFER_SIZE_BYTES / 64);
     audio_initialized = 1;
 }
 
@@ -192,8 +208,11 @@ void archSoundResume(void)
         memset(sample_buffer, 0, sizeof(sample_buffer));
         DCFlushRange(sample_buffer, sizeof(sample_buffer));
         audio_paused = 0;
-        buffer_offset = BUFFER_SIZE/2;
+        buffer_offset = BUFFER_SIZE_SAMPLES / 2;
         buffer_tuning = 0;
+        resample_divider = 0;
+        prev_sample[0] = 0;
+        prev_sample[1] = 0;
         LWP_SemPost(audio_free);
         done_playing();
     }

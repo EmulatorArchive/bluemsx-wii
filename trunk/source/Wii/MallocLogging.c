@@ -7,6 +7,11 @@
 #include <machine/processor.h>
 #include "MsxTypes.h"
 
+#if 0
+#include <wiiuse/wpad.h>
+#include "kbdlib.h"
+#endif
+
 #if MALLOC_LOGGING
 
 #define MALLOC_LOG_DEBUG 0
@@ -124,6 +129,7 @@ void allocLogSetMarker(void)
 void allocLogPrint(void)
 {
     LOGMALLOC *p;
+    UInt32 total_alloc = 0, total_overhead = 0;
     if( loggingInitialized && loggingEnabled ) {
         LWP_SemWait(loggingSemaphore);
 
@@ -134,12 +140,23 @@ void allocLogPrint(void)
             p = first_entry;
         }
         while( p != NULL ) {
+#if 0
+            UInt32 buttons;
+#endif
+            total_alloc += p->size;
+            total_overhead += 32;
             if( !printEntry(p) ) {
                 break;
             }
+#if 0
+            do {
+                VIDEO_WaitVSync();
+                buttons = KBD_GetPadButtons(WPAD_CHAN_0) | KBD_GetPadButtons(WPAD_CHAN_1);
+            }while( !(buttons & WPAD_BUTTON_1) );
+#endif
             p = p->next;
         }
-        printf("end log\n");
+        printf("Allocated: %d, Overhead: %d\n", total_alloc, total_overhead);
 
         LWP_SemPost(loggingSemaphore);
     }

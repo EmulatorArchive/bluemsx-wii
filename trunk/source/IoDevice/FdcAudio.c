@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -3453,7 +3453,7 @@ struct FdcAudio {
     Int32  motorCount;
 };
 
-static void loadSample(char* filename, Int16** samples, Int32* count, 
+static void loadSample(char* filename, Int16** samples, Int32* count,
                        Int16* defSamples, Int32 defCount)
 {
     FILE* f = fopen(filename, "rb"); // Try read 16 bit 44.1kHz mono sample
@@ -3489,27 +3489,23 @@ FdcAudio* fdcAudioCreate(FdcAudioType type)
 {
     FdcAudio* fdcAudio = malloc(sizeof(FdcAudio));
 
-#ifdef WII
-    fdcAudio->samplePlayer = samplePlayerCreate(boardGetMixer(), MIXER_CHANNEL_IO, 16, 48000);
-#else
     fdcAudio->samplePlayer = samplePlayerCreate(boardGetMixer(), MIXER_CHANNEL_IO, 16, 44100);
-#endif
     switch (type) {
     default:
     case FA_PANASONIC:
-        loadSample("FdcRead.wav",  
-                   &fdcAudio->readSamples,  &fdcAudio->readCount,  
+        loadSample("FdcRead.wav",
+                   &fdcAudio->readSamples,  &fdcAudio->readCount,
                    PanasonicReadSamples, PanasonicReadCount);
-        loadSample("FdcMotor.wav", 
-                   &fdcAudio->motorSamples, &fdcAudio->motorCount, 
+        loadSample("FdcMotor.wav",
+                   &fdcAudio->motorSamples, &fdcAudio->motorCount,
                    PanasonicMotorSamples, PanasonicMotorCount);
         break;
     case FA_WESTERN_DIGITAL:
-        loadSample("FdcRead.wav",  
-                   &fdcAudio->readSamples,  &fdcAudio->readCount,  
+        loadSample("FdcRead.wav",
+                   &fdcAudio->readSamples,  &fdcAudio->readCount,
                    PanasonicReadSamples, PanasonicReadCount);
-        loadSample("FdcMotor.wav", 
-                   &fdcAudio->motorSamples, &fdcAudio->motorCount, 
+        loadSample("FdcMotor.wav",
+                   &fdcAudio->motorSamples, &fdcAudio->motorCount,
                    PanasonicMotorSamples, PanasonicMotorCount);
         break;
     }

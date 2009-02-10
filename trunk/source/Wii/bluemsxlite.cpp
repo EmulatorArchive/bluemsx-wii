@@ -319,9 +319,7 @@ void blueMsxInit(int resetProperties)
     boardSetFdcTimingEnable(properties->emulation.enableFdcTiming);
     boardSetY8950Enable(properties->sound.chip.enableY8950);
     boardSetYm2413Enable(properties->sound.chip.enableYM2413);
-    //NOTE: Disable Moonsound right now since we allready have memory resource problems...
-    //      ... and the Moonsound needs a lot of memory because of its wave table rom.
-    boardSetMoonsoundEnable(0 /*properties->sound.chip.enableMoonsound*/);
+    boardSetMoonsoundEnable(properties->sound.chip.enableMoonsound);
     boardSetVideoAutodetect(properties->video.detectActiveMonitor);
 }
 
@@ -483,6 +481,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         emulatorStart(NULL);
     }
     printf("Waiting for quit event...\n");
+    //allocLogPrint();
 
     manager->Lock();
     MessageBoxRemove();
@@ -629,6 +628,10 @@ int main(int argc, char **argv)
     // Background
     sprBackground = new Sprite;
     sprBackground->SetImage(g_imgBackground);
+    sprBackground->SetStretchWidth(4.0f);
+    sprBackground->SetStretchHeight(4.0f);
+    sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    sprBackground->SetRefPixelPosition(0, 0);
     sprBackground->SetPosition(0, 0);
     manager->AddTop(sprBackground);
 
@@ -702,6 +705,7 @@ int main(int argc, char **argv)
     printf("Leaving...\n");
 
     allocLogStop();
+
     return 0;
 }
 
