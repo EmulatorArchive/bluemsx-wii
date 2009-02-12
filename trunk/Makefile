@@ -17,9 +17,54 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source/Resource source/Gui source/Expat source/Bios source/Board source/Debugger source/Emulator source/Input source/IoDevice source/Language source/WiiSprite source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80
+SOURCES		:=	source/Bios \
+              source/Board \
+              source/Debugger \
+              source/Emulator \
+              source/Expat \
+              source/Gui \
+              source/Input \
+              source/IoDevice \
+              source/Language \
+              source/Media \
+              source/Memory \
+              source/Resource \
+              source/SoundChips \
+              source/TinyXML \
+              source/Unzip \
+              source/Utils \
+              source/VideoChips \
+              source/VideoRender \
+              source/Wii \
+              source/WiiSprite \
+              source/WiiUsbKeyboard \
+              source/Z80
+
 DATA		:=	data
-INCLUDES	:=	source/Wii source/Resource source/Gui source/Expat source/Arch source/Board source/Common source/Debugger source/Emulator source/Input source/IoDevice source/Language source/WiiSprite source/Media source/Memory source/Wii source/SoundChips source/TinyXML source/Unzip source/Utils source/VideoChips source/VideoRender source/Z80 include/libpng
+INCLUDES	:=	include/libpng \
+              source/Arch \
+              source/Board \
+              source/Common \
+              source/Debugger \
+              source/Emulator \
+              source/Expat \
+              source/Gui \
+              source/Input \
+              source/IoDevice \
+              source/Language \
+              source/Media \
+              source/Memory \
+              source/Resource \
+              source/SoundChips \
+              source/TinyXML \
+              source/Unzip \
+              source/Utils \
+              source/VideoChips \
+              source/VideoRender \
+              source/Wii \
+              source/WiiSprite \
+              source/WiiUsbKeyboard \
+              source/Z80
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -35,7 +80,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 #LIBS	:=	-lwiiuse -lbte -logc -lm
 #LIBS	:=	-lfat -lwiiuse -lbte -logc -lm
-LIBS	:=	 -lfreetype -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad -lbte 
+LIBS	:=	 -lfreetype -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad -lbte
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
