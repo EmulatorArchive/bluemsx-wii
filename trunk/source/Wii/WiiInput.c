@@ -220,7 +220,7 @@ void keyboardSetFocus(int handle, int focus)
     }
 }
 
-static void keyboardHanldeKeypress(KEY code, int pressed)
+static void keyboardHandleKeypress(KEY code, int pressed)
 {
     int wasPressed = keyStatus[code];
     int keyCode = kbdTable[code];
@@ -240,7 +240,7 @@ static void keyboardHanldeKeypress(KEY code, int pressed)
 
 static void keyboardCallbackKeypress(KBDHANDLE kbd, KEY code, int pressed)
 {
-    keyboardHanldeKeypress(code, pressed);
+    keyboardHandleKeypress(code, pressed);
 }
 
 static void keyboardResetKbd()
@@ -248,7 +248,7 @@ static void keyboardResetKbd()
     int i;
     for (i = 0; i < KBD_TABLE_LEN; i++) {
         kbdModifiers = 0;
-        keyboardHanldeKeypress(kbdTable[i], 0);
+        keyboardHandleKeypress(kbdTable[i], 0);
     }
     inputEventReset();
 }
