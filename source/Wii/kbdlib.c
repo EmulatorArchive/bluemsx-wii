@@ -26,14 +26,17 @@
 ******************************************************************************
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 #include <wiiuse/wpad.h>
 #include <ogc/lwp_watchdog.h>
+#include <keyboard.h>
 
 #include "kbdlib.h"
+#include "../iodevice/led.h"
 
 #define THRESHOLD_NUNCHUCK 50
 #define THRESHOLD_CLASSIC  10
@@ -63,10 +66,10 @@ typedef struct {
 struct _kbd_data {
     key_data_t msg;
     u8 modifiers;
-	u8 keys[6];
-    u8 keystatus[2][KEY_LAST];
+    int leds;
+    u8 keys[6];
+    u8 keystatus[2][KEY_LAST-KEY_JOY1_BUTTON_A]; /* only save joystick buttons */
     int keyidx;
-    int fhandle;
     int connected;
     int quiting;
     u32 wpad[2];
@@ -106,107 +109,6 @@ static KEYCODE mods[] =
 	{KEY_RSHIFT,  0x20},
 	{KEY_RALT,    0x40},
 	{KEY_RWIN,    0x80},
-	{KEY_NONE, 0}
-};
-
-static KEYCODE keys[] =
-{
-	{KEY_A, 4},
-	{KEY_B, 5},
-	{KEY_C, 6},
-	{KEY_D, 7},
-	{KEY_E, 8},
-	{KEY_F, 9},
-	{KEY_G, 10},
-	{KEY_H, 11},
-	{KEY_I, 12},
-	{KEY_J, 13},
-	{KEY_K, 14},
-	{KEY_L, 15},
-	{KEY_M, 16},
-	{KEY_N, 17},
-	{KEY_O, 18},
-	{KEY_P, 19},
-	{KEY_Q, 20},
-	{KEY_R, 21},
-	{KEY_S, 22},
-	{KEY_T, 23},
-	{KEY_U, 24},
-	{KEY_V, 25},
-	{KEY_W, 26},
-	{KEY_X, 27},
-	{KEY_Y, 28},
-	{KEY_Z, 29},
-	{KEY_1, 30},
-	{KEY_2, 31},
-	{KEY_3, 32},
-	{KEY_4, 33},
-	{KEY_5, 34},
-	{KEY_6, 35},
-	{KEY_7, 36},
-	{KEY_8, 37},
-	{KEY_9, 38},
-	{KEY_0, 39},
-	{KEY_RETURN, 40},
-	{KEY_ESCAPE, 41},
-	{KEY_BACKSPACE, 42},
-	{KEY_TAB, 43},
-	{KEY_SPACE, 44},
-	{KEY_MINUS, 45},
-	{KEY_EQUALS, 46},
-	{KEY_LEFTBRACKET, 47},
-	{KEY_RIGHTBRACKET, 48},
-	{KEY_BACKSLASH, 49},
-	{KEY_SEMICOLON, 51},
-	{KEY_QUOTE, 52},
-	{KEY_BACKQUOTE, 53},
-	{KEY_COMMA, 54},
-	{KEY_PERIOD, 55},
-	{KEY_SLASH, 56},
-	{KEY_CAPSLOCK, 57},
-	{KEY_F1, 58},
-	{KEY_F2, 59},
-	{KEY_F3, 60},
-	{KEY_F4, 61},
-	{KEY_F5, 62},
-	{KEY_F6, 63},
-	{KEY_F7, 64},
-	{KEY_F8, 65},
-	{KEY_F9, 66},
-	{KEY_F10, 67},
-	{KEY_F11, 68},
-	{KEY_F12, 69},
-	{KEY_PRINT, 70},
-	{KEY_SCROLLOCK, 71},
-	{KEY_PAUSE, 72},
-	{KEY_INSERT, 73},
-	{KEY_HOME, 74},
-	{KEY_PAGEUP, 75},
-	{KEY_DELETE, 76},
-	{KEY_END, 77},
-	{KEY_PAGEDOWN, 78},
-	{KEY_RIGHT, 79},
-	{KEY_LEFT, 80},
-	{KEY_DOWN, 81},
-	{KEY_UP, 82},
-	{KEY_NUMLOCK, 83},
-	{KEY_KP_DIVIDE, 84},
-	{KEY_KP_MULTIPLY, 85},
-	{KEY_KP_MINUS, 86},
-	{KEY_KP_PLUS, 87},
-	{KEY_KP_ENTER, 88},
-	{KEY_KP1, 89},
-	{KEY_KP2, 90},
-	{KEY_KP3, 91},
-	{KEY_KP4, 92},
-	{KEY_KP5, 93},
-	{KEY_KP6, 94},
-	{KEY_KP7, 95},
-	{KEY_KP8, 96},
-	{KEY_KP9, 97},
-	{KEY_KP0, 98},
-	{KEY_KP_PERIOD, 99},
-	{KEY_KP_EQUALS, 100},
 	{KEY_NONE, 0}
 };
 
@@ -380,32 +282,6 @@ static void FillKeyNames(void)
     keynames[KEY_JOY2_BUTTON_ZR] = "buttonZR2";
 }
 
-s32 keyboardCallback(int ret, void *arg)
-{
-    KBDHANDLE hndl = (KBDHANDLE)arg;
-    if( hndl->quiting ) {
-        return 0;
-    }
-    switch( hndl->msg.message ) {
-        case 2: /* keys */
-            hndl->modifiers = hndl->msg.modifiers;
-            memcpy(hndl->keys, hndl->msg.keys, 6);
-            break;
-        case 1: /* disconnect */
-            hndl->connected = 0;
-            hndl->modifiers = 0;
-            memset(hndl->keys, 0, 6);
-            break;
-        case 0: /* connect */
-            hndl->connected = 1;
-            hndl->modifiers = 0;
-            memset(hndl->keys, 0, 6);
-            break;
-    }
-    IOS_IoctlAsync(hndl->fhandle, 1, (void *)&hndl->msg, 16, (void *)&hndl->msg, 16, keyboardCallback, arg);
-    return 0;
-}
-
 int KBD_IsConnected(KBDHANDLE hndl)
 {
     return hndl->connected;
@@ -486,31 +362,55 @@ u32 KBD_GetPadButtons(int channel)
         return buttons;
     }
     return 0;
- }
+}
 
 void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
 {
-	int i, k;
+    int i;
     int idx_prev = hndl->keyidx;
     int idx_new  = hndl->keyidx ^ 1;
+    keyboardEvent kbdEvent;
+
+    KEYBOARD_ScanKeyboards();
+    while( KEYBOARD_getEvent(&kbdEvent) ) {
+        switch( kbdEvent.type ) {
+            case KEYBOARD_PRESSED:
+                if( kbdEvent.keysym.sym == 0 ) {
+                    /* handle special keys */
+                    hndl->modifiers |= kbdEvent.keysym.mod;
+                    for(i = 0; mods[i].key != KEY_NONE; i++)  {
+                        if( kbdEvent.keysym.mod == mods[i].code ) {
+                            cb(hndl, mods[i].key, 1);
+                        }
+                    }
+                } else {
+                    cb(hndl, kbdEvent.keysym.sym, 1);
+                }
+                break;
+            case KEYBOARD_RELEASED:
+                if( kbdEvent.keysym.sym == 0 ) {
+                    hndl->modifiers &= ~kbdEvent.keysym.mod;
+                    /* handle special keys */
+                    for(i = 0; mods[i].key != KEY_NONE; i++)  {
+                        if( kbdEvent.keysym.mod == mods[i].code ) {
+                            cb(hndl, mods[i].key, 0);
+                        }
+                    }
+                } else {
+                    cb(hndl, kbdEvent.keysym.sym, 0);
+                }
+                break;
+            case KEYBOARD_DISCONNECTED:
+                hndl->connected--;
+                break;
+            case KEYBOARD_CONNECTED:
+                hndl->connected++;
+                break;
+        }
+    }
 
     /* fill new key status array */
     memset(hndl->keystatus[idx_new], 0, sizeof(hndl->keystatus[0]));
-    for(i = 0; i < 6; i++) {
-        if( hndl->keys[i] != 0 ) {
-        	for(k = 0; keys[k].key != KEY_NONE; k++)	{
-        		if( keys[k].code == hndl->keys[i] ) {
-        			hndl->keystatus[idx_new][keys[k].key] = 1;
-                    break;
-        		}
-        	}
-        }
-	}
-    for(i = 0; mods[i].key != KEY_NONE; i++)  {
-        if( (hndl->modifiers & mods[i].code) != 0  ) {
-            hndl->keystatus[idx_new][mods[i].key] = 1;
-        }
-    }
 
     /* handle WPAD buttons */
     WPAD_ScanPads();
@@ -518,51 +418,60 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
     hndl->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
     for(i = 0; wpad[i].key_a != KEY_NONE; i++)  {
         if( (hndl->wpad[0] & wpad[i].code) != 0  ) {
-            hndl->keystatus[idx_new][wpad[i].key_a] = 1;
+            hndl->keystatus[idx_new][wpad[i].key_a-KEY_JOY1_BUTTON_A] = 1;
         }
         if( (hndl->wpad[1] & wpad[i].code) != 0  ) {
-            hndl->keystatus[idx_new][wpad[i].key_b] = 1;
+            hndl->keystatus[idx_new][wpad[i].key_b-KEY_JOY1_BUTTON_A] = 1;
         }
     }
 
     /* compare with previous and call for each difference */
-    for(i = 0; i < KEY_LAST; i++) {
+    for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
         if( hndl->keystatus[idx_prev][i] != hndl->keystatus[idx_new][i] ) {
-            cb(hndl, (KEY)i, hndl->keystatus[idx_new][i]);
+            cb(hndl, (KEY)i+KEY_JOY1_BUTTON_A, hndl->keystatus[idx_new][i]);
         }
     }
     /* switch new<->previous */
     hndl->keyidx ^= 1;
+
+    /* handle leds */
+    int led = ledGetCapslock();
+    if( hndl->leds != led ) {
+        if( led ) {
+            KEYBOARD_putOnLed(KEYBOARD_LEDCAPS);
+        } else {
+            KEYBOARD_putOffLed(KEYBOARD_LEDCAPS);
+        }
+        hndl->leds = led;
+    }
 }
 
 int KBD_GetKeyStatus(KBDHANDLE hndl, KEY key)
 {
-    return hndl->keystatus[hndl->keyidx][key];
+    assert( key >= KEY_JOY1_BUTTON_A );
+    assert( key < KEY_LAST );
+    return hndl->keystatus[hndl->keyidx][key-KEY_JOY1_BUTTON_A];
 }
 
 void KBD_DeInit(KBDHANDLE hndl)
 {
     hndl->quiting = 1;
+    KEYBOARD_Deinit();
+    free(hndl);
 }
 
 KBDHANDLE KBD_Init(void)
 {
     static int wpad_initialized = 0;
-    int dev;
+    KBDHANDLE hndl = (KBDHANDLE)memalign(32, sizeof(KBDDATA));
+    memset(hndl, 0, sizeof(KBDDATA));
+
     FillKeyNames();
     if( !wpad_initialized ) {
-    	WPAD_Init();
+        WPAD_Init();
         wpad_initialized = 1;
     }
-    dev = IOS_Open("/dev/usb/kbd", 1);
-    if( dev >= 0 ) {
-        KBDHANDLE hndl = (KBDHANDLE)memalign(32, sizeof(KBDDATA));
-        memset(hndl, 0, sizeof(KBDDATA));
-        hndl->fhandle = dev;
-        IOS_IoctlAsync(hndl->fhandle, 1, (void *)&hndl->msg, 16, (void *)&hndl->msg, 16, keyboardCallback, (void*)hndl);
-        return hndl;
-    }else{
-        return NULL;
-    }
+    hndl->connected = KEYBOARD_Init();
+    return hndl;
 }
 
