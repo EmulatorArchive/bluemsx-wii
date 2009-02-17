@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -77,7 +77,7 @@ void actionEmuSpeedDecrease();
 void actionEmuSpeedIncrease();
 void actionCasInsert();
 void actionCasRewind();
-void actionCasSetPosition(); 
+void actionCasSetPosition();
 void actionEmuResetSoft();
 void actionEmuResetHard();
 void actionEmuResetClean();
@@ -228,6 +228,10 @@ void actionRenshaSetLevel(int value);
 void actionEmuSpeedSet(int value);
 
 void actionKeyPress(int keyCode, int pressed);
+
+#ifdef WII
+void actionToggleOnScreenKbd(void);
+#endif
 
 #endif
 

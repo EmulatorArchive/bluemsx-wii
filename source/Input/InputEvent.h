@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -234,8 +234,9 @@ const char* inputEventCodeToString(int eventCode);
 #define EC_HOT_WINDOW_SIZE_NORMAL       195
 #define EC_HOT_WINDOW_SIZE_FULLSCREEN   196
 #define EC_HOT_FULLSCREEN_TOGGLE        197
+#define EC_HOT_TOGGLE_ON_SCREEN_KBD     198
 
-#define EC_KEYCOUNT     198
+#define EC_KEYCOUNT                     199
 
 // Inlines
 extern int eventMap[256];
@@ -255,4 +256,4 @@ extern int eventMap[256];
 #define inputEventUnset(eventCode) eventMap[eventCode] = 0
 #define inputEventGetState(eventCode) eventMap[eventCode]
 
-#endif 
+#endif

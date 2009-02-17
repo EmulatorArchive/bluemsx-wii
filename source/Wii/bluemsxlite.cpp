@@ -37,6 +37,9 @@
 #include "GuiDirSelect.h"
 #include "GuiGameSelect.h"
 #include "GuiMenu.h"
+#include "GuiMessageBox.h"
+#include "GuiKeyboard.h"
+
 extern "C" {
 #include "CommandLine.h"
 #include "Properties.h"
@@ -62,18 +65,10 @@ extern "C" {
 #include "WiiShortcuts.h"
 #include "ArchThread.h"
 #include "ogc_video.h"
-#include "kbdlib.h"
+#include "WiiInput.h"
 
 void WiiTimerInit(void);
 void WiiTimerDestroy(void);
-
-void keyboardSetDirectory(char* directory);
-void keyboardInit(void);
-void keyboardReset(void);
-void keyboardRemapKey(KEY key, int event);
-void keyboardSetFocus(int handle, int focus);
-void keyboardUpdate(void);
-int keyboardGetModifiers(void);
 }
 
 #include "GuiConsole.h"
@@ -100,6 +95,8 @@ static bool  g_doQuit = false;
 static GuiManager *manager = NULL;
 static char *g_dpyData = NULL;
 static GuiConsole *console = NULL;
+static GuiMessageBox *msgbox = NULL;
+static GuiKeyboard *osk = NULL;
 
 extern KBDHANDLE kbdHandle;
 
@@ -162,48 +159,6 @@ void setDefaultPaths(const char* rootDir)
 }
 
 static char currentDisk[256];
-static void diskNotifyThread(void)
-{
-    manager->Lock();
-    // Container
-    GuiContainer *container = new GuiContainer(320-280, 240-80, 2*280, 2*80, 192);
-    manager->AddTop(container->GetLayer());
-    // Floppy image
-    Sprite *floppy = new Sprite;
-    floppy->SetImage(g_imgFloppyDisk);
-    floppy->SetStretchWidth(0.8f);
-    floppy->SetStretchHeight(0.8f);
-    floppy->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    floppy->SetRefPixelPosition(0, 0);
-    floppy->SetPosition(320-280+24, 240-80+32);
-    manager->AddTop(floppy);
-    // Text
-    DrawableImage *image = new DrawableImage;
-    image->CreateImage(2*280-180-24, 60);
-    image->SetFont(g_fontArial);
-    image->SetSize(32);
-    image->SetColor((GXColor){255,255,255,255});
-    image->RenderText(currentDisk);
-    Sprite *sprite = new Sprite;
-    sprite->SetImage(image->GetImage());
-    sprite->SetPosition(320-280+180, 240-30);
-    manager->AddTop(sprite);
-    manager->Unlock();
-
-    // Wait about PI seconds
-    archThreadSleep(3141);
-
-    // Remove the popup again
-    manager->Lock();
-    manager->Remove(sprite);
-    manager->Remove(container->GetLayer());
-    manager->Remove(floppy);
-    manager->Unlock();
-    delete sprite;
-    delete image;
-    delete floppy;
-    delete container;
-}
 
 void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZipFile)
 {
@@ -213,7 +168,8 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
     }else{
         strcpy(currentDisk, fileName);
     }
-    (void)archThreadCreateEx(diskNotifyThread, THREAD_PRIO_NORMAL, 64*1024);
+    // Show popup
+    msgbox->ShowPopup(currentDisk, 360, g_imgFloppyDisk, 192);
 }
 
 void blueMsxInit(int resetProperties)
@@ -323,42 +279,7 @@ void blueMsxInit(int resetProperties)
     boardSetVideoAutodetect(properties->video.detectActiveMonitor);
 }
 
-static GuiContainer *grWinList;
-static DrawableImage *txtImg;
-static Sprite *txtSpr;
 static Sprite *sprBackground;
-
-static void MessageBox(const char *txt, int txtwidth)
-{
-    manager->Lock();
-    // Container
-    grWinList = new GuiContainer(320-200, 240-80, 400, 160);
-    manager->AddTop(grWinList->GetLayer());
-
-    // Text
-    txtImg = new DrawableImage;
-    txtImg->CreateImage(txtwidth, 60);
-    txtImg->SetFont(g_fontArial);
-    txtImg->SetSize(32);
-    txtImg->SetColor((GXColor){255,255,255,255});
-    txtImg->RenderText(txt);
-    txtSpr = new Sprite;
-    txtSpr->SetImage(txtImg->GetImage());
-    txtSpr->SetPosition(320-(txtwidth/2), 240-30);
-    manager->AddTop(txtSpr);
-    manager->Unlock();
-}
-
-static void MessageBoxRemove(void)
-{
-    manager->Lock();
-    manager->Remove(grWinList->GetLayer());
-    manager->Remove(txtSpr);
-    delete grWinList;
-    delete txtSpr;
-    delete txtImg;
-    manager->Unlock();
-}
 
 typedef struct {
     int number_of_saves;
@@ -440,6 +361,15 @@ void RenderEmuImage(void *arg)
     }
 }
 
+void actionToggleOnScreenKbd(void)
+{
+    if( osk->IsShowing() ) {
+        osk->Remove();
+    }else{
+        osk->Show();
+    }
+}
+
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
     int i;
@@ -451,7 +381,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     archSetCurrentDirectory(MSX_ROOT_DIR);
 
     // Loading message
-    MessageBox("Loading...", 144);
+    msgbox->Show("Loading...", 144);
 
     g_doQuit = false;
 
@@ -469,13 +399,17 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         }
     }
 
+    // Create on-screen keyboard
+    osk = new GuiKeyboard(manager);
+
+    // Start emulator
     i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
     if (i < 0) {
         printf("Failed to parse command line\n");
-        MessageBoxRemove();
+        delete osk;
+        msgbox->Remove();
         return;
     }
-
     if (i == 0) {
         printf("Starting emulation\n");
         emulatorStart(NULL);
@@ -484,7 +418,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     //allocLogPrint();
 
     manager->Lock();
-    MessageBoxRemove();
+    msgbox->Remove();
     manager->Remove(sprBackground);
     manager->SetYOffset(-37);
     console->SetPosition(12, 12+37);
@@ -508,6 +442,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
       "Load state",
       "Save state",
       "Screenshot",
+      "Keyboard",
       "Quit"
     };
     bool pressed = true;
@@ -517,7 +452,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 emulatorSuspend();
                 bool leave_menu = false;
                 do {
-                    int selection = menu->DoModal(menu_items, 4, 344);
+                    int selection = menu->DoModal(menu_items, 5, 344);
                     switch( selection ) {
                         SAVE_STATES *states;
                         case 0: /* Load state */
@@ -558,7 +493,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                       generateSaveFilename(properties, screenShotDir, "", ".png", 2));
                             }
                             break;
-                        case 3: /* Quit */
+                        case 3: /* Keyboard */
+                            actionToggleOnScreenKbd();
+                            break;
+                        case 4: /* Quit */
                             g_doQuit = true;
                             leave_menu = true;
                             break;
@@ -580,12 +518,13 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     emulatorStop();
 
-    // Remove emulator from display
+    // Remove emulator+keyboard from display
     manager->Lock();
     manager->RemoveRenderCallback(RenderEmuImage, NULL);
     manager->Remove(emuSpr);
     delete emuImg;
     delete emuSpr;
+    delete osk;
     console->SetPosition(12, 12);
     manager->SetYOffset(0);
     manager->AddTop(sprBackground);
@@ -636,12 +575,13 @@ int main(int argc, char **argv)
     manager->AddTop(sprBackground);
 
     // Please wait...
-    MessageBox("Please wait...", 192);
+    msgbox = new GuiMessageBox(manager);
+    msgbox->Show("Please wait...", 192);
 
     // Init blueMSX emulator
     blueMsxInit(1);
 
-    MessageBoxRemove();
+    msgbox->Remove();
 
     char *game_dir = NULL;
     GuiDirSelect *dirs = new GuiDirSelect(manager, "fat:/MSX/Games", "dirlist.xml");
