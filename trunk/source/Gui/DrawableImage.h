@@ -33,6 +33,7 @@ class DrawableImage : public Image
 		void SetSize(int s);
 		void RenderText(const char *fmt, ...);
         u8 *GetTextureBuffer(void);
+        void FlushBuffer(void);
 	private:
 		u32 _width, _height;
 		bool _initialized;

@@ -6,6 +6,7 @@
 #include "image_noise.h"
 #include "image_selector.h"
 #include "image_floppy_disk.h"
+#include "image_keyboard.h"
 
 Image *g_imgArrow       = NULL;
 Image *g_imgBackground  = NULL;
@@ -13,6 +14,7 @@ Image *g_imgMousecursor = NULL;
 Image *g_imgNoise       = NULL;
 Image *g_imgSelector    = NULL;
 Image *g_imgFloppyDisk  = NULL;
+Image *g_imgKeyboard    = NULL;
 
 void GuiImageInit(void)
 {
@@ -28,10 +30,14 @@ void GuiImageInit(void)
     if(g_imgSelector->LoadImage(image_selector) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgFloppyDisk = new Image;
     if(g_imgFloppyDisk->LoadImage(image_floppy_disk) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgKeyboard = new Image;
+    if(g_imgKeyboard->LoadImage(image_keyboard) != IMG_LOAD_ERROR_NONE) exit(0);
 }
 
 void GuiImageClose(void)
 {
+    delete g_imgKeyboard;
+    g_imgKeyboard = NULL;
     delete g_imgFloppyDisk;
     g_imgFloppyDisk = NULL;
     delete g_imgSelector;

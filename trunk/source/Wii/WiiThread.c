@@ -85,7 +85,7 @@ void archThreadJoin(void* thread, int timeout)
 {
     thread_t* t = (thread_t*)thread;
 
-    while( LWP_JoinThread(t->thread, NULL) != 0 );
+    LWP_JoinThread(t->thread, NULL);
 }
 
 void  archThreadDestroy(void* thread)

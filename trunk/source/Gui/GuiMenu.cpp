@@ -327,7 +327,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     // Release UI
     manager->Unlock();
 
-    return selected;
+    return index+selected;
 }
 
 GuiMenu::GuiMenu(GuiManager *man, int rows)

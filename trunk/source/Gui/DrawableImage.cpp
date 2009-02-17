@@ -148,6 +148,12 @@ u8 *DrawableImage::GetTextureBuffer(void)
     return _pixels;
 }
 
+void DrawableImage::FlushBuffer(void)
+{
+    int bytespp = (_format == GX_TF_RGB565)? 2 : 4;
+    DCFlushRange (_pixels, _width * _height * bytespp);
+}
+
 void DrawableImage::SetFont(TextRender* f)
 {
 	font = f;

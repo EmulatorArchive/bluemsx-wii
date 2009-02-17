@@ -91,5 +91,6 @@ void shortcutCheckUp(Shortcuts* s, int key)
     if (key == EC_HOT_WINDOW_SIZE_NORMAL)      actionWindowSizeNormal();
     if (key == EC_HOT_WINDOW_SIZE_FULLSCREEN)  actionWindowSizeFullscreen();
     if (key == EC_HOT_FULLSCREEN_TOGGLE)       actionFullscreenToggle();
+    if (key == EC_HOT_TOGGLE_ON_SCREEN_KBD)    actionToggleOnScreenKbd();
 }
 
