@@ -152,7 +152,7 @@ void GuiKeyboard::Render(void)
     }
     // Handle keypress
     Sprite *spr = NULL;
-    if( key_active && (buttons & WPAD_BUTTON_A) ) {
+    if( key_active && (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) ) {
         if( key_pressed && !key_pressed->spr && key_pressed != key_active ) {
             inputEventUnset(key_pressed->key);
         }

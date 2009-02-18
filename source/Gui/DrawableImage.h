@@ -40,6 +40,8 @@ class DrawableImage : public Image
 		GXTexObj _texObj;
 		u8* _pixels;
         int _format;
+        int _font_size;
+        GXColor _font_color;
 
 		TextRender* font;
 };

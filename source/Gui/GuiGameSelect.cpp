@@ -11,6 +11,7 @@
 #include "kbdlib.h"
 #include "GuiGameSelect.h"
 #include "GuiContainer.h"
+#include "GuiMessageBox.h"
 
 // Resources
 #include "GuiImages.h"
@@ -334,8 +335,15 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
 #endif
         if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
             (selected >= 0) ) {
-            returnValue = gameInfo[selected];
-            break;
+            // confirmation
+            GuiMessageBox *msgbox = new GuiMessageBox(manager);
+            bool ok = msgbox->Show("Are you sure?", 192, NULL, true, 160);
+            msgbox->Remove();
+            delete msgbox;
+            if( ok ) {
+                returnValue = gameInfo[selected];
+                break;
+            }
         }
 
         // wait a frame

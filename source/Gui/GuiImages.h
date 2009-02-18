@@ -10,6 +10,8 @@ extern Image *g_imgNoise;
 extern Image *g_imgSelector;
 extern Image *g_imgFloppyDisk;
 extern Image *g_imgKeyboard;
+extern Image *g_imgButtonYes;
+extern Image *g_imgButtonNo;
 
 extern void GuiImageInit(void);
 extern void GuiImageClose(void);
