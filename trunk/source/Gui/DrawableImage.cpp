@@ -13,6 +13,10 @@ DrawableImage::DrawableImage()
 
 	// Ensure proper null pointer
 	_pixels = NULL;
+
+    // Set default font style
+    _font_size = 20;
+    _font_color = (GXColor){255,255,255,255};
 }
 
 DrawableImage::~DrawableImage()
@@ -161,12 +165,12 @@ void DrawableImage::SetFont(TextRender* f)
 
 void DrawableImage::SetColor(GXColor c)
 {
-	font->SetColor(c);
+    _font_color = c;
 }
 
 void DrawableImage::SetSize(int s)
 {
-	font->SetSize(s);
+    _font_size = s;
 }
 
 void DrawableImage::RenderText(const char *fmt, ...)
@@ -174,6 +178,10 @@ void DrawableImage::RenderText(const char *fmt, ...)
 	// This function assumes the u8 buffer is RGBA quads
     if( _format != GX_TF_RGBA8 )
         return;
+
+    // Set font style
+	font->SetColor(_font_color);
+	font->SetSize(_font_size);
 
 	// Need to make room for the sprintf'd text
 	char *out = (char *)memalign(32, 1024);

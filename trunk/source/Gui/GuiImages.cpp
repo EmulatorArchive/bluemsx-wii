@@ -7,6 +7,8 @@
 #include "image_selector.h"
 #include "image_floppy_disk.h"
 #include "image_keyboard.h"
+#include "image_button_yes.h"
+#include "image_button_no.h"
 
 Image *g_imgArrow       = NULL;
 Image *g_imgBackground  = NULL;
@@ -15,6 +17,8 @@ Image *g_imgNoise       = NULL;
 Image *g_imgSelector    = NULL;
 Image *g_imgFloppyDisk  = NULL;
 Image *g_imgKeyboard    = NULL;
+Image *g_imgButtonYes   = NULL;
+Image *g_imgButtonNo    = NULL;
 
 void GuiImageInit(void)
 {
@@ -32,10 +36,18 @@ void GuiImageInit(void)
     if(g_imgFloppyDisk->LoadImage(image_floppy_disk) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgKeyboard = new Image;
     if(g_imgKeyboard->LoadImage(image_keyboard) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgButtonYes = new Image;
+    if(g_imgButtonYes->LoadImage(image_button_yes) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgButtonNo = new Image;
+    if(g_imgButtonNo->LoadImage(image_button_no) != IMG_LOAD_ERROR_NONE) exit(0);
 }
 
 void GuiImageClose(void)
 {
+    delete g_imgButtonNo;
+    g_imgButtonNo = NULL;
+    delete g_imgButtonYes;
+    g_imgButtonYes = NULL;
     delete g_imgKeyboard;
     g_imgKeyboard = NULL;
     delete g_imgFloppyDisk;

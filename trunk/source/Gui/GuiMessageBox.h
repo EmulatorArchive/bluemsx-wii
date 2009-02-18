@@ -12,7 +12,7 @@ public:
     virtual ~GuiMessageBox();
 
     void ShowPopup(const char *txt, int txtwidth, Image *image = NULL, int alpha = 128);
-    void Show(const char *txt, int txtwidth, Image *image = NULL, int alpha = 128);
+    bool Show(const char *txt, int txtwidth, Image *image = NULL, bool yesno = false, int alpha = 128);
     void Remove(void);
 
     void MessageBoxPopupThread(void);
@@ -22,9 +22,13 @@ private:
     GuiContainer *container;
     Sprite *txt_sprite;
     Sprite *img_sprite;
+    Sprite *spr_yes;
+    Sprite *spr_no;
     DrawableImage *txt_image;
     void *thread_popup;
     bool quit_thread;
+
+    bool DoSelection(Sprite *yes, Sprite *no);
 };
 
 #endif
