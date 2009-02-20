@@ -11,7 +11,7 @@ typedef struct _GuiManagerCallback {
     void *context;
     _GuiManagerCallback *next;
 } GuiManagerCallback;
-    
+
 class GuiManager {
 public:
     GuiManager();
@@ -28,6 +28,7 @@ public:
     void Remove(Layer *layer);
     void FixLayers(int fix);
     void UnfixLayers(int fix);
+    bool GetWiiMoteIR(int *x, int *y, int *angle);
 
 private:
     GameWindow gwd;

@@ -26,7 +26,7 @@ void GuiGameSelect::InitTitleList(TextRender *fontArial, int fontsize,
 {
     // Arrows
 	sprArrowUp.SetImage(g_imgArrow);
-	sprArrowUp.SetPosition(x, y + 6);
+	sprArrowUp.SetPosition(x, y);
     sprArrowUp.SetStretchWidth(0.5f);
     sprArrowUp.SetStretchHeight(0.5f);
     sprArrowUp.SetRotation(180.0f/2);
@@ -34,7 +34,7 @@ void GuiGameSelect::InitTitleList(TextRender *fontArial, int fontsize,
 	manager->AddTop(&sprArrowUp);
 
 	sprArrowDown.SetImage(g_imgArrow);
-	sprArrowDown.SetPosition(x, y+(NUM_LIST_ITEMS-1)*pitch + 6);
+	sprArrowDown.SetPosition(x, y+(NUM_LIST_ITEMS-1)*pitch);
     sprArrowDown.SetStretchWidth(0.5f);
     sprArrowDown.SetStretchHeight(0.5f);
     sprArrowDown.SetVisible(false);
@@ -135,7 +135,7 @@ void GuiGameSelect::SetSelected(int index, int selected)
     // Update screenshots
     if( selected >= 0 ) {
         Sprite *selectedsprite = &titleTxtSprite[selected];
-        sprSelector.SetPosition(selectedsprite->GetX(),selectedsprite->GetY());
+        sprSelector.SetPosition(selectedsprite->GetX()-6,selectedsprite->GetY()-6);
         sprSelector.SetVisible(true);
         SetScreenShotImage(0, gameInfo[selected]->GetImage(0));
         SetScreenShotImage(1, gameInfo[selected]->GetImage(1));
@@ -196,12 +196,12 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
 
     // Title list
     InitTitleList(g_fontArial, 24,
-                  36, 32, 264+12, 36, 34);
+                  42, 38, 264+12, 36, 34);
 
     // Cursor
     Sprite sprCursor;
 	sprCursor.SetImage(g_imgMousecursor);
-	sprCursor.SetPosition(400, 500);
+	sprCursor.SetPosition(0, 0);
     sprCursor.SetVisible(false);
 	manager->AddTop(&sprCursor);
 
@@ -236,6 +236,7 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
         // Break-out on 'home' or 'B'
 		if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
                        WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
+            returnValue = NULL;
             break;
 		}
 
@@ -243,14 +244,10 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
         manager->Lock();
 
         // Infrared
-        ir_t ir;
-        WPAD_IR(WPAD_CHAN_0, &ir);
-        if( !ir.state || !ir.smooth_valid ) {
-            WPAD_IR(WPAD_CHAN_1, &ir);
-        }
-        if( ir.state && ir.smooth_valid ) {
-    		sprCursor.SetPosition(ir.sx, ir.sy);
-    		sprCursor.SetRotation(ir.angle/2);
+        int x, y, angle;
+        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+    		sprCursor.SetPosition(x, y);
+    		sprCursor.SetRotation(angle/2);
             sprCursor.SetVisible(true);
         }else{
             sprCursor.SetVisible(false);
@@ -270,18 +267,17 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
         }
 		if( selected == current ) {
             // Scroll when mouse stays on the arrows for a while
-            if( cursor_visible && ticks_to_millisecs(gettime()) > scroll_time ) {
-                if( selected == 0 ) {
-                    buttons |= WPAD_BUTTON_UP;
+            if( cursor_visible && (selected == 0 || selected == NUM_LIST_ITEMS-1) ) {
+                if( cursor_visible && ticks_to_millisecs(gettime()) > scroll_time ) {
+                    if( selected == 0 ) {
+                        buttons |= WPAD_BUTTON_UP;
+                    }else{
+                        buttons |= WPAD_BUTTON_DOWN;
+                    }
+                    scroll_time = ticks_to_millisecs(gettime()) + REPEAT_TIME;
                 }
-                if( selected == NUM_LIST_ITEMS-1 ) {
-                    buttons |= WPAD_BUTTON_DOWN;
-                }
-                scroll_time = ticks_to_millisecs(gettime()) + REPEAT_TIME;
             }else{
-                if( !(cursor_visible && (selected == 0 || selected == NUM_LIST_ITEMS-1)) ) {
-                    scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
-                }
+                scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
             }
 
             // WPAD keys
@@ -334,14 +330,18 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
 		if(ticks_to_millisecs(gettime())>time2rumble+250 && rumbeling){ rumbeling = false; }
 #endif
         if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
-            (selected >= 0) ) {
+            (selected >= upper_index && selected <= lower_index) ) {
+            returnValue = gameInfo[selected];
             // confirmation
+            char str[256];
+            strcpy(str, "Do you want to start\n\"");
+            strcat(str, returnValue->GetName());
+            strcat(str, "\"");
             GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            bool ok = msgbox->Show("Are you sure?", 192, NULL, true, 160);
+            bool ok = msgbox->Show(str, NULL, true, 192);
             msgbox->Remove();
             delete msgbox;
             if( ok ) {
-                returnValue = gameInfo[selected];
                 break;
             }
         }

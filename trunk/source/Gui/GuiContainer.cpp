@@ -30,6 +30,16 @@ void GuiContainer::SetPosition( int posx,  int posy)
 	win_layer->SetPosition(x - TILE_SIZE, y - TILE_SIZE);
 }
 
+int GuiContainer::GetWidth(void)
+{
+    return cols * TILE_SIZE;
+}
+
+int GuiContainer::GetHeight(void)
+{
+    return rows * TILE_SIZE;
+}
+
 void GuiContainer::SetVisible(bool state)
 {
 	win_layer->SetVisible(state);

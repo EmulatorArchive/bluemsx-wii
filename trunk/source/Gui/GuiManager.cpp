@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <wiiuse/wpad.h>
 #include "GuiManager.h"
 
 #define GUI_DISP_STACK_SIZE 64*1024
@@ -106,6 +107,25 @@ void GuiManager::UnfixLayers(int fix)
     fixed_layers -= fix;
 }
 
+bool GuiManager::GetWiiMoteIR(int *x, int *y, int *angle)
+{
+    ir_t ir;
+    WPAD_IR(WPAD_CHAN_0, &ir);
+    if( !ir.state || !ir.smooth_valid ) {
+        WPAD_IR(WPAD_CHAN_1, &ir);
+    }
+    if( !ir.state || !ir.smooth_valid ) {
+        return false;
+    }
+    int sx = (int)(((ir.sx - (500-200)) * 640) / 400);
+    int sy = (int)(((ir.sy - (500-150)) * 480) / 300);
+    if( x ) *x = sx;
+    if( y ) *y = sy;
+    if( angle ) *angle = ir.angle;
+
+    return true;
+}
+
 GuiManager::GuiManager()
 {
     yoffset = 0;
@@ -124,7 +144,7 @@ GuiManager::GuiManager()
     thread_stack = malloc(GUI_DISP_STACK_SIZE);
     LWP_CreateThread(&thread, DisplayThreadWrapper, this,
                      thread_stack, GUI_DISP_STACK_SIZE, 90);
-    
+
 }
 
 GuiManager::~GuiManager()

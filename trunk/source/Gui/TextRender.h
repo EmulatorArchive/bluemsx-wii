@@ -4,8 +4,8 @@
 #ifndef __TEXTRENDER_H
 #define __TEXTRENDER_H
 
-#define DEFAULT_X 5
-#define DEFAULT_Y 5
+#define DEFAULT_X 0
+#define DEFAULT_Y 0
 
 #define DEFAULT_Y_CUSHION 2
 #define DEFAULT_TAB_SPACE 50
@@ -28,10 +28,12 @@ class TextRender
 		void SetFont(const unsigned char* font, u32 size);
 		void SetColor(GXColor c);
 		void SetSize(int s);
+        void SetYSpacing(int s);
 
 		void SetBuffer(uint8_t *buf, int width, int height);
-		void RenderSimple(const char *out);
+		void RenderSimple(const char *out, bool center = false, int *sx = NULL, int *sy = NULL);
 		void Render(const char *fmt, ...);
+        void GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...);
 	private:
 		void Blit(FT_Bitmap *bmp, int bmpWidth, int bmpHeight);
 
@@ -42,6 +44,7 @@ class TextRender
 		int _width;
 		int _height;
 		int _fontheight;
+        int _yspacing;
 		GXColor _color;
 };
 
