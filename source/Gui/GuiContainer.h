@@ -10,6 +10,8 @@ class GuiContainer {
 		void SetVisible(bool state);
         void Render(void);
         void SetPosition( int posx,  int posy);
+        int GetWidth(void);
+        int GetHeight(void);
         wsp::Layer *GetLayer(void);
 
 	private:

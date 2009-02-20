@@ -169,7 +169,7 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
         strcpy(currentDisk, fileName);
     }
     // Show popup
-    msgbox->ShowPopup(currentDisk, 360, g_imgFloppyDisk, 192);
+    msgbox->ShowPopup(currentDisk, g_imgFloppyDisk, 192);
 }
 
 void blueMsxInit(int resetProperties)
@@ -381,7 +381,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     archSetCurrentDirectory(MSX_ROOT_DIR);
 
     // Loading message
-    msgbox->Show("Loading...", 144);
+    msgbox->Show("Loading...");
 
     g_doQuit = false;
 
@@ -417,8 +417,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     printf("Waiting for quit event...\n");
     //allocLogPrint();
 
-    manager->Lock();
     msgbox->Remove();
+    archThreadSleep(100); // Don't know why, but it solve things...
+    manager->Lock();
     manager->Remove(sprBackground);
     manager->SetYOffset(-37);
     console->SetPosition(12, 12+37);
@@ -576,7 +577,7 @@ int main(int argc, char **argv)
 
     // Please wait...
     msgbox = new GuiMessageBox(manager);
-    msgbox->Show("Please wait...", 192);
+    msgbox->Show("Please wait...");
 
     // Init blueMSX emulator
     blueMsxInit(1);

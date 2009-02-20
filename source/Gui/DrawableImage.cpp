@@ -16,6 +16,7 @@ DrawableImage::DrawableImage()
 
     // Set default font style
     _font_size = 20;
+    _font_yspacing = 0;
     _font_color = (GXColor){255,255,255,255};
 }
 
@@ -173,7 +174,12 @@ void DrawableImage::SetSize(int s)
     _font_size = s;
 }
 
-void DrawableImage::RenderText(const char *fmt, ...)
+void DrawableImage::SetYSpacing(int s)
+{
+    _font_yspacing = s;
+}
+
+void DrawableImage::RenderTextVA(bool center, const char *fmt, va_list list)
 {
 	// This function assumes the u8 buffer is RGBA quads
     if( _format != GX_TF_RGBA8 )
@@ -182,6 +188,7 @@ void DrawableImage::RenderText(const char *fmt, ...)
     // Set font style
 	font->SetColor(_font_color);
 	font->SetSize(_font_size);
+    font->SetYSpacing(_font_yspacing);
 
 	// Need to make room for the sprintf'd text
 	char *out = (char *)memalign(32, 1024);
@@ -191,16 +198,13 @@ void DrawableImage::RenderText(const char *fmt, ...)
 	memset(blitbuf, 0, _width * _height * 4);
 
 	// Build using sprintf
-	va_list marker;
-	va_start(marker,fmt);
-	vsprintf(out,fmt,marker);
-	va_end(marker);
+	vsprintf(out,fmt,list);
 
 	// Set up buffer
 	font->SetBuffer(blitbuf, _width, _height);
 
 	// Call rendering engine
-	font->RenderSimple(out);
+	font->RenderSimple(out, center);
 
 	// Blit to surface
 	CopyBuffer(blitbuf);
@@ -209,3 +213,44 @@ void DrawableImage::RenderText(const char *fmt, ...)
 	free(blitbuf);
 	free(out);
 }
+
+void DrawableImage::RenderText(const char *fmt, ...)
+{
+	va_list marker;
+	va_start(marker,fmt);
+	RenderTextVA(false, fmt,marker);
+	va_end(marker);
+}
+
+void DrawableImage::RenderText(bool center, const char *fmt, ...)
+{
+	va_list marker;
+	va_start(marker,fmt);
+	RenderTextVA(center, fmt,marker);
+	va_end(marker);
+}
+
+void DrawableImage::GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...)
+{
+	// Need to make room for the sprintf'd text
+	char *out = (char *)memalign(32, 1024);
+
+    // Set font style
+	font->SetColor(_font_color);
+	font->SetSize(_font_size);
+    font->SetYSpacing(_font_yspacing);
+
+	// Build using sprintf
+	va_list marker;
+	va_start(marker,fmt);
+	vsprintf(out,fmt,marker);
+	va_end(marker);
+
+	// Call rendering engine
+	font->SetBuffer(NULL, 0x7fffffff, 0x7fffffff);
+	font->RenderSimple(out, center, sx, sy);
+
+	// Free memory
+	free(out);
+}
+

@@ -119,25 +119,23 @@ void GuiKeyboard::Render(void)
 {
     static KEY_RECT *key_pressed = NULL;
 
-    // WPAD + Infrared
+    // Buttons
     WPAD_ScanPads();
     u32 buttons = WPAD_ButtonsHeld(WPAD_CHAN_0) | WPAD_ButtonsHeld(WPAD_CHAN_1);
-    ir_t ir;
-    WPAD_IR(WPAD_CHAN_0, &ir);
-    if( !ir.state || !ir.smooth_valid ) {
-        WPAD_IR(WPAD_CHAN_1, &ir);
-    }
-    if( ir.state && ir.smooth_valid ) {
-        spr_cursor->SetPosition(ir.sx, ir.sy);
-        spr_cursor->SetRotation(ir.angle/2);
+
+    // Infrared
+    int x, y, angle;
+    if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+        spr_cursor->SetPosition(x, y);
+        spr_cursor->SetRotation(angle/2);
         spr_cursor->SetVisible(true);
     }else{
         spr_cursor->SetVisible(false);
         spr_cursor->SetPosition(0, 0);
     }
 
-    int x = (int)((ir.sx - xpos) / xscale);
-    int y = (int)((ir.sy - ypos) / yscale);
+    x = (int)((x - xpos) / xscale);
+    y = (int)((y - ypos) / yscale);
 
     // Check if above key
     KEY_RECT *key_active = NULL;

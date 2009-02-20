@@ -31,16 +31,22 @@ class DrawableImage : public Image
 		void SetFont(TextRender* text);
 		void SetColor(GXColor c);
 		void SetSize(int s);
+        void SetYSpacing(int s);
 		void RenderText(const char *fmt, ...);
+		void RenderText(bool center, const char *fmt, ...);
+        void GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...);
         u8 *GetTextureBuffer(void);
         void FlushBuffer(void);
 	private:
+        void RenderTextVA(bool center, const char *fmt, va_list list);
+
 		u32 _width, _height;
 		bool _initialized;
 		GXTexObj _texObj;
 		u8* _pixels;
         int _format;
         int _font_size;
+        int _font_yspacing;
         GXColor _font_color;
 
 		TextRender* font;

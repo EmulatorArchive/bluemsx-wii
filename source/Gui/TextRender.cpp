@@ -13,6 +13,9 @@ TextRender::TextRender()
 	// Initialize the library
 	FT_Error error = FT_Init_FreeType(&library);
 
+    // Default values
+    _yspacing = DEFAULT_Y_CUSHION;
+
 	if(error)
 	{
 		// Better handling in the future
@@ -42,6 +45,7 @@ void TextRender::SetFont(const unsigned char* font, u32 size)
 {
 	// Initialize a font
 	FT_Error error = FT_New_Memory_Face(library, font, size, 0, &face);
+	_fontheight = size;
 
 	if ( error )
 	{
@@ -59,8 +63,12 @@ void TextRender::SetSize(int s)
 {
 	// Set up the font face (see freetype samples for magic values)
 	FT_Set_Pixel_Sizes(face, 0, s);
-
 	_fontheight = s;
+}
+
+void TextRender::SetYSpacing(int s)
+{
+    _yspacing = s + DEFAULT_Y_CUSHION;
 }
 
 void TextRender::SetBuffer(uint8_t *buf, int width, int height)
@@ -112,23 +120,44 @@ void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
 	}
 }
 
-void TextRender::RenderSimple(const char *out)
+void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
 {
 	// Remember x position
+	int maxx = 0;
 	int x = DEFAULT_X;
 	int y = DEFAULT_Y;
+
+    // Determine maximum x-size when need to center
+    if( center ) {
+        RenderSimple(out, false, &maxx, NULL);
+    }
 
 	// Shortcut from examples
 	FT_GlyphSlot slot = face->glyph;
 
 	// Render
+	bool newline = true;
 	for(uint32_t i = 0; i < strlen(out); i++)
 	{
+        if(center && newline) {
+            int j = i;
+            int s = 0;
+            while(out[j] != '\0' && out[j] != '\r' && out[j] != '\n') {
+                FT_Error error = FT_Load_Char(face, out[j], FT_LOAD_RENDER);
+                if(error) break;  /* break on error */
+                s += slot->advance.x >> 6;
+                j++;
+            }
+            x += (maxx - s) >> 1;
+            newline = false;
+
+        }
 		if(out[i] == '\r' || out[i] == '\n')
 		{
 			// Newline
 			x = DEFAULT_X;
-			y += _fontheight + DEFAULT_Y_CUSHION;
+			y += _fontheight + _yspacing;
+            newline = true;
 
 			continue;
 		}
@@ -149,11 +178,34 @@ void TextRender::RenderSimple(const char *out)
 		if(error) continue;  /* ignore errors */
 
 		// Blit glyph to surface
-		Blit(&slot->bitmap, x + slot->bitmap_left, (y + _fontheight) - slot->bitmap_top);
+		if( sx == NULL && sy == NULL ) {
+    		Blit(&slot->bitmap, x + slot->bitmap_left, (y + _fontheight) - slot->bitmap_top);
+		}
 
 		// Advance the position
 		x += slot->advance.x >> 6;
+        if( x > maxx ) maxx = x;
 	}
+    if( sx ) *sx = maxx + 1;
+    if( sy ) *sy = y + _fontheight + _yspacing + 1;
+}
+
+void TextRender::GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...)
+{
+	// Need to make room for the sprintf'd text
+	char *out = (char *)memalign(32, 1024);
+
+	// Build using sprintf
+	va_list marker;
+	va_start(marker,fmt);
+	vsprintf(out,fmt,marker);
+	va_end(marker);
+
+	// Call rendering engine
+	RenderSimple(out, center, sx, sy);
+
+	// Free memory
+	free(out);
 }
 
 void TextRender::Render(const char *fmt, ...)

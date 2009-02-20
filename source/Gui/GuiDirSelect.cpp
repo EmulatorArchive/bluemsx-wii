@@ -25,7 +25,7 @@ void GuiDirSelect::InitTitleList(
 {
     // Arrows
     sprArrowUp.SetImage(g_imgArrow);
-    sprArrowUp.SetPosition(x, y + 6);
+    sprArrowUp.SetPosition(x, y);
     sprArrowUp.SetStretchWidth(0.5f);
     sprArrowUp.SetStretchHeight(0.5f);
     sprArrowUp.SetRotation(180.0f/2);
@@ -129,7 +129,7 @@ void GuiDirSelect::SetSelected(int selected)
 {
     if( selected >= 0 ) {
         Sprite *selectedsprite = &titleTxtSprite[selected];
-        sprSelector.SetPosition(selectedsprite->GetX(),selectedsprite->GetY());
+        sprSelector.SetPosition(selectedsprite->GetX(),selectedsprite->GetY()-6);
         sprSelector.SetVisible(true);
     }
 }
@@ -160,7 +160,7 @@ char *GuiDirSelect::DoModal(void)
 
     // Dir list
     InitTitleList(g_fontArial, 32,
-                  320-140, 32+24, 2*140, 48, 64);
+                  320-140, 32+24+6, 2*140, 48, 64);
 
     // Cursor
     Sprite sprCursor;
@@ -240,14 +240,10 @@ char *GuiDirSelect::DoModal(void)
             manager->Lock();
 
             // Infrared
-            ir_t ir;
-            WPAD_IR(WPAD_CHAN_0, &ir);
-            if( !ir.state || !ir.smooth_valid ) {
-                WPAD_IR(WPAD_CHAN_1, &ir);
-            }
-            if( ir.state && ir.smooth_valid ) {
-                sprCursor.SetPosition(ir.sx, ir.sy);
-                sprCursor.SetRotation(ir.angle/2);
+            int x, y, angle;
+            if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+                sprCursor.SetPosition(x, y);
+                sprCursor.SetRotation(angle/2);
                 sprCursor.SetVisible(true);
             }else{
                 sprCursor.SetVisible(false);
@@ -267,18 +263,17 @@ char *GuiDirSelect::DoModal(void)
             }
             if( selected == current ) {
                 // Scroll when mouse stays on the arrows for a while
-                if( cursor_visible && ticks_to_millisecs(gettime()) > scroll_time ) {
-                    if( selected == 0 ) {
-                        buttons |= WPAD_BUTTON_UP;
+                if( cursor_visible && (selected == 0 || selected == NUM_DIR_ITEMS-1) ) {
+                    if( ticks_to_millisecs(gettime()) > scroll_time ) {
+                        if( selected == 0 ) {
+                            buttons |= WPAD_BUTTON_UP;
+                        }else{
+                            buttons |= WPAD_BUTTON_DOWN;
+                        }
+                        scroll_time = ticks_to_millisecs(gettime()) + REPEAT_TIME;
                     }
-                    if( selected == NUM_DIR_ITEMS-1 ) {
-                        buttons |= WPAD_BUTTON_DOWN;
-                    }
-                    scroll_time = ticks_to_millisecs(gettime()) + REPEAT_TIME;
                 }else{
-                    if( !(cursor_visible && (selected == 0 || selected == NUM_DIR_ITEMS-1)) ) {
-                        scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
-                    }
+                    scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
                 }
 
                 // WPAD keys
@@ -333,7 +328,7 @@ char *GuiDirSelect::DoModal(void)
             if(ticks_to_millisecs(gettime())>time2rumble+250 && rumbeling){ rumbeling = false; }
 #endif
             if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
-                (selected >= 0) ) {
+                (selected >= upper_index && selected <= lower_index) ) {
                 selected_dir = dirInfo[selected];
                 break;
             }

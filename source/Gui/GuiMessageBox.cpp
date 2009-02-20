@@ -19,6 +19,9 @@ extern "C" {
 #include "ArchThread.h"
 }
 
+#define BUTTON_TRANSPARENCY_NORMAL    160
+#define BUTTON_TRANSPARENCY_HIGHLIGHT 255
+
 bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 {
     bool use_keyboard = true;
@@ -34,8 +37,8 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 
     // Set default button
     bool selected = true;
-    yes->SetTransparency(255);
-    no->SetTransparency(192);
+    yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+    no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
 
     manager->Unlock();
 
@@ -43,20 +46,17 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
     (void)KBD_GetPadButtons(WPAD_CHAN_1);
 
     for(;;) {
-        // WPAD + Infrared
+        // Buttons
         WPAD_ScanPads();
         u32 buttons = KBD_GetPadButtons(WPAD_CHAN_0) | KBD_GetPadButtons(WPAD_CHAN_1);
-        ir_t ir;
-        WPAD_IR(WPAD_CHAN_0, &ir);
-        if( !ir.state || !ir.smooth_valid ) {
-            WPAD_IR(WPAD_CHAN_1, &ir);
-        }
 
         manager->Lock();
 
-        if( ir.state && ir.smooth_valid ) {
-            cursor->SetPosition(ir.sx, ir.sy);
-            cursor->SetRotation(ir.angle/2);
+        // Infrared
+        int x, y, angle;
+        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+            cursor->SetPosition(x, y);
+            cursor->SetRotation(angle/2);
             cursor->SetVisible(true);
         }else{
             cursor->SetVisible(false);
@@ -65,8 +65,8 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 
         // Check mouse cursor colisions
         if( cursor->CollidesWith(yes, true) ) {
-            yes->SetTransparency(255);
-            no->SetTransparency(192);
+            yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
             selected = true;
             use_keyboard = false;
             if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
@@ -74,8 +74,8 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
             }
         }else
         if( cursor->CollidesWith(no, true) ) {
-            yes->SetTransparency(192);
-            no->SetTransparency(255);
+            yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            no->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
             selected = false;
             use_keyboard = false;
             if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
@@ -83,24 +83,29 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
             }
         }else
         if( !use_keyboard ) {
-            yes->SetTransparency(192);
-            no->SetTransparency(192);
+            yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
         }
 
         // Check keys
         if( buttons & (WPAD_BUTTON_LEFT | WPAD_CLASSIC_BUTTON_LEFT) ) {
-            yes->SetTransparency(255);
-            no->SetTransparency(192);
+            yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
             selected = true;
             use_keyboard = true;
         }
         if( buttons & (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_RIGHT) ) {
-            yes->SetTransparency(192);
-            no->SetTransparency(255);
+            yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            no->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
             selected = false;
             use_keyboard = true;
         }
         if( use_keyboard && buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+            break;
+        }
+        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
+                       WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B)) {
+            selected = false;
             break;
         }
 
@@ -116,7 +121,7 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
     return selected;
 }
 
-bool GuiMessageBox::Show(const char *txt, int txtwidth, Image *image, bool yesno, int alpha)
+bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
 {
     manager->Lock();
 
@@ -124,52 +129,68 @@ bool GuiMessageBox::Show(const char *txt, int txtwidth, Image *image, bool yesno
         Remove();
     }
 
+    // Prepare text
+    int txtwidth;
+    int textheight;
+    txt_image = new DrawableImage;
+    txt_image->SetFont(g_fontArial);
+    txt_image->SetSize(32);
+    txt_image->SetYSpacing(2);
+    txt_image->SetColor((GXColor){255,255,255,255});
+    txt_image->GetTextSize(&txtwidth, &textheight, true, txt);
+    txtwidth = (txtwidth + 3) & ~3;
+    textheight = (textheight + 3) & ~3;
+    txt_image->CreateImage(txtwidth, textheight);
+    txt_image->RenderText(true, txt);
+
     // container
-    int sizex = image? 560 : 400;
-    int sizey = 160;
-    int imgoffset = 0;
-    int yoffset = 0;
+    int minsizex = image? 560 : 400;
+    int sizex = txtwidth + (image? image->GetWidth()+24 : 0) + 48;
+    int sizey = 100 + textheight;
+    if( sizex < minsizex ) {
+        sizex = minsizex;
+    }
     if( yesno ) {
         sizex += 120;
         sizey += 40;
-        yoffset -= 40;
     }
-    container = new GuiContainer(320-(sizex>>1), 240-(sizey>>1), sizex, sizey, alpha);
+    int x = 320-(sizex>>1);
+    int y = 240-(sizey>>1);
+    container = new GuiContainer(x, y , sizex, sizey, alpha);
     manager->AddTop(container->GetLayer());
+    sizex = container->GetWidth();
+    sizey = container->GetHeight();
+
     // image (optional)
     if( image ) {
-        imgoffset = image->GetWidth() + 24;
         img_sprite = new Sprite;
         img_sprite->SetImage(image);
         img_sprite->SetRefPixelPosition(0, 0);
-        img_sprite->SetPosition(320-(sizex>>1)+24, 240-(sizey>>1)+32+yoffset);
+        img_sprite->SetPosition(x+24, y+(sizey>>1)-(image->GetHeight()>>1));
         manager->AddTop(img_sprite);
+        x += 24+image->GetWidth();
+        sizex -= 24+image->GetWidth();
     }
     // yes/no buttons (optional)
     if( yesno ) {
-        int x = 320-128-12;
-        int y = 240+(sizey>>1)-54-24;
+        int bx = x+(sizex>>1)-g_imgButtonYes->GetWidth()-12;
+        int by = y+sizey-g_imgButtonYes->GetHeight()-36;
         spr_yes = new Sprite;
         spr_yes->SetImage(g_imgButtonYes);
-        spr_yes->SetPosition(x, y);
+        spr_yes->SetPosition(bx, by);
         manager->AddTop(spr_yes);
-        x = 320+12;
-        y = 240+(sizey>>1)-54-24;
+        bx = x+(sizex>>1)+12;
+        by = y+sizey-g_imgButtonYes->GetHeight()-36;
         spr_no = new Sprite;
         spr_no->SetImage(g_imgButtonNo);
-        spr_no->SetPosition(x, y);
+        spr_no->SetPosition(bx, by);
         manager->AddTop(spr_no);
+        sizey -= g_imgButtonYes->GetHeight() + 36;
    }
     // text
-    txt_image = new DrawableImage;
-    txt_image->CreateImage(txtwidth, 60);
-    txt_image->SetFont(g_fontArial);
-    txt_image->SetSize(32);
-    txt_image->SetColor((GXColor){255,255,255,255});
-    txt_image->RenderText(txt);
     txt_sprite = new Sprite;
     txt_sprite->SetImage(txt_image->GetImage());
-    txt_sprite->SetPosition(320-(txtwidth>>1)+imgoffset, 240-30+yoffset);
+    txt_sprite->SetPosition(x+((sizex-txtwidth)>>1), y+((sizey-textheight)>>1)-4);
     manager->AddTop(txt_sprite);
     is_showing = true;
     manager->Unlock();
@@ -235,7 +256,7 @@ void GuiMessageBox::MessageBoxPopupThread(void)
     Remove();
 }
 
-void GuiMessageBox::ShowPopup(const char *txt, int txtwidth, Image *image, int alpha)
+void GuiMessageBox::ShowPopup(const char *txt, Image *image, int alpha)
 {
     // Terminate old thread
     if( thread_popup ) {
@@ -246,7 +267,7 @@ void GuiMessageBox::ShowPopup(const char *txt, int txtwidth, Image *image, int a
     }
     manager->Lock();
     // Show popup
-    (void)Show(txt, txtwidth, image, false, alpha);
+    (void)Show(txt, image, false, alpha);
     // Start thread
     myself = this;
     quit_thread = false;
