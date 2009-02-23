@@ -32,10 +32,10 @@
 #include <string.h>
 #include <fat.h>
 #include <wiiuse/wpad.h>
-#include <sys/stat.h>
 
 #include "GuiDirSelect.h"
 #include "GuiGameSelect.h"
+#include "GuiStateSelect.h"
 #include "GuiMenu.h"
 #include "GuiMessageBox.h"
 #include "GuiKeyboard.h"
@@ -58,7 +58,6 @@ extern "C" {
 #include "Language.h"
 #include "LaunchFile.h"
 #include "ArchEvent.h"
-#include "ArchGlob.h"
 #include "ArchSound.h"
 #include "ArchNotifications.h"
 #include "JoystickPort.h"
@@ -281,70 +280,6 @@ void blueMsxInit(int resetProperties)
 
 static Sprite *sprBackground;
 
-typedef struct {
-    int number_of_saves;
-    char **filenames;
-    char **timestrings;
-} SAVE_STATES;
-
-SAVE_STATES *GetStateFileList(Properties* properties, char* directory, char* prefix, char* extension, int digits)
-{
-    static SAVE_STATES states;
-    static char *filenames[256];
-    static char *timestrings[256];
-    ArchGlob* glob;
-    static char filename[512];
-    char baseName[128];
-    int i, k;
-    int numMod = 1;
-    char filenameFormat[32] = "%s/%s%s_";
-    char destfileFormat[32];
-
-    for (i = 0; i < digits; i++) {
-        strcat(filenameFormat, "?");
-        numMod *= 10;
-    }
-    strcat(filenameFormat, "%s");
-    sprintf(destfileFormat, "%%s/%%s%%s_%%0%di%%s", digits);
-
-    createSaveFileBaseName(baseName, properties, 0);
-
-    sprintf(filename, filenameFormat, directory, prefix, baseName, extension);
-
-    glob = archGlob(filename, ARCH_GLOB_FILES);
-
-    if (glob) {
-        k = 0;
-        if (glob->count > 0) {
-            for (i = 0; i < glob->count; i++) {
-                struct stat s;
-                if( stat(glob->pathVector[i], &s) >= 0 ) {
-                    timestrings[k] = strdup(ctime(&s.st_mtime));
-                    filenames[k++] = strdup(glob->pathVector[i]);
-                }
-            }
-        }
-        states.timestrings = timestrings;
-        states.filenames = filenames;
-        states.number_of_saves = k;
-        archGlobFree(glob);
-    }else{
-        states.number_of_saves = 0;
-    }
-
-    return &states;
-}
-
-void FreeStateFileList(SAVE_STATES *states)
-{
-    for(int i = 0; i < states->number_of_saves; i++) {
-        free(states->timestrings[i]);
-        states->timestrings[i] = NULL;
-        free(states->filenames[i]);
-        states->filenames[i] = NULL;
-    }
-}
-
 void RenderEmuImage(void *arg)
 {
     (void)arg;
@@ -448,29 +383,28 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     };
     bool pressed = true;
     while(!g_doQuit) {
-        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) ) {
+        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) || KBD_GetKeyStatus(kbdHandle, KEY_JOY2_HOME) ) {
             if( !pressed ) {
                 emulatorSuspend();
                 bool leave_menu = false;
                 do {
                     int selection = menu->DoModal(menu_items, 5, 344);
                     switch( selection ) {
-                        SAVE_STATES *states;
+                        GuiStateSelect *statesel;
+                        char *statefile;
                         case 0: /* Load state */
-                            states = GetStateFileList(properties, stateDir, "", ".sta", 2);
-                            if( states->number_of_saves > 0 ) {
-                                int statenum = menu->DoModal((const char**)states->timestrings, states->number_of_saves, 360);
-                                if( statenum != -1 ) {
-                                    emulatorStop();
-                                    emulatorStart(states->filenames[statenum]);
-                                    VIDEO_WaitVSync();
-                                    VIDEO_WaitVSync();
-                                    VIDEO_WaitVSync();
-                                    VIDEO_WaitVSync();
-                                    emulatorSuspend();
-                                }
+                            statesel = new GuiStateSelect(manager);
+                            statefile = statesel->DoModal(properties, stateDir);
+                            if( statefile ) {
+                                emulatorStop();
+                                emulatorStart(statefile);
+                                VIDEO_WaitVSync();
+                                VIDEO_WaitVSync();
+                                VIDEO_WaitVSync();
+                                VIDEO_WaitVSync();
+                                emulatorSuspend();
                             }
-                            FreeStateFileList(states);
+                            delete statesel;
                             break;
                         case 1: /* Save state */
                             actionQuickSaveState();

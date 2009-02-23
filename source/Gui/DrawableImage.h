@@ -34,7 +34,7 @@ class DrawableImage : public Image
         void SetYSpacing(int s);
 		void RenderText(const char *fmt, ...);
 		void RenderText(bool center, const char *fmt, ...);
-        void GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...);
+        void GetTextSize(int *sx, int *sy, const char *fmt, ...);
         u8 *GetTextureBuffer(void);
         void FlushBuffer(void);
 	private:

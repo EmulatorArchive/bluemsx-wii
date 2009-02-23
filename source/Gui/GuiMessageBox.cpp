@@ -137,7 +137,7 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
     txt_image->SetSize(32);
     txt_image->SetYSpacing(2);
     txt_image->SetColor((GXColor){255,255,255,255});
-    txt_image->GetTextSize(&txtwidth, &textheight, true, txt);
+    txt_image->GetTextSize(&txtwidth, &textheight, txt);
     txtwidth = (txtwidth + 3) & ~3;
     textheight = (textheight + 3) & ~3;
     txt_image->CreateImage(txtwidth, textheight);
@@ -155,7 +155,7 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
         sizey += 40;
     }
     int x = 320-(sizex>>1);
-    int y = 240-(sizey>>1);
+    int y = 240-(sizey>>1)-manager->GetYOffset();
     container = new GuiContainer(x, y , sizex, sizey, alpha);
     manager->AddTop(container->GetLayer());
     sizex = container->GetWidth();
