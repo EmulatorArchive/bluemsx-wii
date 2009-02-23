@@ -120,17 +120,14 @@ void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
 	}
 }
 
+extern "C" void archThreadSleep(int milliseconds);
+
 void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
 {
 	// Remember x position
 	int maxx = 0;
 	int x = DEFAULT_X;
 	int y = DEFAULT_Y;
-
-    // Determine maximum x-size when need to center
-    if( center ) {
-        RenderSimple(out, false, &maxx, NULL);
-    }
 
 	// Shortcut from examples
 	FT_GlyphSlot slot = face->glyph;
@@ -148,7 +145,8 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
                 s += slot->advance.x >> 6;
                 j++;
             }
-            x += (maxx - s) >> 1;
+            x += (_width - s) >> 1;
+            if( x < 0 ) x = 0;
             newline = false;
 
         }

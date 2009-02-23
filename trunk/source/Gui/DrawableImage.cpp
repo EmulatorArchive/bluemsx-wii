@@ -230,7 +230,7 @@ void DrawableImage::RenderText(bool center, const char *fmt, ...)
 	va_end(marker);
 }
 
-void DrawableImage::GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...)
+void DrawableImage::GetTextSize(int *sx, int *sy, const char *fmt, ...)
 {
 	// Need to make room for the sprintf'd text
 	char *out = (char *)memalign(32, 1024);
@@ -248,7 +248,7 @@ void DrawableImage::GetTextSize(int *sx, int *sy, bool center, const char *fmt, 
 
 	// Call rendering engine
 	font->SetBuffer(NULL, 0x7fffffff, 0x7fffffff);
-	font->RenderSimple(out, center, sx, sy);
+	font->RenderSimple(out, false, sx, sy);
 
 	// Free memory
 	free(out);

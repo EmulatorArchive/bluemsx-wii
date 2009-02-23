@@ -21,6 +21,7 @@ public:
     static void *DisplayThreadWrapper(void *arg);
     void DisplayThread(void);
     void SetYOffset(int yoff);
+    int GetYOffset(void);
     void Lock(void);
     void Unlock(void);
     void AddTop(Layer *layer);

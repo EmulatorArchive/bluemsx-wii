@@ -82,6 +82,11 @@ void GuiManager::SetYOffset(int yoff)
     yoffset = yoff;
 }
 
+int GuiManager::GetYOffset(void)
+{
+    return yoffset;
+}
+
 void GuiManager::AddTop(Layer *layer)
 {
     manager->Insert(layer, fixed_layers);
