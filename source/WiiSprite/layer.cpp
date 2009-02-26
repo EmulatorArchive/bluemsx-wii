@@ -1,10 +1,10 @@
 #include "layer.h"
 
 namespace wsp{
-	Layer::Layer() : 
-		_height(0), _width(0),
+	Layer::Layer() :
+		_height(0), _width(0), _alpha(0xff),
 		_x(0), _y(0),
-		_visible(true)	
+		_visible(true)
 	{
 	}
 	Layer::~Layer(){
@@ -30,7 +30,14 @@ namespace wsp{
 	void Layer::SetVisible(bool visible){
 		_visible = visible;
 	}
-	
+
+	void Layer::SetTransparency(u8 alpha){
+		_alpha = alpha;
+	}
+	u8 Layer::GetTransparency() const{
+		return _alpha;
+	}
+
 	void Layer::SetPosition(f32 x, f32 y){
 		_x = x;
 		_y = y;

@@ -13,14 +13,19 @@ public:
     void Show(void);
     void Remove(void);
     bool IsShowing(void);
+    void SetEnabled(bool enable);
     void Render(void);
 
 private:
     static void RenderWrapper(void *arg);
 
     bool is_showing;
+    bool is_enabled;
+    bool is_hidden;
     int xpos;
     int ypos;
+    int xsize;
+    int ysize;
     float xscale;
     float yscale;
     int keymap1;
@@ -32,6 +37,7 @@ private:
     Sprite *spr_image;
     Sprite *spr_cursor;
     Sprite *spr_hover;
+    Sprite *spr_pressed;
 };
 
 #endif

@@ -5,6 +5,8 @@
 #include "expat.h"
 #include "kbdlib.h"
 
+using namespace wsp;
+
 class GameElement
 {
 public:
@@ -21,13 +23,13 @@ public:
     char *GetScreenShot(int number);
     int GetKeyMapping(KEY key);
     void FreeImage(int number);
-    wsp::Image* GetImage(int number);
+    Image* GetImage(int number);
     GameElement *next;
 private:
     char *name;
     char *cmdline;
     char *screenshot[2];
-    wsp::Image *image[2];
+    Image *image[2];
     int key_map[KEY_LAST];
 };
 

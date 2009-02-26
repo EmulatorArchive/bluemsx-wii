@@ -5,7 +5,21 @@
 #include <malloc.h>
 
 namespace wsp{
-	Image::Image() : _pixels(NULL), _width(0), _height(0), _initialized(false){
+	Image::Image() : _pixels(NULL), _width(0), _height(0), _bytespp(0), _initialized(false){
+	}
+
+	Image::Image(Image *src) {
+        _width = src->_width;
+        _height = src->_height;
+        _bytespp = src->_bytespp;
+        _initialized = src->_initialized;
+        if( src->_pixels != NULL ) {
+            _pixels = (u8*)(memalign(32, _width*_height*_bytespp));
+            memcpy(_pixels, src->_pixels, _width*_height*_bytespp);
+            _Flush();
+        }else{
+            _pixels = NULL;
+        }
 	}
 
 	Image::~Image(){
@@ -226,7 +240,7 @@ namespace wsp{
 
 	void Image::_Flush(){
 		// Move flush cached memory.
-		DCFlushRange(_pixels, _width * _height * 4);
+		DCFlushRange(_pixels, _width * _height * _bytespp);
 	}
 
 	void Image::_ConvertTexture(png_byte color_type, int channels, png_bytep* row_pointers){

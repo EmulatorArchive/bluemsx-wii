@@ -17,13 +17,57 @@ void GuiManager::DisplayThread(void)
     do {
         LWP_MutexLock(mutex);
 
+        // Call registered callbacks
         GuiManagerCallback *p = render;
         while( p ) {
             p->callback(p->context);
             p = p->next;
         }
 
-        manager->Draw(0, yoffset);
+        // Handle fade-out
+        for(int i = 0; i < GUI_MAX_LAYERS; i++) {
+            FrameRemove *remove = &remove_list[i];
+            if( remove->layer ) {
+                if( remove->delay ) {
+                    remove->delay--;
+                }else
+                if( remove->count ) {
+                    remove->count--;
+                    remove->layer->SetTransparency((remove->count * remove->alpha) / remove->fade);
+                }else{
+                    if( remove->needdelete ) {
+                        RemoveAndDelete(remove->layer, remove->image);
+                    }else{
+                        Remove(remove->layer);
+                    }
+                    remove->layer = NULL;
+                }
+
+            }
+        }
+        // Handle fade-in
+        for(int i = 0; i < GUI_MAX_LAYERS; i++) {
+            FrameAdd *add = &add_list[i];
+            if( add->layer ) {
+                if( add->delay ) {
+                    add->delay--;
+                }else
+                if( add->count ) {
+                    add->count--;
+                    if( add->layer->GetTransparency() != add->curalpha ) {
+                        // someone has changed the transparency, change as new setpoint for fade
+                        add->alpha = add->layer->GetTransparency();
+                    }
+                    add->curalpha = ((add->fade - add->count) * add->alpha) / add->fade;
+                    add->layer->SetTransparency(add->curalpha);
+                }else{
+                    add->layer = NULL;
+                }
+
+            }
+        }
+
+        manager->Draw(0, 0);
         LWP_MutexUnlock(mutex);
         gwd.Flush();
     }while( !quit_thread );
@@ -77,39 +121,127 @@ void GuiManager::Unlock(void)
     LWP_MutexUnlock(mutex);
 }
 
-void GuiManager::SetYOffset(int yoff)
+void GuiManager::AddIndex(int index, Layer *layer, bool fix, int fade, int delay)
 {
-    yoffset = yoff;
+    FrameAdd *add = NULL;
+    int i;
+    if( fade ) {
+        // find free spot in add-list
+        for(i = 0; i < GUI_MAX_LAYERS; i++) {
+            if( add_list[i].layer == NULL ) break;
+        }
+        if( i == GUI_MAX_LAYERS ) return;
+        add = &add_list[i];
+        // set parameters for adding it
+        add->count = add->fade = fade;
+        add->delay = delay;
+        add->alpha = layer->GetTransparency();
+        add->curalpha = 0;
+        // start at 'fully transparent'
+        layer->SetTransparency(add->curalpha);
+    }
+    if( fix ) {
+        manager->Insert(layer, 0);
+        fixed_layers++;
+    }else{
+        if( index == GUI_MAX_LAYERS ) {
+            manager->Append(layer);
+        }else{
+            manager->Insert(layer, index);
+        }
+    }
+    if( fade ) {
+        // start fading-in
+        add->layer = layer;
+    }
 }
 
-int GuiManager::GetYOffset(void)
+void GuiManager::AddTop(Layer *layer, int fade, int delay)
 {
-    return yoffset;
+    AddIndex(fixed_layers, layer, false, fade, delay);
 }
 
-void GuiManager::AddTop(Layer *layer)
+void GuiManager::AddTopFixed(Layer *layer, int fade, int delay)
 {
-    manager->Insert(layer, fixed_layers);
+    AddIndex(fixed_layers, layer, true, fade, delay);
 }
 
-void GuiManager::AddBottom(Layer *layer)
+void GuiManager::AddOnTopOf(Layer *ontopof, Layer *layer, int fade, int delay)
 {
-    manager->Append(layer);
+    int index = manager->GetIndex(ontopof);
+    if( index >= 0 ) {
+        AddIndex(index, layer, false, fade, delay);
+    }
 }
 
-void GuiManager::Remove(Layer *layer)
+void GuiManager::AddBehind(Layer *behind, Layer *layer, int fade, int delay)
 {
-    manager->Remove(layer);
+    int index = manager->GetIndex(behind);
+    if( index >= 0 ) {
+        AddIndex(index+1, layer, false, fade, delay);
+    }
 }
 
-void GuiManager::FixLayers(int fix)
+void GuiManager::AddBottom(Layer *layer, int fade, int delay)
 {
-    fixed_layers += fix;
+    AddIndex(GUI_MAX_LAYERS, layer, false, fade, delay);
 }
 
-void GuiManager::UnfixLayers(int fix)
+void GuiManager::RegisterRemove(Layer *layer, bool needdelete, int fade, int delay, Image *image)
 {
-    fixed_layers -= fix;
+    int i;
+    // remove from add-list (still busy fading-in)
+    // remove from remove-list to prevent deleting twice
+    for(i = 0; i < GUI_MAX_LAYERS; i++) {
+        if( add_list[i].layer == layer ) {
+            add_list[i].layer = NULL;
+        }
+        if( remove_list[i].layer == layer ) {
+            remove_list[i].layer = NULL;
+        }
+    }
+    // find free spot in remove-list
+    for(i = 0; i < GUI_MAX_LAYERS; i++) {
+        if( remove_list[i].layer == NULL ) break;
+    }
+    if( i == GUI_MAX_LAYERS ) return;
+    FrameRemove *remove = &remove_list[i];
+    // Add entry to list
+    remove->needdelete = needdelete;
+    remove->count = remove->fade = fade;
+    remove->delay = delay;
+    remove->alpha = layer->GetTransparency();
+    remove->image = image;
+    remove->layer = layer;
+}
+
+void GuiManager::Remove(Layer *layer, int fade, int delay)
+{
+    if( fade == 0 ) {
+        int idx = manager->GetIndex(layer);
+        if( idx < 0 ) return;
+
+        manager->Remove(layer);
+
+        if( idx < fixed_layers ) {
+            fixed_layers--;
+        }
+    }else{
+        RegisterRemove(layer, false, fade, delay, NULL);
+    }
+}
+
+void GuiManager::RemoveAndDelete(Layer *layer, Image *image, int fade, int delay)
+{
+    if( fade == 0 ) {
+        Remove(layer);
+        if( image ) {
+            delete image;
+        }
+        delete layer;
+    }else{
+        RegisterRemove(layer, true, fade, delay, image);
+    }
 }
 
 bool GuiManager::GetWiiMoteIR(int *x, int *y, int *angle)
@@ -133,15 +265,16 @@ bool GuiManager::GetWiiMoteIR(int *x, int *y, int *angle)
 
 GuiManager::GuiManager()
 {
-    yoffset = 0;
     fixed_layers = 0;
+    memset(remove_list, 0, sizeof(remove_list));
+    memset(add_list, 0, sizeof(add_list));
 
     // Initialize GameWindow
 	gwd.InitVideo();
 	gwd.SetBackground((GXColor){ 0, 0, 0, 255 });
 
     // Initialize manager
-    manager = new LayerManager(64);
+    manager = new LayerManager(GUI_MAX_LAYERS);
 
     // Start displaying
     quit_thread = false;
@@ -154,6 +287,15 @@ GuiManager::GuiManager()
 
 GuiManager::~GuiManager()
 {
+    // Handle pending delete requests
+    LWP_MutexLock(mutex);
+    for(int i = 0; i < GUI_MAX_LAYERS; i++) {
+        if( remove_list[i].layer != NULL &&
+            remove_list[i].needdelete ) {
+            RemoveAndDelete(remove_list[i].layer, remove_list[i].image);
+        }
+    }
+
     // Stop display thread
     quit_thread = true;
     LWP_JoinThread(thread, NULL);

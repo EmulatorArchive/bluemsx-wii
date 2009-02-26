@@ -16,6 +16,15 @@ extern "C" {
 // Resources
 #include "GuiImages.h"
 
+#define SSEL_FADE_FRAMES  10
+#define SSEL_FADE_DELAY   4
+
+#define SSEL_YPITCH       51
+#define SSEL_HEIGHT       256
+#define SSEL_MENU_SPACING 8
+#define SSEL_X_SPACING    12
+#define SSEL_LIST_WIDTH   300
+
 void GuiStateSelect::CreateStateFileList(Properties *properties, char *directory)
 {
     ArchGlob* glob;
@@ -86,34 +95,32 @@ void GuiStateSelect::FreeStateFileList(void)
 
 void GuiStateSelect::UpdateScreenShot(char *file)
 {
-    sprScreenShot.SetImage(g_imgNoise);
-    if( imgScreenShot != NULL ) {
-        delete imgScreenShot;
-        imgScreenShot = NULL;
+    if( sprScreenShot != NULL ) {
+        manager->RemoveAndDelete(sprScreenShot, imgScreenShot,
+                                 SSEL_FADE_FRAMES, file? SSEL_FADE_DELAY:0);
+        sprScreenShot = NULL;
     }
     if( file != NULL ) {
         int size;
         void* buffer = zipLoadFile(file, "screenshot.png", &size);
-
         if( buffer != NULL ) {
             imgScreenShot = new Image;
             if(imgScreenShot->LoadImage((const unsigned char*)buffer) != IMG_LOAD_ERROR_NONE) {
                 delete imgScreenShot;
-                imgScreenShot = NULL;
+                imgScreenShot = new Image(g_imgNoise);
             }
             free(buffer);
         }
 
-        Image *img = imgScreenShot;
-        if( img == NULL ) {
-            img = g_imgNoise;
-        }
-
-        sprScreenShot.SetImage(img);
-        sprScreenShot.SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-        sprScreenShot.SetRefPixelPosition(0, 0);
-        sprScreenShot.SetStretchWidth(256.0f/img->GetWidth());
-        sprScreenShot.SetStretchHeight(212.0f/img->GetHeight());
+        sprScreenShot = new Sprite;
+        sprScreenShot->SetPosition(posx+sizex-256-SSEL_X_SPACING-2*SSEL_MENU_SPACING,
+                                   posy+sizey/2-106);
+        sprScreenShot->SetImage(imgScreenShot);
+        sprScreenShot->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+        sprScreenShot->SetRefPixelPosition(0, 0);
+        sprScreenShot->SetStretchWidth(256.0f/imgScreenShot->GetWidth());
+        sprScreenShot->SetStretchHeight(212.0f/imgScreenShot->GetHeight());
+        manager->AddTop(sprScreenShot, SSEL_FADE_FRAMES);
     }
 }
 
@@ -127,12 +134,6 @@ void GuiStateSelect::OnSetSelected(int index, int selected)
 
 char *GuiStateSelect::DoModal(Properties *properties, char *directory)
 {
-    #define SSEL_YPITCH       51
-    #define SSEL_HEIGHT       256
-    #define SSEL_MENU_SPACING 8
-    #define SSEL_X_SPACING    12
-    #define SSEL_LIST_WIDTH   300
-
     char *returnValue = NULL;
 
     // Load states
@@ -145,26 +146,20 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     manager->Lock();
 
     // Container
-    int posx = 14;
-    int posy = 240-(SSEL_HEIGHT/2)-16+37;
-    int sizex = 640-28;
-    int sizey = SSEL_HEIGHT+32;
-    GuiContainer container(posx, posy,
-                           sizex, sizey, 160);
-	manager->AddTop(container.GetLayer());
-    sizex = container.GetWidth();
-    sizey = container.GetHeight();
+    posx = 14;
+    posy = 240-(SSEL_HEIGHT/2)-16;
+    sizex = 640-28;
+    sizey = SSEL_HEIGHT+32;
+    GuiContainer *container = new GuiContainer(posx, posy, sizex, sizey, 160);
+	manager->AddTop(container, SSEL_FADE_FRAMES);
+    sizex = container->GetWidth();
+    sizey = container->GetHeight();
 
     // Selection
     ShowSelection((const char **)timestrings, num_states, 0, 30, SSEL_YPITCH,
                   posx+SSEL_X_SPACING,
                   posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
-                  SSEL_MENU_SPACING, SSEL_LIST_WIDTH);
-
-    // Screen shot
-	sprScreenShot.SetPosition(posx+sizex-256-SSEL_X_SPACING-SSEL_MENU_SPACING,
-	                          posy+sizey/2-106);
-	manager->AddTop(&sprScreenShot);
+                  SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false, SSEL_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
@@ -199,8 +194,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     // Remove UI elements
     UpdateScreenShot(NULL);
     RemoveSelection();
-	manager->Remove(&sprScreenShot);
-	manager->Remove(container.GetLayer());
+	manager->RemoveAndDelete(container, NULL, SSEL_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
@@ -214,13 +208,10 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
 GuiStateSelect::GuiStateSelect(GuiManager *man) : GuiSelectionList(man, NUM_STATE_ITEMS)
 {
     manager = man;
-    imgScreenShot = NULL;
+    sprScreenShot = NULL;
 }
 
 GuiStateSelect::~GuiStateSelect()
 {
-    if( imgScreenShot != NULL ) {
-        delete imgScreenShot;
-    }
 }
 

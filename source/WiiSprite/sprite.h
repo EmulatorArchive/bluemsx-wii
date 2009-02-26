@@ -42,7 +42,7 @@ namespace wsp{
 			Sprite();
 			//!Destructor.
 			virtual ~Sprite();
-			
+
 			//!Assigns this sprite to an image.
 			//!If there is already an image with the same size, no data gets changed.
 			//!\param image The image for this sprite.
@@ -51,7 +51,7 @@ namespace wsp{
 			void SetImage(Image* image, u32 frameWidth = 0, u32 frameHeight = 0);
 			//!Gets the assigned image.
 			//!\return A pointer to the image. NULL if no image was assigned.
-			const Image* GetImage() const;
+			Image* GetImage() const;
 			//!Changes the transformation of the texture.
 			//!\param transform The new transformation for the texture. Use the TRANSFORMATION enum members as flags, e.g. (TRANS_MIRROR | TRANS_BILINEAR_OFF)
 			void SetTransform(u8 transform);
@@ -84,13 +84,6 @@ namespace wsp{
 			//!Gets the height stretch of the sprite. Is equal to zoom vallue if zoom was set.
 			//!\return The current height stretch of the sprite. 1 is normal size.
 			f32 GetStretchHeight() const;
-
-			//!Sets the transparency of the sprite. 
-			//!\param alpha Sets the transparency. Has a range from 0x00 (invisible) to 0xFF (fully visible)
-			void SetTransparency(u8 alpha);
-			//!Gets the transparency of the sprite.
-			//!\return The current transparency of the sprite. Has a range from 0x00 (invisible) to 0xFF (fully visible)
-			u8 GetTransparency() const;
 
 			//!Sets a reference pixel. The sprite rotates and zooms around this specified point. When
 			//!a new image gets initialized, the refpixel is moved to the center and the positioning
@@ -141,7 +134,7 @@ namespace wsp{
 			//!\param tiledlayer the tiledlayer to check.
 			//!\return true if it is colliding, false if not.
 			bool CollidesWith(const TiledLayer* tiledlayer) const;
-			
+
 			//!Gets the current frame of the sprite.
 			//!\return The frame this sprite is at.
 			//!\sa \ref sprite_sequences_page
@@ -181,7 +174,6 @@ namespace wsp{
 			void _CalcFrame();
 
 			f32 _rotation, _stretchWidth, _stretchHeight;
-			u8 _alpha;
 			Image* _image;
 			u8 _trans;
 
@@ -220,7 +212,7 @@ On NextFrame():
 On PrevFrame():
 [0] -> [3] -> [2] -> [1] -> [1] -> [3] -> [0] -> ...
 \endverbatim
- * 
+ *
  * The sequence just keeps on looping and only changes when you assign a new one or change to an
  * Image with fewer frames than the current one. So as you may see, sequencing can help you a lot
  * with your animation needs.

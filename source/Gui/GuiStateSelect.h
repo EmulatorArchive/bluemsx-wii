@@ -19,11 +19,15 @@ public:
     char *DoModal(Properties *properties, char *directory);
 private:
     int num_states;
+    int posx;
+    int posy;
+    int sizex;
+    int sizey;
     char *filenames[256];
     char *timestrings[256];
     time_t filetimes[256];
     Image *imgScreenShot;
-    Sprite sprScreenShot;
+    Sprite *sprScreenShot;
 
     void CreateStateFileList(Properties *properties, char *directory);
     void FreeStateFileList(void);

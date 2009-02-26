@@ -31,13 +31,20 @@ namespace wsp{
 			//!Gets the Y position on the viewport.
 			//!\return The Y position.
 			f32 GetY() const;
-		
+
 			//!Checks if the layer is visible. Is visible by default.
 			//!\return true if it is visible, false if not.
 			bool IsVisible() const;
 			//!Changes the visibility of the layer.
 			//!\param visible true for show, false for hide.
 			void SetVisible(bool visible);
+
+			//!Sets the transparency of the tiledlayer.
+			//!\param alpha Sets the transparency. Has a range from 0x00 (invisible) to 0xFF (fully visible)
+			void SetTransparency(u8 alpha);
+			//!Gets the transparency of the tiledlayer.
+			//!\return The current transparency of the tiledlayer. Has a range from 0x00 (invisible) to 0xFF (fully visible)
+			u8 GetTransparency() const;
 
 			//!Changes the absolute position of the layer on the viewport.
 			//!\param x The new X position.
@@ -65,7 +72,7 @@ namespace wsp{
 			//!\overload
 			//!\param y The new Y position of this layer.
 			void SetY(u32 y);
-			
+
 			//!Overloadable method. Here should drawing code be.
 			//!\param offsetX Additional offset for the X position where to draw the layer.
 			//!\param offsetY Additional offset for the Y position where to draw the layer.
@@ -73,6 +80,7 @@ namespace wsp{
 		protected:
 			u32 _height, //!< Height of the Layer.
 				_width; //!< Width of the Layer.
+			u8 _alpha;
 		private:
 			f32 _x, _y;
 			bool _visible;

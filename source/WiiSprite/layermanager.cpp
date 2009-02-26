@@ -43,6 +43,17 @@ namespace wsp{
 		_size++;
 	}
 
+	int LayerManager::GetIndex(Layer* layer){
+		if(layer == NULL)return -1;
+
+		for(u32 i = 0; i < _size; i++){
+			if(layer == _layers[i]){
+				return i;
+			}
+		}
+        return -1;
+	}
+
 	void LayerManager::Remove(Layer* layer){
 		if(layer == NULL)return;
 
@@ -80,7 +91,7 @@ namespace wsp{
 		if(index >= _size)return NULL;
 		return _layers[index];
 	}
-	
+
 	u32 LayerManager::GetSize() const{
 		return _size;
 	}
@@ -94,14 +105,14 @@ namespace wsp{
 		// Since this manager is using a modified scissor box, we use the data + hardcoded values
 		GX_SetScissorBoxOffset(-x,-y-31);
 		GX_SetScissor(0, 0, _width, _height);
-		
-		// Do the layers!	
+
+		// Do the layers!
 		for(u32 i = _size; i > 0; i--){
 			if(i == 0) break;
 			if(_layers[i-1])
 				_layers[i-1]->Draw(-_x, (-_y)-31); // As strange as it might look like, this fixes everything.
 		}
-		
+
 		// Set Scissor boxes back to normal again
 		GX_SetScissorBoxOffset(0, 0);
 		GX_SetScissor(0, 0, GameWindow::GetWidth(), GameWindow::GetHeight());

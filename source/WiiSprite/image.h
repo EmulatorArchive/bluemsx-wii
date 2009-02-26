@@ -31,8 +31,9 @@ namespace wsp{
 	//!Stores imagedata and is capable of loading pngs.
 	class Image{
 		public:
-			//!Constructor.
+			//!Constructors.
 			Image();
+            Image(Image *src);
 			//!Destructor.
 			virtual ~Image();
 

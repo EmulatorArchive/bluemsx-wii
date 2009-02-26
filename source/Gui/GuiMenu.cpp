@@ -4,6 +4,8 @@
 #include "GuiMenu.h"
 #include "GuiContainer.h"
 
+#define MENU_YPITCH      56
+#define MENU_FADE_FRAMES 10
 
 int GuiMenu::DoModal(const char **items, int num, int width)
 {
@@ -11,20 +13,22 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->Lock();
 
     // Add container
-    int height = num_item_rows*64+32;
-    int posx = (320-(width >> 1)) & ~3;
-    int posy = (240+37-(height >> 1)) & ~3;
-    GuiContainer container(posx, posy, width, height, 192);
-    manager->AddTop(container.GetLayer());
-    width = container.GetWidth();
-    height = container.GetHeight();
+    int height = num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
+    int posx = 320-(width >> 1);
+    int posy = 240-(height >> 1);
+    GuiContainer *container = new GuiContainer(posx, posy, width, height, 192);
+    manager->AddTop(container, MENU_FADE_FRAMES);
+    width = container->GetWidth();
+    height = container->GetHeight();
+    posx = 320-(width >> 1);
+    posy = 240-(height >> 1);
 
     // Start displaying
     manager->Unlock();
 
     // Menu list
-    ShowSelection(items, num, 0, 32, 64,
-                  posx+8, posy+24, 24, width-16);
+    ShowSelection(items, num, 0, 32, MENU_YPITCH,
+                  posx+16, posy+24, 24, width-32, false, MENU_FADE_FRAMES);
     int sel = DoSelection();
     RemoveSelection();
 
@@ -32,7 +36,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->Lock();
 
     // Remove container
-    manager->Remove(container.GetLayer());
+    manager->RemoveAndDelete(container, NULL, MENU_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();

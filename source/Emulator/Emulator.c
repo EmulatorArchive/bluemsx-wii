@@ -227,8 +227,9 @@ void emulatorInit(Properties* theProperties, Mixer* theMixer)
 
 void emulatorExit()
 {
-    emuThreadExitFlag = 0;
+    emuThreadExitFlag = 1;
     archEventSet(emuThreadStartEvent);
+    archEventWait(emuThreadStopEvent, -1);
     archThreadJoin(emuThread, -1);
     archThreadDestroy(emuThread);
 

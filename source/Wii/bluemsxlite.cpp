@@ -292,16 +292,7 @@ void RenderEmuImage(void *arg)
 
         videoRender(video, frameBuffer, bitDepth, zoom,
                     g_dpyData, 0, displayPitch, -1);
-        DCFlushRange(g_dpyData, TEX_WIDTH * TEX_HEIGHT * 4);
-    }
-}
-
-void actionToggleOnScreenKbd(void)
-{
-    if( osk->IsShowing() ) {
-        osk->Remove();
-    }else{
-        osk->Show();
+        DCFlushRange(g_dpyData, TEX_WIDTH * TEX_HEIGHT * 2);
     }
 }
 
@@ -353,11 +344,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     //allocLogPrint();
 
     msgbox->Remove();
-    archThreadSleep(100); // Don't know why, but it solve things...
     manager->Lock();
-    manager->Remove(sprBackground);
-    manager->SetYOffset(-37);
-    console->SetPosition(12, 12+37);
     DrawableImage *emuImg = new DrawableImage;
     emuImg->CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
     g_dpyData = (char *)emuImg->GetTextureBuffer();
@@ -368,17 +355,17 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     emuSpr->SetStretchHeight(548.0f / (float)480);
     emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     emuSpr->SetRefPixelPosition(0, 0);
-    emuSpr->SetPosition(0, 0);
-    manager->AddTop(emuSpr);
+    emuSpr->SetPosition(0, -37);
+    manager->AddTop(emuSpr, 90);
     manager->Unlock();
 
     // Loop while the user hasn't quit
-    GuiMenu *menu = new GuiMenu(manager, 4);
+    GuiMenu *menu = new GuiMenu(manager, 5);
     const char *menu_items[] = {
       "Load state",
       "Save state",
       "Screenshot",
-      "Keyboard",
+      "Properties",
       "Quit"
     };
     bool pressed = true;
@@ -386,6 +373,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) || KBD_GetKeyStatus(kbdHandle, KEY_JOY2_HOME) ) {
             if( !pressed ) {
                 emulatorSuspend();
+                osk->SetEnabled(false);
                 bool leave_menu = false;
                 do {
                     int selection = menu->DoModal(menu_items, 5, 344);
@@ -396,6 +384,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             statesel = new GuiStateSelect(manager);
                             statefile = statesel->DoModal(properties, stateDir);
                             if( statefile ) {
+                                msgbox->Show("Loading state...", NULL, false, 160);
                                 emulatorStop();
                                 emulatorStart(statefile);
                                 VIDEO_WaitVSync();
@@ -403,15 +392,18 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                 VIDEO_WaitVSync();
                                 VIDEO_WaitVSync();
                                 emulatorSuspend();
+                                msgbox->Remove();
                             }
                             delete statesel;
                             break;
                         case 1: /* Save state */
+                            msgbox->Show("Saving state...", NULL, false, 160);
                             actionQuickSaveState();
                             emulatorSuspend();
+                            msgbox->Remove();
                             break;
                         case 2: /* Screenshot */
-                            char fname1[256], fname2[256];
+                            char *p, fname1[256], fname2[256];
                             strcpy(fname1, game_dir);
                             strcat(fname1, "/");
                             strcat(fname1, game->GetScreenShot(0));
@@ -419,17 +411,18 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             strcat(fname2, "/");
                             strcat(fname2, game->GetScreenShot(1));
                             if( !archFileExists(fname1) ) {
-                                (void)archScreenCaptureToFile(SC_NORMAL, fname1);
+                                p = fname1;
                             }else
                             if( !archFileExists(fname2) ) {
-                                (void)archScreenCaptureToFile(SC_NORMAL, fname2);
+                                p = fname2;
                             }else{
-                                (void)archScreenCaptureToFile(SC_NORMAL,
-                                      generateSaveFilename(properties, screenShotDir, "", ".png", 2));
+                                p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
                             }
+                            msgbox->Show("Saving screenshot...", NULL, false, 160);
+                            (void)archScreenCaptureToFile(SC_NORMAL, p);
+                            msgbox->Remove();
                             break;
-                        case 3: /* Keyboard */
-                            actionToggleOnScreenKbd();
+                        case 3: /* Properties */
                             break;
                         case 4: /* Quit */
                             g_doQuit = true;
@@ -440,7 +433,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             break;
                     }
                 }while(!leave_menu);
+                KBD_GetKeys(kbdHandle, NULL); // flush
                 emulatorResume();
+                osk->SetEnabled(!g_doQuit);
                 pressed = true;
             }
         }else{
@@ -456,13 +451,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     // Remove emulator+keyboard from display
     manager->Lock();
     manager->RemoveRenderCallback(RenderEmuImage, NULL);
-    manager->Remove(emuSpr);
-    delete emuImg;
-    delete emuSpr;
+    manager->RemoveAndDelete(emuSpr, emuImg, 20);
     delete osk;
-    console->SetPosition(12, 12);
-    manager->SetYOffset(0);
-    manager->AddTop(sprBackground);
     manager->Unlock();
 
 #if MALLOC_LOG_BLUEMSX_RUN
@@ -507,7 +497,7 @@ int main(int argc, char **argv)
     sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     sprBackground->SetRefPixelPosition(0, 0);
     sprBackground->SetPosition(0, 0);
-    manager->AddTop(sprBackground);
+    manager->AddTop(sprBackground, 10);
 
     // Please wait...
     msgbox = new GuiMessageBox(manager);
@@ -529,8 +519,7 @@ int main(int argc, char **argv)
         // Browse directory
         game_dir = dirs->DoModal();
         if( game_dir == NULL ) {
-            delete dirs;
-            exit(0);
+            break;
         }
 #if MALLOC_LOG_GUI
         allocLogPrint();
@@ -569,8 +558,8 @@ int main(int argc, char **argv)
     mixerDestroy(mixer);
 
     // Destroy background and layer manager
-    manager->Remove(sprBackground);
-    delete sprBackground;
+    manager->RemoveAndDelete(sprBackground, NULL, 10);
+    archThreadSleep(12*20);
     delete manager;
 
     // Free GUI resources

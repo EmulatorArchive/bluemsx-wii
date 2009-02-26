@@ -6,8 +6,8 @@
 
 namespace wsp{
 	Sprite::Sprite() : Layer(),
-		_rotation(0.0f), _stretchWidth(1.0f), _stretchHeight(1.0f), _alpha(0xff),_image(NULL), _trans(TRANS_NONE), _colRect(NULL),
-		_frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0), _frameSeqPos(0), 
+		_rotation(0.0f), _stretchWidth(1.0f), _stretchHeight(1.0f), _image(NULL), _trans(TRANS_NONE), _colRect(NULL),
+		_frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0), _frameSeqPos(0),
 		_refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0), _positioning(REFPIXEL_POS_TOPLEFT)
 	{
 		for(u8 i = 0; i < 4; i++)
@@ -18,9 +18,9 @@ namespace wsp{
 		if(_colRect)
 			delete _colRect; _colRect = NULL;
 		if(_frameSeq)
-			delete[] _frameSeq; _frameSeq = NULL; 
+			delete[] _frameSeq; _frameSeq = NULL;
 	}
-	
+
 	void Sprite::SetImage(Image* image, u32 frameWidth, u32 frameHeight){
 		if(image == NULL || !image->IsInitialized())return;
 
@@ -50,7 +50,7 @@ namespace wsp{
 		// Set the new collision data
 		_colRect->x = 0; _colRect->y = 0;
 		_colRect->width = _width; _colRect->height = _height;
-		
+
 		// Now set framedata
 		_frame = 0; _frameRawCount = (image->GetWidth()/_width)*(image->GetHeight()/_height);
 		// Erase previous sequence
@@ -67,11 +67,11 @@ namespace wsp{
 		_refWidth = _refPixelX; _refHeight = _refPixelY;
 		// But draws based on topleft coordinate.
 		_positioning = REFPIXEL_POS_TOPLEFT;
-		
+
 		_image = image;
 		_CalcFrame();
 	}
-	const Image* Sprite::GetImage() const{
+	Image* Sprite::GetImage() const{
 		return _image;
 	}
 	void Sprite::SetTransform(u8 transform){
@@ -112,13 +112,6 @@ namespace wsp{
 		return _stretchHeight;
 	}
 
-	void Sprite::SetTransparency(u8 alpha){
-		_alpha = alpha;
-	}
-	u8 Sprite::GetTransparency() const{
-		return _alpha;
-	}
-
 	void Sprite::SetRefPixelPosition(f32 x, f32 y){
 		_refPixelX = x;
 		_refWidth = (f32)_width-x;
@@ -145,7 +138,7 @@ namespace wsp{
 	REFPIXEL_POSITIONING Sprite::GetRefPixelPositioning() const{
 		return _positioning;
 	}
-	
+
 	void Sprite::DefineCollisionRectangle(f32 x, f32 y, f32 width, f32 height){
 		_colRect->x = x;
 		_colRect->y = y;
@@ -169,14 +162,14 @@ namespace wsp{
 		return true;
 	}
 	bool Sprite::CollidesWith(const Sprite* sprite, bool complete) const{
-		if(sprite == NULL)return false; 
+		if(sprite == NULL)return false;
 		if(!complete){
 			// Some simple collision detecting with the base collision rectangle.
 			const Rectangle* collision = sprite->GetCollisionRectangle();
 			return CollidesWith(collision, sprite->GetX(), sprite->GetY());
 		}
-		
-		// Advanced rectangle collision detecting with zoom and rectangle.	
+
+		// Advanced rectangle collision detecting with zoom and rectangle.
 		// Code used from http://www.ragestorm.net/sample?id=80 and modified
 		// to get it working properly with libwiisprite.
 
@@ -215,7 +208,7 @@ namespace wsp{
 		sina = sin(angle2);
 		temp = rect[0].x; rect[0].x = temp*cosa + rect[0].y*sina; rect[0].y = -temp*sina + rect[0].y*cosa;
 
-		// Calculate the points of the other sprite. 
+		// Calculate the points of the other sprite.
 		rect[2].width = rect[2].x = rect[0].x;
 		rect[2].height = rect[2].y = rect[0].y;
 		rect[2].width -= rect[1].width; rect[2].height -= rect[1].height;
@@ -251,7 +244,7 @@ namespace wsp{
 
 			x = rect[2].width-rect[3].x; a = rect[2].x-rect[3].x;
 			vertical1 = rect[3].y;
-			
+
 			// If the first vertical range is not between the given values,
 			// check on the value itself
 			if(a*x > 0){
@@ -266,7 +259,7 @@ namespace wsp{
 
 			x = rect[2].width+rect[3].x; a = rect[2].x+rect[3].x;
 			vertical2 = -rect[3].y;
-			
+
 			//If the second vertical range is not between the given values,
 			//check on the value itself
 			if(a*x > 0){
@@ -296,7 +289,7 @@ namespace wsp{
 		rect.y = (s32)((_colRect->y+GetY())/tiledlayer->GetCellHeight());
 		rect.width = (u32)((_colRect->x+GetX()+_colRect->width)/tiledlayer->GetCellWidth());
 		rect.height = (u32)((_colRect->y+GetY()+_colRect->height)/tiledlayer->GetCellHeight());
-		
+
 		for(s32 y = rect.y; y < rect.height+1; y++){
 			for(s32 x = rect.x; x < rect.width+1; x++){
 				// Since checks are done inside the tiledlayer, we do not need to check here
@@ -324,7 +317,7 @@ namespace wsp{
 	}
 	void Sprite::SetFrame(u32 sequenceIndex){
 		if(sequenceIndex >= _frameSeqLength)return;
-		
+
 		_frameSeqPos = sequenceIndex;
 		if(!_frameSeq){
 			_frame = 0;
@@ -367,12 +360,12 @@ namespace wsp{
 		_frame = _frameSeq[_frameSeqPos];
 		_CalcFrame();
 	}
-	
+
 	void Sprite::Draw(f32 offsetX, f32 offsetY) const{
 		if(_image == NULL ||
 			IsVisible() == false || _alpha == 0x00 || _stretchWidth == 0 || _stretchHeight == 0 ||
 			_width == 0 || _height == 0)return;
-		
+
 		// Turn on additive blending.
 		if(_trans & TRANS_ADDITIVE_BLENDING)
 			GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);

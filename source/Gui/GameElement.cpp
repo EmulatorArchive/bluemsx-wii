@@ -116,13 +116,13 @@ void GameElement::FreeImage(int number)
     }
 }
 
-wsp::Image* GameElement::GetImage(int number)
+Image* GameElement::GetImage(int number)
 {
     if( image[number] == NULL ) {
         char *filename = GetScreenShot(number);
         if( filename ) {
-            image[number] = new wsp::Image;
-            if(image[number]->LoadImage(filename) != wsp::IMG_LOAD_ERROR_NONE) {
+            image[number] = new Image;
+            if(image[number]->LoadImage(filename) != IMG_LOAD_ERROR_NONE) {
                 delete image[number];
                 image[number] = NULL;
             }

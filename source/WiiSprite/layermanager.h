@@ -24,11 +24,13 @@ namespace wsp{
 			//!\param layer The layer to append. If it is already in the list, it gets removed first.
 			//!\sa \ref layermanager_append_page
 			void Append(Layer* layer);
-			//!Inserts a layer into the manager. 
+			//!Inserts a layer into the manager.
 			//!\param layer The layer to insert. If it is already in the list, it gets removed first.
 			//!\param index The new index of the layer. Can't be bigger than GetSize().
 			//!\sa \ref layermanager_append_page
 			void Insert(Layer* layer, u32 index);
+			//!Gets the index of the layer in the list.
+            int GetIndex(Layer* layer);
 			//!Removes a layer from the list.
 			//!\param layer A layer that is in the list.
 			//!\sa \ref layermanager_append_page
@@ -54,7 +56,7 @@ namespace wsp{
 			//!\param height The height of the window.
 			//!\sa \ref layermanager_viewwindows_page
 			void SetViewWindow(s32 x, s32 y, u32 width, u32 height);
-			
+
 			//!Draws all the layers in this LayerManager.
 			//!\param x The X offset for drawing.
 			//!\param y The Y offset for drawing.
