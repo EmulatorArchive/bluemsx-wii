@@ -22,6 +22,8 @@ extern "C" {
 #define BUTTON_TRANSPARENCY_NORMAL    160
 #define BUTTON_TRANSPARENCY_HIGHLIGHT 255
 
+#define MESSAGE_BOX_FADE_FRAMES       10
+
 bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 {
     bool use_keyboard = true;
@@ -155,9 +157,9 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
         sizey += 40;
     }
     int x = 320-(sizex>>1);
-    int y = 240-(sizey>>1)-manager->GetYOffset();
+    int y = 240-(sizey>>1);
     container = new GuiContainer(x, y , sizex, sizey, alpha);
-    manager->AddTop(container->GetLayer());
+    manager->AddTop(container, MESSAGE_BOX_FADE_FRAMES);
     sizex = container->GetWidth();
     sizey = container->GetHeight();
 
@@ -167,7 +169,7 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
         img_sprite->SetImage(image);
         img_sprite->SetRefPixelPosition(0, 0);
         img_sprite->SetPosition(x+24, y+(sizey>>1)-(image->GetHeight()>>1));
-        manager->AddTop(img_sprite);
+        manager->AddTop(img_sprite, MESSAGE_BOX_FADE_FRAMES);
         x += 24+image->GetWidth();
         sizex -= 24+image->GetWidth();
     }
@@ -178,20 +180,20 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
         spr_yes = new Sprite;
         spr_yes->SetImage(g_imgButtonYes);
         spr_yes->SetPosition(bx, by);
-        manager->AddTop(spr_yes);
+        manager->AddTop(spr_yes, MESSAGE_BOX_FADE_FRAMES);
         bx = x+(sizex>>1)+12;
         by = y+sizey-g_imgButtonYes->GetHeight()-36;
         spr_no = new Sprite;
         spr_no->SetImage(g_imgButtonNo);
         spr_no->SetPosition(bx, by);
-        manager->AddTop(spr_no);
+        manager->AddTop(spr_no, MESSAGE_BOX_FADE_FRAMES);
         sizey -= g_imgButtonYes->GetHeight() + 36;
    }
     // text
     txt_sprite = new Sprite;
     txt_sprite->SetImage(txt_image->GetImage());
     txt_sprite->SetPosition(x+((sizex-txtwidth)>>1), y+((sizey-textheight)>>1)-4);
-    manager->AddTop(txt_sprite);
+    manager->AddTop(txt_sprite, MESSAGE_BOX_FADE_FRAMES);
     is_showing = true;
     manager->Unlock();
     // selection
@@ -207,32 +209,24 @@ void GuiMessageBox::Remove(void)
     if( is_showing ) {
         manager->Lock();
         if( txt_sprite ) {
-            manager->Remove(txt_sprite);
-            delete txt_sprite;
+            manager->RemoveAndDelete(txt_sprite, NULL, MESSAGE_BOX_FADE_FRAMES);
             txt_sprite = NULL;
         }
-        if( txt_image ) {
-            delete txt_image;
-            txt_image = NULL;
-        }
         if( spr_yes ) {
-            manager->Remove(spr_yes);
-            delete spr_yes;
+            manager->RemoveAndDelete(spr_yes, NULL, MESSAGE_BOX_FADE_FRAMES);
             spr_yes = NULL;
         }
         if( spr_no ) {
-            manager->Remove(spr_no);
-            delete spr_no;
+            manager->RemoveAndDelete(spr_no, NULL, MESSAGE_BOX_FADE_FRAMES);
             spr_no = NULL;
         }
         if( img_sprite ) {
-            manager->Remove(img_sprite);
-            delete img_sprite;
+            manager->RemoveAndDelete(img_sprite, txt_image, MESSAGE_BOX_FADE_FRAMES);
             img_sprite = NULL;
+            txt_image = NULL;
         }
         if( container ) {
-            manager->Remove(container->GetLayer());
-            delete container;
+            manager->RemoveAndDelete(container, NULL, MESSAGE_BOX_FADE_FRAMES);
             container = NULL;
         }
         is_showing = false;

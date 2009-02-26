@@ -19,7 +19,7 @@ private:
     GameList games;
     int num_games;
     const char **title_list;
-    Sprite sprScreenShot[2];
+    Sprite *sprScreenShot[2];
 
     void SetScreenShotImage(int index, Image *img);
 };

@@ -17,6 +17,8 @@
 #define COLOR_HOVER   ((0x08 << 11)+(0x08 << 6)+(0x08))
 #define COLOR_PRESSED ((0x00 << 11)+(0x00 << 6)+(0x1f))
 
+#define KEYBOARD_FADE_FRAMES 30
+
 typedef struct {
   int key;
   int x;
@@ -26,7 +28,6 @@ typedef struct {
   Sprite **spr;
 } KEY_RECT;
 
-static Sprite *spr_pressed;
 static Sprite *spr_shift;
 static Sprite *spr_ctrl;
 static Sprite *spr_code;
@@ -125,7 +126,8 @@ void GuiKeyboard::Render(void)
 
     // Infrared
     int x, y, angle;
-    if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+    bool validpos = manager->GetWiiMoteIR(&x, &y, &angle);
+    if( validpos && is_enabled && !is_hidden ) {
         spr_cursor->SetPosition(x, y);
         spr_cursor->SetRotation(angle/2);
         spr_cursor->SetVisible(true);
@@ -136,6 +138,22 @@ void GuiKeyboard::Render(void)
 
     x = (int)((x - xpos) / xscale);
     y = (int)((y - ypos) / yscale);
+
+    if( validpos && is_enabled &&
+        x >= -40 && x <= xsize+40 &&
+        y >= -70 && y <= ysize+60 ) {
+        if( !is_showing && !is_hidden ) {
+            Show();
+        }
+    }else{
+        is_hidden = false;
+        if( is_showing ) {
+            Remove();
+        }
+    }
+    if( !validpos || !is_showing ) {
+        return;
+    }
 
     // Check if above key
     KEY_RECT *key_active = NULL;
@@ -198,13 +216,6 @@ void GuiKeyboard::Show(void)
         return;
     }
 
-    keymap1 = keyboardGetMapping(KEY_JOY1_BUTTON_A);
-    keymap2 = keyboardGetMapping(KEY_JOY2_BUTTON_A);
-    keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_NONE);
-    keyboardRemapKey(KEY_JOY2_BUTTON_A, EC_NONE);
-
-    manager->Lock();
-
     // Keyboard image
     spr_image = new Sprite;
     spr_image->SetImage(g_imgKeyboard);
@@ -214,78 +225,6 @@ void GuiKeyboard::Show(void)
     spr_image->SetRefPixelPosition(0,0);
     spr_image->SetPosition(xpos, ypos);
     spr_image->SetTransparency(256-32);
-    manager->AddTop(spr_image);
-
-    // Selectors
-    manager->AddTop(spr_hover);
-    spr_hover->SetVisible(false);
-    manager->AddTop(spr_pressed);
-    spr_pressed->SetVisible(false);
-    manager->AddTop(spr_shift);
-    spr_shift->SetVisible(false);
-    manager->AddTop(spr_ctrl);
-    spr_ctrl->SetVisible(false);
-    manager->AddTop(spr_graph);
-    spr_graph->SetVisible(false);
-    manager->AddTop(spr_code);
-    spr_code->SetVisible(false);
-
-    // Cursor
-    spr_cursor = new Sprite;
-    spr_cursor->SetImage(g_imgMousecursor);
-    spr_cursor->SetPosition(400, 500);
-    spr_cursor->SetVisible(false);
-    manager->AddTop(spr_cursor);
-    manager->FixLayers(1);
-
-    manager->AddRenderCallback(RenderWrapper, (void*)this);
-
-    is_showing = true;
-    manager->Unlock();
-
-}
-
-void GuiKeyboard::Remove(void)
-{
-    if( !is_showing ) {
-        return;
-    }
-
-    manager->RemoveRenderCallback(RenderWrapper, (void*)this);
-
-    manager->Lock();
-    manager->UnfixLayers(1);
-
-    manager->Remove(spr_code);
-    manager->Remove(spr_graph);
-    manager->Remove(spr_ctrl);
-    manager->Remove(spr_shift);
-    manager->Remove(spr_pressed);
-    manager->Remove(spr_hover);
-    manager->Remove(spr_cursor);
-    manager->Remove(spr_image);
-    delete spr_cursor;
-    delete spr_image;
-    is_showing = false;
-    manager->Unlock();
-
-    keyboardRemapKey(KEY_JOY1_BUTTON_A, keymap1);
-    keyboardRemapKey(KEY_JOY2_BUTTON_A, keymap2);
-}
-
-bool GuiKeyboard::IsShowing(void)
-{
-    return is_showing;
-}
-
-GuiKeyboard::GuiKeyboard(GuiManager *man)
-{
-    manager = man;
-    is_showing = false;
-    xpos = 10;
-    ypos = 88+37;
-    xscale = 0.8f;
-    yscale = 1.0f;
 
     img_hover = new DrawableImage;
     img_hover->CreateImage(4, 4, GX_TF_RGB565);
@@ -311,20 +250,105 @@ GuiKeyboard::GuiKeyboard(GuiManager *man)
     spr_graph->SetImage(img_pressed->GetImage());
     spr_code = new Sprite;
     spr_code->SetImage(img_pressed->GetImage());
+
+    keymap1 = keyboardGetMapping(KEY_JOY1_BUTTON_A);
+    keymap2 = keyboardGetMapping(KEY_JOY2_BUTTON_A);
+    keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_NONE);
+    keyboardRemapKey(KEY_JOY2_BUTTON_A, EC_NONE);
+
+    manager->Lock();
+
+    // Keyboard image
+    manager->AddTop(spr_image, KEYBOARD_FADE_FRAMES);
+
+    // Selectors
+    manager->AddTop(spr_hover, KEYBOARD_FADE_FRAMES);
+    spr_hover->SetVisible(false);
+    manager->AddTop(spr_pressed, KEYBOARD_FADE_FRAMES);
+    spr_pressed->SetVisible(false);
+    manager->AddTop(spr_shift, KEYBOARD_FADE_FRAMES);
+    spr_shift->SetVisible(false);
+    manager->AddTop(spr_ctrl, KEYBOARD_FADE_FRAMES);
+    spr_ctrl->SetVisible(false);
+    manager->AddTop(spr_graph, KEYBOARD_FADE_FRAMES);
+    spr_graph->SetVisible(false);
+    manager->AddTop(spr_code, KEYBOARD_FADE_FRAMES);
+    spr_code->SetVisible(false);
+
+    // Cursor
+    spr_cursor->SetVisible(false);
+    manager->AddTopFixed(spr_cursor);
+
+    is_showing = true;
+    manager->Unlock();
+
+}
+
+void GuiKeyboard::Remove(void)
+{
+    if( !is_showing ) {
+        return;
+    }
+
+    manager->Lock();
+
+    manager->RemoveAndDelete(spr_code, NULL, KEYBOARD_FADE_FRAMES);
+    manager->RemoveAndDelete(spr_graph, NULL, KEYBOARD_FADE_FRAMES);
+    manager->RemoveAndDelete(spr_ctrl, NULL, KEYBOARD_FADE_FRAMES);
+    manager->RemoveAndDelete(spr_shift, NULL, KEYBOARD_FADE_FRAMES);
+    manager->RemoveAndDelete(spr_pressed, img_pressed, KEYBOARD_FADE_FRAMES);
+    manager->RemoveAndDelete(spr_hover, img_hover, KEYBOARD_FADE_FRAMES);
+    manager->RemoveAndDelete(spr_image, NULL, KEYBOARD_FADE_FRAMES);
+    is_showing = false;
+    manager->Unlock();
+
+    keyboardRemapKey(KEY_JOY1_BUTTON_A, keymap1);
+    keyboardRemapKey(KEY_JOY2_BUTTON_A, keymap2);
+}
+
+bool GuiKeyboard::IsShowing(void)
+{
+    return is_showing;
+}
+
+void GuiKeyboard::SetEnabled(bool enable)
+{
+    is_enabled = is_hidden = enable;
+}
+
+GuiKeyboard::GuiKeyboard(GuiManager *man)
+{
+    manager = man;
+    is_showing = false;
+    is_enabled = true;
+    is_hidden = true;
+    xpos = 10;
+    ypos = 88;
+    xscale = 0.8f;
+    yscale = 1.0f;
+    xsize = g_imgKeyboard->GetWidth();
+    ysize = g_imgKeyboard->GetHeight();
+
+    // Cursor
+    spr_cursor = new Sprite;
+    spr_cursor->SetImage(g_imgMousecursor);
+    spr_cursor->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    spr_cursor->SetRefPixelPosition(11, 4);
+    spr_cursor->SetPosition(0, 0);
+
+    manager->Lock();
+    manager->AddRenderCallback(RenderWrapper, (void*)this);
+    manager->Unlock();
 }
 
 GuiKeyboard::~GuiKeyboard()
 {
+    manager->Lock();
+    manager->RemoveRenderCallback(RenderWrapper, (void*)this);
+    manager->RemoveAndDelete(spr_cursor);
+    manager->Unlock();
     if( is_showing ) {
         Remove();
     }
-    delete spr_code;
-    delete spr_graph;
-    delete spr_ctrl;
-    delete spr_shift;
-    delete spr_pressed;
-    delete spr_hover;
-    delete img_pressed;
-    delete img_hover;
 }
 

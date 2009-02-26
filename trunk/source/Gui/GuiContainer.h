@@ -3,21 +3,21 @@
 
 #include <wiisprite.h>
 
-class GuiContainer {
+using namespace wsp;
+
+class GuiContainer : public TiledLayer
+{
 	public:
 		GuiContainer(int posx, int posy, int width, int height, int alpha = 128);
 		virtual ~GuiContainer();
-		void SetVisible(bool state);
         void Render(void);
-        void SetPosition( int posx,  int posy);
+        void SetPosition(int posx,  int posy);
         int GetWidth(void);
         int GetHeight(void);
-        wsp::Layer *GetLayer(void);
 
 	private:
-		int x, y, cols, rows;
-		wsp::Image win_img;
-		wsp::TiledLayer* win_layer;
+		int cols, rows;
+		Image image;
 };
 
 #endif

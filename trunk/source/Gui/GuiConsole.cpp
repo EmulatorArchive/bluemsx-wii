@@ -38,7 +38,7 @@ GuiConsole::~GuiConsole()
 {
     _manager->RemoveRenderCallback(RenderWrapper, (void*)this);
     _manager->Remove(_sprite);
-    _manager->Remove(_container->GetLayer());
+    _manager->Remove(_container);
     delete _sprite;
     delete _image;
     delete _container;
@@ -46,16 +46,14 @@ GuiConsole::~GuiConsole()
 
 void GuiConsole::Add(void)
 {
-    _manager->AddTop(_container->GetLayer());
-    _manager->AddTop(_sprite);
-    _manager->FixLayers(2);
+    _manager->AddTopFixed(_container);
+    _manager->AddTopFixed(_sprite);
 }
 
 void GuiConsole::Remove(void)
 {
-    _manager->Remove(_container->GetLayer());
+    _manager->Remove(_container);
     _manager->Remove(_sprite);
-    _manager->UnfixLayers(2);
 }
 
 void GuiConsole::SetPosition( int posx,  int posy)

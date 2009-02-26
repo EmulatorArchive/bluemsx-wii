@@ -9,13 +9,16 @@
 // Resources
 #include "GuiImages.h"
 
+#define GAMESEL_FADE_DEFAULT      10
+#define GAMESEL_FADE_SCREENSHOTS  10
+#define GAMESEL_DELAY_SCREENSHOTS 4
 
 void GuiGameSelect::SetScreenShotImage(int index, Image *img)
 {
     if( img == NULL ) {
         img = g_imgNoise;
     }
-    Sprite *spr = &sprScreenShot[index];
+    Sprite *spr = sprScreenShot[index];
     spr->SetImage(img);
     spr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     spr->SetRefPixelPosition(0, 0);
@@ -25,12 +28,31 @@ void GuiGameSelect::SetScreenShotImage(int index, Image *img)
 
 void GuiGameSelect::OnSetSelected(int index, int selected)
 {
+    bool first = true;
+    // (Re)create screenshot sprites
+    if( sprScreenShot[0] != NULL ) {
+        first = false;
+        manager->RemoveAndDelete(sprScreenShot[0], sprScreenShot[0]->GetImage(),
+                                 GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
+    }
+    if( sprScreenShot[1] != NULL ) {
+        first = false;
+        manager->RemoveAndDelete(sprScreenShot[1], sprScreenShot[1]->GetImage(),
+                                 GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
+    }
+    sprScreenShot[0] = new Sprite;
+	sprScreenShot[0]->SetPosition(344+12-8, 24+12);
+    sprScreenShot[1] = new Sprite;
+	sprScreenShot[1]->SetPosition(344+12-8, 240+12+12);
     // Update screenshots
     if( selected >= 0 ) {
         GameElement *game = games.GetGame(index+selected);
-        SetScreenShotImage(0, game->GetImage(0));
-        SetScreenShotImage(1, game->GetImage(1));
+        SetScreenShotImage(0, new Image(game->GetImage(0)));
+        SetScreenShotImage(1, new Image(game->GetImage(1)));
     }
+    // Add to screen
+	manager->AddTop(sprScreenShot[0], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
+	manager->AddTop(sprScreenShot[1], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
     // Free images of games that are not on the screen
     for(int i = 0; i < games.GetNumberOfGames(); i++) {
         GameElement *game = games.GetGame(i);
@@ -61,18 +83,12 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
     manager->Lock();
 
     // Containers
-    GuiContainer grWinList(32-8, 24, 288, 420+12);
-	manager->AddTop(grWinList.GetLayer());
-    GuiContainer grWinTitle(344-8, 24, 264+12, 204);
-	manager->AddTop(grWinTitle.GetLayer());
-    GuiContainer grWinPlay(344-8, 240+12, 264+12, 204);
-	manager->AddTop(grWinPlay.GetLayer());
-
-    // Screen shots (240x186)
-	sprScreenShot[0].SetPosition(344+12-8, 24+12);
-	sprScreenShot[1].SetPosition(344+12-8, 240+12+12);
-	manager->AddTop(&sprScreenShot[0]);
-	manager->AddTop(&sprScreenShot[1]);
+    GuiContainer *grWinList = new GuiContainer(32-8, 24, 288, 420+12);
+	manager->AddTop(grWinList, GAMESEL_FADE_DEFAULT);
+    GuiContainer *grWinTitle = new GuiContainer(344-8, 24, 264+12, 204);
+	manager->AddTop(grWinTitle, GAMESEL_FADE_DEFAULT);
+    GuiContainer *grWinPlay = new GuiContainer(344-8, 240+12, 264+12, 204);
+	manager->AddTop(grWinPlay, GAMESEL_FADE_DEFAULT);
 
     // On re-enter, find selected entry
     int sel = 0;
@@ -85,9 +101,13 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
         }
     }
 
+    // Initialize screenshot variables
+    sprScreenShot[0] = NULL;
+    sprScreenShot[1] = NULL;
+
     // Add selection list
     ShowSelection(title_list, num_games, sel, 24, 34,
-                  30, 34, 12, 264+12);
+                  30, 34, 12, 264+12, false, GAMESEL_FADE_DEFAULT);
 
     // Release UI
     manager->Unlock();
@@ -120,11 +140,11 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
 
     // Remove UI elements
     RemoveSelection();
-	manager->Remove(&sprScreenShot[0]);
-	manager->Remove(&sprScreenShot[1]);
-	manager->Remove(grWinList.GetLayer());
-	manager->Remove(grWinTitle.GetLayer());
-	manager->Remove(grWinPlay.GetLayer());
+    manager->RemoveAndDelete(sprScreenShot[0], sprScreenShot[0]->GetImage(), GAMESEL_FADE_DEFAULT);
+    manager->RemoveAndDelete(sprScreenShot[1], sprScreenShot[1]->GetImage(), GAMESEL_FADE_DEFAULT);
+	manager->RemoveAndDelete(grWinList, NULL, GAMESEL_FADE_DEFAULT);
+	manager->RemoveAndDelete(grWinTitle, NULL, GAMESEL_FADE_DEFAULT);
+	manager->RemoveAndDelete(grWinPlay, NULL, GAMESEL_FADE_DEFAULT);
 
     // Release UI
     manager->Unlock();

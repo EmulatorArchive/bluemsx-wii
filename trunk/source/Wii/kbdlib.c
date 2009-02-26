@@ -380,11 +380,11 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
                     hndl->modifiers |= kbdEvent.keysym.mod;
                     for(i = 0; mods[i].key != KEY_NONE; i++)  {
                         if( kbdEvent.keysym.mod == mods[i].code ) {
-                            cb(hndl, mods[i].key, 1);
+                            if( cb ) cb(hndl, mods[i].key, 1);
                         }
                     }
                 } else {
-                    cb(hndl, kbdEvent.keysym.sym, 1);
+                    if( cb ) cb(hndl, kbdEvent.keysym.sym, 1);
                 }
                 break;
             case KEYBOARD_RELEASED:
@@ -393,11 +393,11 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
                     /* handle special keys */
                     for(i = 0; mods[i].key != KEY_NONE; i++)  {
                         if( kbdEvent.keysym.mod == mods[i].code ) {
-                            cb(hndl, mods[i].key, 0);
+                            if( cb ) cb(hndl, mods[i].key, 0);
                         }
                     }
                 } else {
-                    cb(hndl, kbdEvent.keysym.sym, 0);
+                    if( cb ) cb(hndl, kbdEvent.keysym.sym, 0);
                 }
                 break;
             case KEYBOARD_DISCONNECTED:
@@ -428,7 +428,7 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
     /* compare with previous and call for each difference */
     for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
         if( hndl->keystatus[idx_prev][i] != hndl->keystatus[idx_new][i] ) {
-            cb(hndl, (KEY)i+KEY_JOY1_BUTTON_A, hndl->keystatus[idx_new][i]);
+            if( cb ) cb(hndl, (KEY)i+KEY_JOY1_BUTTON_A, hndl->keystatus[idx_new][i]);
         }
     }
     /* switch new<->previous */

@@ -176,9 +176,6 @@ static void initKbdTable()
     kbdTable[KEY_JOY2_DOWN    ] = EC_JOY2_DOWN;
     kbdTable[KEY_JOY2_LEFT    ] = EC_JOY2_LEFT;
     kbdTable[KEY_JOY2_RIGHT   ] = EC_JOY2_RIGHT;
-
-    kbdTable[KEY_JOY1_MINUS   ] = EC_HOT_TOGGLE_ON_SCREEN_KBD;
-    kbdTable[KEY_JOY2_MINUS   ] = EC_HOT_TOGGLE_ON_SCREEN_KBD;
 }
 
 void keyboardRemapKey(KEY key, int event)

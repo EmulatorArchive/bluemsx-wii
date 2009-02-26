@@ -8,13 +8,13 @@ namespace wsp{
 		_data(NULL), _columns(columns), _rows(rows),
 		_tileWidth(0), _tileHeight(0),
 		_animations(NULL), _aniSize(0), _aniBoundary(ani),
-		_image(NULL), _tiles(0), _alpha(0xff)
+		_image(NULL), _tiles(0)
 	{
 		// Initialize data
 		_data = new s32[_columns*_rows];
 		for(u32 i = 0; i < _columns*_rows; i++)
 			_data[i] = 0;
-		
+
 		// Initialize animationarray
 		_animations = new u32[_aniBoundary];
 		for(u32 i = 0; i < _aniBoundary; i++)
@@ -36,7 +36,7 @@ namespace wsp{
 		// All checks are done, we can erase the old data and init our tileset
 		u32 width = image->GetWidth()/tileWidth, height = image->GetHeight()/tileHeight;
 		_tileWidth = tileWidth; _tileHeight = tileHeight;
-		
+
 		// If imagedata has as many or more tiles, data gets preserved
 		if(_image != NULL){
 			if(width*height >= _tiles){
@@ -47,7 +47,7 @@ namespace wsp{
 		}
 		_tiles = width*height;
 		_image = image;
-		
+
 		// If data is different, erase all data
 		for(u32 i = 0; i < _columns*_rows; i++)
 			_data[i] = 0;
@@ -63,7 +63,7 @@ namespace wsp{
 	void TiledLayer::FillCells(u32 col, u32 row, u32 numCols, u32 numRows, s32 tileIndex){
 		if(numCols < 1 || numRows < 1 || col < 0 || row < 0 || tileIndex > (s32)_tiles ||
 			col+numCols > _columns || row+numRows > _rows)return;
-		
+
 		// All checks are done, so we can continue filling our tileset
 		for(u32 y = row; y < row+numRows; y++){
 			for(u32 x = col; x < col+numCols; x++){
@@ -80,7 +80,7 @@ namespace wsp{
 	}
 	u32 TiledLayer::GetAnimatedTile(s32 animatedTileIndex) const{
 		if(animatedTileIndex >= 0 || (u32)-animatedTileIndex > _aniSize)return 0;
-		
+
 		return _animations[-animatedTileIndex-1];
 	}
 	void TiledLayer::SetAnimatedTile(s32 animatedTileIndex, u32 staticTileIndex){
@@ -89,7 +89,7 @@ namespace wsp{
 
 		_animations[-animatedTileIndex-1] = staticTileIndex;
 	}
-	
+
 	s32 TiledLayer::GetCell(u32 col, u32 row) const{
 		if(col >= _columns || row >= _rows)return 0;
 
@@ -111,23 +111,16 @@ namespace wsp{
 		return _image;
 	}
 
-	void TiledLayer::SetTransparency(u8 alpha){
-		_alpha = alpha;
-	}
-	u8 TiledLayer::GetTransparency() const{
-		return _alpha;
-	}
-
 	void TiledLayer::Draw(f32 offsetX, f32 offsetY) const{
 		// TODO: There is a very small problem with displaying tiles this way.
 		// Sometimes additional lines get drawn, which shouldn't be there.
 		// This problem is also present in Sprite, but due to how sprites are
 		// made, this problem is not so noticable.
-		
+
 		if(_image == NULL || !_image->IsInitialized() || _image->GetWidth() == 0 ||
 			IsVisible() == false || _alpha == 0x00 ||
 			_tileWidth == 0 || _tileHeight == 0)return;
-		
+
 		// Get width and height
 		f32 width = _tileWidth/2,
 			height = _tileHeight/2;
@@ -145,7 +138,7 @@ namespace wsp{
 				// Last bit of checks
 				if(data <= 0 || data > (s32)_tiles)continue;
 				data--;
-				
+
 				// Get frame position
 				f32 frameX = (data%(_image->GetWidth()/_tileWidth))*_tileWidth,
 					frameY = (data/(_image->GetWidth()/_tileWidth))*_tileHeight;
@@ -165,7 +158,7 @@ namespace wsp{
 					frameY/_image->GetHeight()+(FRAME_CORRECTION/_image->GetHeight()),
 					(frameX+_tileWidth)/_image->GetWidth()-(FRAME_CORRECTION/_image->GetWidth()),
 					(frameY+_tileHeight)/_image->GetHeight()-(FRAME_CORRECTION/_image->GetHeight())
-				};	
+				};
 
 				// Draw the Quad
 				GX_Begin(GX_QUADS, GX_VTXFMT0, 4);

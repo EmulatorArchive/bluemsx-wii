@@ -229,9 +229,5 @@ void actionEmuSpeedSet(int value);
 
 void actionKeyPress(int keyCode, int pressed);
 
-#ifdef WII
-void actionToggleOnScreenKbd(void);
-#endif
-
 #endif
 

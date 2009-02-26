@@ -216,7 +216,6 @@ static void initKeyNameTable()
     eventNames[EC_HOT_WINDOW_SIZE_NORMAL]       = "hotkey_window_size_normal";
     eventNames[EC_HOT_WINDOW_SIZE_FULLSCREEN]   = "hotkey_window_size_fullscreen";
     eventNames[EC_HOT_FULLSCREEN_TOGGLE]        = "hotkey_fullscreen_toggle";
-    eventNames[EC_HOT_TOGGLE_ON_SCREEN_KBD]     = "hotkey_toggle_keyboard";
 }
 
 int inputEventStringToCode(const char* eventName)

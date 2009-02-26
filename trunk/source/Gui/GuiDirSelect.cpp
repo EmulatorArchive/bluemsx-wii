@@ -4,8 +4,11 @@
 
 #include "GuiDirSelect.h"
 #include "GuiContainer.h"
+#include "GuiMessageBox.h"
 
 #define DSEL_YPITCH 56
+
+#define DIRSEL_FADE_FRAMES 10
 
 char *GuiDirSelect::DoModal(void)
 {
@@ -15,8 +18,8 @@ char *GuiDirSelect::DoModal(void)
     manager->Lock();
 
     // Containers
-    GuiContainer containerDirList(320-180, 24, 2*180, 480-48);
-    manager->AddTop(containerDirList.GetLayer());
+    GuiContainer *containerDirList = new GuiContainer(320-180, 24, 2*180, 480-48);
+    manager->AddTop(containerDirList, DIRSEL_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
@@ -32,7 +35,8 @@ char *GuiDirSelect::DoModal(void)
     }
 
     // Seletion loop
-    for(;;) {
+    bool quit = false;
+    do {
         DirElement *selected_dir = NULL;
 
         // Load dirs database
@@ -59,38 +63,52 @@ char *GuiDirSelect::DoModal(void)
         }
 
         // Selection
+        if( IsShowing() ) {
+            RemoveSelection();
+        }
         ShowSelection(title_list, num_dirs, sel, 32, DSEL_YPITCH,
-                      320-180+8, 24+20, 24, 2*180-16);
-        sel = DoSelection();
-        RemoveSelection();
+                      320-180+8, 24+20, 24, 2*180-16, false, DIRSEL_FADE_FRAMES);
+        for(;;) {
+            sel = DoSelection();
 
-        if( sel >= 0 ) {
-            // enter selected directory
-            selected_dir = dirs.GetDir(sel);
-            strcat(current_dir, "/");
-            strcat(current_dir, selected_dir->GetDirectory());
-            dir_level++;
-        }else{
-            if( dir_level == 0 ) {
-                // on root level, leave
+            if( sel >= 0 ) {
+                // enter selected directory
+                selected_dir = dirs.GetDir(sel);
+                strcat(current_dir, "/");
+                strcat(current_dir, selected_dir->GetDirectory());
+                dir_level++;
                 break;
             }else{
-                // go back one level
-                char *p = current_dir + strlen(current_dir) - 1;
-                while(*p != '/') p--;
-                *p = '\0';
-                prevsel = p + 1;
-                dir_level--;
+                if( dir_level == 0 ) {
+                    // on root level, leave after confirmation
+                    GuiMessageBox msgbox(manager);
+                    bool ok = msgbox.Show("Do you want to quit?", NULL, true, 192);
+                    msgbox.Remove();
+                    if( ok ) {
+                        RemoveSelection();
+                        quit = true;
+                        break;
+                    }
+                }else{
+                    // go back one level
+                    char *p = current_dir + strlen(current_dir) - 1;
+                    while(*p != '/') p--;
+                    *p = '\0';
+                    prevsel = p + 1;
+                    dir_level--;
+                    break;
+                }
             }
         }
-    }
+    }while( !quit );
+    RemoveSelection();
     dirs.Clear();
 
     // Claim UI
     manager->Lock();
 
     // Remove container
-    manager->Remove(containerDirList.GetLayer());
+    manager->RemoveAndDelete(containerDirList, NULL, DIRSEL_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
