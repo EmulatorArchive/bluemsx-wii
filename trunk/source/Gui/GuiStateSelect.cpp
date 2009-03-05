@@ -147,7 +147,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
 
     // Container
     posx = 14;
-    posy = 240-(SSEL_HEIGHT/2)-16;
+    posy = manager->GetHeight()/2-(SSEL_HEIGHT/2)-16;
     sizex = 640-28;
     sizey = SSEL_HEIGHT+32;
     GuiContainer *container = new GuiContainer(posx, posy, sizex, sizey, 160);

@@ -254,13 +254,33 @@ bool GuiManager::GetWiiMoteIR(int *x, int *y, int *angle)
     if( !ir.state || !ir.smooth_valid ) {
         return false;
     }
-    int sx = (int)(((ir.sx - (500-200)) * 640) / 400);
-    int sy = (int)(((ir.sy - (500-150)) * 480) / 300);
+    int sx = (int)(((ir.sx - (500-200)) * gwd.GetWidth()) / 400);
+    int sy = (int)(((ir.sy - (500-150)) * gwd.GetHeight()) / 300);
     if( x ) *x = sx;
     if( y ) *y = sy;
     if( angle ) *angle = ir.angle;
 
     return true;
+}
+
+GW_VIDEO_MODE GuiManager::GetMode(void)
+{
+    return gwd.GetMode();
+}
+
+u32 GuiManager::GetWidth(void)
+{
+    return gwd.GetWidth();
+}
+
+u32 GuiManager::GetHeight(void)
+{
+    return gwd.GetHeight();
+}
+
+void GuiManager::SetMode(GW_VIDEO_MODE mode)
+{
+    gwd.SetMode(mode);
 }
 
 GuiManager::GuiManager()

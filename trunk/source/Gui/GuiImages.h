@@ -1,7 +1,10 @@
 #ifndef _GUI_IMAGES_H
 #define _GUI_IMAGES_H
 
-#include "Spritemanager.h"
+#include <gccore.h>
+#include <wiisprite.h>
+
+using namespace wsp;
 
 extern Image *g_imgArrow;
 extern Image *g_imgBackground;

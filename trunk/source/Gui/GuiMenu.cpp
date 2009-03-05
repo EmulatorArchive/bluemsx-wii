@@ -14,14 +14,14 @@ int GuiMenu::DoModal(const char **items, int num, int width)
 
     // Add container
     int height = num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
-    int posx = 320-(width >> 1);
-    int posy = 240-(height >> 1);
+    int posx = manager->GetWidth()/2-width/2;
+    int posy = manager->GetHeight()/2-height/2;
     GuiContainer *container = new GuiContainer(posx, posy, width, height, 192);
     manager->AddTop(container, MENU_FADE_FRAMES);
     width = container->GetWidth();
     height = container->GetHeight();
-    posx = 320-(width >> 1);
-    posy = 240-(height >> 1);
+    posx = manager->GetWidth()/2-width/2;
+    posy = manager->GetHeight()/2-height/2;
 
     // Start displaying
     manager->Unlock();

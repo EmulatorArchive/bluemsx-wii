@@ -63,7 +63,6 @@ extern "C" {
 #include "JoystickPort.h"
 #include "WiiShortcuts.h"
 #include "ArchThread.h"
-#include "ogc_video.h"
 #include "WiiInput.h"
 
 void WiiTimerInit(void);
@@ -80,6 +79,9 @@ void WiiTimerDestroy(void);
 #define MALLOC_LOG_GUI         0
 
 #define MSX_ROOT_DIR "fat:/MSX"
+
+#define TEX_WIDTH  (512+32)
+#define TEX_HEIGHT 480
 
 static Properties* properties;
 static Video* video;
@@ -352,12 +354,15 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     Sprite *emuSpr = new Sprite;
     emuSpr->SetImage(emuImg->GetImage());
     emuSpr->SetStretchWidth(640.0f / (float)TEX_WIDTH);
-    emuSpr->SetStretchHeight(548.0f / (float)480);
+    emuSpr->SetStretchHeight(1.0f);
     emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     emuSpr->SetRefPixelPosition(0, 0);
-    emuSpr->SetPosition(0, -37);
+    emuSpr->SetPosition(0, 0);
     manager->AddTop(emuSpr, 90);
     manager->Unlock();
+
+    archThreadSleep(2000);
+    sprBackground->SetVisible(false);
 
     // Loop while the user hasn't quit
     GuiMenu *menu = new GuiMenu(manager, 5);
@@ -368,8 +373,20 @@ static void blueMsxRun(GameElement *game, char *game_dir)
       "Properties",
       "Quit"
     };
+    int refresh = 0;
     bool pressed = true;
+    GW_VIDEO_MODE prevVideo = manager->GetMode();
     while(!g_doQuit) {
+        int newrfsh = boardGetRefreshRate();
+        if( newrfsh != 0 && newrfsh != refresh ) {
+            if( newrfsh==50 ) {
+                manager->SetMode(GW_VIDEO_MODE_PAL448 /*GW_VIDEO_MODE_PAL528*/);
+            }else{
+                manager->SetMode(GW_VIDEO_MODE_NTSC448);
+            }
+            emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
+            refresh = newrfsh;
+        }
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) || KBD_GetKeyStatus(kbdHandle, KEY_JOY2_HOME) ) {
             if( !pressed ) {
                 emulatorSuspend();
@@ -455,6 +472,13 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     delete osk;
     manager->Unlock();
 
+    manager->SetMode(prevVideo);
+    sprBackground->SetStretchWidth((float)manager->GetWidth() /
+                                   (float)g_imgBackground->GetWidth());
+    sprBackground->SetStretchHeight((float)manager->GetHeight() /
+                                    (float)g_imgBackground->GetHeight());
+    sprBackground->SetVisible(true);
+
 #if MALLOC_LOG_BLUEMSX_RUN
     allocLogPrint();
 #endif
@@ -484,7 +508,7 @@ int main(int argc, char **argv)
     GuiImageInit();
 
     // Init console
-    console = new GuiConsole(manager, 12, 12, 640-24, 480-24);
+    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
 #if CONSOLE_DEBUG
     console->SetVisible(true);
 #endif
@@ -492,8 +516,10 @@ int main(int argc, char **argv)
     // Background
     sprBackground = new Sprite;
     sprBackground->SetImage(g_imgBackground);
-    sprBackground->SetStretchWidth(4.0f);
-    sprBackground->SetStretchHeight(4.0f);
+    sprBackground->SetStretchWidth((float)manager->GetWidth() /
+                                   (float)g_imgBackground->GetWidth());
+    sprBackground->SetStretchHeight((float)manager->GetHeight() /
+                                    (float)g_imgBackground->GetHeight());
     sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     sprBackground->SetRefPixelPosition(0, 0);
     sprBackground->SetPosition(0, 0);

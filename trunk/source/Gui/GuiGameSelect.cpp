@@ -23,7 +23,7 @@ void GuiGameSelect::SetScreenShotImage(int index, Image *img)
     spr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     spr->SetRefPixelPosition(0, 0);
     spr->SetStretchWidth(252.0f/img->GetWidth());
-    spr->SetStretchHeight(180.0f/img->GetHeight());
+    spr->SetStretchHeight(168.0f/img->GetHeight());
 }
 
 void GuiGameSelect::OnSetSelected(int index, int selected)
@@ -41,9 +41,9 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
                                  GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
     }
     sprScreenShot[0] = new Sprite;
-	sprScreenShot[0]->SetPosition(344+12-8, 24+12);
+	sprScreenShot[0]->SetPosition(344+12-8, 24+16);
     sprScreenShot[1] = new Sprite;
-	sprScreenShot[1]->SetPosition(344+12-8, 240+12+12);
+	sprScreenShot[1]->SetPosition(344+12-8, 228+16);
     // Update screenshots
     if( selected >= 0 ) {
         GameElement *game = games.GetGame(index+selected);
@@ -83,11 +83,11 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
     manager->Lock();
 
     // Containers
-    GuiContainer *grWinList = new GuiContainer(32-8, 24, 288, 420+12);
+    GuiContainer *grWinList = new GuiContainer(32-8, 28, 288, 33*12);
 	manager->AddTop(grWinList, GAMESEL_FADE_DEFAULT);
-    GuiContainer *grWinTitle = new GuiContainer(344-8, 24, 264+12, 204);
+    GuiContainer *grWinTitle = new GuiContainer(344-8, 28, 264+12, 16*12);
 	manager->AddTop(grWinTitle, GAMESEL_FADE_DEFAULT);
-    GuiContainer *grWinPlay = new GuiContainer(344-8, 240+12, 264+12, 204);
+    GuiContainer *grWinPlay = new GuiContainer(344-8, 232, 264+12, 16*12);
 	manager->AddTop(grWinPlay, GAMESEL_FADE_DEFAULT);
 
     // On re-enter, find selected entry
@@ -106,8 +106,8 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
     sprScreenShot[1] = NULL;
 
     // Add selection list
-    ShowSelection(title_list, num_games, sel, 24, 34,
-                  30, 34, 12, 264+12, false, GAMESEL_FADE_DEFAULT);
+    ShowSelection(title_list, num_games, sel, 22, 31,
+                  30, 38, 12, 264+12, false, GAMESEL_FADE_DEFAULT);
 
     // Release UI
     manager->Unlock();
