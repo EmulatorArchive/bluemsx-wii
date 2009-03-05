@@ -5,7 +5,6 @@
 #include <context.h>
 #include <ogc/semaphore.h>
 #include <machine/processor.h>
-#include "MsxTypes.h"
 
 #if 0
 #include <wiiuse/wpad.h>
@@ -20,13 +19,13 @@
 #define SIGNATURE_FREE   0xFEDCBA98
 
 typedef struct _LOGMALLOC {
-    UInt32 signature;
-    UInt32 size;
-    UInt32 line;
+    u32 signature;
+    u32 size;
+    u32 line;
     const char *file;
     struct _LOGMALLOC *prev;
     struct _LOGMALLOC *next;
-    UInt32 dummy[2]; /* for now struct must be 32 bytes to let memalign work */
+    u32 dummy[2]; /* for now struct must be 32 bytes to let memalign work */
 } LOGMALLOC;
 
 static LOGMALLOC *first_entry = NULL;
@@ -129,7 +128,7 @@ void allocLogSetMarker(void)
 void allocLogPrint(void)
 {
     LOGMALLOC *p;
-    UInt32 total_alloc = 0, total_overhead = 0;
+    u32 total_alloc = 0, total_overhead = 0;
     if( loggingInitialized && loggingEnabled ) {
         LWP_SemWait(loggingSemaphore);
 
@@ -141,7 +140,7 @@ void allocLogPrint(void)
         }
         while( p != NULL ) {
 #if 0
-            UInt32 buttons;
+            u32 buttons;
 #endif
             total_alloc += p->size;
             total_overhead += 32;
@@ -171,22 +170,22 @@ static void checkValidBuffer(void *buf, const char *prefix, const char *file, in
     }
     if( (void*)log < lowest_addr ) {
         sprintf(exception_str, "%s: %s line %d\nPointer 0x%08x is before first entry 0x%08x\n",
-               prefix, file, line, (UInt32)log, (UInt32)lowest_addr);
+               prefix, file, line, (u32)log, (u32)lowest_addr);
         allocError(exception_str);
     }
     if( (void*)log > highest_addr ) {
         sprintf(exception_str, "%s: %s line %d\nPointer 0x%08x is behind last entry 0x%08x\n",
-               prefix, file, line, (UInt32)log, (UInt32)highest_addr);
+               prefix, file, line, (u32)log, (u32)highest_addr);
         allocError(exception_str);
     }
     if( log->signature == SIGNATURE_FREE ) {
         sprintf(exception_str, "%s: %s line %d\nPointer 0x%08x is allready freed\n",
-               prefix, file, line, (UInt32)log);
+               prefix, file, line, (u32)log);
         allocError(exception_str);
     }
     if( log->signature != SIGNATURE_VALID ) {
         sprintf(exception_str, "%s: %s line %d\nPointer 0x%08x has bad signature\n",
-               prefix, file, line, (UInt32)log);
+               prefix, file, line, (u32)log);
         allocError(exception_str);
     }
 }

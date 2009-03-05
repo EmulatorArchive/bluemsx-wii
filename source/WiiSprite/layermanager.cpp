@@ -3,7 +3,6 @@
 
 namespace wsp{
 	LayerManager::LayerManager(u32 boundary) :
-		_width(900), _height(800), _x(0), _y(0), // Biggest possible numbers on init
 		_layers(NULL), _size(0), _boundary(boundary)
 	{
 		// Initialize our layers for usage
@@ -96,25 +95,16 @@ namespace wsp{
 		return _size;
 	}
 
-	void LayerManager::SetViewWindow(s32 x, s32 y, u32 width, u32 height){
-		_x = x; _y = y;
-		_width = width; _height = height;
-	}
-
 	void LayerManager::Draw(s32 x, s32 y) const{
 		// Since this manager is using a modified scissor box, we use the data + hardcoded values
-		GX_SetScissorBoxOffset(-x,-y-31);
-		GX_SetScissor(0, 0, _width, _height);
+		GX_SetScissorBoxOffset(-x,-y);
+		GX_SetScissor(0, 0, GameWindow::GetWidth(), GameWindow::GetHeight());
 
 		// Do the layers!
 		for(u32 i = _size; i > 0; i--){
 			if(i == 0) break;
 			if(_layers[i-1])
-				_layers[i-1]->Draw(-_x, (-_y)-31); // As strange as it might look like, this fixes everything.
+				_layers[i-1]->Draw(0, 0);
 		}
-
-		// Set Scissor boxes back to normal again
-		GX_SetScissorBoxOffset(0, 0);
-		GX_SetScissor(0, 0, GameWindow::GetWidth(), GameWindow::GetHeight());
 	}
 };

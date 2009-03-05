@@ -322,12 +322,12 @@ GuiKeyboard::GuiKeyboard(GuiManager *man)
     is_showing = false;
     is_enabled = true;
     is_hidden = true;
-    xpos = 10;
-    ypos = 88;
     xscale = 0.8f;
     yscale = 1.0f;
     xsize = g_imgKeyboard->GetWidth();
     ysize = g_imgKeyboard->GetHeight();
+    xpos = 10;
+    ypos = (manager->GetHeight()-ysize)/2;
 
     // Cursor
     spr_cursor = new Sprite;

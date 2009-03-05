@@ -11,6 +11,11 @@
 
 //!libwiisprite namespace
 namespace wsp{
+    typedef enum {
+        GW_VIDEO_MODE_PAL528,
+        GW_VIDEO_MODE_PAL448,
+        GW_VIDEO_MODE_NTSC448
+    } GW_VIDEO_MODE;
 	//!Basic rendering unit.
 	class GameWindow{
 		public:
@@ -18,6 +23,9 @@ namespace wsp{
 			GameWindow();
 			//!Destructor. Does call StopVideo() automatically.
 			virtual ~GameWindow();
+
+            void SetMode(GW_VIDEO_MODE mode);
+            GW_VIDEO_MODE GetMode(void);
 
 			//!Initializes the whole video subsystem.
 			//!Should be the first command called with the library.
@@ -34,10 +42,10 @@ namespace wsp{
 			void Flush();
 
 			//!Gets the width of the screen.
-			//!\return The width of the screen if intialized. 0 if the video subsystem is not initialized. 
+			//!\return The width of the screen if intialized. 0 if the video subsystem is not initialized.
 			static u32 GetWidth();
 			//!Gets the height of the screen.
-			//!\return The height of the screen if intialized. 0 if the video subsystem is not initialized. 
+			//!\return The height of the screen if intialized. 0 if the video subsystem is not initialized.
 			static u32 GetHeight();
 			static Image* _lastimage;
 			static bool _lastimagebilinear;
@@ -47,6 +55,7 @@ namespace wsp{
 			bool _first;
 			GXRModeObj* _rmode;
 			void* _gp_fifo;
+            static GW_VIDEO_MODE _mode;
 			static u32 _width, _height;
 			static bool _initialized;
 
@@ -76,7 +85,7 @@ namespace wsp{
  * This is for quick explaining what we mean with all these terms we use throughout the
  * library. They can help you get started on the more "advanced" features of this library.
  *
- * \ref global_coord_page\n 
+ * \ref global_coord_page\n
  * \ref image_loadbuffer_page\n
  * \ref layermanager_append_page\n
  * \ref layermanager_viewwindows_page\n

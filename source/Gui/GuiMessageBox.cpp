@@ -156,8 +156,8 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
         sizex += 120;
         sizey += 40;
     }
-    int x = 320-(sizex>>1);
-    int y = 240-(sizey>>1);
+    int x = manager->GetWidth()/2-sizex/2;
+    int y = manager->GetHeight()/2-sizey/2;
     container = new GuiContainer(x, y , sizex, sizey, alpha);
     manager->AddTop(container, MESSAGE_BOX_FADE_FRAMES);
     sizex = container->GetWidth();
@@ -168,20 +168,20 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
         img_sprite = new Sprite;
         img_sprite->SetImage(image);
         img_sprite->SetRefPixelPosition(0, 0);
-        img_sprite->SetPosition(x+24, y+(sizey>>1)-(image->GetHeight()>>1));
+        img_sprite->SetPosition(x+24, y+sizey/2-image->GetHeight()/2);
         manager->AddTop(img_sprite, MESSAGE_BOX_FADE_FRAMES);
         x += 24+image->GetWidth();
         sizex -= 24+image->GetWidth();
     }
     // yes/no buttons (optional)
     if( yesno ) {
-        int bx = x+(sizex>>1)-g_imgButtonYes->GetWidth()-12;
+        int bx = x+sizex/2-g_imgButtonYes->GetWidth()-12;
         int by = y+sizey-g_imgButtonYes->GetHeight()-36;
         spr_yes = new Sprite;
         spr_yes->SetImage(g_imgButtonYes);
         spr_yes->SetPosition(bx, by);
         manager->AddTop(spr_yes, MESSAGE_BOX_FADE_FRAMES);
-        bx = x+(sizex>>1)+12;
+        bx = x+sizex/2+12;
         by = y+sizey-g_imgButtonYes->GetHeight()-36;
         spr_no = new Sprite;
         spr_no->SetImage(g_imgButtonNo);
@@ -192,7 +192,7 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
     // text
     txt_sprite = new Sprite;
     txt_sprite->SetImage(txt_image->GetImage());
-    txt_sprite->SetPosition(x+((sizex-txtwidth)>>1), y+((sizey-textheight)>>1)-4);
+    txt_sprite->SetPosition(x+(sizex-txtwidth)/2, y+(sizey-textheight)/2-4);
     manager->AddTop(txt_sprite, MESSAGE_BOX_FADE_FRAMES);
     is_showing = true;
     manager->Unlock();

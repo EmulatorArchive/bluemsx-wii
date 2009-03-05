@@ -37,6 +37,10 @@ class GuiManager {
 public:
     GuiManager();
     virtual ~GuiManager();
+    void SetMode(GW_VIDEO_MODE mode);
+    GW_VIDEO_MODE GetMode(void);
+    u32 GetWidth(void);
+    u32 GetHeight(void);
     void AddRenderCallback(void (*callback)(void*), void *context);
     void RemoveRenderCallback(void (*callback)(void*), void *context);
     static void *DisplayThreadWrapper(void *arg);

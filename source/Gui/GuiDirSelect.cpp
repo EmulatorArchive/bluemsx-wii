@@ -6,7 +6,7 @@
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
 
-#define DSEL_YPITCH 56
+#define DSEL_YPITCH 50
 
 #define DIRSEL_FADE_FRAMES 10
 
@@ -18,7 +18,7 @@ char *GuiDirSelect::DoModal(void)
     manager->Lock();
 
     // Containers
-    GuiContainer *containerDirList = new GuiContainer(320-180, 24, 2*180, 480-48);
+    GuiContainer *containerDirList = new GuiContainer(320-180, 28, 2*180, 440-48);
     manager->AddTop(containerDirList, DIRSEL_FADE_FRAMES);
 
     // Release UI
@@ -66,8 +66,8 @@ char *GuiDirSelect::DoModal(void)
         if( IsShowing() ) {
             RemoveSelection();
         }
-        ShowSelection(title_list, num_dirs, sel, 32, DSEL_YPITCH,
-                      320-180+8, 24+20, 24, 2*180-16, false, DIRSEL_FADE_FRAMES);
+        ShowSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
+                      320-180+8, 24+24, 24, 2*180-16, false, DIRSEL_FADE_FRAMES);
         for(;;) {
             sel = DoSelection();
 
