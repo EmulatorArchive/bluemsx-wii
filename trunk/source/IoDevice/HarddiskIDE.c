@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -48,7 +48,7 @@ struct HarddiskIde {
     UInt8 devHeadReg;
     UInt8 statusReg;
     UInt8 featureReg;
-    
+
     int transferRead;
     int transferWrite;
     UInt32 transferCount;
@@ -94,7 +94,7 @@ static void executeCommand(HarddiskIde* hd, UInt8 cmd)
         break;
 
     case 0xec: // ATA Identify Device
-        if (!diskReadSector(hd->diskId, hd->sectorData, -1, 0, 0, 0, NULL)) {
+        if (diskReadSector(hd->diskId, hd->sectorData, -1, 0, 0, 0, NULL) != DSKE_OK) {
             setError(hd, 0x44);
             break;
         }
@@ -138,9 +138,9 @@ static void executeCommand(HarddiskIde* hd, UInt8 cmd)
             setError(hd, 0x14);
             break;
         }
-          
+
         for (i = 0; i < numSectors; i++) {
-            if (!diskReadSector(hd->diskId, hd->sectorData + i * 512, sectorNumber + i + 1, 0, 0, 0, NULL)) {
+            if (diskReadSector(hd->diskId, hd->sectorData + i * 512, sectorNumber + i + 1, 0, 0, 0, NULL) != DSKE_OK) {
                 break;
             }
         }
@@ -238,17 +238,17 @@ UInt8 harddiskIdeReadRegister(HarddiskIde* hd, UInt8 reg)
     switch (reg) {
     case 1:
         return hd->errorReg;
-    case 2: 
+    case 2:
         return hd->sectorCountReg;
-    case 3: 
+    case 3:
         return hd->sectorNumReg;
-    case 4: 
+    case 4:
         return hd->cylinderLowReg;
-    case 5: 
+    case 5:
         return hd->cylinderHighReg;
-    case 6: 
+    case 6:
         return hd->devHeadReg;
-    case 7: 
+    case 7:
         return hd->statusReg;
     case 8:
     case 9:
