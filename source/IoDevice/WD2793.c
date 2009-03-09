@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -100,7 +100,7 @@ struct WD2793 {
 
 static void wd2793ReadSector(WD2793* wd)
 {
-    int rv = 0;
+    DSKE rv = 0;
     int sectorSize = 0;
 
     if (wd->drive >= 0) {
@@ -108,12 +108,14 @@ static void wd2793ReadSector(WD2793* wd)
         fdcAudioSetReadWrite(wd->fdcAudio);
         boardSetFdcActive();
     }
-    if (!rv || wd->diskTrack != wd->regTrack) {
+    if (rv == DSKE_NO_DATA || wd->diskTrack != wd->regTrack) {
 	    wd->regStatus |= ST_RECORD_NOT_FOUND;
 	    wd->intRequest = 1;
 	    wd->regStatus &= ~ST_BUSY;
-    }
-    else {
+    }else{
+        if (rv == DSKE_CRC_ERROR) {
+            wd->regStatus |= ST_CRC_ERROR;
+        }
 		wd->sectorOffset    = 0;
 		wd->dataRequest     = 0;
         wd->dataReady       = 0;
@@ -135,7 +137,7 @@ static void sync(WD2793* wd)
 		        wd->regTrack += wd->stepDirection;
             }
 
-            if (diskEnabled(wd->drive) && 
+            if (diskEnabled(wd->drive) &&
                 ((wd->stepDirection == -1 && wd->diskTrack > 0) || wd->stepDirection == 1)) {
 		        wd->diskTrack += wd->stepDirection;
             }
@@ -144,7 +146,7 @@ static void sync(WD2793* wd)
 	            wd->regStatus &= ~ST_BUSY;
                 wd->step       = 0;
                 break;
-            } 
+            }
             if (wd->stepDirection == -1 && diskEnabled(wd->drive) && wd->diskTrack == 0) {
                 wd->regTrack   = 0;
 	            wd->intRequest = 1;
@@ -152,7 +154,7 @@ static void sync(WD2793* wd)
                 wd->step       = 0;
                 break;
             }
-            
+
             if (wd->regTrack == wd->regData) {
 	            wd->intRequest = 1;
 	            wd->regStatus &= ~ST_BUSY;
@@ -172,7 +174,7 @@ static void commandType4(WD2793* wd)
 	if (flags & FLAG_IMM) {
 		wd->immediateInt = 1;
 	}
-	
+
 	wd->dataRequest = 0;
 	wd->regStatus  &= ~ST_BUSY;
 }
@@ -188,7 +190,7 @@ static void commandType2(WD2793* wd)
 	    wd->intRequest  = 1;
 	    wd->regStatus &= ~ST_BUSY;
         return;
-	} 
+	}
 
     switch (wd->regCommand >> 4) {
 	case CMD_READ_SECTOR:
@@ -217,7 +219,7 @@ static void commandType3(WD2793* wd)
 	    wd->intRequest = 1;
 	    wd->regStatus &= ~ST_BUSY;
         return;
-	} 
+	}
 
 	switch (wd->regCommand >> 4) {
 	case CMD_READ_ADDRESS:
@@ -244,7 +246,7 @@ static void commandType1(WD2793* wd)
 		wd->regData  = 0x00;
         wd->stepDirection = -1;
 		break;
-		
+
 	case CMD_SEEK:
         if (wd->regTrack == wd->regData) {
 	        wd->intRequest = 1;
@@ -253,16 +255,16 @@ static void commandType1(WD2793* wd)
         }
         wd->stepDirection = wd->regTrack > wd->regData ? -1 : 1;
 		break;
-		
+
 	case CMD_STEP1:
 	case CMD_STEP2:
 		break;
-		
+
 	case CMD_STEP_IN1:
 	case CMD_STEP_IN2:
 		wd->stepDirection = 1;
 		break;
-		
+
 	case CMD_STEP_OUT1:
 	case CMD_STEP_OUT2:
 		wd->stepDirection = -1;
@@ -342,7 +344,7 @@ int wd2793PeekDataRequest(WD2793* wd)
         UInt32 pulses = (boardSystemTime() - wd->dataRequsetTime) / (boardFrequency() / 5);
 		if (wd->dataReady) {
 			dataRequest = 1;
-		} 
+		}
 		if (pulses > 1) {
 			dataRequest   = 0;
 		}
@@ -365,7 +367,7 @@ int wd2793GetDataRequest(WD2793* wd)
         UInt32 pulses = (boardSystemTime() - wd->dataRequsetTime) / (boardFrequency() / 5);
 		if (wd->dataReady) {
 			wd->dataRequest = 1;
-		} 
+		}
 		if (pulses > 0) {
 			wd->dataReady = 1;
 		}
@@ -533,11 +535,11 @@ UInt8 wd2793PeekStatusReg(WD2793* wd)
         else {
     		regStatus |= ST_WRITE_PROTECTED;
         }
-	} 
+	}
     else {
 		if (wd2793PeekDataRequest(wd)) {
 			regStatus |=  ST_DATA_REQUEST;
-		} 
+		}
         else {
 			regStatus &= ~ST_DATA_REQUEST;
 		}
@@ -545,7 +547,7 @@ UInt8 wd2793PeekStatusReg(WD2793* wd)
 
 	if (diskPresent(wd->drive)) {
 		regStatus &= ~ST_NOT_READY;
-	} 
+	}
     else {
 		regStatus |=  ST_NOT_READY;
 	}
@@ -574,11 +576,11 @@ UInt8 wd2793GetStatusReg(WD2793* wd)
         else {
     		wd->regStatus |= ST_WRITE_PROTECTED;
         }
-	} 
+	}
     else {
 		if (wd2793GetDataRequest(wd)) {
 			wd->regStatus |=  ST_DATA_REQUEST;
-		} 
+		}
         else {
 			wd->regStatus &= ~ST_DATA_REQUEST;
 		}
@@ -586,7 +588,7 @@ UInt8 wd2793GetStatusReg(WD2793* wd)
 
 	if (diskPresent(wd->drive)) {
 		wd->regStatus &= ~ST_NOT_READY;
-	} 
+	}
     else {
 		wd->regStatus |=  ST_NOT_READY;
 	}
@@ -620,13 +622,13 @@ void wd2793SetCommandReg(WD2793* wd, UInt8 value)
 	case CMD_WRITE_SECTORS:
 		commandType2(wd);
 		break;
-		
+
 	case CMD_READ_ADDRESS:
 	case CMD_READ_TRACK:
 	case CMD_WRITE_TRACK:
 		commandType3(wd);
 		break;
-	
+
 	case CMD_FORCE_INTERRUPT:
 		commandType4(wd);
 		break;

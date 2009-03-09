@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,8 +37,11 @@
 // PacketFileSystem.h Need to be included after all other includes
 #include "PacketFileSystem.h"
 
-
 #define MAXSECTOR (2 * 9 * 81)
+
+#define DISK_ERRORS_HEADER      "DiskImage errors\r\n\032"
+#define DISK_ERRORS_HEADER_SIZE 0x14
+#define DISK_ERRORS_SIZE        ((MAXSECTOR+7)/8)
 
 static int   drivesEnabled[MAXDRIVES] = { 1, 1 };
 static int   drivesIsCdrom[MAXDRIVES];
@@ -54,6 +57,7 @@ static int   tracks[MAXDRIVES];
 static int   changed[MAXDRIVES];
 static int   diskType[MAXDRIVES];
 static int   maxSector[MAXDRIVES];
+static char* drivesErrors[MAXDRIVES];
 
 enum { MSX_DISK, SVI328_DISK, IDEHD_DISK } diskTypes;
 
@@ -98,7 +102,7 @@ static void diskReadHdIdentifySector(int driveId, UInt8* buffer)
     UInt16 heads = 16;
     UInt16 sectors = 32;
     UInt16 cylinders = (UInt16)(totalSectors / (heads * sectors));
-    
+
     memcpy(buffer, hdIdentifyBlock, 512);
 
     buffer[0x02] = cylinders & 0xff;
@@ -141,7 +145,7 @@ void  diskEnable(int driveId, int enable)
 
 UInt8 diskPresent(int driveId)
 {
-    return driveId >= 0 && driveId < MAXDRIVES && 
+    return driveId >= 0 && driveId < MAXDRIVES &&
         (drives[driveId] != NULL || ramImageBuffer[driveId] != NULL);
 }
 
@@ -191,7 +195,7 @@ static int diskGetSectorOffset(int driveId, int sector, int side, int track, int
 
     if (diskType[driveId] == SVI328_DISK) {
         if (track==0 && side==0 && density==1)
-            offset = (sector-1)*128; 
+            offset = (sector-1)*128;
         else
             offset = ((track*sides[driveId]+side)*17+sector-1)*256-2048;
     }
@@ -214,43 +218,53 @@ int diskChanged(int driveId)
     return 0;
 }
 
-UInt8 diskRead(int driveId, UInt8* buffer, int sector)
+static DSKE diskReadError(int driveId, int sector)
+{
+    if( drivesErrors[driveId] == NULL ) {
+        return DSKE_OK;
+    }else{
+        return (drivesErrors[driveId][sector >> 3] & (0x80 >> (sector & 7)))?
+               DSKE_CRC_ERROR : DSKE_OK;
+    }
+}
+
+DSKE diskRead(int driveId, UInt8* buffer, int sector)
 {
     if (!diskPresent(driveId))
-        return 0;
+        return DSKE_NO_DATA;
 
     if (ramImageBuffer[driveId] != NULL) {
         int offset = sector * sectorSize[driveId];
 
         if (ramImageSize[driveId] < offset + sectorSize[driveId]) {
-            return 0;
+            return DSKE_NO_DATA;
         }
 
         memcpy(buffer, ramImageBuffer[driveId] + offset, sectorSize[driveId]);
-        return 1;
+        return DSKE_OK;
     }
     else {
         if ((drives[driveId] != NULL)) {
             if (0 == fseek(drives[driveId], sector * sectorSize[driveId], SEEK_SET)) {
                 UInt8 success = fread(buffer, 1, sectorSize[driveId], drives[driveId]) == sectorSize[driveId];
-                return success;
+                return success? diskReadError(driveId, sector) : DSKE_NO_DATA;
             }
         }
     }
-    return 0;
+    return DSKE_NO_DATA;
 }
 
-UInt8 diskReadSector(int driveId, UInt8* buffer, int sector, int side, int track, int density, int *sectorSize)
+DSKE diskReadSector(int driveId, UInt8* buffer, int sector, int side, int track, int density, int *sectorSize)
 {
     int secSize;
     int offset;
 
     if (!diskPresent(driveId))
-        return 0;
+        return DSKE_NO_DATA;
 
     if (diskType[driveId] == IDEHD_DISK && sector == -1) {
         diskReadHdIdentifySector(driveId, buffer);
-        return 1;
+        return DSKE_OK;
     }
 
     offset = diskGetSectorOffset(driveId, sector, side, track, density);
@@ -261,30 +275,33 @@ UInt8 diskReadSector(int driveId, UInt8* buffer, int sector, int side, int track
     }
 
     if (ramImageBuffer[driveId] != NULL) {
+        int sectornum;
         if (ramImageSize[driveId] < offset + secSize) {
-            return 0;
+            return DSKE_NO_DATA;
         }
 
         memcpy(buffer, ramImageBuffer[driveId] + offset, secSize);
-        return 1;
+        sectornum = sector - 1 + diskGetSectorsPerTrack(driveId) * (track * diskGetSides(driveId) + side);
+        return diskReadError(driveId, sectornum);
     }
     else {
         if ((drives[driveId] != NULL)) {
             if (0 == fseek(drives[driveId], offset, SEEK_SET)) {
                 UInt8 success = fread(buffer, 1, secSize, drives[driveId]) == secSize;
-                return success;
+                int sectornum = sector - 1 + diskGetSectorsPerTrack(driveId) * (track * diskGetSides(driveId) + side);
+                return success? diskReadError(driveId, sectornum) : DSKE_NO_DATA;
             }
         }
     }
 
-    return 0;
+    return DSKE_NO_DATA;
 }
 
-static void diskUpdateInfo(int driveId) 
+static void diskUpdateInfo(int driveId)
 {
 	UInt8 buf[512];
     int secSize;
-    int rv;
+    DSKE rv;
 
     sectorsPerTrack[driveId] = 9;
     sides[driveId]           = 2;
@@ -333,7 +350,7 @@ static void diskUpdateInfo(int driveId)
 	}
 
     rv = diskReadSector(driveId, buf, 1, 0, 0, 512, &secSize);
-    if (!rv) {
+    if (rv != DSKE_OK) {
         return;
     }
 
@@ -351,7 +368,7 @@ static void diskUpdateInfo(int driveId)
             // This check is needed to get the SVI-738 MSX-DOS disks to work
             // Maybe it should be applied to other cases as well
             rv = diskReadSector(driveId, buf, 2, 0, 0, 512, &secSize);
-            if (rv && buf[0] == 0xf8) {
+            if (rv == DSKE_OK && buf[0] == 0xf8) {
 	            sides[driveId] = 1;
             }
             return;
@@ -390,14 +407,14 @@ static void diskUpdateInfo(int driveId)
             return;
         }
     }
-    
+
     if ((buf[0] == 0xe9) || (buf[0] ==0xeb)) {
 	    sectorsPerTrack[driveId] = buf[0x18] + 256 * buf[0x19];
 	    sides[driveId]           = buf[0x1a] + 256 * buf[0x1b];
     }
     else {
         rv = diskReadSector(driveId, buf, 2, 0, 0, 512, &secSize);
-        if (!rv) {
+        if (rv != DSKE_OK) {
             return;
         }
 		if (buf[0] >= 0xF8) {
@@ -406,8 +423,8 @@ static void diskUpdateInfo(int driveId)
 		}
     }
 
-    if (sectorsPerTrack[driveId] == 0  || sides[driveId] == 0 || 
-        sectorsPerTrack[driveId] > 255 || sides[driveId] > 2) 
+    if (sectorsPerTrack[driveId] == 0  || sides[driveId] == 0 ||
+        sectorsPerTrack[driveId] > 255 || sides[driveId] > 2)
     {
     	switch (fileSize[driveId]) {
         case 163840:
@@ -511,10 +528,26 @@ void diskSetInfo(int driveId, char* fileName, const char* fileInZipFile)
     drivesIsCdrom[driveId] = fileName && strcmp(fileName, DISK_CDROM) == 0;
 }
 
+static char *makeErrorsFileName(char *fileName)
+{
+    char *p, *fname = (char*)malloc(strlen(fileName)+4);
+    strcpy(fname, fileName);
+    p = &fname[strlen(fname)-1];
+    while(*p != '.' && p != fname) p--;
+    if (p != fname) {
+        strcpy(p, ".der");
+        return fname;
+    }else{
+        free(p);
+        return NULL;
+    }
+}
+
 UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
 {
     struct stat s;
     int rv;
+    char *fname;
 
     if (driveId >= MAXDRIVES)
         return 0;
@@ -522,15 +555,20 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
     drivesIsCdrom[driveId] = 0;
 
     /* Close previous disk image */
-    if(drives[driveId] != NULL) { 
+    if(drives[driveId] != NULL) {
         fclose(drives[driveId]);
-        drives[driveId] = NULL; 
+        drives[driveId] = NULL;
     }
 
     if (ramImageBuffer[driveId] != NULL) {
         // Flush to file??
         free(ramImageBuffer[driveId]);
         ramImageBuffer[driveId] = NULL;
+    }
+
+    if (drivesErrors[driveId] != NULL) {
+        free(drivesErrors[driveId]);
+        drivesErrors[driveId] = NULL;
     }
 
     if(!fileName) {
@@ -555,6 +593,20 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
     if (fileInZipFile != NULL) {
         ramImageBuffer[driveId] = zipLoadFile(fileName, fileInZipFile, &ramImageSize[driveId]);
         fileSize[driveId] = ramImageSize[driveId];
+
+        fname = makeErrorsFileName(fileInZipFile);
+        if( fname != NULL ) {
+            int size=0;
+            drivesErrors[driveId] = zipLoadFile(fileName, fname, &size);
+            if( drivesErrors[driveId] != NULL && size > DISK_ERRORS_HEADER_SIZE &&
+                strcmp(drivesErrors[driveId], DISK_ERRORS_HEADER)==0 ) {
+                memcpy(drivesErrors[driveId],
+                       drivesErrors[driveId] + DISK_ERRORS_HEADER_SIZE,
+                       size - DISK_ERRORS_HEADER_SIZE);
+            }
+            free(fname);
+        }
+
         diskUpdateInfo(driveId);
         return ramImageBuffer[driveId] != NULL;
     }
@@ -569,6 +621,26 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
 
     if (drives[driveId] == NULL) {
         return 0;
+    }
+
+    fname = makeErrorsFileName(fileName);
+    if( fname != NULL ) {
+        FILE *f = fopen(fname, "rb");
+        if( f != NULL ) {
+            char *p = (char*)malloc(DISK_ERRORS_SIZE);
+            if( fread(p, 1, DISK_ERRORS_HEADER_SIZE, f) == DISK_ERRORS_HEADER_SIZE ) {
+                if( strcmp(p, DISK_ERRORS_HEADER) == 0 ) {
+                    fread(p, 1, DISK_ERRORS_SIZE, f);
+                    drivesErrors[driveId] = p;
+                    p = NULL;
+                }
+            }
+			if( p != NULL ) {
+                free(p);
+            }
+            fclose(f);
+        }
+        free(fname);
     }
 
     fseek(drives[driveId],0,SEEK_END);

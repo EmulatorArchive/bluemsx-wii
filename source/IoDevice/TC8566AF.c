@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -50,7 +50,7 @@ struct TC8566AF {
     int command;
     int phase;
     int phaseStep;
-    
+
     UInt8 fillerByte;
 
     UInt8 cylinderNumber;
@@ -252,7 +252,7 @@ static UInt8 tc8566afResultsPhaseRead(TC8566AF* tc)
 		case 0:
 			tc->phase       = PHASE_IDLE;
             tc->mainStatus &= ~(STM_CB | STM_DIO);
-            
+
             return tc->status3;
 		}
 		break;
@@ -285,13 +285,14 @@ void tc8566afIdlePhaseWrite(TC8566AF* tc, UInt8 value)
 	tc->phase       = PHASE_COMMAND;
 	tc->phaseStep   = 0;
     tc->mainStatus |= STM_CB;
-    
+
     switch (tc->command) {
 	case CMD_READ_DATA:
 	case CMD_WRITE_DATA:
 	case CMD_FORMAT:
         tc->status0 &= ~(ST0_IC0 | ST0_IC1);
         tc->status1 &= ~(ST1_ND | ST1_NW);
+        tc->status2 &= ~ST2_DD;
 		break;
 
 	case CMD_RECALIBRATE:
@@ -324,9 +325,9 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
             tc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             tc->status0 |= (diskPresent(tc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(tc->drive) ? 0 : ST0_IC1);
-            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (tc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) | 
+            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (tc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(tc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(tc->drive)       ? ST3_RDY : 0);
 			break;
@@ -346,13 +347,17 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
 		case 7:
             if (tc->command == CMD_READ_DATA) {
                 int sectorSize;
-        		int rv = diskReadSector(tc->drive, tc->sectorBuf, tc->sectorNumber, tc->side, 
-                                        tc->currentTrack, 0, &sectorSize);
+        		DSKE rv = diskReadSector(tc->drive, tc->sectorBuf, tc->sectorNumber, tc->side,
+                                         tc->currentTrack, 0, &sectorSize);
                 fdcAudioSetReadWrite(tc->fdcAudio);
                 boardSetFdcActive();
-                if (!rv) {
+                if (rv == DSKE_NO_DATA) {
                     tc->status0 |= ST0_IC0;
                     tc->status1 |= ST1_ND;
+                }
+                if (rv == DSKE_CRC_ERROR) {
+                    tc->status0 |= ST0_IC0;
+                    tc->status2 |= ST2_DD;
                 }
                 tc->mainStatus |= STM_DIO;
             }
@@ -371,9 +376,9 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
             tc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             tc->status0 |= (diskPresent(tc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(tc->drive) ? 0 : ST0_IC1);
-            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (tc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |  
+            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (tc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(tc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(tc->drive)       ? ST3_RDY : 0);
 			break;
@@ -400,13 +405,13 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
             tc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             tc->status0 |= (diskPresent(tc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(tc->drive) ? 0 : ST0_IC1);
-            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (tc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |  
+            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (tc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(tc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(tc->drive)       ? ST3_RDY : 0);
 			break;
-		case 1: 
+		case 1:
             tc->currentTrack = value;
             tc->status0     |= ST0_SE;
             tc->mainStatus  &= ~STM_CB;
@@ -417,13 +422,13 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
 
 	case CMD_RECALIBRATE:
 		switch (tc->phaseStep++) {
-		case 0: 
+		case 0:
             tc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             tc->status0 |= (diskPresent(tc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(tc->drive) ? 0 : ST0_IC1);
-            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (tc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |  
+            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (tc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(tc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(tc->drive)       ? ST3_RDY : 0);
 
@@ -450,12 +455,12 @@ static void tc8566afCommandPhaseWrite(TC8566AF* tc, UInt8 value)
             tc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             tc->status0 |= (diskPresent(tc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(tc->drive) ? 0 : ST0_IC1);
-            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (tc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |  
+            tc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (tc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(tc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(tc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(tc->drive)       ? ST3_RDY : 0);
-            
+
 		    tc->phase       = PHASE_RESULT;
             tc->phaseStep   = 0;
             tc->mainStatus |= STM_DIO;
@@ -473,9 +478,9 @@ static void tc8566afExecutionPhaseWrite(TC8566AF* tc, UInt8 value)
 	case CMD_WRITE_DATA:
 		if (tc->sectorOffset < 512) {
 			tc->sectorBuf[tc->sectorOffset++] = value;
-            
+
     		if (tc->sectorOffset == 512) {
-                rv = diskWriteSector(tc->drive, tc->sectorBuf, tc->sectorNumber, tc->side, 
+                rv = diskWriteSector(tc->drive, tc->sectorBuf, tc->sectorNumber, tc->side,
                                      tc->currentTrack, 0);
                 if (!rv) {
                     tc->status1 |= ST1_NW;
@@ -545,8 +550,8 @@ void tc8566afReset(TC8566AF* tc)
 
     tc->mainStatus = STM_NDM | STM_RQM;
 
-    ledSetFdd1(0); /* 10:10 2004/10/09 FDD LED PATCH */ 
-    ledSetFdd2(0); /* 10:10 2004/10/09 FDD LED PATCH */ 
+    ledSetFdd1(0); /* 10:10 2004/10/09 FDD LED PATCH */
+    ledSetFdd2(0); /* 10:10 2004/10/09 FDD LED PATCH */
 
     fdcAudioReset(tc->fdcAudio);
 }
@@ -554,18 +559,18 @@ void tc8566afReset(TC8566AF* tc)
 UInt8 tc8566afReadRegister(TC8566AF* tc, UInt8 reg)
 {
     switch (reg) {
-    case 4: 
+    case 4:
         if (~tc->mainStatus & STM_RQM) {
             UInt32 elapsed = boardSystemTime() - tc->dataTransferTime;
             if (elapsed > boardFrequency() * 60 / 1000000) {
                 tc->mainStatus |= STM_RQM;
-            } 
+            }
         }
 //        return tc->mainStatus;
   return (tc->mainStatus & ~ STM_NDM) | (tc->phase == PHASE_DATATRANSFER ? STM_NDM : 0);
 
 	case 5:
-        switch (tc->phase) {            
+        switch (tc->phase) {
 		case PHASE_DATATRANSFER:
             reg = tc8566afExecutionPhaseRead(tc);
             tc->dataTransferTime = boardSystemTime();
@@ -583,10 +588,10 @@ UInt8 tc8566afReadRegister(TC8566AF* tc, UInt8 reg)
 UInt8 tc8566afPeekRegister(TC8566AF* tc, UInt8 reg)
 {
     switch (reg) {
-    case 4: 
+    case 4:
         return tc->mainStatus;
 	case 5:
-        switch (tc->phase) {            
+        switch (tc->phase) {
 		case PHASE_DATATRANSFER:
             return tc8566afExecutionPhasePeek(tc);
 		case PHASE_RESULT:
@@ -602,8 +607,8 @@ void tc8566afWriteRegister(TC8566AF* tc, UInt8 reg, UInt8 value)
 	case 2:
         fdcAudioSetMotor(tc->fdcAudio, ((value & 0x10) && diskEnabled(0)) || ((value & 0x20) && diskEnabled(1)));
 
-        ledSetFdd1((value & 0x10) && diskEnabled(0)); /* 10:10 2004/10/09 FDD LED PATCH */ 
-        ledSetFdd2((value & 0x20) && diskEnabled(1)); /* 10:10 2004/10/09 FDD LED PATCH */ 
+        ledSetFdd1((value & 0x10) && diskEnabled(0)); /* 10:10 2004/10/09 FDD LED PATCH */
+        ledSetFdd2((value & 0x20) && diskEnabled(1)); /* 10:10 2004/10/09 FDD LED PATCH */
 
         tc->drive = value & 0x03;
         break;
@@ -617,7 +622,7 @@ void tc8566afWriteRegister(TC8566AF* tc, UInt8 reg, UInt8 value)
         case PHASE_COMMAND:
             tc8566afCommandPhaseWrite(tc, value);
             break;
-            
+
 		case PHASE_DATATRANSFER:
             tc8566afExecutionPhaseWrite(tc, value);
             tc->dataTransferTime = boardSystemTime();
@@ -655,7 +660,7 @@ void tc8566afLoadState(TC8566AF* tc)
     tc->sectorsPerCylinder  = (UInt8) saveStateGet(state, "sectorsPerCylinder", 0);
     tc->sectorOffset        =         saveStateGet(state, "sectorOffset",       0);
     tc->dataTransferTime    =         saveStateGet(state, "dataTransferTime",   0);
-    
+
     saveStateGetBuffer(state, "sectorBuf", tc->sectorBuf, 512);
 
     saveStateClose(state);
@@ -683,7 +688,7 @@ void tc8566afSaveState(TC8566AF* tc)
     saveStateSet(state, "sectorsPerCylinder", tc->sectorsPerCylinder);
     saveStateSet(state, "sectorOffset",       tc->sectorOffset);
     saveStateSet(state, "dataTransferTime",   tc->dataTransferTime);
-    
+
     saveStateSetBuffer(state, "sectorBuf", tc->sectorBuf, 512);
 
     saveStateClose(state);

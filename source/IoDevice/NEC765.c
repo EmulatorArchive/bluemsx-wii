@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -258,7 +258,7 @@ static UInt8 nec765ResultsPhaseRead(NEC765* fdc)
 		case 0:
 			fdc->phase       = PHASE_IDLE;
             fdc->mainStatus &= ~(STM_CB | STM_DIO);
-            
+
             return fdc->status3;
 		}
 		break;
@@ -291,13 +291,14 @@ void nec765IdlePhaseWrite(NEC765* fdc, UInt8 value)
 	fdc->phase       = PHASE_COMMAND;
 	fdc->phaseStep   = 1;
     fdc->mainStatus |= STM_CB;
-    
+
     switch (fdc->command) {
 	case CMD_READ_DATA:
 	case CMD_WRITE_DATA:
 	case CMD_FORMAT:
         fdc->status0 &= ~(ST0_IC0 | ST0_IC1);
         fdc->status1 &= ~(ST1_ND | ST1_NW);
+        fdc->status2 &= ~ST2_DD;
 		break;
 
 	case CMD_RECALIBRATE:
@@ -335,13 +336,13 @@ static void nec765CommandPhaseWrite(NEC765* fdc, UInt8 value)
             fdc->drive = value & 0x03;
             fdc->side = (value >> 2)& 1;
             fdc->sectorSize = diskGetSectorSize(fdc->drive, fdc->side, fdc->currentTrack, 0);
-            
+
             fdc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             fdc->status0 |= (diskPresent(fdc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(fdc->drive) ? 0 : ST0_IC1);
-            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) | 
+            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(fdc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(fdc->drive)       ? ST3_RDY : 0);
             break;
@@ -358,15 +359,19 @@ static void nec765CommandPhaseWrite(NEC765* fdc, UInt8 value)
 		case 8:
             if (fdc->command == CMD_READ_DATA) {
                 int sectorSize;
-    
-        		int rv = diskReadSector(fdc->drive, fdc->sectorBuf, fdc->sectorNumber, fdc->side, 
-                                        fdc->currentTrack, 0, &sectorSize);
-                
+
+        		DSKE rv = diskReadSector(fdc->drive, fdc->sectorBuf, fdc->sectorNumber, fdc->side,
+                                         fdc->currentTrack, 0, &sectorSize);
+
                 fdcAudioSetReadWrite(fdc->fdcAudio);
                 boardSetFdcActive();
-                if (!rv) {
+                if (rv == DSKE_NO_DATA) {
                     fdc->status0 |= ST0_IC0;
                     fdc->status1 |= ST1_ND;
+                }
+                if (rv == DSKE_CRC_ERROR) {
+                    fdc->status0 |= ST0_IC0;
+                    fdc->status2 |= ST2_DD;
                 }
                 fdc->mainStatus |= STM_DIO;
             }
@@ -388,13 +393,13 @@ static void nec765CommandPhaseWrite(NEC765* fdc, UInt8 value)
             fdc->drive = value & 0x03;
             fdc->side = (value >> 2)& 1;
             fdc->sectorSize = diskGetSectorSize(fdc->drive, fdc->side, fdc->currentTrack, 0);
-            
+
             fdc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             fdc->status0 |= (diskPresent(fdc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(fdc->drive) ? 0 : ST0_IC1);
-            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |  
+            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(fdc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(fdc->drive)       ? ST3_RDY : 0);
             break;
@@ -423,17 +428,17 @@ static void nec765CommandPhaseWrite(NEC765* fdc, UInt8 value)
         case 1:
             fdc->drive = value & 0x03;
             fdc->side = (value >>2)& 1;
-            
+
             fdc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             fdc->status0 |= (diskPresent(fdc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(fdc->drive) ? 0 : ST0_IC1);
-            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |  
+            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(fdc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(fdc->drive)       ? ST3_RDY : 0);
             break;
-		case 2: 
+		case 2:
             fdc->currentTrack = value;
             fdc->status0     |= ST0_SE;
             fdc->mainStatus  &= ~STM_CB;
@@ -445,20 +450,20 @@ static void nec765CommandPhaseWrite(NEC765* fdc, UInt8 value)
 
 	case CMD_RECALIBRATE:
 		switch (fdc->phaseStep++) {
-		case 0: 
+		case 0:
             break;
         case 1:
             fdc->drive = value & 0x03;
-            
+
             fdc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             fdc->status0 |= (diskPresent(fdc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(fdc->drive) ? 0 : ST0_IC1);
-            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |  
+            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(fdc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(fdc->drive)       ? ST3_RDY : 0);
-            
+
             fdc->currentTrack = 0;
             fdc->status0     |= ST0_SE;
             fdc->mainStatus  &= ~STM_CB;
@@ -483,16 +488,16 @@ static void nec765CommandPhaseWrite(NEC765* fdc, UInt8 value)
 		case 1:
             fdc->drive = value & 0x03;
             fdc->side = (value >>2)& 1;
-            
+
             fdc->status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             fdc->status0 |= (diskPresent(fdc->drive) ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
                            (diskEnabled(fdc->drive) ? 0 : ST0_IC1);
-            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) | 
-                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) | 
-                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |  
+            fdc->status3  = (value & (ST3_DS0 | ST3_DS1)) |
+                           (fdc->currentTrack == 0        ? ST3_TK0 : 0) |
+                           (diskGetSides(fdc->drive) == 2 ? ST3_HD  : 0) |
                            (diskReadOnly(fdc->drive)      ? ST3_WP  : 0) |
                            (diskPresent(fdc->drive)       ? ST3_RDY : 0);
-            
+
             fdc->mainStatus |= STM_DIO;
 		    fdc->phase       = PHASE_RESULT;
             fdc->phaseStep   = 0;
@@ -511,9 +516,9 @@ static void nec765ExecutionPhaseWrite(NEC765* fdc, UInt8 value)
 	case CMD_WRITE_DATA:
 		if (fdc->sectorOffset < fdc->sectorSize) {
 			fdc->sectorBuf[fdc->sectorOffset++] = value;
-            
+
     		if (fdc->sectorOffset == fdc->sectorSize) {
-                rv = diskWriteSector(fdc->drive, fdc->sectorBuf, fdc->sectorNumber, fdc->side, 
+                rv = diskWriteSector(fdc->drive, fdc->sectorBuf, fdc->sectorNumber, fdc->side,
                                      fdc->currentTrack, 0);
                 if (!rv) {
                     fdc->status1 |= ST1_NW;
@@ -585,8 +590,8 @@ void nec765Reset(NEC765* fdc)
 
     fdc->interrupt = 0;
 
-    ledSetFdd1(0); /* 10:10 2004/10/09 FDD LED PATCH */ 
-    ledSetFdd2(0); /* 10:10 2004/10/09 FDD LED PATCH */ 
+    ledSetFdd1(0); /* 10:10 2004/10/09 FDD LED PATCH */
+    ledSetFdd2(0); /* 10:10 2004/10/09 FDD LED PATCH */
 
     fdcAudioReset(fdc->fdcAudio);
 }
@@ -594,10 +599,10 @@ void nec765Reset(NEC765* fdc)
 UInt8 nec765Read(NEC765* fdc)
 {
     UInt8 value;
-    
+
     fdc->interrupt = 0;
 
-    switch (fdc->phase) {            
+    switch (fdc->phase) {
 	case PHASE_DATATRANSFER:
         value = nec765ExecutionPhaseRead(fdc);
         fdc->dataTransferTime = boardSystemTime();
@@ -612,7 +617,7 @@ UInt8 nec765Read(NEC765* fdc)
 
 UInt8 nec765Peek(NEC765* fdc)
 {
-    switch (fdc->phase) {            
+    switch (fdc->phase) {
 	case PHASE_DATATRANSFER:
         return nec765ExecutionPhasePeek(fdc);
 	case PHASE_RESULT:
@@ -627,7 +632,7 @@ UInt8 nec765ReadStatus(NEC765* fdc)
         UInt32 elapsed = boardSystemTime() - fdc->dataTransferTime;
         if (elapsed > boardFrequency() * 60 / 1000000) {
             fdc->mainStatus |= STM_RQM;
-        } 
+        }
     }
     return fdc->mainStatus;
 }
@@ -639,8 +644,8 @@ UInt8 nec765PeekStatus(NEC765* fdc)
 
 void nec765Write(NEC765* fdc, UInt8 value)
 {
-    //ledSetFdd1((value & 0x10) && diskEnabled(0)); /* 10:10 2004/10/09 FDD LED PATCH */ 
-    //ledSetFdd2((value & 0x20) && diskEnabled(1)); /* 10:10 2004/10/09 FDD LED PATCH */ 
+    //ledSetFdd1((value & 0x10) && diskEnabled(0)); /* 10:10 2004/10/09 FDD LED PATCH */
+    //ledSetFdd2((value & 0x20) && diskEnabled(1)); /* 10:10 2004/10/09 FDD LED PATCH */
 
     switch (fdc->phase) {
 	case PHASE_IDLE:
@@ -650,7 +655,7 @@ void nec765Write(NEC765* fdc, UInt8 value)
     case PHASE_COMMAND:
         nec765CommandPhaseWrite(fdc, value);
         break;
-        
+
 	case PHASE_DATATRANSFER:
         nec765ExecutionPhaseWrite(fdc, value);
         fdc->dataTransferTime = boardSystemTime();
@@ -703,7 +708,7 @@ void nec765LoadState(NEC765* fdc)
     fdc->sectorsPerCylinder  = (UInt8) saveStateGet(state, "sectorsPerCylinder", 0);
     fdc->sectorOffset        =         saveStateGet(state, "sectorOffset",       0);
     fdc->dataTransferTime    =         saveStateGet(state, "dataTransferTime",   0);
-    
+
     saveStateGetBuffer(state, "sectorBuf", fdc->sectorBuf, 512);
 
     saveStateClose(state);
@@ -731,7 +736,7 @@ void nec765SaveState(NEC765* fdc)
     saveStateSet(state, "sectorsPerCylinder", fdc->sectorsPerCylinder);
     saveStateSet(state, "sectorOffset",       fdc->sectorOffset);
     saveStateSet(state, "dataTransferTime",   fdc->dataTransferTime);
-    
+
     saveStateSetBuffer(state, "sectorBuf", fdc->sectorBuf, 512);
 
     saveStateClose(state);
