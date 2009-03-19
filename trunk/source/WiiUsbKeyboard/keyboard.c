@@ -169,6 +169,10 @@ s32 KEYBOARD_Deinit()
 		USBKeyboard_Close(&_manager.key[i]);
 	USBKeyboard_Deinitialize();
 	USB_Deinitialize();
+    if( _manager.queue ) {
+        free(_manager.queue);
+        _manager.queue = NULL;
+    }
 	return 1;
 }
 

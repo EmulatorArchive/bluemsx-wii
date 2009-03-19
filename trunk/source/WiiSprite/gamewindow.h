@@ -12,6 +12,7 @@
 //!libwiisprite namespace
 namespace wsp{
     typedef enum {
+        GW_VIDEO_MODE_INVALID,
         GW_VIDEO_MODE_PAL528,
         GW_VIDEO_MODE_PAL448,
         GW_VIDEO_MODE_NTSC448

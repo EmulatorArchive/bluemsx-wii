@@ -191,7 +191,7 @@ bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
    }
     // text
     txt_sprite = new Sprite;
-    txt_sprite->SetImage(txt_image->GetImage());
+    txt_sprite->SetImage(txt_image);
     txt_sprite->SetPosition(x+(sizex-txtwidth)/2, y+(sizey-textheight)/2-4);
     manager->AddTop(txt_sprite, MESSAGE_BOX_FADE_FRAMES);
     is_showing = true;
@@ -209,8 +209,9 @@ void GuiMessageBox::Remove(void)
     if( is_showing ) {
         manager->Lock();
         if( txt_sprite ) {
-            manager->RemoveAndDelete(txt_sprite, NULL, MESSAGE_BOX_FADE_FRAMES);
+            manager->RemoveAndDelete(txt_sprite, txt_image, MESSAGE_BOX_FADE_FRAMES);
             txt_sprite = NULL;
+            txt_image = NULL;
         }
         if( spr_yes ) {
             manager->RemoveAndDelete(spr_yes, NULL, MESSAGE_BOX_FADE_FRAMES);
@@ -221,9 +222,8 @@ void GuiMessageBox::Remove(void)
             spr_no = NULL;
         }
         if( img_sprite ) {
-            manager->RemoveAndDelete(img_sprite, txt_image, MESSAGE_BOX_FADE_FRAMES);
+            manager->RemoveAndDelete(img_sprite, NULL, MESSAGE_BOX_FADE_FRAMES);
             img_sprite = NULL;
-            txt_image = NULL;
         }
         if( container ) {
             manager->RemoveAndDelete(container, NULL, MESSAGE_BOX_FADE_FRAMES);

@@ -3,6 +3,10 @@
 
 using namespace wsp;
 
+// Do not use the instrumented malloc to ignore the memory leak created here.
+// Unfortunately we can't solve it because libogc does support a 'deinit' of the console
+#undef malloc
+
 GuiConsole::GuiConsole(GuiManager *manager, int posx, int posy, int width, int height)
 {
     _manager = manager;
@@ -82,8 +86,12 @@ void GuiConsole::RenderWrapper(void *arg)
 
 void GuiConsole::Render(void)
 {
+    static int count = 0;
     if( _visible ) {
         u16 *pixels = (u16*)_image->GetTextureBuffer();
+        _console_buffer[count] = 0;
+        if( ++count >= _imgwidth ) count = 0;
+        _console_buffer[count] = 0xffff;
         for(int y = 0; y < _imgheight; y += 4) {
             u16 *s1 = &_console_buffer[y * _imgwidth];
             u16 *s2 = &_console_buffer[(y+1) * _imgwidth];

@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -90,7 +90,7 @@ static void onRecv(PhilipsMidi* midi, UInt32 time)
 
 	if (midi->status & STAT_RXRDY) {
 		midi->status |= STAT_OE;
-	} 
+	}
     else if (midi->rxPending != 0) {
         archSemaphoreWait(midi->semaphore, -1);
         midi->rxData = midi->rxQueue[(midi->rxHead - midi->rxPending) & (RX_QUEUE_SIZE - 1)];
@@ -102,7 +102,7 @@ static void onRecv(PhilipsMidi* midi, UInt32 time)
             midi->status |= ST_INT;
         }
     }
-    
+
     midi->timeRecv = boardSystemTime() + midi->charTime;
     boardTimerAdd(midi->timerRecv, midi->timeRecv);
 }
@@ -139,7 +139,7 @@ void philipsMidiReset(PhilipsMidi* midi)
 
     boardTimerRemove(midi->timerRecv);
     boardTimerRemove(midi->timerTrans);
-    
+
     midi->timeRecv = boardSystemTime() + midi->charTime;
     boardTimerAdd(midi->timerRecv, midi->timeRecv);
 }
@@ -158,6 +158,8 @@ PhilipsMidi* philipsMidiCreate()
 
 void philipsMidiDestroy(PhilipsMidi* midi)
 {
+    boardTimerDestroy(midi->timerTrans);
+    boardTimerDestroy(midi->timerRecv);
     midiIoDestroy(midi->midiIo);
     archSemaphoreDestroy(midi->semaphore);
     free(midi);
@@ -203,7 +205,7 @@ void philipsMidiWriteCommand(PhilipsMidi* midi, UInt8 value)
         philipsMidiReset(midi);
         break;
     }
-    
+
     switch (value & 0x1c) {
     case 0:
         dataBits     = 7;
@@ -249,7 +251,7 @@ void philipsMidiWriteCommand(PhilipsMidi* midi, UInt8 value)
 
 	charLength = (dataBits + parityEnable + stopBits) * baudrate;
     midi->charTime = (UInt32)(charLength * boardFrequency() / 500000);
-    
+
     midi->timeRecv = boardSystemTime() + midi->charTime;
     boardTimerAdd(midi->timerRecv, midi->timeRecv);
 }
@@ -280,7 +282,7 @@ typedef struct {
     int ioBase;
     UInt8* romData;
     UInt8 ram[0x1000];
-    int bankSelect; 
+    int bankSelect;
     int sizeMask;
 
     PhilipsMidi* midi;
@@ -300,7 +302,7 @@ static void saveState(RomMapperMsxAudio* rm)
 
     saveStateSet(state, "bankSelect", rm->bankSelect);
     saveStateSetBuffer(state, "ram", rm->ram, sizeof(rm->ram));
-    
+
     saveStateClose(state);
 
     if (rm->y8950 != NULL) {
@@ -316,7 +318,7 @@ static void loadState(RomMapperMsxAudio* rm)
     saveStateGetBuffer(state, "ram", rm->ram, sizeof(rm->ram));
 
     saveStateClose(state);
-    
+
     if (rm->y8950 != NULL) {
         y8950LoadState(rm->y8950);
     }
@@ -335,7 +337,7 @@ static void destroy(RomMapperMsxAudio* rm)
 
     ioPortUnregister(rm->ioBase + 0);
     ioPortUnregister(rm->ioBase + 1);
-    
+
     if (rm->y8950) {
     	if (ioPortGetRef(0xc0)==rm->y8950&&ioPortGetRef(0xc1)==rm->y8950) {
     		ioPortUnregister(0xc0); ioPortUnregister(0xc1);
@@ -364,7 +366,7 @@ static void destroy(RomMapperMsxAudio* rm)
     free(rm);
 }
 
-static UInt8 read(RomMapperMsxAudio* rm, UInt16 address) 
+static UInt8 read(RomMapperMsxAudio* rm, UInt16 address)
 {
 	if (rm->bankSelect == 0 && (address & 0x3fff) >= 0x3000) {
 		return rm->ram[(address & 0x3fff) - 0x3000];
@@ -373,10 +375,10 @@ static UInt8 read(RomMapperMsxAudio* rm, UInt16 address)
 	return rm->romData[(0x8000 * rm->bankSelect + (address & 0x7fff)) & rm->sizeMask];
 }
 
-static void write(RomMapperMsxAudio* rm, UInt16 address, UInt8 value) 
+static void write(RomMapperMsxAudio* rm, UInt16 address, UInt8 value)
 {
 	address &= 0x7fff;
-	
+
 #if 0
 	// FS-CA1 port select, bit 0:c0/c1, bit 1:c2/c3
 	if (rm->is_fs_ca1&&address==0x7fff&&rm->y8950) {
@@ -387,7 +389,7 @@ static void write(RomMapperMsxAudio* rm, UInt16 address, UInt8 value)
 		else if (ioPortGetRef(0xc0)==rm->y8950&&ioPortGetRef(0xc1)==rm->y8950) {
 			ioPortUnregister(0xc0); ioPortUnregister(0xc1);
 		}
-		
+
 		if (value&2) {
 			ioPortRegister(0xc2, y8950Read, y8950Write, rm->y8950);
 			ioPortRegister(0xc3, y8950Read, y8950Write, rm->y8950);
@@ -399,7 +401,7 @@ static void write(RomMapperMsxAudio* rm, UInt16 address, UInt8 value)
 #endif
 	// bankswitch
 	if (address==0x7ffe) rm->bankSelect = value & 3;
-	
+
 	address &= 0x3fff;
 	if (rm->bankSelect == 0 && address >= 0x3000) {
 		rm->ram[address - 0x3000] = value;
@@ -407,7 +409,7 @@ static void write(RomMapperMsxAudio* rm, UInt16 address, UInt8 value)
 }
 
 
-static void reset(RomMapperMsxAudio* rm) 
+static void reset(RomMapperMsxAudio* rm)
 {
     if (rm->y8950 != NULL) {
         y8950Reset(rm->y8950);
@@ -416,7 +418,7 @@ static void reset(RomMapperMsxAudio* rm)
     if (rm->midi) {
         philipsMidiReset(rm->midi);
     }
-    
+
     // FS-CA1
     write (rm,0x7ffe,0);
     write (rm,0x7fff,0);
@@ -467,7 +469,7 @@ static void getDebugInfo(RomMapperMsxAudio* rm, DbgDevice* dbgDevice)
     ioPorts = dbgDeviceAddIoPorts(dbgDevice, langDbgDevMsxAudio(), 2);
     dbgIoPortsAddPort(ioPorts, 0, rm->ioBase + 0, DBG_IO_READWRITE, y8950Peek(rm->y8950, 0));
     dbgIoPortsAddPort(ioPorts, 1, rm->ioBase + 1, DBG_IO_READWRITE, y8950Peek(rm->y8950, 1));
-    
+
     ioPorts = dbgDeviceAddIoPorts(dbgDevice, langDbgDevMsxAudioMidi(), 4);
     dbgIoPortsAddPort(ioPorts, 0, 0x00, DBG_IO_WRITE, 0);
     dbgIoPortsAddPort(ioPorts, 1, 0x01, DBG_IO_WRITE, 0);
@@ -477,8 +479,8 @@ static void getDebugInfo(RomMapperMsxAudio* rm, DbgDevice* dbgDevice)
     y8950GetDebugInfo(rm->y8950, dbgDevice);
 }
 
-int romMapperMsxAudioCreate(char* filename, UInt8* romData, 
-                            int size, int slot, int sslot, int startPage) 
+int romMapperMsxAudioCreate(char* filename, UInt8* romData,
+                            int size, int slot, int sslot, int startPage)
 {
     DeviceCallbacks callbacks = { destroy, reset, saveState, loadState };
     DebugCallbacks dbgCallbacks = { getDebugInfo, NULL, NULL, NULL };
@@ -498,7 +500,7 @@ int romMapperMsxAudioCreate(char* filename, UInt8* romData,
         int pages=8;
         rm->is_fs_ca1 = (size == 0x20000); // meh
         // pages=rm->is_fs_ca1?4:8;
-        
+
         // For FS-CA1, $8000-$FFFF is unmapped
         // firmware locks up, needs more testing
         slotRegister(slot, sslot, startPage, pages, read, read, write, destroy, rm);
@@ -518,7 +520,7 @@ int romMapperMsxAudioCreate(char* filename, UInt8* romData,
             // not needed if port select register is emulated
             rm->romData[0x408e] = 0;
         }
-        
+
         for (i = 0; i < pages; i++) {
             slotMapPage(rm->slot, rm->sslot, rm->startPage + i, NULL, 0, 0);
         }
@@ -528,20 +530,20 @@ int romMapperMsxAudioCreate(char* filename, UInt8* romData,
 
     if (boardGetY8950Enable()) {
         rm->y8950 = y8950Create(boardGetMixer());
-       	
+
        	ioPortRegister(rm->ioBase + 0, y8950Read, y8950Write, rm->y8950);
        	ioPortRegister(rm->ioBase + 1, y8950Read, y8950Write, rm->y8950);
-	
+
         ioPortRegister(0x00, NULL, midiWrite, rm);
         ioPortRegister(0x01, NULL, midiWrite, rm);
         ioPortRegister(0x04, midiRead, NULL, rm);
         ioPortRegister(0x05, midiRead, NULL, rm);
     }
-    
+
     if (deviceCount == 1) {
         rm->midi = philipsMidiCreate();
     }
-    
+
     reset(rm);
 
     return 1;

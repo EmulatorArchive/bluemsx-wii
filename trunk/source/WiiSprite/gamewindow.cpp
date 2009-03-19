@@ -12,7 +12,7 @@
 
 namespace wsp{
 	// Initializes the static members
-	GW_VIDEO_MODE GameWindow::_mode = GW_VIDEO_MODE_PAL528;
+	GW_VIDEO_MODE GameWindow::_mode = GW_VIDEO_MODE_INVALID;
 	u32 GameWindow::_width = 0;
 	u32 GameWindow::_height = 0;
 	bool GameWindow::_initialized = false;
@@ -33,29 +33,50 @@ namespace wsp{
         return _mode;
     }
     void GameWindow::SetMode(GW_VIDEO_MODE mode) {
-        _mode = mode;
-        switch( _mode ) {
+        if( mode == _mode )
+            return;
+        switch( mode ) {
             case GW_VIDEO_MODE_PAL528:
 		        _rmode = &TVPal528IntDf;
 		        break;
             case GW_VIDEO_MODE_PAL448:
 		        _rmode = &TVPal574IntDfScale;
-                _rmode->viYOrigin = 24;
                 _rmode->efbHeight = 480+8;
+                _rmode->viYOrigin = 24;
                 break;
             case GW_VIDEO_MODE_NTSC448:
                 _rmode = &TVEurgb60Hz480IntDf;
                 _rmode->viYOrigin = 24;
                 break;
+            default:
+                return;
         }
+        _mode = mode;
 
         // Do some Init work
+        VIDEO_SetBlack(false);
         VIDEO_Configure(_rmode);
         VIDEO_SetNextFramebuffer(_frameBuffer[_fb]);
         VIDEO_Flush();
         VIDEO_WaitVSync();
         if(_rmode->viTVMode&VI_NON_INTERLACE){
              VIDEO_WaitVSync();
+        }
+		_fb ^= 1;
+
+        // Use these values for GetWidth() and GetHeight()
+        _width = (u32)_rmode->fbWidth; _height = (u32)_rmode->efbHeight;
+        if( _mode == GW_VIDEO_MODE_PAL448 ||
+            _mode == GW_VIDEO_MODE_NTSC448 ) {
+            _height = 448;
+        }
+
+        // Init GX (once)
+		if(_first == true){
+            _gp_fifo = memalign(32, DEFAULT_FIFO_SIZE);
+            memset(_gp_fifo, 0, DEFAULT_FIFO_SIZE);
+            GX_Init(_gp_fifo, DEFAULT_FIFO_SIZE);
+            _first = false;
         }
 
         // Set our background
@@ -71,12 +92,6 @@ namespace wsp{
         GX_SetDispCopySrc(0, 0, _rmode->fbWidth, _rmode->efbHeight);
         GX_SetDispCopyDst(_rmode->fbWidth, xfbHeight);
         GX_SetCopyFilter(_rmode->aa, _rmode->sample_pattern, GX_TRUE, _rmode->vfilter);
-        // Use these values for GetWidth() and GetHeight()
-        _width = (u32)_rmode->fbWidth; _height = (u32)_rmode->efbHeight;
-        if( _mode == GW_VIDEO_MODE_PAL448 ||
-            _mode == GW_VIDEO_MODE_NTSC448 ) {
-            _height = 448;
-        }
 
         // Some additional Init code
         GX_SetFieldMode(_rmode->field_rendering, ((_rmode->viHeight == 2*_rmode->xfbHeight)?GX_ENABLE:GX_DISABLE));
@@ -119,7 +134,7 @@ namespace wsp{
         GX_LoadPosMtxImm(GXmodelView2D,GX_PNMTX0);
 
         // Set the viewing matrix to use orthographic projection
-        guOrtho(perspective, 0, _rmode->efbHeight-0, 0, _rmode->fbWidth, 0, 300);
+        guOrtho(perspective, 0, _rmode->efbHeight, 0, _rmode->fbWidth, 0, 300);
 
         // Apply changes to the projection matrix
         GX_LoadProjectionMtx(perspective, GX_ORTHOGRAPHIC);
@@ -136,8 +151,6 @@ namespace wsp{
 	void GameWindow::InitVideo(){
 		// This Code is taken from many examples, but modified for this lib
 		if(_initialized)return;
-		// Start initializing
-		VIDEO_Init();
 
 		// Allocate two framebuffers for double buffering
 		TVPal574IntDfScale.xfbHeight += 16;
@@ -149,34 +162,39 @@ namespace wsp{
         }
 		TVPal574IntDfScale.xfbHeight -= 16;
 
+		// Start initializing
+		VIDEO_Init();
+
 		_rmode = VIDEO_GetPreferredMode(NULL);
 		if(_rmode == NULL){
 			exit(0);
 			return;
 		}
 
-        // Init GX
-        _gp_fifo = memalign(32, DEFAULT_FIFO_SIZE);
-        memset(_gp_fifo, 0, DEFAULT_FIFO_SIZE);
-        GX_Init(_gp_fifo, DEFAULT_FIFO_SIZE);
-
         SetMode(((_rmode->viTVMode>>2)&7)==VI_PAL ? GW_VIDEO_MODE_PAL448 : GW_VIDEO_MODE_NTSC448);
-        Flush();
-        SetMode(_mode);
-		_initialized = true;
+
+    	_initialized = true;
 	}
 
 	void GameWindow::StopVideo(){
 		if(!_initialized)return;
 
+        void *fb1 = _frameBuffer[0];
+        void *fb2 = _frameBuffer[1];
+
+        // Prevent garbage on screen
+        memset((void*)0xC1710000, 0, 640*480*2);
+        _frameBuffer[_fb] = (void*)0xC1710000;
+        Flush();
+
 		// Dhewg.. You rescued our asses again.
 		// This code should be run before exiting the app.
 		GX_AbortFrame();
-		GX_Flush();
 
 		// Thx to jepler for these quite obvious hints
-		free(MEM_K1_TO_K0(_frameBuffer[0])); _frameBuffer[0] = NULL;
-		free(MEM_K1_TO_K0(_frameBuffer[1])); _frameBuffer[1] = NULL;
+		free(MEM_K1_TO_K0(fb1));
+		free(MEM_K1_TO_K0(fb2));
+        _frameBuffer[0] =_frameBuffer[1] = NULL;
 		free(_gp_fifo); _gp_fifo = NULL;
 
 		_initialized = false;
@@ -197,10 +215,6 @@ namespace wsp{
 		GX_DrawDone();
 
 		VIDEO_SetNextFramebuffer(_frameBuffer[_fb]);
-		if(_first == true){
-			_first = false;
-			VIDEO_SetBlack(false); // --Now render everything again
-		}
 		VIDEO_Flush();
 		VIDEO_WaitVSync();
  		_fb ^= 1;		// Flip framebuffer
