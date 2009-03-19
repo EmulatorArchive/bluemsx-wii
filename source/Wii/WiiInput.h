@@ -9,6 +9,7 @@ extern "C" {
 
 extern void keyboardSetDirectory(char* directory);
 extern void keyboardInit(void);
+extern void keyboardClose(void);
 extern void keyboardReset(void);
 extern void keyboardRemapKey(KEY key, int event);
 extern int keyboardGetMapping(KEY key);

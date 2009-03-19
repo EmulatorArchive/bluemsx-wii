@@ -44,7 +44,7 @@
 
 #define KBD_TABLE_LEN 512
 
-static Shortcuts* shortcuts;
+static Shortcuts* shortcuts = NULL;
 static int kbdTable[KBD_TABLE_LEN];
 static int keyStatus[KBD_TABLE_LEN];
 static int kbdModifiers;
@@ -207,6 +207,18 @@ void keyboardInit(void)
     }
 
     shortcuts = shortcutsCreate();
+}
+
+void keyboardClose(void)
+{
+    if( kbdHandle ) {
+        KBD_DeInit(kbdHandle);
+        kbdHandle = NULL;
+    }
+    if( shortcuts ) {
+        shortcutsDestroy(shortcuts);
+        shortcuts = NULL;
+    }
 }
 
 void keyboardReset(void)

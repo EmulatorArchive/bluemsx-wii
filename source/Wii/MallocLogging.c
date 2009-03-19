@@ -5,9 +5,9 @@
 #include <context.h>
 #include <ogc/semaphore.h>
 #include <machine/processor.h>
+#include <wiiuse/wpad.h>
 
 #if 0
-#include <wiiuse/wpad.h>
 #include "kbdlib.h"
 #endif
 
@@ -117,6 +117,17 @@ void allocLogStart(void)
 
 void allocLogStop(void)
 {
+    if( first_entry != NULL ) {
+    	VIDEO_SetFramebuffer(exception_xfb);
+    	console_init(exception_xfb,20,20,640,574,1280);
+        printf("Unfreed memory buffers:\n");
+        allocLogPrint();
+        u32 buttons;
+        do {
+            WPAD_ScanPads();
+            buttons = WPAD_ButtonsDown(WPAD_CHAN_0) | WPAD_ButtonsDown(WPAD_CHAN_1);
+        }while( !(buttons & WPAD_BUTTON_A) );
+    }
     loggingEnabled = 0;
 }
 
@@ -132,7 +143,6 @@ void allocLogPrint(void)
     if( loggingInitialized && loggingEnabled ) {
         LWP_SemWait(loggingSemaphore);
 
-        printf("Malloc log:\n");
         if( marked_entry != NULL ) {
             p = marked_entry->next;
         }else{

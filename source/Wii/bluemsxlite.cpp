@@ -64,9 +64,6 @@ extern "C" {
 #include "WiiShortcuts.h"
 #include "ArchThread.h"
 #include "WiiInput.h"
-
-void WiiTimerInit(void);
-void WiiTimerDestroy(void);
 }
 
 #include "GuiConsole.h"
@@ -74,9 +71,7 @@ void WiiTimerDestroy(void);
 #include "GuiFonts.h"
 #include "GuiImages.h"
 
-#define CONSOLE_DEBUG          0
-#define MALLOC_LOG_BLUEMSX_RUN 0
-#define MALLOC_LOG_GUI         0
+#define CONSOLE_DEBUG 0
 
 #define MSX_ROOT_DIR "fat:/MSX"
 
@@ -94,7 +89,6 @@ static int   displayPitch = TEX_WIDTH * 2;
 static bool  g_doQuit = false;
 
 static GuiManager *manager = NULL;
-static char *g_dpyData = NULL;
 static GuiConsole *console = NULL;
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
@@ -177,10 +171,6 @@ void blueMsxInit(int resetProperties)
 {
     int width;
     int height;
-
-    // Init timer
-    WiiTimerInit();
-    atexit(WiiTimerDestroy);
 
     setDefaultPaths(archGetCurrentDirectory());
 
@@ -282,9 +272,8 @@ void blueMsxInit(int resetProperties)
 
 static Sprite *sprBackground;
 
-void RenderEmuImage(void *arg)
+void RenderEmuImage(void *dpyData)
 {
-    (void)arg;
     if( emulatorGetState() == EMU_RUNNING ) {
         FrameBuffer* frameBuffer;
         frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
@@ -293,17 +282,14 @@ void RenderEmuImage(void *arg)
         }
 
         videoRender(video, frameBuffer, bitDepth, zoom,
-                    g_dpyData, 0, displayPitch, -1);
-        DCFlushRange(g_dpyData, TEX_WIDTH * TEX_HEIGHT * 2);
+                    dpyData, 0, displayPitch, -1);
+        DCFlushRange(dpyData, TEX_WIDTH * TEX_HEIGHT * 2);
     }
 }
 
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
     int i;
-#if MALLOC_LOG_BLUEMSX_RUN
-    allocLogSetMarker();
-#endif
 
     // Set current directory to the MSX-root
     archSetCurrentDirectory(MSX_ROOT_DIR);
@@ -327,14 +313,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         }
     }
 
-    // Create on-screen keyboard
-    osk = new GuiKeyboard(manager);
-
     // Start emulator
     i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
     if (i < 0) {
         printf("Failed to parse command line\n");
-        delete osk;
         msgbox->Remove();
         return;
     }
@@ -343,14 +325,12 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         emulatorStart(NULL);
     }
     printf("Waiting for quit event...\n");
-    //allocLogPrint();
 
     msgbox->Remove();
     manager->Lock();
     DrawableImage *emuImg = new DrawableImage;
     emuImg->CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
-    g_dpyData = (char *)emuImg->GetTextureBuffer();
-    manager->AddRenderCallback(RenderEmuImage, NULL);
+    manager->AddRenderCallback(RenderEmuImage, (void *)emuImg->GetTextureBuffer());
     Sprite *emuSpr = new Sprite;
     emuSpr->SetImage(emuImg->GetImage());
     emuSpr->SetStretchWidth(640.0f / (float)TEX_WIDTH);
@@ -363,6 +343,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     archThreadSleep(2000);
     sprBackground->SetVisible(false);
+
+    // Create on-screen keyboard
+    osk = new GuiKeyboard(manager);
 
     // Loop while the user hasn't quit
     GuiMenu *menu = new GuiMenu(manager, 5);
@@ -467,7 +450,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     // Remove emulator+keyboard from display
     manager->Lock();
-    manager->RemoveRenderCallback(RenderEmuImage, NULL);
+    manager->RemoveRenderCallback(RenderEmuImage, (void *)emuImg->GetTextureBuffer());
     manager->RemoveAndDelete(emuSpr, emuImg, 20);
     delete osk;
     manager->Unlock();
@@ -478,10 +461,6 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     sprBackground->SetStretchHeight((float)manager->GetHeight() /
                                     (float)g_imgBackground->GetHeight());
     sprBackground->SetVisible(true);
-
-#if MALLOC_LOG_BLUEMSX_RUN
-    allocLogPrint();
-#endif
 }
 
 int main(int argc, char **argv)
@@ -537,19 +516,12 @@ int main(int argc, char **argv)
     char *game_dir = NULL;
     GuiDirSelect *dirs = new GuiDirSelect(manager, "fat:/MSX/Games", "dirlist.xml");
 
-#if MALLOC_LOG_GUI
-    allocLogSetMarker();
-#endif
-
     for(;;) {
         // Browse directory
         game_dir = dirs->DoModal();
         if( game_dir == NULL ) {
             break;
         }
-#if MALLOC_LOG_GUI
-        allocLogPrint();
-#endif
         // Game menu
         GameElement *game = NULL;
         GameElement *prev;
@@ -568,9 +540,6 @@ int main(int argc, char **argv)
                 blueMsxRun(game, game_dir);
             }
         }
-#if MALLOC_LOG_GUI
-        allocLogPrint();
-#endif
     }
     delete dirs;
 
@@ -582,20 +551,22 @@ int main(int argc, char **argv)
     propDestroy(properties);
     archSoundDestroy();
     mixerDestroy(mixer);
+    keyboardClose();
 
     // Destroy background and layer manager
     manager->RemoveAndDelete(sprBackground, NULL, 10);
-    archThreadSleep(12*20);
-    delete manager;
+    archThreadSleep(15*20);
+
+    // Destroy console
+    delete console;
 
     // Free GUI resources
     GuiFontClose();
     GuiImageClose();
 
-    printf("Leaving...\n");
+    delete manager;
 
     allocLogStop();
-
     return 0;
 }
 

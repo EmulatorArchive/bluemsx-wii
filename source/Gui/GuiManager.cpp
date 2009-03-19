@@ -320,6 +320,7 @@ GuiManager::~GuiManager()
     quit_thread = true;
     LWP_JoinThread(thread, NULL);
     LWP_MutexDestroy(mutex);
+    free(thread_stack);
 
     // Clean-up
     GuiManagerCallback *p = render;

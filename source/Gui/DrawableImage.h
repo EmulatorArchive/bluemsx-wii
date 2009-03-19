@@ -15,7 +15,7 @@ class DrawableImage : public Image
 {
 	public:
 		DrawableImage();
-		~DrawableImage();
+		virtual ~DrawableImage();
 
 		void CreateImage(int width, int height, int format = GX_TF_RGBA8);
         void DestroyImage(void);

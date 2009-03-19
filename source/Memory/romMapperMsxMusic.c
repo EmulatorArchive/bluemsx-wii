@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -65,7 +65,7 @@ static void destroy(MsxMusic* rm)
     free(rm);
 }
 
-static void reset(MsxMusic* rm) 
+static void reset(MsxMusic* rm)
 {
     if (rm->ym2413 != NULL) {
         ym2413Reset(rm->ym2413);
@@ -74,10 +74,6 @@ static void reset(MsxMusic* rm)
 
 static void loadState(MsxMusic* rm)
 {
-    SaveState* state = saveStateOpenForRead("MsxMusic");
-
-    saveStateClose(state);
-    
     if (rm->ym2413 != NULL) {
         ym2413LoadState(rm->ym2413);
     }
@@ -85,10 +81,6 @@ static void loadState(MsxMusic* rm)
 
 static void saveState(MsxMusic* rm)
 {
-    SaveState* state = saveStateOpenForWrite("MsxMusic");
-
-    saveStateClose(state);
-
     if (rm->ym2413 != NULL) {
         ym2413SaveState(rm->ym2413);
     }
@@ -117,12 +109,12 @@ static void getDebugInfo(MsxMusic* rm, DbgDevice* dbgDevice)
     ioPorts = dbgDeviceAddIoPorts(dbgDevice, langDbgDevMsxMusic(), 2);
     dbgIoPortsAddPort(ioPorts, 0, 0x7c, DBG_IO_WRITE, 0);
     dbgIoPortsAddPort(ioPorts, 1, 0x7d, DBG_IO_WRITE, 0);
-    
+
     ym2413GetDebugInfo(rm->ym2413, dbgDevice);
 }
 
-int romMapperMsxMusicCreate(char* filename, UInt8* romData, 
-                            int size, int slot, int sslot, int startPage) 
+int romMapperMsxMusicCreate(char* filename, UInt8* romData,
+                            int size, int slot, int sslot, int startPage)
 {
     DeviceCallbacks callbacks = { destroy, reset, saveState, loadState };
     DebugCallbacks dbgCallbacks = { getDebugInfo, NULL, NULL, NULL };
@@ -135,7 +127,7 @@ int romMapperMsxMusicCreate(char* filename, UInt8* romData,
     }
 
     rm->deviceHandle = deviceManagerRegister(ROM_MSXMUSIC, &callbacks, rm);
-    
+
     rm->ym2413 = NULL;
     if (boardGetYm2413Enable()) {
         rm->ym2413 = ym2413Create(boardGetMixer());

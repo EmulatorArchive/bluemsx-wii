@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -83,7 +83,7 @@ static FrameBufferMixMode mixMask = MIXMODE_INTERNAL;
 static int frameBufferCount = MAX_FRAMES_PER_FRAMEBUFFER;
 
 
-static FrameBuffer* frameBufferFlipViewFrame1(int mixFrames) 
+static FrameBuffer* frameBufferFlipViewFrame1(int mixFrames)
 {
     if (currentBuffer == NULL) {
         return NULL;
@@ -92,7 +92,7 @@ static FrameBuffer* frameBufferFlipViewFrame1(int mixFrames)
     return currentBuffer->frame;
 }
 
-static FrameBuffer* frameBufferFlipViewFrame2(int mixFrames) 
+static FrameBuffer* frameBufferFlipViewFrame2(int mixFrames)
 {
     int index;
 
@@ -108,7 +108,7 @@ static FrameBuffer* frameBufferFlipViewFrame2(int mixFrames)
     return currentBuffer->frame + currentBuffer->viewFrame;
 }
 
-static FrameBuffer* frameBufferFlipViewFrame3(int mixFrames) 
+static FrameBuffer* frameBufferFlipViewFrame3(int mixFrames)
 {
     int index;
 
@@ -128,7 +128,7 @@ static FrameBuffer* frameBufferFlipViewFrame3(int mixFrames)
     return currentBuffer->frame + currentBuffer->viewFrame;
 }
 
-static FrameBuffer* frameBufferFlipViewFrame4(int mixFrames) 
+static FrameBuffer* frameBufferFlipViewFrame4(int mixFrames)
 {
     int i;
 
@@ -142,7 +142,7 @@ static FrameBuffer* frameBufferFlipViewFrame4(int mixFrames)
             currentBuffer->viewFrame = i;
         }
     }
-        
+
     if (mixFrames) {
         int secondFrame = 0;
         int viewAge = 0;
@@ -169,7 +169,7 @@ static FrameBuffer* frameBufferFlipDrawFrame1()
     if (currentBuffer == NULL) {
         return NULL;
     }
-    return currentBuffer->frame; 
+    return currentBuffer->frame;
 }
 
 static FrameBuffer* frameBufferFlipDrawFrame2()
@@ -288,7 +288,7 @@ void frameBufferSetFrameCount(int frameCount)
     signalSem();
 }
 
-FrameBuffer* frameBufferFlipViewFrame(int mixFrames) 
+FrameBuffer* frameBufferFlipViewFrame(int mixFrames)
 {
     FrameBuffer* frameBuffer;
 
@@ -313,16 +313,19 @@ FrameBuffer* frameBufferFlipViewFrame(int mixFrames)
     return frameBuffer;
 }
 
-FrameBuffer* frameBufferFlipDrawFrame() 
+FrameBuffer* frameBufferFlipDrawFrame()
 {
     FrameBuffer* frameBuffer;
 
+#ifdef WII
+    archThreadSleep(0); // wait one frame
+#endif
     if (currentBuffer == NULL) {
         return NULL;
     }
 #ifndef WII
     if (confBlendFrames) {
-        mixFrame(currentBuffer->frame + currentBuffer->drawFrame, 
+        mixFrame(currentBuffer->frame + currentBuffer->drawFrame,
                  &currentBuffer->blendFrame[0], &currentBuffer->blendFrame[1], 50);
     }
 #endif
@@ -352,7 +355,7 @@ FrameBuffer* frameBufferFlipDrawFrame()
         frameBuffer = frameBufferFlipDrawFrame1();
         break;
     }
-#ifndef WII    
+#ifndef WII
     if (confBlendFrames) {
         currentBuffer->currentBlendFrame ^= 1;
         frameBuffer = currentBuffer->blendFrame + currentBuffer->currentBlendFrame;
@@ -425,12 +428,12 @@ void frameBufferSetMixMode(FrameBufferMixMode mode,  FrameBufferMixMode mask)
     mixMask = mask;
 }
 
-FrameBufferData* frameBufferGetActive() 
+FrameBufferData* frameBufferGetActive()
 {
     return currentBuffer;
 }
 
-FrameBuffer* frameBufferGetWhiteNoiseFrame() 
+FrameBuffer* frameBufferGetWhiteNoiseFrame()
 {
     static FrameBuffer* frameBuffer = NULL;
     UInt16 colors[32];
@@ -499,7 +502,7 @@ static FrameBuffer* mixFrame(FrameBuffer* d, FrameBuffer* a, FrameBuffer* b, int
 
     if (d == NULL) {
         if (dst == NULL) {
-            dst = (FrameBuffer*)malloc(sizeof(FrameBuffer)); 
+            dst = (FrameBuffer*)malloc(sizeof(FrameBuffer));
         }
         d = dst;
     }
@@ -557,7 +560,7 @@ static FrameBuffer* mixFrameInterlace(FrameBuffer* d, FrameBuffer* a, FrameBuffe
 
     if (d == NULL) {
         if (dst == NULL) {
-            dst = (FrameBuffer*)malloc(sizeof(FrameBuffer)); 
+            dst = (FrameBuffer*)malloc(sizeof(FrameBuffer));
         }
         d = dst;
     }
@@ -587,7 +590,7 @@ static FrameBuffer* mixFrameInterlace(FrameBuffer* d, FrameBuffer* a, FrameBuffe
         UInt32* ap;
         UInt32* bp;
         UInt32* dp;
-        
+
         if (y & 1) {
             ap = (UInt32*)a->line[y / 2].buffer;
             bp = (UInt32*)b->line[y / 2].buffer;
@@ -676,10 +679,10 @@ static void frameBufferExternal(FrameBuffer* a)
     if (pImage == NULL) {
         pImage = getBlackImage();
     }
-    
+
     if (scaleHeight) {
         a->lines *= 2;
-        
+
         for (y = 0; y < a->lines; y++) {
             memcpy(a->line[y].buffer, pImage + y * imageWidth, imageWidth * sizeof(UInt16));
             if (scaleWidth) {
@@ -761,13 +764,13 @@ static void frameBufferSuperimpose(FrameBuffer* a)
                     }
                 }
             }
-            
+
             if (scaleWidth) {
                 a->line[2*y+0].doubleWidth = 1;
                 a->line[2*y+1].doubleWidth = 1;
             }
         }
-        
+
         a->lines *= 2;
     }
     else {
