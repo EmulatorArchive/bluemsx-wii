@@ -81,7 +81,7 @@ static int     useMegaRam;
 static int     useFmPac;
 static RomType currentRomType[2];
 
-static BoardType boardLoadState(const char* stateFile);
+static BoardType boardLoadState(void);
 static void boardUpdateDisketteInfo();
 
 static char saveStateVersion[32] = "blueMSX - state  v 8";
@@ -352,8 +352,7 @@ void boardCaptureStop() {
             fclose(f);
         }
 
-        saveStateCreate(cap.filename);
-
+        saveStateCreateForWrite(cap.filename);
         state = saveStateOpenForWrite("capture");
 
         saveStateSet(state, "version", CAPTURE_VERSION);
@@ -369,6 +368,7 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
+        saveStateDestroy();
     }
 
     // go back to idle state
@@ -675,8 +675,7 @@ void boardCaptureStop() {
             fclose(f);
         }
 
-        saveStateCreate(cap.filename);
-
+        saveStateCreateForWrite(cap.filename);
         state = saveStateOpenForWrite("capture");
 
         saveStateSet(state, "version", CAPTURE_VERSION);
@@ -692,6 +691,7 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
+        saveStateDestroy();
     }
 
     // go back to idle state
@@ -934,8 +934,7 @@ void boardCaptureStop() {
             fclose(f);
         }
 
-        saveStateCreate(cap.filename);
-
+        saveStateCreateForWrite(cap.filename);
         state = saveStateOpenForWrite("capture");
 
         saveStateSet(state, "version", CAPTURE_VERSION);
@@ -951,6 +950,7 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
+        saveStateDestroy()
     }
 
     // go back to idle state
@@ -1168,12 +1168,21 @@ int boardRun(Machine* machine,
     boardUpdateDisketteInfo();
 
     if (stateFile != NULL) {
-        BoardType loadBoardType = boardLoadState(stateFile);
-        if (loadBoardType != BOARD_UNKNOWN) {
-            boardType = loadBoardType;
-            machineLoadState(boardMachine);
+        int   size;
+        char *version;
 
-            loadState = 1;
+        saveStateCreateForRead(stateFile);
+
+        version = zipLoadFile(stateFile, "version", &size);
+        if (version != NULL) {
+            if (0 == strncmp(version, saveStateVersion, sizeof(saveStateVersion) - 1)) {
+                loadState = 1;
+
+                boardType = boardLoadState();
+
+                machineLoadState(boardMachine);
+            }
+            free(version);
         }
     }
 
@@ -1228,6 +1237,10 @@ int boardRun(Machine* machine,
     if (success && loadState) {
         boardInfo.loadState();
         boardCaptureLoadState();
+    }
+
+    if (stateFile != NULL) {
+        saveStateDestroy();
     }
 
     if (success) {
@@ -1340,28 +1353,13 @@ void boardSetDataBus(UInt8 value, UInt8 defValue, int useDef) {
     }
 }
 
-static BoardType boardLoadState(const char* stateFile)
+static BoardType boardLoadState(void)
 {
     BoardDeviceInfo* di = boardDeviceInfo;
     SaveState* state;
     BoardType boardType;
-    char* version;
-    int   size;
     int   i;
     char  tag[16];
-
-    saveStateCreate(stateFile);
-    version = zipLoadFile(stateFile, "version", &size);
-    if (version == NULL) {
-        return BOARD_UNKNOWN;
-    }
-
-    if (0 != strncmp(version, saveStateVersion, sizeof(saveStateVersion) - 1)) {
-        free(version);
-        return BOARD_UNKNOWN;
-    }
-
-    free(version);
 
     state = saveStateOpenForRead("board");
 
@@ -1429,7 +1427,7 @@ void boardSaveState(const char* stateFile)
         return;
     }
 
-    saveStateCreate(stateFile);
+    saveStateCreateForWrite(stateFile);
 
     rv = zipSaveFile(stateFile, "version", 0, saveStateVersion, strlen(saveStateVersion) + 1);
     if (!rv) {
@@ -1504,6 +1502,8 @@ void boardSaveState(const char* stateFile)
     time(&ltime);
     strftime(buf, 128, "%X   %A, %B %d, %Y", localtime(&ltime));
     zipSaveFile(stateFile, "date.txt", 1, buf, strlen(buf) + 1);
+
+    saveStateDestroy();
 }
 
 

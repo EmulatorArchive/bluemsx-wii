@@ -540,9 +540,8 @@ void emulatorSuspend() {
 }
 
 void emulatorResume() {
-    emuSysTime = 0;
-
     if (emuState == EMU_SUSPENDED) {
+        emuSysTime = 0;
         archSoundResume();
         archMidiEnable(1);
         emuState = EMU_RUNNING;

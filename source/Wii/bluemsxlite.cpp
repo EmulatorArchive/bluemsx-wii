@@ -387,12 +387,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                 msgbox->Show("Loading state...", NULL, false, 160);
                                 emulatorStop();
                                 emulatorStart(statefile);
-                                VIDEO_WaitVSync();
-                                VIDEO_WaitVSync();
-                                VIDEO_WaitVSync();
-                                VIDEO_WaitVSync();
-                                emulatorSuspend();
                                 msgbox->Remove();
+                                leave_menu = true;
                             }
                             delete statesel;
                             break;

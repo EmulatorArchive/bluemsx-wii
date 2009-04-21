@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -99,9 +99,22 @@ static char* getIndexedFilename(const char* fileName)
     return indexedFileName;
 }
 
-void saveStateCreate(const char* fileName) {
+void saveStateCreateForRead(const char* fileName)
+{
     tableCount = 0;
     strcpy(stateFile, fileName);
+    zipCacheReadOnlyZip(fileName);
+}
+
+void saveStateCreateForWrite(const char* fileName)
+{
+    tableCount = 0;
+    strcpy(stateFile, fileName);
+}
+
+void saveStateDestroy(void)
+{
+    zipCacheReadOnlyZip(NULL);
 }
 
 SaveState* saveStateOpenForRead(const char* fileName) {
@@ -123,9 +136,9 @@ SaveState* saveStateOpenForWrite(const char* fileName) {
     state->size      = 0;
     state->offset    = 0;
     state->buffer    = NULL;
-    
+
     strcpy(state->fileName, getIndexedFilename(fileName));
-    
+
     return state;
 }
 
@@ -144,7 +157,7 @@ static void stateExtendBuffer(SaveState* state, UInt32 extend) {
     state->buffer = realloc(state->buffer, state->size * sizeof(UInt32));
 }
 
-void saveStateSet(SaveState* state, const char* tagName, UInt32 value) 
+void saveStateSet(SaveState* state, const char* tagName, UInt32 value)
 {
     checkTag(state, tagName);
 
@@ -154,7 +167,7 @@ void saveStateSet(SaveState* state, const char* tagName, UInt32 value)
     state->buffer[state->offset++] = value;
 }
 
-void saveStateSetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length) 
+void saveStateSetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length)
 {
     checkTag(state, tagName);
 
