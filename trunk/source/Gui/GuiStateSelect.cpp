@@ -50,7 +50,9 @@ void GuiStateSelect::CreateStateFileList(Properties *properties, char *directory
 
     glob = archGlob(filename, ARCH_GLOB_FILES);
 
-    num_states = 0;
+    // Free old list if exists
+    FreeStateFileList();
+
     if (glob) {
         if (glob->count > 0) {
             for (int i = 0; i < glob->count; i++) {
@@ -91,6 +93,7 @@ void GuiStateSelect::FreeStateFileList(void)
         free(filenames[i]);
         filenames[i] = NULL;
     }
+    num_states = 0;
 }
 
 void GuiStateSelect::UpdateScreenShot(char *file)
@@ -199,19 +202,19 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     // Release UI
     manager->Unlock();
 
-    // Free stuff
-    FreeStateFileList();
-
     return returnValue;
 }
 
 GuiStateSelect::GuiStateSelect(GuiManager *man) : GuiSelectionList(man, NUM_STATE_ITEMS)
 {
     manager = man;
+    num_states = 0;
     sprScreenShot = NULL;
 }
 
 GuiStateSelect::~GuiStateSelect()
 {
+    // Free stuff
+    FreeStateFileList();
 }
 

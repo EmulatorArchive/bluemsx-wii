@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,6 +28,7 @@
 #include "zip.h"
 #include "unzip.h"
 #include "ctype.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,7 +38,7 @@ static void toLower(char* str) {
         str++;
     }
 }
- 
+
 /******************************************************************************
 *** Description
 ***     Load a file in a zip file into memory.
@@ -53,7 +54,7 @@ static void toLower(char* str) {
 ***
 *******************************************************************************
 */
-void* zipLoadFile(const char* zipName, const char* fileName, int* size)
+void* _zipLoadFile(const char* zipName, const char* fileName, int* size, zlib_filefunc_def* filefunc)
 {
     void* buf;
     char name[256];
@@ -64,7 +65,7 @@ void* zipLoadFile(const char* zipName, const char* fileName, int* size)
 
     if (fileName[0] == '*') {
         strcpy(name, zipName);
-        name[strlen(zipName) - 3] = fileName[strlen(fileName) - 3];   
+        name[strlen(zipName) - 3] = fileName[strlen(fileName) - 3];
         name[strlen(zipName) - 2] = fileName[strlen(fileName) - 2];
         name[strlen(zipName) - 1] = fileName[strlen(fileName) - 1];
     }
@@ -72,7 +73,7 @@ void* zipLoadFile(const char* zipName, const char* fileName, int* size)
         strcpy(name, fileName);
     }
 
-    zip = unzOpen(zipName);
+    zip = unzOpen2(zipName, filefunc);
     if (!zip) {
         return NULL;
     }
@@ -104,6 +105,124 @@ void* zipLoadFile(const char* zipName, const char* fileName, int* size)
     return buf;
 }
 
+
+/******************************************************************************
+*** Description
+***     Read cache to speed-up reading multiple files from one zip.
+***
+******************************************************************************/
+
+static unsigned long memfile_index;
+static unsigned long memfile_size;
+
+void *fopen_mem_func(void *opaque, const char *filename, int mode)
+{
+    memfile_index = 0;
+    return (void *)filename;
+}
+
+unsigned long fread_mem_func(void *opaque, void *stream, void *buf, unsigned long size)
+{
+    if( memfile_index + size > memfile_size ) {
+        size = memfile_size - memfile_index;
+    }
+    memcpy(buf, (char*)stream + memfile_index, size);
+    memfile_index += size;
+    return size;
+}
+
+unsigned long fwrite_mem_func(void *opaque, void *stream, const void *buf, unsigned long size)
+{
+    return -1;
+}
+
+long ftell_mem_func(void *opaque, void *stream)
+{
+    return memfile_index;
+}
+
+long fseek_mem_func(void *opaque, void *stream, unsigned long offset, int origin)
+{
+    switch (origin)
+    {
+    case ZLIB_FILEFUNC_SEEK_CUR :
+        memfile_index += offset;
+        break;
+    case ZLIB_FILEFUNC_SEEK_END :
+        memfile_index = memfile_size - offset;
+        break;
+    case ZLIB_FILEFUNC_SEEK_SET :
+        memfile_index = offset;
+        break;
+    default: return -1;
+    }
+    if( memfile_index > memfile_size ) memfile_index = memfile_size;
+    if( memfile_index < 0 ) memfile_index = 0;
+    return 0;
+}
+
+int fclose_mem_func(void *opaque, void *stream)
+{
+    return 0;
+}
+
+int ferror_mem_func(void *opaque, void *stream)
+{
+    return 0;
+}
+
+void fill_fopen_memfunc(zlib_filefunc_def *pzlib_filefunc_def)
+{
+    pzlib_filefunc_def->zopen_file = fopen_mem_func;
+    pzlib_filefunc_def->zread_file = fread_mem_func;
+    pzlib_filefunc_def->zwrite_file = fwrite_mem_func;
+    pzlib_filefunc_def->ztell_file = ftell_mem_func;
+    pzlib_filefunc_def->zseek_file = fseek_mem_func;
+    pzlib_filefunc_def->zclose_file = fclose_mem_func;
+    pzlib_filefunc_def->zerror_file = ferror_mem_func;
+    pzlib_filefunc_def->opaque = NULL;
+}
+
+static char *cacheData = NULL, cacheFile[512];
+static zlib_filefunc_def cacheFilefunc;
+
+void* zipLoadFile(const char* zipName, const char* fileName, int* size)
+{
+    if( cacheData != NULL && *cacheFile != '\0' && 0==strcmp(cacheFile, zipName) ) {
+        return _zipLoadFile(cacheData, fileName, size, &cacheFilefunc);
+    }else{
+        return _zipLoadFile(zipName, fileName, size, NULL);
+    }
+}
+
+void zipCacheReadOnlyZip(const char* zipName)
+{
+    *cacheFile = '\0';
+    if( cacheData != NULL ) {
+        free(cacheData);
+        cacheData = NULL;
+    }
+    if( zipName != NULL ) {
+        FILE *file;
+        fill_fopen_memfunc(&cacheFilefunc);
+        file = fopen(zipName, "rb");
+        if( file != NULL ) {
+            fseek(file, 0, SEEK_END);
+            memfile_size = ftell(file);
+            fseek(file, 0, SEEK_SET);
+            cacheData = malloc(memfile_size);
+            if( cacheData != NULL ) {
+                size_t size = fread(cacheData, 1, memfile_size, file);
+                if( size == memfile_size ) {
+                    strcpy(cacheFile, zipName);
+                }
+            }
+            fclose(file);
+        }
+    }
+}
+
+
 /******************************************************************************
 *** Description
 ***     Load a file in a zip file into memory.
@@ -121,7 +240,7 @@ int zipSaveFile(const char* zipName, char* fileName, int append, void* buffer, i
     zipFile zip;
     zip_fileinfo zi;
     int err;
-    
+
     zip = zipOpen(zipName, append ? 2 : 0);
     if (zip == NULL) {
         return 0;
@@ -168,7 +287,7 @@ int zipHasFileType(char* zipName, char* ext) {
             found = 1;
             break;
         }
-        
+
         status = unzGoToNextFile(zip);
     }
 
@@ -193,14 +312,12 @@ int zipHasFileType(char* zipName, char* ext) {
 */
 int zipFileExists(const char* zipName, const char* fileName)
 {
-    void* buf;
     char name[256];
     unzFile zip;
-    unz_file_info info;
 
     if (fileName[0] == '*') {
         strcpy(name, zipName);
-        name[strlen(zipName) - 3] = fileName[strlen(fileName) - 3];   
+        name[strlen(zipName) - 3] = fileName[strlen(fileName) - 3];
         name[strlen(zipName) - 2] = fileName[strlen(fileName) - 2];
         name[strlen(zipName) - 1] = fileName[strlen(fileName) - 1];
     }
@@ -210,7 +327,7 @@ int zipFileExists(const char* zipName, const char* fileName)
 
     zip = unzOpen(zipName);
     if (!zip) {
-        return NULL;
+        return 0;
     }
 
     if (unzLocateFile(zip, name, 1) == UNZ_END_OF_LIST_OF_FILE) {
@@ -262,7 +379,7 @@ char* zipGetFileList(char* zipName, char* ext, int* count) {
 
     while (status == UNZ_OK) {
         char tmp[256];
-        
+
         unzGetCurrentFileInfo(zip, &info, tempName, 256, NULL, 0, NULL, 0);
 
         strcpy(tmp, tempName);
@@ -277,7 +394,7 @@ char* zipGetFileList(char* zipName, char* ext, int* count) {
 
             *count = *count + 1;
         }
-        
+
         status = unzGoToNextFile(zip);
     }
 
@@ -286,7 +403,7 @@ char* zipGetFileList(char* zipName, char* ext, int* count) {
     return fileArray;
 }
 
-void* zipCompress(void* buffer, int size, int* retSize)
+void* zipCompress(void* buffer, int size, unsigned long* retSize)
 {
     void* retBuf;
 

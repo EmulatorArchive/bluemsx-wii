@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,12 +28,13 @@
 #ifndef ZIPHELPER_H
 #define ZIPHELPER_H
 
+void zipCacheReadOnlyZip(const char* zipName);
 void* zipLoadFile(const char* zipName, const char* fileName, int* size);
 int zipSaveFile(const char* zipName, const char* fileName, int append, void* buffer, int size);
 int zipFileExists(const char* zipName, const char* fileName);
 char* zipGetFileList(const char* zipName, const char* ext, int* count);
 int zipHasFileType(char* zipName, char* ext);
 
-void* zipCompress(void* buffer, int size, int* retSize);
+void* zipCompress(void* buffer, int size, unsigned long* retSize);
 
 #endif
