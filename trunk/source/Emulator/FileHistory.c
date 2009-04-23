@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-** 
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -49,7 +49,7 @@ static char extendedCasName[PROP_MAX_TAPES][256];
 
 const char* stripPathExt(const char* filename) {
     static char buffer[128];
-    
+
     strcpy(buffer, stripPath(filename));
 
     if (buffer[strlen(buffer) - 4] == '.') {
@@ -109,30 +109,30 @@ void verifyFileHistory(char* history, RomType* historyType) {
 
     for (i = 0; i < MAX_HISTORY; i++) {
         char *fname = history + PROP_MAXPATH * i;
-        if (fname[0] != '\0' && 
-            strcmp(fname, CARTNAME_SNATCHER)    && 
-            strcmp(fname, CARTNAME_SDSNATCHER)  && 
-            strcmp(fname, CARTNAME_SCCMIRRORED) && 
-            strcmp(fname, CARTNAME_SCCEXPANDED) && 
-            strcmp(fname, CARTNAME_SCC)         && 
-            strcmp(fname, CARTNAME_SCCPLUS)     && 
+        if (fname[0] != '\0' &&
+            strcmp(fname, CARTNAME_SNATCHER)    &&
+            strcmp(fname, CARTNAME_SDSNATCHER)  &&
+            strcmp(fname, CARTNAME_SCCMIRRORED) &&
+            strcmp(fname, CARTNAME_SCCEXPANDED) &&
+            strcmp(fname, CARTNAME_SCC)         &&
+            strcmp(fname, CARTNAME_SCCPLUS)     &&
             strcmp(fname, CARTNAME_JOYREXPSG)   &&
-            strcmp(fname, CARTNAME_FMPAC)       && 
-            strcmp(fname, CARTNAME_PAC)         && 
-            strcmp(fname, CARTNAME_GAMEREADER)  && 
+            strcmp(fname, CARTNAME_FMPAC)       &&
+            strcmp(fname, CARTNAME_PAC)         &&
+            strcmp(fname, CARTNAME_GAMEREADER)  &&
             strcmp(fname, CARTNAME_SUNRISEIDE)  &&
             strcmp(fname, CARTNAME_BEERIDE)     &&
             strcmp(fname, CARTNAME_GIDE)        &&
             strcmp(fname, CARTNAME_GOUDASCSI)   &&
-            strcmp(fname, CARTNAME_SONYHBI55)   && 
-            strcmp(fname, CARTNAME_EXTRAM512KB) && 
+            strcmp(fname, CARTNAME_SONYHBI55)   &&
+            strcmp(fname, CARTNAME_EXTRAM512KB) &&
             strcmp(fname, CARTNAME_EXTRAM1MB)   &&
             strcmp(fname, CARTNAME_EXTRAM2MB)   &&
             strcmp(fname, CARTNAME_EXTRAM4MB)   &&
-            strcmp(fname, CARTNAME_MEGARAM128)  && 
-            strcmp(fname, CARTNAME_MEGARAM256)  && 
-            strcmp(fname, CARTNAME_MEGARAM512)  && 
-            strcmp(fname, CARTNAME_MEGARAM768)  && 
+            strcmp(fname, CARTNAME_MEGARAM128)  &&
+            strcmp(fname, CARTNAME_MEGARAM256)  &&
+            strcmp(fname, CARTNAME_MEGARAM512)  &&
+            strcmp(fname, CARTNAME_MEGARAM768)  &&
             strcmp(fname, CARTNAME_MEGARAM2M)   &&
             strcmp(fname, CARTNAME_MEGASCSI128) &&
             strcmp(fname, CARTNAME_MEGASCSI256) &&
@@ -215,7 +215,7 @@ char* fileGetNext(char* filename, char* zipFile) {
 
     while (pos >= 0) {
         c = name[pos];
-    
+
         if (c >= '0' && c <= '9') {
             if (c < '9') {
                 name[pos] = c + 1;
@@ -351,7 +351,7 @@ int createSaveFileBaseName(char* fileBase,Properties* properties, int useExtende
     int done = 0;
     int i;
     fileBase[0]=0;
-    
+
     for (i = 0; !done && i < PROP_MAX_CARTS; i++) {
         if (properties->media.carts[i].fileName[0]) {
             if (useExtendedName && extendedName[i][0]) {
@@ -435,7 +435,11 @@ int createSaveFileBaseName(char* fileBase,Properties* properties, int useExtende
                 strcpy(fileBase, extendedDiskName[i]);
             }
             else if (*properties->media.disks[i].fileNameInZip) {
+#if 1           // Use the same name for state files for every disk image within one zip file
+                strcpy(fileBase, stripPathExt(properties->media.disks[i].fileName));
+#else
                 strcpy(fileBase, stripPathExt(properties->media.disks[i].fileNameInZip));
+#endif
             }
             else {
                 strcpy(fileBase, stripPathExt(properties->media.disks[i].fileName));
@@ -474,7 +478,7 @@ static UInt32 fileWriteTime(const char* filename)
 {
   struct stat s;
   int rv;
-  
+
   rv = stat(filename, &s);
 
   return rv < 0 ? 0 : s.st_mtime;
@@ -498,7 +502,7 @@ char* generateSaveFilename(Properties* properties, char* directory, char* prefix
     }
     strcat(filenameFormat, "%s");
     sprintf(destfileFormat, "%%s/%%s%%s_%%0%di%%s", digits);
-    
+
     createSaveFileBaseName(baseName, properties, 0);
 
     sprintf(filename, filenameFormat, directory, prefix, baseName, extension);
@@ -520,7 +524,7 @@ char* generateSaveFilename(Properties* properties, char* directory, char* prefix
                 writeTime = thisWriteTime;
 		        strcpy(lastfile, glob->pathVector[i]);
             }
-            
+
             filenameLen = strlen(lastfile);
 
             if (filenameLen > extensionLen + digits) {
@@ -557,7 +561,7 @@ char* generateSaveFilename(Properties* properties, char* directory, char* prefix
     }
     strcat(filenameFormat, "%s");
     sprintf(destfileFormat, "%%s" DIR_SEPARATOR "%%s%%s_%%0%di%%s", digits);
-    
+
     createSaveFileBaseName(baseName, properties, 0);
 
     sprintf(filename, filenameFormat, directory, prefix, baseName, extension);
