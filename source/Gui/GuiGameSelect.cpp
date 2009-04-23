@@ -11,7 +11,7 @@
 
 #define GAMESEL_FADE_DEFAULT      10
 #define GAMESEL_FADE_SCREENSHOTS  10
-#define GAMESEL_DELAY_SCREENSHOTS 4
+#define GAMESEL_DELAY_SCREENSHOTS 8
 
 void GuiGameSelect::SetScreenShotImage(int index, Image *img)
 {

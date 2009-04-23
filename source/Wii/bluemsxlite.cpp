@@ -549,6 +549,9 @@ int main(int argc, char **argv)
     mixerDestroy(mixer);
     keyboardClose();
 
+    // Destroy message box
+    delete msgbox;
+
     // Destroy background and layer manager
     manager->RemoveAndDelete(sprBackground, NULL, 10);
     archThreadSleep(15*20);

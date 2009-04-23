@@ -17,7 +17,7 @@ extern "C" {
 #include "GuiImages.h"
 
 #define SSEL_FADE_FRAMES  10
-#define SSEL_FADE_DELAY   4
+#define SSEL_FADE_DELAY   8
 
 #define SSEL_YPITCH       51
 #define SSEL_HEIGHT       256

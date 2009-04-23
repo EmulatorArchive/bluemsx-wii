@@ -2,14 +2,12 @@
  <app version="0.0">
    <name>BlueMsx Lite Wii</name>
    <coder>Tim Brugman</coder>
-   <version>Preview 1</version>
-   <release_date>200812080000</release_date>
+   <version>Beta</version>
+   <release_date>200904230000</release_date>
    <short_description>BlueMsx Lite ported to Wii</short_description>
    <long_description>
-First preview of a BlueMsx port for Wii.
-On the SD-Card there must be a 'MSX' directory which will beused as
-the BlueMsx working directory with the machine definitions and stuff.
-Currently a file 'cmdline.txt' in the working directory is used to
-feed command line arguments to the emulator (e.g. /DiskA image.dsk).
+Beta version of BlueMsx port for Wii.
+On the SD-Card there must be a 'MSX' directory which will beused as the BlueMsx working directory with all the stuff that is needed for BlueMsx.
+In subfolder 'Games' the gamepack must be placed.
 </long_description>
  </app>
