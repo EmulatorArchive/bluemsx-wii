@@ -1,14 +1,14 @@
 
 #include "GuiImages.h"
-#include "image_arrow.h"
-#include "image_background.h"
-#include "image_mousecursor.h"
-#include "image_noise.h"
-#include "image_selector.h"
-#include "image_floppy_disk.h"
-#include "image_keyboard.h"
-#include "image_button_yes.h"
-#include "image_button_no.h"
+#include "image_arrow.inc"
+#include "image_background.inc"
+#include "image_mousecursor.inc"
+#include "image_noise.inc"
+#include "image_selector.inc"
+#include "image_floppy_disk.inc"
+#include "image_keyboard.inc"
+#include "image_button_yes.inc"
+#include "image_button_no.inc"
 
 Image *g_imgArrow       = NULL;
 Image *g_imgBackground  = NULL;

@@ -14,6 +14,7 @@ public:
     void ShowPopup(const char *txt, Image *image = NULL, int alpha = 128);
     bool Show(const char *txt, Image *image = NULL, bool yesno = false, int alpha = 128);
     void Remove(void);
+    void SetText(const char *fmt, ...);
 
     void MessageBoxPopupThread(void);
 private:

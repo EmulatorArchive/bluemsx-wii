@@ -126,7 +126,7 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
 					$(sFILES:.s=.o) $(SFILES:.S=.o)
 
-export GENFILES	:=	$(PNGFILES:.png=.h) $(TTFFILES:.ttf=.h)
+export GENFILES	:=	sdcard.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
@@ -164,13 +164,20 @@ run:
 #---------------------------------------------------------------------------------
 else
 
-DEPENDS	:=	$(OFILES:.o=.d)
+DEPENDS	:=	revision $(OFILES:.o=.d)
 
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
+blueMSXwii: $(GENFILES) $(OUTPUT).dol
 $(OUTPUT).dol: $(OUTPUT).elf
-$(OUTPUT).elf: $(GENFILES) $(OFILES)
+$(OUTPUT).elf: $(OFILES)
+
+#---------------------------------------------------------------------------------
+# SVN revision
+#---------------------------------------------------------------------------------
+revision:
+	@cmd /c ..\\util\\revision.bat
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .jpg extension
@@ -181,18 +188,28 @@ $(OUTPUT).elf: $(GENFILES) $(OFILES)
 	$(bin2o)
 
 #---------------------------------------------------------------------------------
-# This rule converts .png to .h files
+# This rule creates a zip file for the sd-card contents and converts it to a .h
 #---------------------------------------------------------------------------------
-%.h: %.png
+sdcard.inc: ../sdcard
+	@echo Creating .zip file ...
+	@rm -f sdcard.zip
+	@../util/7za a -r -xr!*.svn -xr!thumbs.* sdcard.zip ../sdcard/msx
+	@echo Converting sdcard.zip to sdcard.inc ...
+	@../util/raw2c sdcard.zip sdcard.inc sdcard
+
+#---------------------------------------------------------------------------------
+# This rule converts .png to .inc files
+#---------------------------------------------------------------------------------
+%.inc: %.png
 	@echo Converting $(notdir $<) to $(notdir $@) ...
 	@$(CURDIR)/../util/raw2c $< $(CURDIR)/$@ $(notdir $@)
 
 #---------------------------------------------------------------------------------
-# This rule converts .ttf to .h files
+# This rule converts .ttf to .inc files
 #---------------------------------------------------------------------------------
-%.h: %.ttf
+%.inc: %.ttf
 	@echo Converting $(notdir $<) to $(notdir $@) ...
-	@$(CURDIR)/../util/raw2c $< $(CURDIR)/$@ $(notdir $@)
+	@../util/raw2c $< $(CURDIR)/$@ $(notdir $@)
 
 -include $(DEPENDS)
 

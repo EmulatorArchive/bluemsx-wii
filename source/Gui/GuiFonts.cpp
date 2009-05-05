@@ -1,6 +1,6 @@
 
 #include "GuiFonts.h"
-#include "font_arial.h"
+#include "font_arial.inc"
 
 TextRender *g_fontArial = NULL;
 

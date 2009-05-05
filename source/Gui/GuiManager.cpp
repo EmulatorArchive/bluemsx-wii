@@ -39,6 +39,7 @@ void GuiManager::DisplayThread(void)
                         RemoveAndDelete(remove->layer, remove->image);
                     }else{
                         Remove(remove->layer);
+                        remove->layer->SetTransparency(remove->alpha);
                     }
                     remove->layer = NULL;
                 }

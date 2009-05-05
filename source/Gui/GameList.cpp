@@ -65,8 +65,8 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                     /* Remap WiiMote 1 to keyboard */
                     my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_A, EC_SPACE);
                     my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_B, EC_NONE);
-                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_1, EC_SPACE);
-                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_2, EC_NONE);
+                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_1, EC_NONE);
+                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_2, EC_SPACE);
                     my->current_element->SetKeyMapping(KEY_JOY1_UP, EC_UP);
                     my->current_element->SetKeyMapping(KEY_JOY1_DOWN, EC_DOWN);
                     my->current_element->SetKeyMapping(KEY_JOY1_LEFT, EC_LEFT);
@@ -74,8 +74,8 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                     /* Remap WiiMote 2 to joystick 1 */
                     my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_A, EC_JOY1_BUTTON1);
                     my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_B, EC_JOY1_BUTTON2);
-                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_1, EC_JOY1_BUTTON1);
-                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_2, EC_JOY1_BUTTON2);
+                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_1, EC_JOY1_BUTTON2);
+                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_2, EC_JOY1_BUTTON1);
                     my->current_element->SetKeyMapping(KEY_JOY2_UP, EC_JOY1_UP);
                     my->current_element->SetKeyMapping(KEY_JOY2_DOWN, EC_JOY1_DOWN);
                     my->current_element->SetKeyMapping(KEY_JOY2_LEFT, EC_JOY1_LEFT);

@@ -28,13 +28,25 @@
 #ifndef ZIPHELPER_H
 #define ZIPHELPER_H
 
+#include "unzip.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void(*ZIP_EXTRACT_CB)(int, int);
+
 void zipCacheReadOnlyZip(const char* zipName);
 void* zipLoadFile(const char* zipName, const char* fileName, int* size);
 int zipSaveFile(const char* zipName, const char* fileName, int append, void* buffer, int size);
 int zipFileExists(const char* zipName, const char* fileName);
 char* zipGetFileList(const char* zipName, const char* ext, int* count);
 int zipHasFileType(char* zipName, char* ext);
+int zipExtractCurrentfile(unzFile uf, int overwrite, const char* password);
+int zipExtract(unzFile uf, int overwrite, const char* password, ZIP_EXTRACT_CB progress_callback);
 
-void* zipCompress(void* buffer, int size, unsigned long* retSize);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

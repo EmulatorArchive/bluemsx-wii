@@ -34,12 +34,11 @@ class DrawableImage : public Image
         void SetYSpacing(int s);
 		void RenderText(const char *fmt, ...);
 		void RenderText(bool center, const char *fmt, ...);
+        void RenderTextVA(bool center, const char *fmt, va_list list);
         void GetTextSize(int *sx, int *sy, const char *fmt, ...);
         u8 *GetTextureBuffer(void);
         void FlushBuffer(void);
 	private:
-        void RenderTextVA(bool center, const char *fmt, va_list list);
-
 		u32 _width, _height;
 		bool _initialized;
 		GXTexObj _texObj;

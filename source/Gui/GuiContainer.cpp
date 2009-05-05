@@ -1,6 +1,6 @@
 
 #include "GuiContainer.h"
-#include "image_container.h"
+#include "image_container.inc"
 
 #define TILE_SIZE 12
 
