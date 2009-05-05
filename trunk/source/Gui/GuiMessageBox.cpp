@@ -123,6 +123,18 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
     return selected;
 }
 
+void GuiMessageBox::SetText(const char *fmt, ...)
+{
+    manager->Lock();
+
+	va_list marker;
+	va_start(marker,fmt);
+	txt_image->RenderTextVA(true, fmt, marker);
+	va_end(marker);
+
+    manager->Unlock();
+}
+
 bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
 {
     manager->Lock();

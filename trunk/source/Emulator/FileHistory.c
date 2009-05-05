@@ -297,6 +297,7 @@ void updateExtendedDiskName(int drive, char* filename, char* zipFile) {
 
     extendedDiskName[drive][0] = 0;
 
+#ifndef WII
     if (drive < MAX_FDC_COUNT) {
         buf = romLoad(filename, zipFile[0] ? zipFile : NULL, &size);
         if (buf != NULL) {
@@ -307,6 +308,9 @@ void updateExtendedDiskName(int drive, char* filename, char* zipFile) {
             }
         }
     } else {
+#else
+    {
+#endif
         name = zipFile[0] ? zipFile : filename;
         if ((name != NULL) && name[0]) {
             archFileExists(name);

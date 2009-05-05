@@ -30,9 +30,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <fat.h>
 #include <wiiuse/wpad.h>
 
+#include "GuiBackground.h"
 #include "GuiDirSelect.h"
 #include "GuiGameSelect.h"
 #include "GuiStateSelect.h"
@@ -66,14 +66,13 @@ extern "C" {
 #include "WiiInput.h"
 }
 
+#include "SdSetup.h"
 #include "GuiConsole.h"
 #include "GuiContainer.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
 
 #define CONSOLE_DEBUG 0
-
-#define MSX_ROOT_DIR "fat:/MSX"
 
 #define TEX_WIDTH  (512+32)
 #define TEX_HEIGHT 480
@@ -89,6 +88,7 @@ static int   displayPitch = TEX_WIDTH * 2;
 static bool  g_doQuit = false;
 
 static GuiManager *manager = NULL;
+static GuiBackground *background = NULL;
 static GuiConsole *console = NULL;
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
@@ -204,8 +204,6 @@ void blueMsxInit(int resetProperties)
     width  = zoom * WIDTH;
     height = zoom * HEIGHT;
 
-    keyboardInit();
-
     mixer = mixerCreate();
 
     emulatorInit(properties, mixer);
@@ -269,8 +267,6 @@ void blueMsxInit(int resetProperties)
     boardSetMoonsoundEnable(properties->sound.chip.enableMoonsound);
     boardSetVideoAutodetect(properties->video.detectActiveMonitor);
 }
-
-static Sprite *sprBackground;
 
 void RenderEmuImage(void *dpyData)
 {
@@ -342,18 +338,17 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     manager->Unlock();
 
     archThreadSleep(2000);
-    sprBackground->SetVisible(false);
+    background->Hide();
 
     // Create on-screen keyboard
     osk = new GuiKeyboard(manager);
 
     // Loop while the user hasn't quit
-    GuiMenu *menu = new GuiMenu(manager, 5);
+    GuiMenu *menu = new GuiMenu(manager, 4);
     const char *menu_items[] = {
       "Load state",
       "Save state",
       "Screenshot",
-      "Properties",
       "Quit"
     };
     int refresh = 0;
@@ -376,7 +371,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 osk->SetEnabled(false);
                 bool leave_menu = false;
                 do {
-                    int selection = menu->DoModal(menu_items, 5, 344);
+                    int selection = menu->DoModal(menu_items, 4, 344);
                     switch( selection ) {
                         GuiStateSelect *statesel;
                         char *statefile;
@@ -418,9 +413,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             (void)archScreenCaptureToFile(SC_NORMAL, p);
                             msgbox->Remove();
                             break;
-                        case 3: /* Properties */
-                            break;
-                        case 4: /* Quit */
+                        case 3: /* Quit */
                             g_doQuit = true;
                             leave_menu = true;
                             break;
@@ -452,11 +445,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     manager->Unlock();
 
     manager->SetMode(prevVideo);
-    sprBackground->SetStretchWidth((float)manager->GetWidth() /
-                                   (float)g_imgBackground->GetWidth());
-    sprBackground->SetStretchHeight((float)manager->GetHeight() /
-                                    (float)g_imgBackground->GetHeight());
-    sprBackground->SetVisible(true);
+    background->Show();
 }
 
 int main(int argc, char **argv)
@@ -471,11 +460,8 @@ int main(int argc, char **argv)
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 	WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
 
-    // Init SD-Card access
-    fatInitDefault();
-
-    // Set current directory to the MSX-root
-    archSetCurrentDirectory(MSX_ROOT_DIR);
+    // Init keyboard
+    keyboardInit();
 
     // GUI init
     manager = new GuiManager();
@@ -489,71 +475,70 @@ int main(int argc, char **argv)
 #endif
 
     // Background
-    sprBackground = new Sprite;
-    sprBackground->SetImage(g_imgBackground);
-    sprBackground->SetStretchWidth((float)manager->GetWidth() /
-                                   (float)g_imgBackground->GetWidth());
-    sprBackground->SetStretchHeight((float)manager->GetHeight() /
-                                    (float)g_imgBackground->GetHeight());
-    sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    sprBackground->SetRefPixelPosition(0, 0);
-    sprBackground->SetPosition(0, 0);
-    manager->AddTop(sprBackground, 10);
+    background = new GuiBackground(manager);
+    background->Show();
 
-    // Please wait...
-    msgbox = new GuiMessageBox(manager);
-    msgbox->Show("Please wait...");
+    // Init SD-Card access
+    if( SetupSDCard(manager) ) {
 
-    // Init blueMSX emulator
-    blueMsxInit(1);
+        // Set current directory to the MSX-root
+        archSetCurrentDirectory(MSX_ROOT_DIR);
 
-    msgbox->Remove();
+        // Please wait...
+        msgbox = new GuiMessageBox(manager);
+        msgbox->Show("Please wait...");
 
-    char *game_dir = NULL;
-    GuiDirSelect *dirs = new GuiDirSelect(manager, "fat:/MSX/Games", "dirlist.xml");
+        // Init blueMSX emulator
+        blueMsxInit(1);
 
-    for(;;) {
-        // Browse directory
-        game_dir = dirs->DoModal();
-        if( game_dir == NULL ) {
-            break;
-        }
-        // Game menu
-        GameElement *game = NULL;
-        GameElement *prev;
+        msgbox->Remove();
+
+        char *game_dir = NULL;
+        GuiDirSelect *dirs = new GuiDirSelect(manager, MSX_ROOT_DIR"/Games", "dirlist.xml");
+
         for(;;) {
-            GuiGameSelect *menu = new GuiGameSelect(manager);
-            prev = game;
-            game = menu->DoModal(game_dir, "gamelist.xml", prev);
-            if( prev != NULL ) {
-                delete prev;
-            }
-            delete menu;
-
-            if( game == NULL ) {
+            // Browse directory
+            game_dir = dirs->DoModal();
+            if( game_dir == NULL ) {
                 break;
-            }else{
-                blueMsxRun(game, game_dir);
+            }
+            // Game menu
+            GameElement *game = NULL;
+            GameElement *prev;
+            for(;;) {
+                GuiGameSelect *menu = new GuiGameSelect(manager);
+                prev = game;
+                game = menu->DoModal(game_dir, "gamelist.xml", prev);
+                if( prev != NULL ) {
+                    delete prev;
+                }
+                delete menu;
+
+                if( game == NULL ) {
+                    break;
+                }else{
+                    blueMsxRun(game, game_dir);
+                }
             }
         }
+        delete dirs;
+
+        printf("Clean-up\n");
+
+        // Destroy message box
+        delete msgbox;
+
+        // Destroy emulator
+        emulatorExit();
+        videoDestroy(video);
+        propDestroy(properties);
+        archSoundDestroy();
+        mixerDestroy(mixer);
     }
-    delete dirs;
-
-    printf("Clean-up\n");
-
-    // Destroy emulator
-    emulatorExit();
-    videoDestroy(video);
-    propDestroy(properties);
-    archSoundDestroy();
-    mixerDestroy(mixer);
     keyboardClose();
 
-    // Destroy message box
-    delete msgbox;
-
     // Destroy background and layer manager
-    manager->RemoveAndDelete(sprBackground, NULL, 10);
+    delete background;
     archThreadSleep(15*20);
 
     // Destroy console
