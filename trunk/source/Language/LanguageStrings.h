@@ -667,6 +667,10 @@ typedef struct {
     char* romTypeNormalC000;
 
     char* romTypeExtRam;
+    char* romTypeExtRam16;
+    char* romTypeExtRam32;
+    char* romTypeExtRam48;
+    char* romTypeExtRam64;
     char* romTypeExtRam512;
     char* romTypeExtRam1mb;
     char* romTypeExtRam2mb;

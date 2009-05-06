@@ -354,6 +354,8 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     
     properties->joystick.POV0isAxes    = 0;
     
+#ifdef WII
+    // Use joystick by default
     strcpy(properties->joy1.type, "joystick");
     properties->joy1.typeId            = JOYSTICK_PORT_JOYSTICK;
     properties->joy1.autofire          = 0;
@@ -361,6 +363,15 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     strcpy(properties->joy2.type, "joystick");
     properties->joy2.typeId            = JOYSTICK_PORT_JOYSTICK;
     properties->joy2.autofire          = 0;
+#else
+    strcpy(properties->joy1.type, "none");
+    properties->joy1.typeId            = 0;
+    properties->joy1.autofire          = 0;
+    
+    strcpy(properties->joy2.type, "none");
+    properties->joy2.typeId            = 0;
+    properties->joy2.autofire          = 0;
+#endif
     
     properties->keyboard.configFile[0] = 0;
 
@@ -368,6 +379,11 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
         strcpy(properties->keyboard.configFile, "blueMSX Japanese Default");
     }
 
+    properties->nowind.enableDos2 = 0;
+    properties->nowind.enableOtherDiskRoms = 0;
+    properties->nowind.enablePhantomDrives = 1;
+    properties->nowind.partitionNumber = 0xff;
+    properties->nowind.ignoreBootFlag = 0;
 
     for (i = 0; i < PROP_MAX_CARTS; i++) {
         properties->media.carts[i].fileName[0] = 0;
@@ -643,6 +659,12 @@ static void propLoad(Properties* properties)
     GET_INT_VALUE_2(cassette, showCustomFiles);
     GET_ENUM_VALUE_2(cassette, readOnly, BoolPair);
     GET_ENUM_VALUE_2(cassette, rewindAfterInsert, BoolPair);
+    
+    GET_ENUM_VALUE_2(nowind, enableDos2, BoolPair);    
+    GET_ENUM_VALUE_2(nowind, enableOtherDiskRoms, BoolPair);    
+    GET_ENUM_VALUE_2(nowind, enablePhantomDrives, BoolPair);    
+    GET_ENUM_VALUE_2(nowind, ignoreBootFlag, BoolPair);   
+    GET_INT_VALUE_2(nowind,  partitionNumber);
 
     iniFileClose();
     
@@ -875,6 +897,12 @@ void propSave(Properties* properties)
     SET_INT_VALUE_2(cassette, showCustomFiles);
     SET_ENUM_VALUE_2(cassette, readOnly, YesNoPair);
     SET_ENUM_VALUE_2(cassette, rewindAfterInsert, YesNoPair);
+
+    SET_ENUM_VALUE_2(nowind, enableDos2, YesNoPair);    
+    SET_ENUM_VALUE_2(nowind, enableOtherDiskRoms, BoolPair);    
+    SET_ENUM_VALUE_2(nowind, enablePhantomDrives, BoolPair);    
+    SET_ENUM_VALUE_2(nowind, ignoreBootFlag, BoolPair);   
+    SET_INT_VALUE_2(nowind,  partitionNumber);
 
     iniFileClose();
 

@@ -587,6 +587,8 @@ static void ld_a_i(R800* r800) {
     r800->regs.AF.B.h = r800->regs.I;
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         ZSXYTable[r800->regs.AF.B.h] | (r800->regs.iff2 << 2);
+    
+    if (r800->cpuMode == CPU_Z80 && ((r800->intState == INT_LOW && r800->regs.iff1) || (r800->nmiState == INT_EDGE))) r800->regs.AF.B.l &= 0xfb;
 }
 
 static void ld_a_r(R800* r800) {
@@ -594,6 +596,8 @@ static void ld_a_r(R800* r800) {
     r800->regs.AF.B.h = (r800->regs.R & 0x7f) | (r800->regs.R2 & 0x80);
     r800->regs.AF.B.l = (r800->regs.AF.B.l & C_FLAG) | 
         ZSXYTable[r800->regs.AF.B.h] | (r800->regs.iff2 << 2);
+    
+    if (r800->cpuMode == CPU_Z80 && ((r800->intState == INT_LOW && r800->regs.iff1) || (r800->nmiState == INT_EDGE))) r800->regs.AF.B.l &= 0xfb;
 }
 
 static void inc_bc(R800* r800) {
@@ -4930,14 +4934,14 @@ static void cpl(R800* r800) {
 
 static void scf(R800* r800) {
     r800->regs.AF.B.l = (r800->regs.AF.B.l & (S_FLAG | Z_FLAG | P_FLAG)) |
-        C_FLAG | (r800->regs.AF.B.h & (X_FLAG | Y_FLAG));
+        C_FLAG | ((r800->regs.AF.B.l | r800->regs.AF.B.h) & (X_FLAG | Y_FLAG));
 }
 
 static void ccf(R800* r800) { //DIFF
     r800->regs.AF.B.l = 
         ((r800->regs.AF.B.l & (S_FLAG | Z_FLAG | P_FLAG | C_FLAG)) |
         ((r800->regs.AF.B.l & C_FLAG) << 4) |
-        (r800->regs.AF.B.h & (X_FLAG | Y_FLAG))) ^ C_FLAG;
+        ((r800->regs.AF.B.l | r800->regs.AF.B.h) & (X_FLAG | Y_FLAG))) ^ C_FLAG;
 }
 
 static void halt(R800* r800) {

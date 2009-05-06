@@ -144,6 +144,18 @@ int cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
     }
 
     switch (romType) {
+    case ROM_EXTRAM16KB:
+        success &= ramNormalCreate(0x4000, slot, sslot, 4, NULL, NULL);
+        break;
+    case ROM_EXTRAM32KB:
+        success &= ramNormalCreate(0x8000, slot, sslot, 0, NULL, NULL);
+        break;
+    case ROM_EXTRAM48KB:
+        success &= ramNormalCreate(0xc000, slot, sslot, 0, NULL, NULL);
+        break;
+    case ROM_EXTRAM64KB:
+        success &= ramNormalCreate(0x10000, slot, sslot, 0, NULL, NULL);
+        break;
     case ROM_EXTRAM512KB:
         success &= ramMapperCreate(0x80000, slot, sslot, 0, NULL, NULL);
         break;
@@ -196,6 +208,10 @@ int cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
 
     case ROM_GIDE:
         success &= romMapperGIdeCreate(cartNo);
+        break;
+
+    case ROM_NMS1210:
+        romMapperNms1210Rs232Create(slot, sslot, 2);
         break;
 
     case SRAM_MEGASCSI128:
@@ -301,6 +317,14 @@ int cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
                 success &= romMapperGoudaSCSICreate(cartNo, romName, NULL, 0, slot, sslot, 2);
                 break;
             }
+        }
+        // Load roms for Special Carts
+        else if (strcmp(cart, "Nowind MSXDOS1") == 0) {
+            buf = romLoad("Machines/Shared Roms/nowindDos1.rom", cartZip, &size);
+        }
+        // Load roms for Special Carts
+        else if (strcmp(cart, "Nowind MSXDOS2") == 0) {
+            buf = romLoad("Machines/Shared Roms/nowindDos2.rom", cartZip, &size);
         }
         else {
             buf = romLoad(cart, cartZip, &size);

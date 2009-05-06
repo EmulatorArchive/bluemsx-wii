@@ -667,6 +667,10 @@ void langInitCatalan(LanguageStrings* ls)
     ls->romTypeNormal4000       = "Normal 4000h";
     ls->romTypeNormalC000       = "Normal C000h";
     ls->romTypeExtRam           = "RAM externa";
+    ls->romTypeExtRam16         = "16kB externa de RAM";
+    ls->romTypeExtRam32         = "32kB externa de RAM";
+    ls->romTypeExtRam48         = "48kB externa de RAM";
+    ls->romTypeExtRam64         = "64kB externa de RAM";
     ls->romTypeExtRam512        = "RAM externa de 512kB";
     ls->romTypeExtRam1mb        = "RAM externa de 1MB";
     ls->romTypeExtRam2mb        = "RAM externa de 2MB";

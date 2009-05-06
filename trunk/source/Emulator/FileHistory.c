@@ -123,8 +123,13 @@ void verifyFileHistory(char* history, RomType* historyType) {
             strcmp(fname, CARTNAME_SUNRISEIDE)  &&
             strcmp(fname, CARTNAME_BEERIDE)     &&
             strcmp(fname, CARTNAME_GIDE)        &&
+            strcmp(fname, CARTNAME_NMS1210)     &&
             strcmp(fname, CARTNAME_GOUDASCSI)   &&
             strcmp(fname, CARTNAME_SONYHBI55)   &&
+            strcmp(fname, CARTNAME_EXTRAM16KB)  && 
+            strcmp(fname, CARTNAME_EXTRAM32KB)  && 
+            strcmp(fname, CARTNAME_EXTRAM48KB)  && 
+            strcmp(fname, CARTNAME_EXTRAM64KB)  && 
             strcmp(fname, CARTNAME_EXTRAM512KB) &&
             strcmp(fname, CARTNAME_EXTRAM1MB)   &&
             strcmp(fname, CARTNAME_EXTRAM2MB)   &&
@@ -138,6 +143,8 @@ void verifyFileHistory(char* history, RomType* historyType) {
             strcmp(fname, CARTNAME_MEGASCSI256) &&
             strcmp(fname, CARTNAME_MEGASCSI512) &&
             strcmp(fname, CARTNAME_MEGASCSI1MB) &&
+            strcmp(fname, CARTNAME_NOWINDDOS1)  &&
+            strcmp(fname, CARTNAME_NOWINDDOS2)  &&
             strcmp(fname, CARTNAME_ESERAM128)   &&
             strcmp(fname, CARTNAME_ESERAM256)   &&
             strcmp(fname, CARTNAME_ESERAM512)   &&
@@ -381,8 +388,14 @@ int createSaveFileBaseName(char* fileBase,Properties* properties, int useExtende
                 strcmp(properties->media.carts[i].fileName, CARTNAME_SUNRISEIDE)   &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_BEERIDE)      &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_GIDE)         &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_NMS1210)      &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_GOUDASCSI)    &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_SONYHBI55)    &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM512KB)  &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM16KB)   &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM32KB)   &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM48KB)   &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM64KB)   &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM512KB)  &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM1MB)    &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_EXTRAM2MB)    &&
@@ -396,6 +409,8 @@ int createSaveFileBaseName(char* fileBase,Properties* properties, int useExtende
                 strcmp(properties->media.carts[i].fileName, CARTNAME_MEGASCSI256)  &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_MEGASCSI512)  &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_MEGASCSI1MB)  &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_NOWINDDOS1)   &&
+                strcmp(properties->media.carts[i].fileName, CARTNAME_NOWINDDOS2)   &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_ESERAM128)    &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_ESERAM256)    &&
                 strcmp(properties->media.carts[i].fileName, CARTNAME_ESERAM512)    &&
@@ -439,7 +454,7 @@ int createSaveFileBaseName(char* fileBase,Properties* properties, int useExtende
                 strcpy(fileBase, extendedDiskName[i]);
             }
             else if (*properties->media.disks[i].fileNameInZip) {
-#if 1           // Use the same name for state files for every disk image within one zip file
+#ifdef WII      // Use the same name for state files for every disk image within one zip file
                 strcpy(fileBase, stripPathExt(properties->media.disks[i].fileName));
 #else
                 strcpy(fileBase, stripPathExt(properties->media.disks[i].fileNameInZip));
