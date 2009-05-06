@@ -676,6 +676,10 @@ void langInitFinnish(LanguageStrings* ls)
     ls->romTypeNormalC000       = "Tavallinen #C000";
 
     ls->romTypeExtRam           = "Ulkoinen RAM";
+    ls->romTypeExtRam16         = "16kB Ulkoinen RAM";
+    ls->romTypeExtRam32         = "32kB Ulkoinen RAM";
+    ls->romTypeExtRam48         = "48kB Ulkoinen RAM";
+    ls->romTypeExtRam64         = "64kB Ulkoinen RAM";
     ls->romTypeExtRam512        = "512kB Ulkoinen RAM";
     ls->romTypeExtRam1mb        = "1MB Ulkoinen RAM";
     ls->romTypeExtRam2mb        = "2MB Ulkoinen RAM";

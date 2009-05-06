@@ -138,15 +138,17 @@ static UInt8 read(MsxPsg* msxPsg, UInt16 address)
         state |= 0x40;
         
         /* cas signal */
-/* IOCCC?
+        // Call cassette Callback (for coin select
         if (msxPsg->casCb != NULL && msxPsg->casCb(msxPsg->casRef)) {
             state |= 0x80;
         }
-*/
+
+#if 0
+        // COmment out until cassette wave is working
         tapeRead(&casdat);
         state |= (casdat) ? 0:0x80;
        	dacWrite(msxPsg->dac, DAC_CH_MONO, (casdat) ? 0 : 255);
-
+#endif
         msxPsg->readValue[address & 1] = state;
 
         return state;

@@ -143,6 +143,10 @@ char* langRomTypeMegaRam512()       { return "512kB MegaRAM"; }
 char* langRomTypeMegaRam768()       { return "768kB MegaRAM"; }
 char* langRomTypeMegaRam2mb()       { return "2MB MegaRAM"; }
 char* langRomTypeExtRam()           { return "External RAM"; }
+char* langRomTypeExtRam16()         { return "16kB External RAM"; }
+char* langRomTypeExtRam32()         { return "32kB External RAM"; }
+char* langRomTypeExtRam48()         { return "48kB External RAM"; }
+char* langRomTypeExtRam64()         { return "64kB External RAM"; }
 char* langRomTypeExtRam512()        { return "512kB External RAM"; }
 char* langRomTypeExtRam1mb()        { return "1MB External RAM"; }
 char* langRomTypeExtRam2mb()        { return "2MB External RAM"; }

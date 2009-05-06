@@ -155,6 +155,8 @@ RomType mediaDbStringToType(const char* romName)
     if (name == "GIDE")         return ROM_GIDE;
     if (name == "GoudaSCSI")    return ROM_GOUDASCSI;
 
+    if (name == "NMS1210")      return ROM_NMS1210;
+
     if (name == "fsa1fm2")      return ROM_PANASONIC8;
     if (name == "FSA1FM2")      return ROM_PANASONIC8;
     if (name == "Panasonic8")   return ROM_PANASONIC8;
@@ -627,6 +629,10 @@ extern "C" const char* romTypeToString(RomType romType)
     case ROM_MEGARAM768:  return langRomTypeMegaRam768();
     case ROM_MEGARAM2M:   return langRomTypeMegaRam2mb();
     case ROM_EXTRAM:      return langRomTypeExtRam();
+    case ROM_EXTRAM16KB:  return langRomTypeExtRam16();
+    case ROM_EXTRAM32KB:  return langRomTypeExtRam32();
+    case ROM_EXTRAM48KB:  return langRomTypeExtRam48();
+    case ROM_EXTRAM64KB:  return langRomTypeExtRam64();
     case ROM_EXTRAM512KB: return langRomTypeExtRam512();
     case ROM_EXTRAM1MB:   return langRomTypeExtRam1mb();
     case ROM_EXTRAM2MB:   return langRomTypeExtRam2mb();
@@ -654,6 +660,7 @@ extern "C" const char* romTypeToString(RomType romType)
     case ROM_GAMEREADER:  return langRomTypeGameReader();
     case ROM_SUNRISEIDE:  return langRomTypeSunriseIde();
     case ROM_BEERIDE:     return langRomTypeBeerIde();
+    case ROM_NMS1210:     return "Philips NMS1210 Serial Interface";
     case ROM_GIDE:        return langRomTypeGide();
     case ROM_MICROSOL80:  return langRomTypeVmx80();
     case ROM_NMS8280DIGI: return langRomTypeNms8280Digitiz();
@@ -778,6 +785,10 @@ extern "C" const char* romTypeToShortString(RomType romType)
     case ROM_MEGARAM768:  return "MEGARAM768";
     case ROM_MEGARAM2M:   return "MEGARAM2MB";
     case ROM_EXTRAM:      return "EXTERN RAM";
+    case ROM_EXTRAM16KB:  return "EXTRAM 16";
+    case ROM_EXTRAM32KB:  return "EXTRAM 32";
+    case ROM_EXTRAM48KB:  return "EXTRAM 48";
+    case ROM_EXTRAM64KB:  return "EXTRAM 64";
     case ROM_EXTRAM512KB: return "EXTRAM 512";
     case ROM_EXTRAM1MB:   return "EXTRAM 2MB";
     case ROM_EXTRAM2MB:   return "EXTRAM 1MB";
@@ -805,6 +816,7 @@ extern "C" const char* romTypeToShortString(RomType romType)
     case ROM_GAMEREADER:  return "GAMEREADER";
     case ROM_SUNRISEIDE:  return "SUNRISEIDE";
     case ROM_BEERIDE:     return "BEER IDE";
+    case ROM_NMS1210:     return "NMS1210";
     case ROM_GIDE:        return "GIDE";
     case ROM_MICROSOL80:  return "MICROSOL80";
     case ROM_NMS8280DIGI: return "8280 DIGI";
@@ -881,6 +893,10 @@ int romTypeIsRom(RomType romType) {
     case ROM_YAMAHASFG05: return 1;
     case ROM_SF7000IPL:   return 1;
     case ROM_YAMAHANET:   return 1;
+    case ROM_EXTRAM16KB:  return 1;
+    case ROM_EXTRAM32KB:  return 1;
+    case ROM_EXTRAM48KB:  return 1;
+    case ROM_EXTRAM64KB:  return 1;
     }
     return 0;
 }

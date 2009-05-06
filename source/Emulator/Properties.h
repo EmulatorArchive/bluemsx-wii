@@ -47,6 +47,10 @@
 #define CARTNAME_FMPAC       "FM-PAC Cartridge"
 #define CARTNAME_PAC         "PAC Cartridge"
 #define CARTNAME_SONYHBI55   "Sony HBI-55"
+#define CARTNAME_EXTRAM16KB  "16kB External RAM"
+#define CARTNAME_EXTRAM32KB  "32kB External RAM"
+#define CARTNAME_EXTRAM48KB  "48kB External RAM"
+#define CARTNAME_EXTRAM64KB  "64kB External RAM"
 #define CARTNAME_EXTRAM512KB "512kB External RAM"
 #define CARTNAME_EXTRAM1MB   "1MB External RAM"
 #define CARTNAME_EXTRAM2MB   "2MB External RAM"
@@ -61,6 +65,7 @@
 #define CARTNAME_BEERIDE     "Beer IDE"
 #define CARTNAME_GIDE        "GIDE"
 #define CARTNAME_GOUDASCSI   "Gouda SCSI"
+#define CARTNAME_NMS1210     "NMS1210"
 #define CARTNAME_JOYREXPSG   "Joyrex PSG"
 #define CARTNAME_MEGASCSI128 "128kB MEGA-SCSI"
 #define CARTNAME_MEGASCSI256 "256kB MEGA-SCSI"
@@ -70,6 +75,8 @@
 #define CARTNAME_ESERAM256   "256kB Ese-RAM"
 #define CARTNAME_ESERAM512   "512kB Ese-RAM"
 #define CARTNAME_ESERAM1MB   "1MB Ese-RAM"
+#define CARTNAME_NOWINDDOS1  "Nowind MSXDOS1"
+#define CARTNAME_NOWINDDOS2  "Nowind MSXDOS2"
 #define CARTNAME_MEGAFLSHSCC "MegaFlashRomScc"
 #define CARTNAME_WAVESCSI128 "128kB WAVE-SCSI"
 #define CARTNAME_WAVESCSI256 "256kB WAVE-SCSI"
@@ -330,6 +337,14 @@ typedef struct {
 } Media;
 
 typedef struct {
+    int enableDos2;
+    int enablePhantomDrives;
+    int enableOtherDiskRoms;
+    int partitionNumber;
+    int ignoreBootFlag;
+} NoWindProperties;
+
+typedef struct {
     RomType defaultType;
     char    defDir[PROP_MAXPATH];
     int     autoReset;
@@ -419,6 +434,7 @@ typedef struct Properties {
     PortProperties      ports;
     int                 language;
     Settings            settings;
+    NoWindProperties    nowind;
 } Properties;
 
 Properties* propCreate(int useDefault, 

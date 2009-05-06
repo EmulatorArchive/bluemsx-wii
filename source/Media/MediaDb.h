@@ -176,7 +176,12 @@ enum  {
     ROM_YAMAHANET   = 146,
     ROM_JOYREXPSG   = 147,
     ROM_OPCODEPSG   = 148,
-    ROM_MAXROMID    = 148
+    ROM_EXTRAM16KB  = 149,
+    ROM_EXTRAM32KB  = 150,
+    ROM_EXTRAM48KB  = 151,
+    ROM_EXTRAM64KB  = 152,
+    ROM_NMS1210     = 153,
+    ROM_MAXROMID    = 153
 };
 
 typedef struct MediaType MediaType;

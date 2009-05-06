@@ -64,7 +64,7 @@ static void loadState(MsxArkanoidPad* arkPad)
 
 static UInt8 read(MsxArkanoidPad* arkPad)
 {
-    return 0x3c | ((arkPad->shiftReg >> 8) & 1) | (archMouseGetButtonState(0) << 1);
+    return 0x3c | ((arkPad->shiftReg >> 8) & 1) | ((archMouseGetButtonState(0) << 1) ^ 2);
 }
 
 static void write(MsxArkanoidPad* arkPad, UInt8 value)
@@ -81,14 +81,17 @@ static void write(MsxArkanoidPad* arkPad, UInt8 value)
 
         arkPad->pos -= dx;
 
-        if (arkPad->pos < 163) arkPad->pos = 163;
+        /* measurements on the real device show a minimum of about 55, and a maximum of about 325 */
+        /* the values below are aimed at user friendly mouse control */
+        if (arkPad->pos < 152) arkPad->pos = 152;
         if (arkPad->pos > 309) arkPad->pos = 309;
 
         arkPad->shiftReg = arkPad->pos;
     }
 
     if (edge & 0x01) {
-        arkPad->shiftReg <<= 1;
+        /* in reality, due to a 556 IC (dual timer) on the device, a small delay is required in between shifts */
+        arkPad->shiftReg = arkPad->shiftReg << 1 | (arkPad->shiftReg & 1);
     }
 }
 

@@ -667,6 +667,10 @@ void langInitKorean(LanguageStrings* ls)
     ls->romTypeNormal4000       = "Normal 4000h";
     ls->romTypeNormalC000       = "Normal C000h";
     ls->romTypeExtRam           = "External RAM";
+    ls->romTypeExtRam16         = "16kB External RAM";
+    ls->romTypeExtRam32         = "32kB External RAM";
+    ls->romTypeExtRam48         = "48kB External RAM";
+    ls->romTypeExtRam64         = "64kB External RAM";
     ls->romTypeExtRam512        = "512kB External RAM";
     ls->romTypeExtRam1mb        = "1MB External RAM";
     ls->romTypeExtRam2mb        = "2MB External RAM";

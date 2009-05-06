@@ -188,8 +188,17 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
               0 == strcmp(CARTNAME_SUNRISEIDE,  filename) ? ROM_SUNRISEIDE :
               0 == strcmp(CARTNAME_GIDE,        filename) ? ROM_GIDE :
               0 == strcmp(CARTNAME_BEERIDE,     filename) ? ROM_BEERIDE :
+              0 == strcmp(CARTNAME_NMS1210,     filename) ? ROM_NMS1210 :
               0 == strcmp(CARTNAME_GOUDASCSI,   filename) ? ROM_GOUDASCSI :
               0 == strcmp(CARTNAME_SONYHBI55,   filename) ? ROM_SONYHBI55 :
+              0 == strcmp(CARTNAME_EXTRAM16KB,  filename) ? ROM_EXTRAM16KB :
+              0 == strcmp(CARTNAME_EXTRAM32KB,  filename) ? ROM_EXTRAM32KB :
+              0 == strcmp(CARTNAME_EXTRAM48KB,  filename) ? ROM_EXTRAM48KB :
+              0 == strcmp(CARTNAME_EXTRAM64KB,  filename) ? ROM_EXTRAM64KB :
+              0 == strcmp(CARTNAME_EXTRAM16KB,  filename) ? ROM_EXTRAM16KB :
+              0 == strcmp(CARTNAME_EXTRAM32KB,  filename) ? ROM_EXTRAM32KB :
+              0 == strcmp(CARTNAME_EXTRAM48KB,  filename) ? ROM_EXTRAM48KB :
+              0 == strcmp(CARTNAME_EXTRAM64KB,  filename) ? ROM_EXTRAM64KB :
               0 == strcmp(CARTNAME_EXTRAM512KB, filename) ? ROM_EXTRAM512KB :
               0 == strcmp(CARTNAME_EXTRAM1MB,   filename) ? ROM_EXTRAM1MB :
               0 == strcmp(CARTNAME_EXTRAM2MB,   filename) ? ROM_EXTRAM2MB :
@@ -203,6 +212,8 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
               0 == strcmp(CARTNAME_MEGASCSI256, filename) ? SRAM_MEGASCSI256 :
               0 == strcmp(CARTNAME_MEGASCSI512, filename) ? SRAM_MEGASCSI512 :
               0 == strcmp(CARTNAME_MEGASCSI1MB, filename) ? SRAM_MEGASCSI1MB :
+              0 == strcmp(CARTNAME_NOWINDDOS1,  filename) ? ROM_NOWIND :
+              0 == strcmp(CARTNAME_NOWINDDOS2,  filename) ? ROM_NOWIND :
               0 == strcmp(CARTNAME_ESERAM128,   filename) ? SRAM_ESERAM128 :
               0 == strcmp(CARTNAME_ESERAM256,   filename) ? SRAM_ESERAM256 :
               0 == strcmp(CARTNAME_ESERAM512,   filename) ? SRAM_ESERAM512 :

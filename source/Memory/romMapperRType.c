@@ -92,7 +92,7 @@ static void write(RomMapperRType* rm, UInt16 address, UInt8 value)
 
     address += 0x4000;
 
-    if (address < 0x7000 || address >= 0x8000) {
+    if (address < 0x4000 || address >= 0xc000) {
         return;
     }
     

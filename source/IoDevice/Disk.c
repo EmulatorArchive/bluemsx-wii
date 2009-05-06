@@ -341,11 +341,29 @@ static void diskUpdateInfo(int driveId)
             sectorsPerTrack[driveId] = 17;
             diskType[driveId] = SVI328_DISK;
             return;
+        case 184320:  /* BW 12 SSDD */
+            sectorSize[driveId] = 256;
+            sectorsPerTrack[driveId] = 18;
+            tracks[driveId] = 40;
+            sides[driveId] = 1;
+            return;
+        case 204800:  /* Kaypro II SSDD */
+            sectorSize[driveId] = 512;
+            sectorsPerTrack[driveId] = 10;
+            tracks[driveId] = 40;
+            sides[driveId] = 1;
+            return;
         case 346112:	/* Double sided */
             sides[driveId] = 2;
             tracks[driveId] = 40;
             sectorsPerTrack[driveId] = 17;
             diskType[driveId] = SVI328_DISK;
+            return;
+        case 348160:  /* SVI-728 DSDD (CP/M) */
+            sectorSize[driveId] = 256;
+            sectorsPerTrack[driveId] = 17;
+            tracks[driveId] = 40;
+            sides[driveId] = 2;
             return;
 	}
 
