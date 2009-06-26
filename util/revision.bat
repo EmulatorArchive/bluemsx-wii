@@ -1,6 +1,6 @@
 @echo off
 cd %~p0
-cscript //NoLogo svnversion.js >..\build\revision.tmp
+cscript //NoLogo //E:jscript svnversion.js >..\build\revision.tmp
 cd ..\build
 if exist revision.txt set /p revision_old= <revision.txt >nul
 if exist revision.tmp set /p revision_new= <revision.tmp >nul
