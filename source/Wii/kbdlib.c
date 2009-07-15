@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#include <math.h>
 #include <wiiuse/wpad.h>
 #include <ogc/lwp_watchdog.h>
 #include <keyboard.h>
@@ -38,29 +39,30 @@
 #include "kbdlib.h"
 #include "../iodevice/led.h"
 
-#define THRESHOLD_NUNCHUCK 50
-#define THRESHOLD_CLASSIC  10
+#ifndef PI
+#define PI 3.14159265358979323846
+#endif
 
 #define TIME_BEFORE_REPEATING 500
 #define TIME_BETWEEN_REPEAT   200
 
 typedef struct {
-	KEY key;
-	int code;
+    KEY key;
+    int code;
 } KEYCODE;
 
 typedef struct {
-	KEY key_a;
-	KEY key_b;
-	int code;
+    KEY key_a;
+    KEY key_b;
+    int code;
 } PADCODE;
 
 typedef struct {
-	u32 message;
-	u32 id; // in fact it is a direction
-	u8 modifiers;
-	u8 unknown;
-	u8 keys[6];
+    u32 message;
+    u32 id; // in fact it is a direction
+    u8 modifiers;
+    u8 unknown;
+    u8 keys[6];
 } key_data_t;
 
 struct _kbd_data {
@@ -79,16 +81,16 @@ static const char *keynames[KEY_LAST];
 
 static PADCODE wpad[] =
 {
-	{KEY_JOY1_BUTTON_A, KEY_JOY2_BUTTON_A, (WPAD_BUTTON_A   | WPAD_CLASSIC_BUTTON_A)    },
-	{KEY_JOY1_BUTTON_B, KEY_JOY2_BUTTON_B, (WPAD_BUTTON_B   | WPAD_CLASSIC_BUTTON_B)    },
-	{KEY_JOY1_BUTTON_1, KEY_JOY2_BUTTON_1,  WPAD_BUTTON_1                               },
-	{KEY_JOY1_BUTTON_2, KEY_JOY2_BUTTON_2,  WPAD_BUTTON_2                               },
-	{KEY_JOY1_UP,       KEY_JOY2_UP,       (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)   },
-	{KEY_JOY1_DOWN,     KEY_JOY2_DOWN,     (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_DOWN) },
-	{KEY_JOY1_LEFT,     KEY_JOY2_LEFT,     (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_LEFT) },
-	{KEY_JOY1_RIGHT,    KEY_JOY2_RIGHT,    (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_RIGHT)},
-	{KEY_JOY1_HOME,     KEY_JOY2_HOME,     (WPAD_BUTTON_HOME  | WPAD_CLASSIC_BUTTON_HOME) },
-	{KEY_JOY1_PLUS,     KEY_JOY2_PLUS,     (WPAD_BUTTON_PLUS  | WPAD_CLASSIC_BUTTON_PLUS) },
+    {KEY_JOY1_BUTTON_A, KEY_JOY2_BUTTON_A, (WPAD_BUTTON_A   | WPAD_CLASSIC_BUTTON_A)    },
+    {KEY_JOY1_BUTTON_B, KEY_JOY2_BUTTON_B, (WPAD_BUTTON_B   | WPAD_CLASSIC_BUTTON_B)    },
+    {KEY_JOY1_BUTTON_1, KEY_JOY2_BUTTON_1,  WPAD_BUTTON_1                               },
+    {KEY_JOY1_BUTTON_2, KEY_JOY2_BUTTON_2,  WPAD_BUTTON_2                               },
+    {KEY_JOY1_UP,       KEY_JOY2_UP,       (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)   },
+    {KEY_JOY1_DOWN,     KEY_JOY2_DOWN,     (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_DOWN) },
+    {KEY_JOY1_LEFT,     KEY_JOY2_LEFT,     (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_LEFT) },
+    {KEY_JOY1_RIGHT,    KEY_JOY2_RIGHT,    (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_RIGHT)},
+    {KEY_JOY1_HOME,     KEY_JOY2_HOME,     (WPAD_BUTTON_HOME  | WPAD_CLASSIC_BUTTON_HOME) },
+    {KEY_JOY1_PLUS,     KEY_JOY2_PLUS,     (WPAD_BUTTON_PLUS  | WPAD_CLASSIC_BUTTON_PLUS) },
     {KEY_JOY1_MINUS,    KEY_JOY2_MINUS,    (WPAD_BUTTON_MINUS | WPAD_CLASSIC_BUTTON_MINUS)},
     {KEY_JOY1_BUTTON_X, KEY_JOY2_BUTTON_X,  WPAD_CLASSIC_BUTTON_X                         },
     {KEY_JOY1_BUTTON_Y, KEY_JOY2_BUTTON_Y,  WPAD_CLASSIC_BUTTON_Y                         },
@@ -96,20 +98,20 @@ static PADCODE wpad[] =
     {KEY_JOY1_BUTTON_R, KEY_JOY2_BUTTON_R,  WPAD_CLASSIC_BUTTON_FULL_R                    },
     {KEY_JOY1_BUTTON_ZL,KEY_JOY2_BUTTON_ZL, WPAD_CLASSIC_BUTTON_ZL                        },
     {KEY_JOY1_BUTTON_ZR,KEY_JOY2_BUTTON_ZR, WPAD_CLASSIC_BUTTON_ZR                        },
-	{KEY_NONE, KEY_NONE, 0}
+    {KEY_NONE, KEY_NONE, 0}
 };
 
 static KEYCODE mods[] =
 {
-	{KEY_LCTRL,   0x01},
-	{KEY_LSHIFT,  0x02},
-	{KEY_LALT,    0x04},
-	{KEY_LWIN,    0x08},
-	{KEY_RCTRL,   0x10},
-	{KEY_RSHIFT,  0x20},
-	{KEY_RALT,    0x40},
-	{KEY_RWIN,    0x80},
-	{KEY_NONE, 0}
+    {KEY_LCTRL,   0x01},
+    {KEY_LSHIFT,  0x02},
+    {KEY_LALT,    0x04},
+    {KEY_LWIN,    0x08},
+    {KEY_RCTRL,   0x10},
+    {KEY_RSHIFT,  0x20},
+    {KEY_RALT,    0x40},
+    {KEY_RWIN,    0x80},
+    {KEY_NONE, 0}
 };
 
 static void FillKeyNames(void)
@@ -298,21 +300,43 @@ const char *KBD_GetKeyName(KEY key)
     return keyname;
 }
 
-static u32 GetJoystickDirection(joystick_t *js, int threshold)
+static u32 GetJoystickDirection(joystick_t *js)
 {
     u32 buttons = 0;
-    // handle right
-    if( js->pos.x > js->center.x + threshold)
-        buttons |= WPAD_CLASSIC_BUTTON_RIGHT;
-    // handle left
-    if( js->pos.x < js->center.x - threshold)
-        buttons |= WPAD_CLASSIC_BUTTON_LEFT;
-    // handle up
-    if( js->pos.y > js->center.y + threshold )
-        buttons |= WPAD_CLASSIC_BUTTON_UP;
-    // handle down
-    if( js->pos.y < js->center.y - threshold )
-        buttons |= WPAD_CLASSIC_BUTTON_DOWN;
+
+    // do not calculate unused axes
+    if( js->pos.x != 0 || js->pos.y != 0 ) {
+      float x, y;
+
+      // calculate relative x,y positions according to min, max and center values
+      if (js->pos.x >= js->center.x) {
+        x = (js->pos.x - js->center.x) / (float)(js->max.x - js->center.x);
+      } else {
+        x = (js->pos.x - js->center.x) / (float)(js->center.x - js->min.x);
+      }
+
+      if (js->pos.y >= js->center.y) {
+        y = (js->pos.y - js->center.y) / (float)(js->max.y - js->center.y);
+      } else {
+        y = (js->pos.y - js->center.y) / (float)(js->center.y - js->min.y);
+      }
+
+      // 'dead zone' calculation
+      if( sqrt(x*x+y*y) > 0.5f ) {
+        // assign directons from angle
+        float theta = atan2(y,x) * (180/PI);
+
+        if (theta > 35 && theta < 145)
+          buttons |= WPAD_CLASSIC_BUTTON_UP;
+        if (theta > 125 || theta < -125)
+          buttons |= WPAD_CLASSIC_BUTTON_LEFT;
+        if (theta > -145 && theta < -35)
+          buttons |= WPAD_CLASSIC_BUTTON_DOWN;
+        if (theta > -55 && theta < 55)
+          buttons |= WPAD_CLASSIC_BUTTON_RIGHT;
+      }
+    }
+
     return buttons;
 }
 
@@ -337,12 +361,11 @@ u32 KBD_GetPadButtonStatus(int channel)
         buttons |= WPAD_CLASSIC_BUTTON_B;
       }
       WPAD_Expansion(channel, &data.exp);
-      buttons |= GetJoystickDirection(&data.exp.nunchuk.js, THRESHOLD_NUNCHUCK);
-    }
-    if( extensions == WPAD_EXP_CLASSIC ) {
+      buttons |= GetJoystickDirection(&data.exp.nunchuk.js);
+    } else if( extensions == WPAD_EXP_CLASSIC ) {
       WPAD_Expansion(channel, &data.exp);
-      buttons |= GetJoystickDirection(&data.exp.classic.ljs, THRESHOLD_CLASSIC);
-      buttons |= GetJoystickDirection(&data.exp.classic.rjs, THRESHOLD_CLASSIC);
+      buttons |= GetJoystickDirection(&data.exp.classic.ljs);
+      buttons |= GetJoystickDirection(&data.exp.classic.rjs);
     }
     return buttons;
 }
