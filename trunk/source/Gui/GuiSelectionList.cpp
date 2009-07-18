@@ -239,9 +239,8 @@ int GuiSelectionList::DoSelection(void)
         // Exit on 'home' or 'B'
         if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
                        WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
-            index = 0;
-            selected = -1;
-            break;
+            sprCursor->SetVisible(false);
+            return -1;
         }
 
         // Claim UI
@@ -340,7 +339,7 @@ int GuiSelectionList::DoSelection(void)
         }
 
         // wait a frame
-		VIDEO_WaitVSync();
+        VIDEO_WaitVSync();
     }
     sprCursor->SetVisible(false);
 #if RUMBLE
