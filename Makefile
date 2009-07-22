@@ -209,7 +209,7 @@ sdcard.inc: ../sdcard
 $(DEVKITPPC_LOCAL)/devkitppc.log: ../lib/devkitPPC.zip
 	@echo Installing devkitPPC to $(DEVKITPPC_LOCAL)
 	@[ -d $(DEVKITPPC_LOCAL) ] || mkdir -p $(DEVKITPPC_LOCAL)
-	@../util/unzip ../lib/devkitPPC.zip -d $(DEVKITPPC_LOCAL) >$(DEVKITPPC_LOCAL)/devkitppc.log
+	@../util/unzip -o ../lib/devkitPPC.zip -d $(DEVKITPPC_LOCAL) >$(DEVKITPPC_LOCAL)/devkitppc.log
 
 #---------------------------------------------------------------------------------
 # This rule converts .png to .inc files
