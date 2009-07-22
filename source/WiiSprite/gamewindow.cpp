@@ -11,23 +11,23 @@
 #endif
 
 namespace wsp{
-	// Initializes the static members
-	GW_VIDEO_MODE GameWindow::_mode = GW_VIDEO_MODE_INVALID;
-	u32 GameWindow::_width = 0;
-	u32 GameWindow::_height = 0;
-	bool GameWindow::_initialized = false;
-	Image* GameWindow::_lastimage = NULL;
-	bool GameWindow::_lastimagebilinear = false;
+    // Initializes the static members
+    GW_VIDEO_MODE GameWindow::_mode = GW_VIDEO_MODE_INVALID;
+    u32 GameWindow::_width = 0;
+    u32 GameWindow::_height = 0;
+    bool GameWindow::_initialized = false;
+    Image* GameWindow::_lastimage = NULL;
+    bool GameWindow::_lastimagebilinear = false;
 
-	GameWindow::GameWindow() :
-		_fb(0), _first(true), _rmode(NULL), _gp_fifo(NULL)
-	{
-		if(_initialized)return; // Don't mess with me!
-		_frameBuffer[0] = NULL; _frameBuffer[1] = NULL;
-	}
-	GameWindow::~GameWindow(){
-		StopVideo(); // Stops video automatically
-	}
+    GameWindow::GameWindow() :
+        _fb(0), _first(true), _rmode(NULL), _gp_fifo(NULL)
+    {
+        if(_initialized)return; // Don't mess with me!
+        _frameBuffer[0] = NULL; _frameBuffer[1] = NULL;
+    }
+    GameWindow::~GameWindow(){
+        StopVideo(); // Stops video automatically
+    }
     GW_VIDEO_MODE GameWindow::GetMode(void)
     {
         return _mode;
@@ -36,17 +36,21 @@ namespace wsp{
         if( mode == _mode )
             return;
         switch( mode ) {
-            case GW_VIDEO_MODE_PAL528:
-		        _rmode = &TVPal528IntDf;
-		        break;
-            case GW_VIDEO_MODE_PAL448:
-		        _rmode = &TVPal574IntDfScale;
-                _rmode->efbHeight = 480+8;
-                _rmode->viYOrigin = 24;
+            case GW_VIDEO_MODE_PAL50_528:
+                _rmode = &TVPal528IntDf;
                 break;
-            case GW_VIDEO_MODE_NTSC448:
+            case GW_VIDEO_MODE_PAL50_448:
+                _rmode = &TVPal574IntDfScale;
+                _rmode->efbHeight = 480+8;
+                _rmode->viYOrigin = 22;
+                break;
+            case GW_VIDEO_MODE_PAL60_448:
                 _rmode = &TVEurgb60Hz480IntDf;
-                _rmode->viYOrigin = 24;
+                _rmode->viYOrigin = 18;
+                break;
+            case GW_VIDEO_MODE_NTSC_448:
+                _rmode = &TVNtsc480IntDf;
+                _rmode->viYOrigin = 18;
                 break;
             default:
                 return;
@@ -62,17 +66,18 @@ namespace wsp{
         if(_rmode->viTVMode&VI_NON_INTERLACE){
              VIDEO_WaitVSync();
         }
-		_fb ^= 1;
+        _fb ^= 1;
 
         // Use these values for GetWidth() and GetHeight()
         _width = (u32)_rmode->fbWidth; _height = (u32)_rmode->efbHeight;
-        if( _mode == GW_VIDEO_MODE_PAL448 ||
-            _mode == GW_VIDEO_MODE_NTSC448 ) {
+        if( _mode == GW_VIDEO_MODE_PAL50_448 ||
+            _mode == GW_VIDEO_MODE_PAL60_448 ||
+            _mode == GW_VIDEO_MODE_NTSC_448) {
             _height = 448;
         }
 
         // Init GX (once)
-		if(_first == true){
+        if(_first == true){
             _gp_fifo = memalign(32, DEFAULT_FIFO_SIZE);
             memset(_gp_fifo, 0, DEFAULT_FIFO_SIZE);
             GX_Init(_gp_fifo, DEFAULT_FIFO_SIZE);
@@ -148,36 +153,50 @@ namespace wsp{
         GX_SetScissor(0, 0, _width, _height);
     }
 
-	void GameWindow::InitVideo(){
-		// This Code is taken from many examples, but modified for this lib
-		if(_initialized)return;
+    void GameWindow::InitVideo(){
+        // This Code is taken from many examples, but modified for this lib
+        if(_initialized)return;
 
-		// Allocate two framebuffers for double buffering
-		TVPal574IntDfScale.xfbHeight += 16;
+        // Allocate two framebuffers for double buffering
+        TVPal574IntDfScale.xfbHeight += 16;
         if(_frameBuffer[0] == NULL ) {
             _frameBuffer[0] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(&TVPal574IntDfScale));
         }
         if(_frameBuffer[1] == NULL ) {
-		    _frameBuffer[1] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(&TVPal574IntDfScale));
+            _frameBuffer[1] = MEM_K0_TO_K1(_SYS_AllocateFramebuffer(&TVPal574IntDfScale));
         }
-		TVPal574IntDfScale.xfbHeight -= 16;
+        TVPal574IntDfScale.xfbHeight -= 16;
 
-		// Start initializing
-		VIDEO_Init();
+        // Start initializing
+        VIDEO_Init();
 
-		_rmode = VIDEO_GetPreferredMode(NULL);
-		if(_rmode == NULL){
-			exit(0);
-			return;
-		}
+        _rmode = VIDEO_GetPreferredMode(NULL);
+        if(_rmode == NULL){
+            exit(0);
+            return;
+        }
 
-        SetMode(((_rmode->viTVMode>>2)&7)==VI_PAL ? GW_VIDEO_MODE_PAL448 : GW_VIDEO_MODE_NTSC448);
+        switch( (_rmode->viTVMode >> 2) & 7 ) {
+            case VI_NTSC:
+            case VI_MPAL:
+            case VI_DEBUG:
+                SetMode(GW_VIDEO_MODE_NTSC_448);
+                break;
+            case VI_EURGB60:
+                SetMode(GW_VIDEO_MODE_PAL60_448);
+                break;
+            case VI_PAL:
+            case VI_DEBUG_PAL:
+            default:
+                SetMode(GW_VIDEO_MODE_PAL50_448);
+                break;
+         }
 
-    	_initialized = true;
-	}
+        _initialized = true;
+    }
 
-	void GameWindow::StopVideo(){
-		if(!_initialized)return;
+    void GameWindow::StopVideo(){
+        if(!_initialized)return;
 
         void *fb1 = _frameBuffer[0];
         void *fb2 = _frameBuffer[1];
@@ -187,49 +206,49 @@ namespace wsp{
         _frameBuffer[_fb] = (void*)0xC1710000;
         Flush();
 
-		// Dhewg.. You rescued our asses again.
-		// This code should be run before exiting the app.
-		GX_AbortFrame();
+        // Dhewg.. You rescued our asses again.
+        // This code should be run before exiting the app.
+        GX_AbortFrame();
 
-		// Thx to jepler for these quite obvious hints
-		free(MEM_K1_TO_K0(fb1));
-		free(MEM_K1_TO_K0(fb2));
+        // Thx to jepler for these quite obvious hints
+        free(MEM_K1_TO_K0(fb1));
+        free(MEM_K1_TO_K0(fb2));
         _frameBuffer[0] =_frameBuffer[1] = NULL;
-		free(_gp_fifo); _gp_fifo = NULL;
+        free(_gp_fifo); _gp_fifo = NULL;
 
-		_initialized = false;
-	}
+        _initialized = false;
+    }
 
-	void GameWindow::SetBackground(GXColor bgcolor){
-		GX_SetCopyClear(bgcolor, 0x00ffffff);
-	}
+    void GameWindow::SetBackground(GXColor bgcolor){
+        GX_SetCopyClear(bgcolor, 0x00ffffff);
+    }
 
-	bool GameWindow::IsInitialized(){
-		return _initialized;
-	}
+    bool GameWindow::IsInitialized(){
+        return _initialized;
+    }
 
-	void GameWindow::Flush(){
-		GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-		GX_SetColorUpdate(GX_TRUE);
-		GX_CopyDisp(_frameBuffer[_fb],GX_TRUE);
-		GX_DrawDone();
+    void GameWindow::Flush(){
+        GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+        GX_SetColorUpdate(GX_TRUE);
+        GX_CopyDisp(_frameBuffer[_fb],GX_TRUE);
+        GX_DrawDone();
 
-		VIDEO_SetNextFramebuffer(_frameBuffer[_fb]);
-		VIDEO_Flush();
-		VIDEO_WaitVSync();
- 		_fb ^= 1;		// Flip framebuffer
+        VIDEO_SetNextFramebuffer(_frameBuffer[_fb]);
+        VIDEO_Flush();
+        VIDEO_WaitVSync();
+        _fb ^= 1;       // Flip framebuffer
 
-		GX_InvalidateTexAll(); // Fixes some texture garbles
-	}
+        GX_InvalidateTexAll(); // Fixes some texture garbles
+    }
 
-	u32 GameWindow::GetWidth(){
-		if(!_initialized)return 0;
-		return _width;
-	}
+    u32 GameWindow::GetWidth(){
+        if(!_initialized)return 0;
+        return _width;
+    }
 
-	u32 GameWindow::GetHeight(){
-		if(!_initialized)return 0;
-		return _height;
-	}
+    u32 GameWindow::GetHeight(){
+        if(!_initialized)return 0;
+        return _height;
+    }
 }
 
