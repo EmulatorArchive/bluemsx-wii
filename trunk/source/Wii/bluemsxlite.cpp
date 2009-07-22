@@ -176,6 +176,12 @@ void blueMsxInit(int resetProperties)
 
     properties = propCreate(resetProperties, 0, P_KBD_EUROPEAN, 0, "");
 
+    if( manager->GetMode() == GW_VIDEO_MODE_NTSC_448 ) {
+        properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
+    }else{
+        properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
+    }
+
     properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
 
     if (resetProperties == 2) {
@@ -355,15 +361,17 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     bool pressed = true;
     GW_VIDEO_MODE prevVideo = manager->GetMode();
     while(!g_doQuit) {
-        int newrfsh = boardGetRefreshRate();
-        if( newrfsh != 0 && newrfsh != refresh ) {
-            if( newrfsh==50 ) {
-                manager->SetMode(GW_VIDEO_MODE_PAL448 /*GW_VIDEO_MODE_PAL528*/);
-            }else{
-                manager->SetMode(GW_VIDEO_MODE_NTSC448);
+        if( prevVideo != GW_VIDEO_MODE_NTSC_448 ) {
+            int newrfsh = boardGetRefreshRate();
+            if( newrfsh != 0 && newrfsh != refresh ) {
+                if( newrfsh==50 ) {
+                    manager->SetMode(GW_VIDEO_MODE_PAL50_448 /*GW_VIDEO_MODE_PAL528*/);
+                }else{
+                    manager->SetMode(GW_VIDEO_MODE_PAL60_448);
+                }
+                emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
+                refresh = newrfsh;
             }
-            emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
-            refresh = newrfsh;
         }
         if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) || KBD_GetKeyStatus(kbdHandle, KEY_JOY2_HOME) ) {
             if( !pressed ) {
