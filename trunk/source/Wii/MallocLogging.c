@@ -35,7 +35,7 @@ static LOGMALLOC *marked_entry = NULL;
 static void *lowest_addr = (void*)0xffffffff;
 static void *highest_addr = NULL;
 
-static sem_t loggingSemaphore;
+static mutex_t loggingMutex;
 static int loggingInitialized = 0;
 static int loggingEnabled = 0;
 
@@ -47,34 +47,33 @@ static int loggingEnabled = 0;
 
 extern void *memalign(int align, int size);
 extern void VIDEO_SetFramebuffer(void *);
-static void *exception_xfb = (void*)0xC1710000;			//we use a static address above ArenaHi.
+static void *exception_xfb = (void*)0xC1710000;   //we use a static address above ArenaHi.
 static char exception_str[1024];
 
 static void ( * Reload ) () = ( void ( * ) () ) 0x80001800;
 
-static void waitForReload() {
+static void waitForReload()
+{
+    u32 level;
+    while ( 1 )
+    {
+        PAD_ScanPads();
 
-	u32 level;
+        int buttonsDown = PAD_ButtonsDown(0);
 
-	while ( 1 ) {
+        if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() ) {
+            _CPU_ISR_Disable(level);
+            Reload ();
+        }
 
-		PAD_ScanPads();
-
-		int buttonsDown = PAD_ButtonsDown(0);
-
-		if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() ) {
-			_CPU_ISR_Disable(level);
-			Reload ();
-		}
-
-		if ( buttonsDown & PAD_BUTTON_A )
-		{
-			kprintf("Reset\n");
-			SYS_ResetSystem(SYS_HOTRESET,0,FALSE);
-		}
+        if ( buttonsDown & PAD_BUTTON_A )
+        {
+            kprintf("Reset\n");
+            SYS_ResetSystem(SYS_HOTRESET,0,FALSE);
+        }
 
         VIDEO_SetFramebuffer(exception_xfb);
-	}
+    }
 }
 
 static void allocError(char *error)
@@ -109,7 +108,7 @@ int printEntry(LOGMALLOC *log)
 void allocLogStart(void)
 {
     if( !loggingInitialized ) {
-        LWP_SemInit(&loggingSemaphore, 1, 0xffffffff);
+        LWP_MutexInit(&loggingMutex, 1);
         loggingInitialized = 1;
     }
     loggingEnabled = 1;
@@ -118,8 +117,8 @@ void allocLogStart(void)
 void allocLogStop(void)
 {
     if( first_entry != NULL ) {
-    	VIDEO_SetFramebuffer(exception_xfb);
-    	console_init(exception_xfb,20,20,640,574,1280);
+        VIDEO_SetFramebuffer(exception_xfb);
+        console_init(exception_xfb,20,20,640,574,1280);
         printf("Unfreed memory buffers:\n");
         allocLogPrint();
         u32 buttons;
@@ -141,7 +140,7 @@ void allocLogPrint(void)
     LOGMALLOC *p;
     u32 total_alloc = 0, total_overhead = 0;
     if( loggingInitialized && loggingEnabled ) {
-        LWP_SemWait(loggingSemaphore);
+        LWP_MutexLock(loggingMutex);
 
         if( marked_entry != NULL ) {
             p = marked_entry->next;
@@ -167,7 +166,7 @@ void allocLogPrint(void)
         }
         printf("Allocated: %d, Overhead: %d\n", total_alloc, total_overhead);
 
-        LWP_SemPost(loggingSemaphore);
+        LWP_MutexUnlock(loggingMutex);
     }
 }
 
@@ -275,7 +274,7 @@ void *my_malloc(int size, const char *file, int line)
 #if MALLOC_LOG_DEBUG
         printf("malloc %s %d 0x%X\n", file, line, size);
 #endif
-        LWP_SemWait(loggingSemaphore);
+        LWP_MutexLock(loggingMutex);
         buf = malloc(size + sizeof(LOGMALLOC));
         if( buf == NULL ) {
             sprintf(exception_str, "malloc: %s line %d failed, memory full?\n",
@@ -283,7 +282,7 @@ void *my_malloc(int size, const char *file, int line)
             allocError(exception_str);
         }
         addLogEntry((LOGMALLOC*)buf, size, file, line);
-        LWP_SemPost(loggingSemaphore);
+        LWP_MutexUnlock(loggingMutex);
 #if MALLOC_LOG_DEBUG
         printf("done\n");
 #endif
@@ -300,7 +299,7 @@ void *my_calloc(int num, int size, const char *file, int line)
 #if MALLOC_LOG_DEBUG
         printf("calloc %s %d %d 0x%X\n", file, line, num, size);
 #endif
-        LWP_SemWait(loggingSemaphore);
+        LWP_MutexLock(loggingMutex);
         size = num * size;
         buf = calloc(1, size + sizeof(LOGMALLOC));
         if( buf == NULL ) {
@@ -309,7 +308,7 @@ void *my_calloc(int num, int size, const char *file, int line)
             allocError(exception_str);
         }
         addLogEntry((LOGMALLOC*)buf, size, file, line);
-        LWP_SemPost(loggingSemaphore);
+        LWP_MutexUnlock(loggingMutex);
 #if MALLOC_LOG_DEBUG
         printf("done\n");
 #endif
@@ -326,7 +325,7 @@ void *my_memalign(int align, int size, const char *file, int line)
 #if MALLOC_LOG_DEBUG
         printf("memalign %s %d %d 0x%X\n", file, line, align, size);
 #endif
-        LWP_SemWait(loggingSemaphore);
+        LWP_MutexLock(loggingMutex);
         buf = memalign(align, size + sizeof(LOGMALLOC));
         if( buf == NULL ) {
             sprintf(exception_str, "memalign: %s line %d failed, memory full?\n",
@@ -334,7 +333,7 @@ void *my_memalign(int align, int size, const char *file, int line)
             allocError(exception_str);
         }
         addLogEntry((LOGMALLOC*)buf, size, file, line);
-        LWP_SemPost(loggingSemaphore);
+        LWP_MutexUnlock(loggingMutex);
 #if MALLOC_LOG_DEBUG
         printf("done\n");
 #endif
@@ -352,7 +351,7 @@ void *my_realloc(void *buf, int size, const char *file, int line)
 #if MALLOC_LOG_DEBUG
             printf("realloc %s %d 0x%X\n", file, line, size);
 #endif
-            LWP_SemWait(loggingSemaphore);
+            LWP_MutexLock(loggingMutex);
             buf = oldbuf = (char*)buf - sizeof(LOGMALLOC);
             checkValidBuffer(buf, "realloc", file, line);
             buf = realloc(buf, size + sizeof(LOGMALLOC));
@@ -363,7 +362,7 @@ void *my_realloc(void *buf, int size, const char *file, int line)
             }
             updateLogEntry((LOGMALLOC*)buf, (LOGMALLOC*)oldbuf);
             ((LOGMALLOC*)buf)->size = size;
-            LWP_SemPost(loggingSemaphore);
+            LWP_MutexUnlock(loggingMutex);
 #if MALLOC_LOG_DEBUG
             printf("done\n");
 #endif
@@ -395,7 +394,7 @@ void my_free(void *buf, const char *file, int line)
 #if MALLOC_LOG_DEBUG
         printf("free %s %d\n", file, line);
 #endif
-        LWP_SemWait(loggingSemaphore);
+        LWP_MutexLock(loggingMutex);
         if( buf != NULL ) {
             buf = (char*)buf - sizeof(LOGMALLOC);
         }
@@ -403,7 +402,7 @@ void my_free(void *buf, const char *file, int line)
         removeLogEntry((LOGMALLOC*)buf);
         ((LOGMALLOC*)buf)->signature = SIGNATURE_FREE;
         free(buf);
-        LWP_SemPost(loggingSemaphore);
+        LWP_MutexUnlock(loggingMutex);
 #if MALLOC_LOG_DEBUG
         printf("done\n");
 #endif

@@ -7,7 +7,15 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
+LIBOGC_INC_LOCAL	:=	$(CURDIR)/lib/libogc/include
+LIBOGC_LIB_LOCAL	:=	$(CURDIR)/lib/libogc/lib/wii
+DEVKITPPC_LOCAL		:=	$(DEVKITPPC)/../devkitPPC_blueMSXWii
+
+# include from origional devkitPPC but for the rest, use our own!
+PATH_BACKUP := $(PATH)
 include $(DEVKITPPC)/wii_rules
+export PATH := $(DEVKITPPC_LOCAL)/bin:$(PATH_BACKUP)
+
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -70,7 +78,7 @@ INCLUDES	:=	include/libpng \
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) -DNO_ASM -DWII -DDEVKITPPC_STDLIB_INCLUDE=\"$(DEVKITPPC)/powerpc-gekko/include/stdlib.h\"
+CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) -DNO_ASM -DWII -DDEVKITPPC_STDLIB_INCLUDE=\"$(DEVKITPPC_LOCAL)/powerpc-gekko/include/stdlib.h\"
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -78,9 +86,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-#LIBS	:=	-lwiiuse -lbte -logc -lm
-#LIBS	:=	-lfat -lwiiuse -lbte -logc -lm
-LIBS	:=	 -lfreetype -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad -lbte
+LIBS	:=	 -lfreetype -lpng -lz -lwiiuse -lbte -lfat -logc -lm -lmad
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -126,7 +132,7 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
 					$(sFILES:.s=.o) $(SFILES:.S=.o)
 
-export GENFILES	:=	sdcard.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
+export GENFILES	:=	$(DEVKITPPC_LOCAL)/devkitppc.log sdcard.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
@@ -134,14 +140,14 @@ export GENFILES	:=	sdcard.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
 export INCLUDE	:=	$(foreach dir,$(INCLUDES), -I $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(BUILD) -I$(CURDIR)/include \
-					-I$(LIBOGC_INC) \
-					-I$(LIBOGC_INC)/ogc
+					-I$(LIBOGC_INC_LOCAL) \
+					-I$(LIBOGC_INC_LOCAL)/ogc
 
 #---------------------------------------------------------------------------------
 # build a list of library paths
 #---------------------------------------------------------------------------------
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib/wii) \
-					-L$(LIBOGC_LIB)
+					-L$(LIBOGC_LIB_LOCAL)
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 .PHONY: $(BUILD) clean
@@ -196,6 +202,14 @@ sdcard.inc: ../sdcard
 	@../util/7za a -r -xr!*.svn -xr!thumbs.* sdcard.zip ../sdcard/msx
 	@echo Converting sdcard.zip to sdcard.inc ...
 	@../util/raw2c sdcard.zip sdcard.inc sdcard
+
+#---------------------------------------------------------------------------------
+# This rule unpacks the local devkitPPC zip to a custom directory
+#---------------------------------------------------------------------------------
+$(DEVKITPPC_LOCAL)/devkitppc.log: ../lib/devkitPPC.zip
+	@echo Installing devkitPPC to $(DEVKITPPC_LOCAL)
+	@[ -d $(DEVKITPPC_LOCAL) ] || mkdir -p $(DEVKITPPC_LOCAL)
+	@../util/unzip ../lib/devkitPPC.zip -d $(DEVKITPPC_LOCAL) >$(DEVKITPPC_LOCAL)/devkitppc.log
 
 #---------------------------------------------------------------------------------
 # This rule converts .png to .inc files
