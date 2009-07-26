@@ -31,19 +31,18 @@
 #include <gctypes.h>
 
 typedef enum {
-    /* The numers maps to ascii where possible */
+    /* The numbers maps to ascii where possible */
     KEY_NONE        = 0,
     KEY_BACKSPACE   = 8,
     KEY_TAB         = 9,
-    KEY_CLEAR       = 12,
     KEY_RETURN      = 13,
-    KEY_PAUSE       = 19,
     KEY_ESCAPE      = 27,
     KEY_SPACE       = 32,
     KEY_EXCLAIM     = 33,
     KEY_QUOTEDBL    = 34,
     KEY_HASH        = 35,
     KEY_DOLLAR      = 36,
+    KEY_PERCENT     = 37,
     KEY_AMPERSAND   = 38,
     KEY_QUOTE       = 39,
     KEY_LEFTPAREN   = 40,
@@ -103,6 +102,10 @@ typedef enum {
     KEY_X           = 120,
     KEY_Y           = 121,
     KEY_Z           = 122,
+    KEY_LEFTBRACE   = 123,
+    KEY_BAR         = 124,
+    KEY_RIGHTBRACE  = 125,
+    KEY_ASCIITILDE  = 126,
     KEY_DELETE      = 127,
     /* End of ASCII mapped keysyms */
 

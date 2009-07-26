@@ -59,7 +59,6 @@ static void initKbdTable()
 {
     memset(kbdTable, 0, sizeof(kbdTable));
 
-    kbdTable[KEY_0          ] = EC_0;
     kbdTable[KEY_1          ] = EC_1;
     kbdTable[KEY_2          ] = EC_2;
     kbdTable[KEY_3          ] = EC_3;
@@ -69,19 +68,18 @@ static void initKbdTable()
     kbdTable[KEY_7          ] = EC_7;
     kbdTable[KEY_8          ] = EC_8;
     kbdTable[KEY_9          ] = EC_9;
+    kbdTable[KEY_0          ] = EC_0;
 
-    kbdTable[KEY_MINUS      ] = EC_NEG;
-    kbdTable[KEY_EQUALS     ] = EC_CIRCFLX;
-    kbdTable[KEY_BACKSLASH  ] = EC_BKSLASH;
-    kbdTable[KEY_LEFTBRACKET   ] = EC_AT;
-    kbdTable[KEY_RIGHTBRACKET  ] = EC_LBRACK;
-    kbdTable[KEY_SEMICOLON  ] = EC_SEMICOL;
-    kbdTable[KEY_QUOTE      ] = EC_COLON;
-    kbdTable[KEY_BACKQUOTE  ] = EC_RBRACK;
-    kbdTable[KEY_COMMA      ] = EC_COMMA;
-    kbdTable[KEY_PERIOD     ] = EC_PERIOD;
-    kbdTable[KEY_SLASH      ] = EC_DIV;
-    kbdTable[KEY_RCTRL      ] = EC_UNDSCRE;
+    kbdTable[KEY_EXCLAIM    ] = EC_1;
+    kbdTable[KEY_AT         ] = EC_2;
+    kbdTable[KEY_HASH       ] = EC_3;
+    kbdTable[KEY_DOLLAR     ] = EC_4;
+    kbdTable[KEY_PERCENT    ] = EC_5;
+    kbdTable[KEY_CARET      ] = EC_6;
+    kbdTable[KEY_AMPERSAND  ] = EC_7;
+    kbdTable[KEY_ASTERISK   ] = EC_8;
+    kbdTable[KEY_LEFTPAREN  ] = EC_9;
+    kbdTable[KEY_RIGHTPAREN ] = EC_0;
 
     kbdTable[KEY_A          ] = EC_A;
     kbdTable[KEY_B          ] = EC_B;
@@ -110,6 +108,32 @@ static void initKbdTable()
     kbdTable[KEY_Y          ] = EC_Y;
     kbdTable[KEY_Z          ] = EC_Z;
 
+    kbdTable[KEY_MINUS      ] = EC_NEG;
+    kbdTable[KEY_EQUALS     ] = EC_CIRCFLX;
+    kbdTable[KEY_BACKSLASH  ] = EC_BKSLASH;
+    kbdTable[KEY_LEFTBRACKET   ] = EC_AT;
+    kbdTable[KEY_RIGHTBRACKET  ] = EC_LBRACK;
+    kbdTable[KEY_COLON      ] = EC_SEMICOL;
+    kbdTable[KEY_QUOTE      ] = EC_COLON;
+    kbdTable[KEY_BACKQUOTE  ] = EC_RBRACK;
+    kbdTable[KEY_COMMA      ] = EC_COMMA;
+    kbdTable[KEY_PERIOD     ] = EC_PERIOD;
+    kbdTable[KEY_SLASH      ] = EC_DIV;
+
+    kbdTable[KEY_UNDERSCORE ] = EC_NEG;
+    kbdTable[KEY_PLUS       ] = EC_CIRCFLX;
+    kbdTable[KEY_BAR        ] = EC_BKSLASH;
+    kbdTable[KEY_LEFTBRACE  ] = EC_AT;
+    kbdTable[KEY_RIGHTBRACE ] = EC_LBRACK;
+    kbdTable[KEY_SEMICOLON  ] = EC_SEMICOL;
+    kbdTable[KEY_QUOTEDBL   ] = EC_COLON;
+    kbdTable[KEY_ASCIITILDE ] = EC_RBRACK;
+    kbdTable[KEY_LESS       ] = EC_COMMA;
+    kbdTable[KEY_GREATER    ] = EC_PERIOD;
+    kbdTable[KEY_QUESTION   ] = EC_DIV;
+
+    kbdTable[KEY_RCTRL      ] = EC_UNDSCRE;
+
     kbdTable[KEY_F1         ] = EC_F1;
     kbdTable[KEY_F2         ] = EC_F2;
     kbdTable[KEY_F3         ] = EC_F3;
@@ -130,23 +154,23 @@ static void initKbdTable()
     kbdTable[KEY_RIGHT      ] = EC_RIGHT;
     kbdTable[KEY_DOWN       ] = EC_DOWN;
 
-    kbdTable[KEY_KP_MULTIPLY   ] = EC_NUMMUL;
-    kbdTable[KEY_KP_PLUS       ] = EC_NUMADD;
-    kbdTable[KEY_KP_DIVIDE     ] = EC_NUMDIV;
-    kbdTable[KEY_KP_MINUS      ] = EC_NUMSUB;
-    kbdTable[KEY_KP_PERIOD     ] = EC_NUMPER;
-    kbdTable[KEY_PAGEDOWN      ] = EC_NUMCOM;
-    kbdTable[KEY_KP0    ] = EC_NUM0;
-    kbdTable[KEY_KP1    ] = EC_NUM1;
-    kbdTable[KEY_KP2    ] = EC_NUM2;
-    kbdTable[KEY_KP3    ] = EC_NUM3;
-    kbdTable[KEY_KP4    ] = EC_NUM4;
-    kbdTable[KEY_KP5    ] = EC_NUM5;
-    kbdTable[KEY_KP6    ] = EC_NUM6;
-    kbdTable[KEY_KP7    ] = EC_NUM7;
-    kbdTable[KEY_KP8    ] = EC_NUM8;
-    kbdTable[KEY_KP9    ] = EC_NUM9;
-    kbdTable[KEY_KP_ENTER      ] = EC_RETURN;
+    kbdTable[KEY_KP_MULTIPLY] = EC_NUMMUL;
+    kbdTable[KEY_KP_PLUS    ] = EC_NUMADD;
+    kbdTable[KEY_KP_DIVIDE  ] = EC_NUMDIV;
+    kbdTable[KEY_KP_MINUS   ] = EC_NUMSUB;
+    kbdTable[KEY_KP_PERIOD  ] = EC_NUMPER;
+    kbdTable[KEY_PAGEDOWN   ] = EC_NUMCOM;
+    kbdTable[KEY_KP0        ] = EC_NUM0;
+    kbdTable[KEY_KP1        ] = EC_NUM1;
+    kbdTable[KEY_KP2        ] = EC_NUM2;
+    kbdTable[KEY_KP3        ] = EC_NUM3;
+    kbdTable[KEY_KP4        ] = EC_NUM4;
+    kbdTable[KEY_KP5        ] = EC_NUM5;
+    kbdTable[KEY_KP6        ] = EC_NUM6;
+    kbdTable[KEY_KP7        ] = EC_NUM7;
+    kbdTable[KEY_KP8        ] = EC_NUM8;
+    kbdTable[KEY_KP9        ] = EC_NUM9;
+    kbdTable[KEY_KP_ENTER   ] = EC_RETURN;
 
     kbdTable[KEY_LWIN       ] = EC_TORIKE;
     kbdTable[KEY_RWIN       ] = EC_JIKKOU;

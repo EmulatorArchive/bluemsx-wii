@@ -61,13 +61,6 @@ bool SetupSDCard(GuiManager *manager)
     // Prepare messagebox
     msgboxSdSetup = new GuiMessageBox(manager);
 
-    // Init SD-Card access
-    if( !fatInitDefault() ) {
-        msgboxSdSetup->Show("SD-Card error!");
-        archThreadSleep(3000);
-        delete msgboxSdSetup;
-        return false;
-    }
 #if USE_EMBEDDED_SDCARD_IMAGE
     // Check if 'MSX' directory exists
     struct stat s;

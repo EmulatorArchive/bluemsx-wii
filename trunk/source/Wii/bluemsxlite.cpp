@@ -27,6 +27,7 @@
 **
 ******************************************************************************
 */
+#include <fat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -439,7 +440,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
             pressed = false;
         }
         // wait a frame
-		VIDEO_WaitVSync();
+        VIDEO_WaitVSync();
     }
     delete menu;
 
@@ -458,15 +459,19 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
 int main(int argc, char **argv)
 {
+    bool fatInitialised;
     allocLogStart();
 
     // Set main thread priority
     LWP_SetThreadPriority(LWP_GetSelf(), 100);
 
     // Init Wiimote
-	WPAD_Init();
-	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
-	WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
+    WPAD_Init();
+    WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
+    WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
+
+    // Init SD (keyboard layout can be saved on SD)
+    fatInitialised = fatInitDefault();
 
     // Init keyboard
     keyboardInit();
@@ -486,6 +491,14 @@ int main(int argc, char **argv)
     background = new GuiBackground(manager);
     background->Show();
 
+    // Init SD-Card access
+    if( !fatInitialised ) {
+        // Prepare messagebox
+        GuiMessageBox *msgboxSdSetup = new GuiMessageBox(manager);
+        msgboxSdSetup->Show("SD-Card error!");
+        archThreadSleep(3000);
+        delete msgboxSdSetup;
+    } else
     // Init SD-Card access
     if( SetupSDCard(manager) ) {
 
