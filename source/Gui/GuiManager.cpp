@@ -291,11 +291,12 @@ GuiManager::GuiManager()
     memset(add_list, 0, sizeof(add_list));
 
     // Initialize GameWindow
-	gwd.InitVideo();
-	gwd.SetBackground((GXColor){ 0, 0, 0, 255 });
+    gwd.InitVideo();
+    gwd.SetBackground((GXColor){ 0, 0, 0, 255 });
 
     // Initialize manager
     manager = new LayerManager(GUI_MAX_LAYERS);
+    render = NULL;
 
     // Start displaying
     quit_thread = false;
@@ -303,7 +304,6 @@ GuiManager::GuiManager()
     thread_stack = malloc(GUI_DISP_STACK_SIZE);
     LWP_CreateThread(&thread, DisplayThreadWrapper, this,
                      thread_stack, GUI_DISP_STACK_SIZE, 90);
-
 }
 
 GuiManager::~GuiManager()

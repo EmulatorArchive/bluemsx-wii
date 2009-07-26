@@ -2,8 +2,10 @@
 
 keyboard.c -- keyboard event system
 
-Copyright (C) 2008
+Copyright (C) 2008, 2009
 DAVY Guillaume davyg2@gmail.com
+Brian Johnson brijohn@gmail.com
+dhewg
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -26,201 +28,660 @@ distribution.
 
 -------------------------------------------------------------*/
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/iosupport.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <malloc.h>
+#include <ctype.h>
+#include <string.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <gccore.h>
 #include <ogc/usb.h>
 #include <ogc/lwp_queue.h>
+#include <ogc/lwp_queue.inl>
 
-#include <keyboard.h>
+#include "usbkeyboard.h"
+#include "keyboard.h"
+#include "wsksymvar.h"
 
-#include "convertscan.h"
+#define KBD_THREAD_STACKSIZE (1024 * 4)
+#define KBD_THREAD_PRIO 64
+#define KBD_THREAD_UDELAY (1000 * 10)
+#define KBD_THREAD_KBD_SCAN_INTERVAL (3 * 100)
 
-struct _keyManager
-{
-	device dev[DEVLIST_MAXSIZE];
-	keyboard key[DEVLIST_MAXSIZE];
-	u8 num;
+static lwp_queue _queue;
+static lwpq_t _kbd_queue = LWP_TQUEUE_NULL;
+static lwp_t _kbd_thread = LWP_THREAD_NULL;
+static lwp_t _kbd_buf_thread = LWP_THREAD_NULL;
+static bool _kbd_thread_running = false;
+static bool _kbd_thread_quit = false;
 
-	lwp_queue *queue;
+keysym_t ksym_upcase(keysym_t);
+
+extern const struct wscons_keydesc ukbd_keydesctab[];
+
+static struct wskbd_mapdata _ukbd_keymapdata = {
+	ukbd_keydesctab,
+	KB_NONE
 };
 
-typedef struct _node
-{
+struct nameint {
+	int value;
+	char *name;
+};
+
+static struct nameint kbdenc_tab[] = {
+	KB_ENCTAB
+};
+
+static struct nameint kbdvar_tab[] = {
+	KB_VARTAB
+};
+
+static int _sc_maplen = 0;					/* number of entries in sc_map */
+static struct wscons_keymap *_sc_map = 0;	/* current translation map */
+
+static u16 _modifiers;
+
+static int _composelen;		/* remaining entries in _composebuf */
+static keysym_t _composebuf[2];
+
+typedef struct {
+	u8 keycode;
+	u16 symbol;
+} _keyheld;
+
+#define MAXHELD 8
+static _keyheld _held[MAXHELD];
+
+typedef struct {
 	lwp_node node;
-	keyboardEvent event;
-}node;
+	keyboard_event event;
+} _node;
 
-static struct _keyManager _manager;
+static keyPressCallback _readKey_cb = NULL;
 
-//Return the number of keyboard of device dev
-s32 KEYBOARD_getNum(device dev)
-{
-	u8 i=0;
-	for (i=0;i<_manager.num;i++)
-		if (devEqual(dev,_manager.dev[i]))
-			return i;
-	return -1;
+static u8 *_kbd_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+static u8 *_kbd_buf_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+
+static kbd_t _get_keymap_by_name(const char *identifier) {
+	char name[64];
+	u8 i, j;
+	kbd_t encoding, variant;
+
+	kbd_t res = KB_NONE;
+
+	if (!identifier || (strlen(identifier) < 2))
+		return res;
+
+	i = 0;
+	for (i = 0; ukbd_keydesctab[i].name != 0; ++i) {
+		if (ukbd_keydesctab[i].name & KB_HANDLEDBYWSKBD)
+			continue;
+
+		encoding = KB_ENCODING(ukbd_keydesctab[i].name);
+		variant = KB_VARIANT(ukbd_keydesctab[i].name);
+
+		name[0] = 0;
+		for (j = 0; j < sizeof(kbdenc_tab) / sizeof(struct nameint); ++j)
+			if (encoding == kbdenc_tab[j].value) {
+				strcpy(name, kbdenc_tab[j].name);
+				break;
+			}
+
+		if (strlen(name) < 1)
+			continue;
+
+		for (j = 0; j < sizeof(kbdvar_tab) / sizeof(struct nameint); ++j)
+			if (variant & kbdvar_tab[j].value) {
+				strcat(name, "-");
+				strcat(name,  kbdvar_tab[j].name);
+			}
+
+		if (!strcmp(identifier, name)) {
+			res = ukbd_keydesctab[i].name;
+			break;
+		}
+	}
+
+	return res;
 }
 
 //Add an event to the event queue
-s32 KEYBOARD_addEvent(keyboardEvent event)
-{
-	node *n = malloc(sizeof(node));
-	n->event = event;
-	__lwp_queue_append(_manager.queue,(lwp_node*)n);
+static s32 _kbd_addEvent(const keyboard_event *event) {
+	_node *n = malloc(sizeof(_node));
+	n->event = *event;
+
+	__lwp_queue_append(&_queue, (lwp_node*) n);
+
 	return 1;
 }
 
-//Event callback, call when an event occurs in usbkeyboard
-s32 _event_cb(USBKeyboard_event kevent,void *usrdata)
-{
-	keyboard *key = (keyboard*) usrdata;
-	keyboardEvent event;
-	event.type = kevent.type;
-	event.dev = key->dev;
-	if (event.type==KEYBOARD_DISCONNECTED)
-	{
-		u8 j;
-		for (j=KEYBOARD_getNum(key->dev)-1;j<_manager.num;j++)
-		{
-			_manager.dev[j] = _manager.dev[j+1];
-			_manager.key[j] = _manager.key[j+1];
-		}
-		KEYBOARD_addEvent(event);
-		return 1;
+void update_modifier(u_int type, int toggle, int mask) {
+	if (toggle) {
+		if (type == KEYBOARD_PRESSED)
+			_modifiers ^= mask;
+	} else {
+		if (type == KEYBOARD_RELEASED)
+			_modifiers &= ~mask;
+		else
+			_modifiers |= mask;
 	}
-	event.keysym.scancode = kevent.keyCode;
-	event.keysym.mod = kevent.state;
-	event.keysym.sym = convertscan[kevent.keyCode];
-	event.keysym.ch = event.keysym.sym;
-	KEYBOARD_addEvent(event);
-	return 1;
 }
 
-//Thisfunction call usb function to check if a new keyboard is connected
-s32 KEYBOARD_ScanForNewKeyboard()
+//Event callback, gets called when an event occurs in usbkeyboard
+static void _kbd_event_cb(USBKeyboard_event kevent)
 {
-	device dev[DEVLIST_MAXSIZE];
+	keyboard_event event;
+	struct wscons_keymap kp;
+	keysym_t *group;
+	int gindex;
+	keysym_t ksym;
+	int i;
 
-	s32 num;
-	num = USBKeyboard_Find(&dev);
-	if (num<0)
-		return -1;
-	if (num==0)
-		return 0;
+	switch (kevent.type) {
+	case USBKEYBOARD_DISCONNECTED:
+		event.type = KEYBOARD_DISCONNECTED;
+		event.modifiers = 0;
+		event.keycode = 0;
+		event.symbol = 0;
 
-	u8 i;
-	for (i=0;i<num;i++)
-	{
-		_manager.dev[_manager.num]=dev[i];
-		s32 ret;
-		ret = USBKeyboard_Open(&_manager.key[_manager.num],_manager.dev[_manager.num]);
-		if (ret==1)
-		{
-			USBKeyboard_Add_EventCB(&_manager.key[_manager.num], &_event_cb,(void*) &_manager.key[_manager.num]);
+		_kbd_addEvent(&event);
 
-			USBKeyboard_PutOnLed(&_manager.key[_manager.num],USBKEYBOARD_LEDNUM);
-			USBKeyboard_PutOnLed(&_manager.key[_manager.num],USBKEYBOARD_LEDCAPS);
-			USBKeyboard_PutOnLed(&_manager.key[_manager.num],USBKEYBOARD_LEDSCROLL);
-			sleep(1);
-			USBKeyboard_PutOffLed(&_manager.key[_manager.num],USBKEYBOARD_LEDNUM);
-			USBKeyboard_PutOffLed(&_manager.key[_manager.num],USBKEYBOARD_LEDCAPS);
-			USBKeyboard_PutOffLed(&_manager.key[_manager.num],USBKEYBOARD_LEDSCROLL);
+		return;
 
-			keyboardEvent event;
-			event.type = KEYBOARD_CONNECTED;
-			event.dev = _manager.dev[_manager.num];
-			KEYBOARD_addEvent(event);
+	case USBKEYBOARD_PRESSED:
+		event.type = KEYBOARD_PRESSED;
+		break;
 
-			_manager.num++;
+	case USBKEYBOARD_RELEASED:
+		event.type = KEYBOARD_RELEASED;
+		break;
+
+	default:
+		return;
+	}
+
+	event.keycode = kevent.keyCode;
+
+	wskbd_get_mapentry(&_ukbd_keymapdata, event.keycode, &kp);
+
+	/* Now update modifiers */
+	switch (kp.group1[0]) {
+	case KS_Shift_L:
+		update_modifier(event.type, 0, MOD_SHIFT_L);
+		break;
+
+	case KS_Shift_R:
+		update_modifier(event.type, 0, MOD_SHIFT_R);
+		break;
+
+	case KS_Shift_Lock:
+		update_modifier(event.type, 1, MOD_SHIFTLOCK);
+		break;
+
+	case KS_Caps_Lock:
+		update_modifier(event.type, 1, MOD_CAPSLOCK);
+		USBKeyboard_SetLed(USBKEYBOARD_LEDCAPS,
+							MOD_ONESET(_modifiers, MOD_CAPSLOCK));
+		break;
+
+	case KS_Control_L:
+		update_modifier(event.type, 0, MOD_CONTROL_L);
+		break;
+
+	case KS_Control_R:
+		update_modifier(event.type, 0, MOD_CONTROL_R);
+		break;
+
+	case KS_Alt_L:
+		update_modifier(event.type, 0, MOD_META_L);
+		break;
+
+	case KS_Alt_R:
+		update_modifier(event.type, 0, MOD_META_R);
+		break;
+
+	case KS_Mode_switch:
+		update_modifier(event.type, 0, MOD_MODESHIFT);
+		break;
+
+	case KS_Mode_Lock:
+		update_modifier(event.type, 1, MOD_MODELOCK);
+		break;
+
+	case KS_Num_Lock:
+		update_modifier(event.type, 1, MOD_NUMLOCK);
+		USBKeyboard_SetLed(USBKEYBOARD_LEDNUM,
+							MOD_ONESET(_modifiers, MOD_NUMLOCK));
+		break;
+
+	case KS_Hold_Screen:
+		update_modifier(event.type, 1, MOD_HOLDSCREEN);
+		USBKeyboard_SetLed(USBKEYBOARD_LEDSCROLL,
+							MOD_ONESET(_modifiers, MOD_HOLDSCREEN));
+		break;
+	}
+
+	/* Get the keysym */
+	if (_modifiers & (MOD_MODESHIFT|MOD_MODELOCK) &&
+	    !MOD_ONESET(_modifiers, MOD_ANYCONTROL))
+		group = &kp.group2[0];
+	else
+		group = &kp.group1[0];
+
+	if ((_modifiers & MOD_NUMLOCK) &&
+	    KS_GROUP(group[1]) == KS_GROUP_Keypad) {
+		gindex = !MOD_ONESET(_modifiers, MOD_ANYSHIFT);
+		ksym = group[gindex];
+	} else {
+		/* CAPS alone should only affect letter keys */
+		if ((_modifiers & (MOD_CAPSLOCK | MOD_ANYSHIFT)) ==
+		    MOD_CAPSLOCK) {
+			gindex = 0;
+			ksym = ksym_upcase(group[0]);
+		} else {
+			gindex = MOD_ONESET(_modifiers, MOD_ANYSHIFT);
+			ksym = group[gindex];
 		}
 	}
-	return _manager.num;
+
+	/* Process compose sequence and dead accents */
+	switch (KS_GROUP(ksym)) {
+	case KS_GROUP_Mod:
+		if (ksym == KS_Multi_key) {
+			update_modifier(KEYBOARD_PRESSED, 0, MOD_COMPOSE);
+			_composelen = 2;
+		}
+		break;
+
+	case KS_GROUP_Dead:
+		if (event.type != KEYBOARD_PRESSED)
+			return;
+
+		if (_composelen == 0) {
+			update_modifier(KEYBOARD_PRESSED, 0, MOD_COMPOSE);
+			_composelen = 1;
+			_composebuf[0] = ksym;
+
+			return;
+		}
+		break;
+	}
+
+	if ((event.type == KEYBOARD_PRESSED) && (_composelen > 0)) {
+		/*
+		 * If the compose key also serves as AltGr (i.e. set to both
+		 * KS_Multi_key and KS_Mode_switch), and would provide a valid,
+		 * distinct combination as AltGr, leave compose mode.
+		 */
+		if (_composelen == 2 && group == &kp.group2[0]) {
+			if (kp.group1[gindex] != kp.group2[gindex])
+				_composelen = 0;
+		}
+
+		if (_composelen != 0) {
+			_composebuf[2 - _composelen] = ksym;
+			if (--_composelen == 0) {
+				ksym = wskbd_compose_value(_composebuf);
+				update_modifier(KEYBOARD_RELEASED, 0, MOD_COMPOSE);
+			} else {
+				return;
+			}
+		}
+	}
+
+	// store up to MAXHELD pressed events to match the symbol for release
+	switch (KS_GROUP(ksym)) {
+	case KS_GROUP_Ascii:
+	case KS_GROUP_Keypad:
+	case KS_GROUP_Function:
+		if (event.type == KEYBOARD_PRESSED) {
+			for (i = 0; i < MAXHELD; ++i) {
+				if (_held[i].keycode == 0) {
+					_held[i].keycode = event.keycode;
+					_held[i].symbol = ksym;
+
+					break;
+				}
+			}
+		} else {
+			for (i = 0; i < MAXHELD; ++i) {
+				if (_held[i].keycode == event.keycode) {
+					ksym = _held[i].symbol;
+					_held[i].keycode = 0;
+					_held[i].symbol = 0;
+
+					break;
+				}
+			}
+		}
+
+		break;
+	}
+
+	event.symbol = ksym;
+	event.modifiers = _modifiers;
+
+	_kbd_addEvent(&event);
+
+	return;
 }
 
-//Initialize USB and USB_KEYBOARD and the event queue
-s32 KEYBOARD_Init()
+//This function call usb function to check if a new keyboard is connected
+static s32 _kbd_scan_for_keyboard(void)
 {
-	if (USB_Initialize()!=IPC_OK)
-		return -1;
+	s32 ret;
+	keyboard_event event;
 
-	if (USBKeyboard_Initialize()!=IPC_OK)
-	{
-		USB_Deinitialize();
-		return -2;
-	}
-	_manager.queue = malloc(sizeof(lwp_queue));
-	__lwp_queue_initialize(_manager.queue,0,0,0);
-	_manager.num=0;
-	s32 ret = KEYBOARD_ScanForNewKeyboard();
+	ret = USBKeyboard_Open(&_kbd_event_cb);
+
+	if (ret < 0)
+		return ret;
+
+	_modifiers = 0;
+	_composelen = 0;
+	memset(_held, 0, sizeof(_held));
+
+	USBKeyboard_SetLed(USBKEYBOARD_LEDNUM, true);
+	USBKeyboard_SetLed(USBKEYBOARD_LEDCAPS, true);
+	USBKeyboard_SetLed(USBKEYBOARD_LEDSCROLL, true);
+	usleep(200 * 1000);
+	USBKeyboard_SetLed(USBKEYBOARD_LEDNUM, false);
+	USBKeyboard_SetLed(USBKEYBOARD_LEDCAPS, false);
+	USBKeyboard_SetLed(USBKEYBOARD_LEDSCROLL, false);
+
+	event.type = KEYBOARD_CONNECTED;
+	event.modifiers = 0;
+	event.keycode = 0;
+
+	_kbd_addEvent(&event);
+
 	return ret;
 }
 
-//Deinitialize USB and USB_KEYBOARD and the event queue
-s32 KEYBOARD_Deinit()
+static void * _kbd_thread_func(void *arg) {
+	u32 turns = 0;
+
+	while (!_kbd_thread_quit) {
+		// scan for new attached keyboards
+		if ((turns % KBD_THREAD_KBD_SCAN_INTERVAL) == 0) {
+			if (!USBKeyboard_IsConnected())
+				_kbd_scan_for_keyboard();
+
+			turns = 0;
+		}
+		turns++;
+
+		USBKeyboard_Scan();
+		usleep(KBD_THREAD_UDELAY);
+	}
+
+	return NULL;
+}
+
+struct {
+	vu8 head;
+	vu8 tail;
+	char buf[256];
+} _keyBuffer;
+
+static void * _kbd_buf_thread_func(void *arg) {
+	keyboard_event event;
+	while (!_kbd_thread_quit) {
+		if (((_keyBuffer.tail+1)&255) != _keyBuffer.head) {
+			if ( KEYBOARD_GetEvent(&event)) {
+				if (event.type == KEYBOARD_PRESSED) {
+					_keyBuffer.buf[_keyBuffer.tail] = event.symbol;
+					_keyBuffer.tail++;
+				}
+			}
+		}
+		usleep(KBD_THREAD_UDELAY);
+	}
+	return NULL;
+}
+
+static ssize_t _keyboardRead(struct _reent *r, int unused, char *ptr, size_t len)
 {
-	u8 i;
-	for (i=0;i<_manager.num;i++)
-		USBKeyboard_Close(&_manager.key[i]);
+	ssize_t count = len;
+	while ( count > 0 ) {
+		if (_keyBuffer.head != _keyBuffer.tail) {
+			char key = _keyBuffer.buf[_keyBuffer.head];
+			*ptr++ = key;
+			if (_readKey_cb != NULL) _readKey_cb(key);
+			_keyBuffer.head++;
+			count--;
+		}
+	}
+	return len;
+}
+
+static const devoptab_t std_in =
+{
+	"stdin",
+	0,
+	NULL,
+	NULL,
+	NULL,
+	_keyboardRead,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
+
+//Initialize USB and USB_KEYBOARD and the event queue
+s32 KEYBOARD_Init(keyPressCallback keypress_cb)
+{
+	int fd;
+	struct stat st;
+	char keymap[64] = {0};
+	size_t i;
+
+	if (USB_Initialize() != IPC_OK)
+		return -1;
+
+	if (USBKeyboard_Initialize() != IPC_OK) {
+		USB_Deinitialize();
+		return -2;
+	}
+
+	if (_ukbd_keymapdata.layout == KB_NONE) {
+		keymap[0] = 0;
+		fd = open("/MSX/wiikbd.map", O_RDONLY);
+
+		if ((fd > 0) && !fstat(fd, &st)) {
+			if ((st.st_size > 0) && (st.st_size < 64) &&
+				(st.st_size == read(fd, keymap, st.st_size))) {
+				keymap[63] = 0;
+				for (i = 0; i < 64; ++i) {
+					if ((keymap[i] != '-') && (isalpha(keymap[i]) == 0)) {
+						keymap[i] = 0;
+						break;
+					}
+				}
+			}
+
+			close(fd);
+		}
+
+		_ukbd_keymapdata.layout = _get_keymap_by_name(keymap);
+	}
+
+	if (_ukbd_keymapdata.layout == KB_NONE) {
+		switch (CONF_GetLanguage()) {
+		case CONF_LANG_GERMAN:
+			_ukbd_keymapdata.layout = KB_DE;
+			break;
+
+		case CONF_LANG_JAPANESE:
+			_ukbd_keymapdata.layout = KB_JP;
+			break;
+
+		case CONF_LANG_FRENCH:
+			_ukbd_keymapdata.layout = KB_FR;
+			break;
+
+		case CONF_LANG_SPANISH:
+			_ukbd_keymapdata.layout = KB_ES;
+			break;
+
+		case CONF_LANG_ITALIAN:
+			_ukbd_keymapdata.layout = KB_IT;
+			break;
+
+		case CONF_LANG_DUTCH:
+			_ukbd_keymapdata.layout = KB_NL;
+			break;
+
+		case CONF_LANG_SIMP_CHINESE:
+		case CONF_LANG_TRAD_CHINESE:
+		case CONF_LANG_KOREAN:
+		default:
+			_ukbd_keymapdata.layout = KB_US;
+			break;
+		}
+	}
+
+	if (wskbd_load_keymap(&_ukbd_keymapdata, &_sc_map, &_sc_maplen) < 0) {
+		_ukbd_keymapdata.layout = KB_NONE;
+
+		return -4;
+	}
+
+	__lwp_queue_init_empty(&_queue);
+
+	if (!_kbd_thread_running) {
+		// start the keyboard thread
+		_kbd_thread_quit = false;
+
+		memset(_kbd_stack, 0, KBD_THREAD_STACKSIZE);
+
+		LWP_InitQueue(&_kbd_queue);
+
+		s32 res = LWP_CreateThread(&_kbd_thread, _kbd_thread_func, NULL,
+									_kbd_stack, KBD_THREAD_STACKSIZE,
+									KBD_THREAD_PRIO);
+
+		if (res) {
+			LWP_CloseQueue(_kbd_queue);
+
+			USBKeyboard_Close();
+
+			return -6;
+		}
+
+		if(keypress_cb)
+		{
+			_keyBuffer.head = 0;
+			_keyBuffer.tail = 0;
+
+			res = LWP_CreateThread(&_kbd_buf_thread, _kbd_buf_thread_func, NULL,
+									_kbd_buf_stack, KBD_THREAD_STACKSIZE,
+									KBD_THREAD_PRIO);
+			if(res) {
+				_kbd_thread_quit = true;
+				LWP_ThreadBroadcast(_kbd_queue);
+
+				LWP_JoinThread(_kbd_thread, NULL);
+				LWP_CloseQueue(_kbd_queue);
+
+				USBKeyboard_Close();
+				KEYBOARD_FlushEvents();
+				USBKeyboard_Deinitialize();
+				_kbd_thread_running = false;
+				return -6;
+			}
+
+			devoptab_list[STD_IN] = &std_in;
+			setvbuf(stdin, NULL , _IONBF, 0);
+			_readKey_cb = keypress_cb;
+		}
+		_kbd_thread_running = true;
+	}
+	return 0;
+}
+
+//Deinitialize USB and USB_KEYBOARD and the event queue
+s32 KEYBOARD_Deinit(void)
+{
+	if (_kbd_thread_running) {
+		_kbd_thread_quit = true;
+		LWP_ThreadBroadcast(_kbd_queue);
+
+		if(_kbd_thread != LWP_THREAD_NULL)
+			LWP_JoinThread(_kbd_thread, NULL);
+		if(_kbd_buf_thread != LWP_THREAD_NULL)
+			LWP_JoinThread(_kbd_buf_thread, NULL);
+		LWP_CloseQueue(_kbd_queue);
+
+		_kbd_thread_running = false;
+	}
+
+	USBKeyboard_Close();
+	KEYBOARD_FlushEvents();
 	USBKeyboard_Deinitialize();
 	USB_Deinitialize();
-    if( _manager.queue ) {
-        free(_manager.queue);
-        _manager.queue = NULL;
-    }
+
+	if (_sc_map) {
+		free(_sc_map);
+		_sc_map = NULL;
+		_sc_maplen = 0;
+	}
+
 	return 1;
 }
 
 //Get the first event of the event queue
-s32 KEYBOARD_getEvent(keyboardEvent* event)
+s32 KEYBOARD_GetEvent(keyboard_event *event)
 {
-	node *n = (node*) __lwp_queue_get(_manager.queue);
+	_node *n = (_node *) __lwp_queue_get(&_queue);
+
 	if (!n)
 		return 0;
+
 	*event = n->event;
+
+	free(n);
+
 	return 1;
 }
 
-//Function who call the check event for all keyboard
-s32 KEYBOARD_ScanKeyboards()
+//Flush all pending events
+s32 KEYBOARD_FlushEvents(void)
 {
-	u8 i;
-	for (i=0;i<_manager.num;i++)
-	{
-		USBKeyboard_GetState(&_manager.key[i]);
+	s32 res;
+	_node *n;
+
+	res = 0;
+	while (true) {
+		n = (_node *) __lwp_queue_get(&_queue);
+
+		if (!n)
+			break;
+
+		free(n);
+		res++;
 	}
-	KEYBOARD_ScanForNewKeyboard();
-	return 1;
+
+	return res;
 }
 
-//Put on the led l of keyboard dev
-s32 KEYBOARD_putOnLed(keyboard_led l)
+//Turn on/off a led
+s32 KEYBOARD_SetLed(const Keyboard_led led, bool on)
 {
-	return USBKeyboard_PutOnLed(&(_manager.key[0]),l);
+    return USBKeyboard_SetLed(led, on);
 }
 
-//Put off the led l of keyboard dev
-s32 KEYBOARD_putOffLed(keyboard_led l)
+//Toggle a led
+s32 KEYBOARD_ToggleLed(const Keyboard_led led)
 {
-	return USBKeyboard_PutOffLed(&(_manager.key[0]),l);
+    return USBKeyboard_ToggleLed(led);
 }
-
-//Switch led l of keyboard dev
-s32 KEYBOARD_switchLed(keyboard_led l)
-{
-	return USBKeyboard_SwitchLed(&(_manager.key[0]),l);
-}
-
-//Look if a led is on or off
-bool KEYBOARD_getLed(keyboard_led led)
-{
-	return ((_manager.key[0].leds & (1 << led ))>0);
-}
-
-
 

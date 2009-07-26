@@ -34,10 +34,11 @@
 #include <math.h>
 #include <wiiuse/wpad.h>
 #include <ogc/lwp_watchdog.h>
-#include <keyboard.h>
 
 #include "kbdlib.h"
 #include "../iodevice/led.h"
+#include "../wiiusbkeyboard/keyboard.h"
+#include "../wiiusbkeyboard/wsksymdef.h"
 
 #ifndef PI
 #define PI 3.14159265358979323846
@@ -48,7 +49,8 @@
 
 typedef struct {
     KEY key;
-    int code;
+    int code_a;
+    int code_b;
 } KEYCODE;
 
 typedef struct {
@@ -101,17 +103,139 @@ static PADCODE wpad[] =
     {KEY_NONE, KEY_NONE, 0}
 };
 
-static KEYCODE mods[] =
+static KEYCODE syms[] =
 {
-    {KEY_LCTRL,   0x01},
-    {KEY_LSHIFT,  0x02},
-    {KEY_LALT,    0x04},
-    {KEY_LWIN,    0x08},
-    {KEY_RCTRL,   0x10},
-    {KEY_RSHIFT,  0x20},
-    {KEY_RALT,    0x40},
-    {KEY_RWIN,    0x80},
-    {KEY_NONE, 0}
+    // Function keys
+    {KEY_F1,            KS_F1,  KS_f1},
+    {KEY_F2,            KS_F2,  KS_f2},
+    {KEY_F3,            KS_F3,  KS_f3},
+    {KEY_F4,            KS_F4,  KS_f4},
+    {KEY_F5,            KS_F5,  KS_f5},
+
+    // ASCII mapped keysyms
+    {KEY_1,             KS_1},
+    {KEY_2,             KS_2},
+    {KEY_3,             KS_3},
+    {KEY_4,             KS_4},
+    {KEY_5,             KS_5},
+    {KEY_6,             KS_6},
+    {KEY_7,             KS_7},
+    {KEY_8,             KS_8},
+    {KEY_9,             KS_9},
+    {KEY_0,             KS_0},
+
+    {KEY_EXCLAIM,       KS_exclam},
+    {KEY_AT,            KS_at},
+    {KEY_HASH,          KS_numbersign},
+    {KEY_DOLLAR,        KS_dollar},
+    {KEY_PERCENT,       KS_percent},
+    {KEY_CARET,         KS_asciicircum},
+    {KEY_AMPERSAND,     KS_ampersand},
+    {KEY_ASTERISK,      KS_asterisk},
+    {KEY_LEFTPAREN,     KS_parenleft},
+    {KEY_RIGHTPAREN,    KS_parenright},
+
+    {KEY_A,             KS_A,   KS_a},
+    {KEY_B,             KS_B,   KS_b},
+    {KEY_C,             KS_C,   KS_c},
+    {KEY_D,             KS_D,   KS_d},
+    {KEY_E,             KS_E,   KS_e},
+    {KEY_F,             KS_F,   KS_f},
+    {KEY_G,             KS_G,   KS_g},
+    {KEY_H,             KS_H,   KS_h},
+    {KEY_I,             KS_I,   KS_i},
+    {KEY_J,             KS_J,   KS_j},
+    {KEY_K,             KS_K,   KS_k},
+    {KEY_L,             KS_L,   KS_l},
+    {KEY_M,             KS_M,   KS_m},
+    {KEY_N,             KS_N,   KS_n},
+    {KEY_O,             KS_O,   KS_o},
+    {KEY_P,             KS_P,   KS_p},
+    {KEY_Q,             KS_Q,   KS_q},
+    {KEY_R,             KS_R,   KS_r},
+    {KEY_S,             KS_S,   KS_s},
+    {KEY_T,             KS_T,   KS_t},
+    {KEY_U,             KS_U,   KS_u},
+    {KEY_V,             KS_V,   KS_v},
+    {KEY_W,             KS_W,   KS_w},
+    {KEY_X,             KS_X,   KS_x},
+    {KEY_Y,             KS_Y,   KS_y},
+    {KEY_Z,             KS_Z,   KS_z},
+
+    {KEY_MINUS,         KS_minus},
+    {KEY_EQUALS,        KS_equal},
+    {KEY_BACKSLASH,     KS_backslash},
+    {KEY_LEFTBRACKET,   KS_bracketleft},
+    {KEY_RIGHTBRACKET,  KS_bracketright},
+    {KEY_COLON,         KS_colon},
+    {KEY_QUOTE,         KS_apostrophe},
+    {KEY_BACKQUOTE,     KS_grave},
+    {KEY_COMMA,         KS_comma},
+    {KEY_PERIOD,        KS_period},
+    {KEY_SLASH,         KS_slash},
+
+    {KEY_UNDERSCORE,    KS_underscore},
+    {KEY_PLUS,          KS_plus},
+    {KEY_BAR,           KS_bar},
+    {KEY_LEFTBRACE,     KS_braceleft},
+    {KEY_RIGHTBRACE,    KS_braceright},
+    {KEY_SEMICOLON,     KS_semicolon},
+    {KEY_QUOTEDBL,      KS_quotedbl},
+    {KEY_ASCIITILDE,    KS_asciitilde},
+    {KEY_LESS,          KS_less},
+    {KEY_GREATER,       KS_greater},
+    {KEY_QUESTION,      KS_question},
+
+    {KEY_BACKSPACE,     KS_BackSpace},
+    {KEY_TAB,           KS_Tab},
+    {KEY_RETURN,        KS_Return},
+    {KEY_ESCAPE,        KS_Escape},
+    {KEY_SPACE,         KS_space},
+
+    // Numeric keypad
+    {KEY_KP0,           KS_KP_0},
+    {KEY_KP1,           KS_KP_1},
+    {KEY_KP2,           KS_KP_2},
+    {KEY_KP3,           KS_KP_3},
+    {KEY_KP4,           KS_KP_4},
+    {KEY_KP5,           KS_KP_5},
+    {KEY_KP6,           KS_KP_6},
+    {KEY_KP7,           KS_KP_7},
+    {KEY_KP8,           KS_KP_8},
+    {KEY_KP9,           KS_KP_9},
+    {KEY_KP_PERIOD,     KS_KP_Decimal},
+    {KEY_KP_DIVIDE,     KS_KP_Divide},
+    {KEY_KP_MULTIPLY,   KS_KP_Multiply},
+    {KEY_KP_MINUS,      KS_KP_Subtract},
+    {KEY_KP_PLUS,       KS_KP_Add},
+    {KEY_KP_ENTER,      KS_KP_Enter},
+
+    /* Arrows + Home/End pad */
+    {KEY_UP,            KS_Up,      KS_KP_Up},
+    {KEY_DOWN,          KS_Down,    KS_KP_Down},
+    {KEY_RIGHT,         KS_Right,   KS_KP_Right},
+    {KEY_LEFT,          KS_Left,    KS_KP_Left},
+    {KEY_INSERT,        KS_Insert,  KS_KP_Insert},
+    {KEY_DELETE,        KS_Delete,  KS_KP_Delete},
+    {KEY_HOME,          KS_Home,    KS_KP_Home},
+    {KEY_END,           KS_End,     KS_KP_End},
+    {KEY_PAGEUP,        KS_Prior,   KS_KP_Prior},
+    {KEY_PAGEDOWN,      KS_Next,    KS_KP_Next},
+
+    {KEY_NUMLOCK,       KS_Num_Lock},
+    {KEY_CAPSLOCK,      KS_Caps_Lock},
+    {KEY_SCROLLOCK,     KS_Hold_Screen},
+    {KEY_RSHIFT,        KS_Shift_R},
+    {KEY_LSHIFT,        KS_Shift_L},
+    {KEY_RCTRL,         KS_Control_R},
+    {KEY_LCTRL,         KS_Control_L},
+    {KEY_RALT,          KS_Alt_R},
+    {KEY_LALT,          KS_Alt_L},
+    {KEY_COMPOSE,       KS_Multi_key},      /* Multi-key compose key */
+
+    /* Miscellaneous function keys */
+    {KEY_PRINT,         KS_Print_Screen},
+    {KEY_NONE, 0 }
 };
 
 static void FillKeyNames(void)
@@ -119,19 +243,18 @@ static void FillKeyNames(void)
     /* Fill in the blanks in keynames */
     keynames[KEY_BACKSPACE] = "backspace";
     keynames[KEY_TAB]       = "tab";
-    keynames[KEY_CLEAR]     = "clear";
     keynames[KEY_RETURN]    = "return";
-    keynames[KEY_PAUSE]     = "pause";
     keynames[KEY_ESCAPE]    = "escape";
     keynames[KEY_SPACE]     = "space";
     keynames[KEY_EXCLAIM]   = "!";
     keynames[KEY_QUOTEDBL]  = "\"";
     keynames[KEY_HASH]      = "#";
     keynames[KEY_DOLLAR]    = "$";
+    keynames[KEY_PERCENT]   = "%";
     keynames[KEY_AMPERSAND] = "&";
     keynames[KEY_QUOTE]     = "'";
     keynames[KEY_LEFTPAREN] = "(";
-    keynames[KEY_RIGHTPAREN]= ")";
+    keynames[KEY_RIGHTPAREN] = ")";
     keynames[KEY_ASTERISK]  = "*";
     keynames[KEY_PLUS]      = "+";
     keynames[KEY_COMMA]     = ",";
@@ -187,6 +310,10 @@ static void FillKeyNames(void)
     keynames[KEY_X]         = "x";
     keynames[KEY_Y]         = "y";
     keynames[KEY_Z]         = "z";
+    keynames[KEY_LEFTBRACE] = "{",
+    keynames[KEY_BAR]       = "|",
+    keynames[KEY_RIGHTBRACE] = "}",
+    keynames[KEY_ASCIITILDE] = "~",
     keynames[KEY_DELETE]    = "delete";
 
     keynames[KEY_KP0]       = "[0]";
@@ -211,7 +338,6 @@ static void FillKeyNames(void)
     keynames[KEY_DOWN]      = "down";
     keynames[KEY_RIGHT]     = "right";
     keynames[KEY_LEFT]      = "left";
-    keynames[KEY_DOWN]      = "down";
     keynames[KEY_INSERT]    = "insert";
     keynames[KEY_HOME]      = "home";
     keynames[KEY_END]       = "end";
@@ -392,35 +518,24 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
     int i;
     int idx_prev = hndl->keyidx;
     int idx_new  = hndl->keyidx ^ 1;
-    keyboardEvent kbdEvent;
+    keyboard_event kbdEvent;
 
-    KEYBOARD_ScanKeyboards();
-    while( KEYBOARD_getEvent(&kbdEvent) ) {
+    while( KEYBOARD_GetEvent(&kbdEvent) ) {
         switch( kbdEvent.type ) {
             case KEYBOARD_PRESSED:
-                if( kbdEvent.keysym.sym == 0 ) {
-                    /* handle special keys */
-                    hndl->modifiers |= kbdEvent.keysym.mod;
-                    for(i = 0; mods[i].key != KEY_NONE; i++)  {
-                        if( kbdEvent.keysym.mod == mods[i].code ) {
-                            if( cb ) cb(hndl, mods[i].key, 1);
-                        }
+                for(i = 0; syms[i].key != KEY_NONE; i++)  {
+                    if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
+                        if( cb ) cb(hndl, syms[i].key, 1);
+                        //printf("Key_press %s\n", KBD_GetKeyName(syms[i].key));
                     }
-                } else {
-                    if( cb ) cb(hndl, kbdEvent.keysym.sym, 1);
                 }
                 break;
             case KEYBOARD_RELEASED:
-                if( kbdEvent.keysym.sym == 0 ) {
-                    hndl->modifiers &= ~kbdEvent.keysym.mod;
-                    /* handle special keys */
-                    for(i = 0; mods[i].key != KEY_NONE; i++)  {
-                        if( kbdEvent.keysym.mod == mods[i].code ) {
-                            if( cb ) cb(hndl, mods[i].key, 0);
-                        }
+                for(i = 0; syms[i].key != KEY_NONE; i++)  {
+                    if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
+                        if( cb ) cb(hndl, syms[i].key, 0);
+                        //printf("Key_release %s\n", KBD_GetKeyName(syms[i].key));
                     }
-                } else {
-                    if( cb ) cb(hndl, kbdEvent.keysym.sym, 0);
                 }
                 break;
             case KEYBOARD_DISCONNECTED:
@@ -432,10 +547,10 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
         }
     }
 
-    /* fill new key status array */
+    // fill new key status array
     memset(hndl->keystatus[idx_new], 0, sizeof(hndl->keystatus[0]));
 
-    /* handle WPAD buttons */
+    // handle WPAD buttons
     WPAD_ScanPads();
     hndl->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
     hndl->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
@@ -448,23 +563,19 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
         }
     }
 
-    /* compare with previous and call for each difference */
+    // compare with previous and call for each difference
     for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
         if( hndl->keystatus[idx_prev][i] != hndl->keystatus[idx_new][i] ) {
             if( cb ) cb(hndl, (KEY)i+KEY_JOY1_BUTTON_A, hndl->keystatus[idx_new][i]);
         }
     }
-    /* switch new<->previous */
+    // switch new<->previous
     hndl->keyidx ^= 1;
 
-    /* handle leds */
+    // handle leds
     int led = ledGetCapslock();
     if( hndl->leds != led ) {
-        if( led ) {
-            KEYBOARD_putOnLed(KEYBOARD_LEDCAPS);
-        } else {
-            KEYBOARD_putOffLed(KEYBOARD_LEDCAPS);
-        }
+        KEYBOARD_SetLed(KEYBOARD_LEDCAPS, led);
         hndl->leds = led;
     }
 }
@@ -494,7 +605,7 @@ KBDHANDLE KBD_Init(void)
         WPAD_Init();
         wpad_initialized = 1;
     }
-    hndl->connected = KEYBOARD_Init();
+    hndl->connected = KEYBOARD_Init(NULL);
     return hndl;
 }
 
