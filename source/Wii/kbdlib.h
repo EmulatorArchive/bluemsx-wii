@@ -213,19 +213,19 @@ typedef enum {
 } KEY;
 
 typedef struct _kbd_data KBDDATA, *KBDHANDLE;
-typedef void (*KBD_CALLBACK)(KBDHANDLE, KEY, int);
+typedef void (*KBD_CALLBACK)(KEY, int);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-extern void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb);
-extern int KBD_GetKeyStatus(KBDHANDLE hndl, KEY key);
-extern u32 KBD_GetPadButtons(int channel);
+extern void KBD_GetKeys(KBD_CALLBACK cb);
+extern int KBD_GetKeyStatus(KEY key);
+extern u32 KBD_GetPadButtons(void);
 extern u32 KBD_GetPadButtonStatus(int channel);
-extern void KBD_DeInit(KBDHANDLE hndl);
-extern KBDHANDLE KBD_Init(void);
-extern int KBD_IsConnected(KBDHANDLE hndl);
+extern void KBD_DeInit(void);
+extern int KBD_Init(void);
+extern int KBD_IsConnected(void);
 const char *KBD_GetKeyName(KEY key);
 
 #ifdef __cplusplus

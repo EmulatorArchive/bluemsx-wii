@@ -52,8 +52,6 @@ static int hasFocus = 1;
 
 static char keyboardConfigDir[512];
 
-KBDHANDLE kbdHandle;
-
 // initKbdTable initializes the keyboard table with default keys
 static void initKbdTable()
 {
@@ -139,6 +137,12 @@ static void initKbdTable()
     kbdTable[KEY_F3         ] = EC_F3;
     kbdTable[KEY_F4         ] = EC_F4;
     kbdTable[KEY_F5         ] = EC_F5;
+    kbdTable[KEY_F6         ] = EC_SELECT;
+    kbdTable[KEY_F7         ] = EC_STOP;
+    kbdTable[KEY_F8         ] = EC_CLS;
+    kbdTable[KEY_F9         ] = EC_INS;
+    kbdTable[KEY_F10        ] = EC_DEL;
+    kbdTable[KEY_F11        ] = EC_HOT_DISK_QUICK_CHANGE;
     kbdTable[KEY_ESCAPE     ] = EC_ESC;
     kbdTable[KEY_TAB        ] = EC_TAB;
     kbdTable[KEY_PAGEUP     ] = EC_STOP;
@@ -224,21 +228,14 @@ void keyboardInit(void)
 
     kbdModifiers = 0;
 
-    kbdHandle = KBD_Init();
-    if( !kbdHandle ) {
-        fprintf(stderr, "Unable to open keyboard!\n");
-        exit(0);
-    }
+    (void)KBD_Init();
 
     shortcuts = shortcutsCreate();
 }
 
 void keyboardClose(void)
 {
-    if( kbdHandle ) {
-        KBD_DeInit(kbdHandle);
-        kbdHandle = NULL;
-    }
+    KBD_DeInit();
     if( shortcuts ) {
         shortcutsDestroy(shortcuts);
         shortcuts = NULL;
@@ -279,7 +276,7 @@ static void keyboardHandleKeypress(KEY code, int pressed)
     }
 }
 
-static void keyboardCallbackKeypress(KBDHANDLE kbd, KEY code, int pressed)
+static void keyboardCallbackKeypress(KEY code, int pressed)
 {
     keyboardHandleKeypress(code, pressed);
 }
@@ -300,7 +297,7 @@ void keyboardUpdate(void)
         keyboardResetKbd();
         return;
     }
-    KBD_GetKeys(kbdHandle, keyboardCallbackKeypress);
+    KBD_GetKeys(keyboardCallbackKeypress);
 
     kbdModifiers = ((keyStatus[KEY_LSHIFT] ? 1 : 0) << 0) | ((keyStatus[KEY_RSHIFT] ? 1 : 0) << 1) |
                    ((keyStatus[KEY_LCTRL]  ? 1 : 0) << 2) | ((keyStatus[KEY_RCTRL]  ? 1 : 0) << 3) |

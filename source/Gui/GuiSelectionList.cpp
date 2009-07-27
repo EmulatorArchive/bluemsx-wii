@@ -229,12 +229,11 @@ int GuiSelectionList::DoSelection(void)
 {
     // Menu loop
     u64 scroll_time = 0;
-    (void)KBD_GetPadButtons(WPAD_CHAN_0); // flush first
-    (void)KBD_GetPadButtons(WPAD_CHAN_1);
+    (void)KBD_GetPadButtons(); // flush first
     current = selected;
     for(;;) {
         WPAD_ScanPads();
-        u32 buttons = KBD_GetPadButtons(WPAD_CHAN_0) | KBD_GetPadButtons(WPAD_CHAN_1);
+        u32 buttons = KBD_GetPadButtons();
 
         // Exit on 'home' or 'B'
         if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |

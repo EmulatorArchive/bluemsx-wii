@@ -72,12 +72,15 @@ struct _kbd_data {
     u8 modifiers;
     int leds;
     u8 keys[6];
-    u8 keystatus[2][KEY_LAST-KEY_JOY1_BUTTON_A]; /* only save joystick buttons */
+    u8 btnstatus[2][KEY_LAST]; /* save joystick buttons */
+    u8 keystatus[KEY_LAST]; /* save key status */
     int keyidx;
     int connected;
     int quiting;
     u32 wpad[2];
 };
+
+static KBDHANDLE kbdHandle = NULL;
 
 static const char *keynames[KEY_LAST];
 
@@ -103,6 +106,18 @@ static PADCODE wpad[] =
     {KEY_NONE, KEY_NONE, 0}
 };
 
+static PADCODE keypad[] =
+{
+    {KEY_UP,     KEY_NONE,  WPAD_BUTTON_UP    },
+    {KEY_DOWN,   KEY_NONE,  WPAD_BUTTON_DOWN  },
+    {KEY_LEFT,   KEY_NONE,  WPAD_BUTTON_LEFT  },
+    {KEY_RIGHT,  KEY_NONE,  WPAD_BUTTON_RIGHT },
+    {KEY_RETURN, KEY_SPACE, WPAD_BUTTON_A     },
+    {KEY_ESCAPE, KEY_NONE,  WPAD_BUTTON_B     },
+    {KEY_F12,    KEY_NONE,  WPAD_BUTTON_HOME  },
+    {KEY_NONE,   KEY_NONE,  0}
+};
+
 static KEYCODE syms[] =
 {
     // Function keys
@@ -111,6 +126,13 @@ static KEYCODE syms[] =
     {KEY_F3,            KS_F3,  KS_f3},
     {KEY_F4,            KS_F4,  KS_f4},
     {KEY_F5,            KS_F5,  KS_f5},
+    {KEY_F6,            KS_F6,  KS_f6},
+    {KEY_F7,            KS_F7,  KS_f7},
+    {KEY_F8,            KS_F8,  KS_f8},
+    {KEY_F9,            KS_F9,  KS_f9},
+    {KEY_F10,           KS_F10, KS_f10},
+    {KEY_F11,           KS_F11, KS_f11},
+    {KEY_F12,           KS_F12, KS_f12},
 
     // ASCII mapped keysyms
     {KEY_1,             KS_1},
@@ -410,9 +432,9 @@ static void FillKeyNames(void)
     keynames[KEY_JOY2_BUTTON_ZR] = "buttonZR2";
 }
 
-int KBD_IsConnected(KBDHANDLE hndl)
+int KBD_IsConnected(void)
 {
-    return hndl->connected;
+    return kbdHandle->connected;
 }
 
 const char *KBD_GetKeyName(KEY key)
@@ -496,13 +518,21 @@ u32 KBD_GetPadButtonStatus(int channel)
     return buttons;
 }
 
-u32 KBD_GetPadButtons(int channel)
+u32 KBD_GetPadButtons(void)
 {
-    static u32 prev_buttons[WPAD_MAX_WIIMOTES] = {0, 0, 0, 0};
+    int i;
+    static u32 prev_buttons = 0;
     static u64 repeat_time = 0;
-    u32 buttons = KBD_GetPadButtonStatus(channel);
-    if( buttons != prev_buttons[channel] ) {
-        prev_buttons[channel] = buttons;
+    u32 buttons = KBD_GetPadButtonStatus(WPAD_CHAN_0) | KBD_GetPadButtonStatus(WPAD_CHAN_1);
+    KBD_GetKeys(NULL);
+    for( i = 0; keypad[i].code != 0; i++ ) {
+        if( KBD_GetKeyStatus(keypad[i].key_a) ||
+            KBD_GetKeyStatus(keypad[i].key_b) ) {
+            buttons |= keypad[i].code;
+        }
+    }
+    if( buttons != prev_buttons ) {
+        prev_buttons = buttons;
         repeat_time = ticks_to_millisecs(gettime()) + TIME_BEFORE_REPEATING;
         return buttons;
     }
@@ -513,11 +543,11 @@ u32 KBD_GetPadButtons(int channel)
     return 0;
 }
 
-void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
+void KBD_GetKeys(KBD_CALLBACK cb)
 {
     int i;
-    int idx_prev = hndl->keyidx;
-    int idx_new  = hndl->keyidx ^ 1;
+    int idx_prev = kbdHandle->keyidx;
+    int idx_new  = kbdHandle->keyidx ^ 1;
     keyboard_event kbdEvent;
 
     while( KEYBOARD_GetEvent(&kbdEvent) ) {
@@ -525,7 +555,8 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
             case KEYBOARD_PRESSED:
                 for(i = 0; syms[i].key != KEY_NONE; i++)  {
                     if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
-                        if( cb ) cb(hndl, syms[i].key, 1);
+                        kbdHandle->keystatus[syms[i].key] = 1;
+                        if( cb ) cb(syms[i].key, 1);
                         //printf("Key_press %s\n", KBD_GetKeyName(syms[i].key));
                     }
                 }
@@ -533,79 +564,95 @@ void KBD_GetKeys(KBDHANDLE hndl, KBD_CALLBACK cb)
             case KEYBOARD_RELEASED:
                 for(i = 0; syms[i].key != KEY_NONE; i++)  {
                     if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
-                        if( cb ) cb(hndl, syms[i].key, 0);
+                        kbdHandle->keystatus[syms[i].key] = 0;
+                        if( cb ) cb(syms[i].key, 0);
                         //printf("Key_release %s\n", KBD_GetKeyName(syms[i].key));
                     }
                 }
                 break;
             case KEYBOARD_DISCONNECTED:
-                hndl->connected--;
+                memset(kbdHandle->keystatus, 0, sizeof(kbdHandle->keystatus));
+                memset(kbdHandle->btnstatus, 0, sizeof(kbdHandle->btnstatus));
+                kbdHandle->connected--;
                 break;
             case KEYBOARD_CONNECTED:
-                hndl->connected++;
+                kbdHandle->connected++;
                 break;
         }
     }
 
     // fill new key status array
-    memset(hndl->keystatus[idx_new], 0, sizeof(hndl->keystatus[0]));
+    memset(kbdHandle->btnstatus[idx_new], 0, sizeof(kbdHandle->btnstatus[0]));
 
     // handle WPAD buttons
     WPAD_ScanPads();
-    hndl->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
-    hndl->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
+    kbdHandle->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
+    kbdHandle->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
     for(i = 0; wpad[i].key_a != KEY_NONE; i++)  {
-        if( (hndl->wpad[0] & wpad[i].code) != 0  ) {
-            hndl->keystatus[idx_new][wpad[i].key_a-KEY_JOY1_BUTTON_A] = 1;
+        if( (kbdHandle->wpad[0] & wpad[i].code) != 0  ) {
+            kbdHandle->btnstatus[idx_new][wpad[i].key_a-KEY_JOY1_BUTTON_A] = 1;
         }
-        if( (hndl->wpad[1] & wpad[i].code) != 0  ) {
-            hndl->keystatus[idx_new][wpad[i].key_b-KEY_JOY1_BUTTON_A] = 1;
+        if( (kbdHandle->wpad[1] & wpad[i].code) != 0  ) {
+            kbdHandle->btnstatus[idx_new][wpad[i].key_b-KEY_JOY1_BUTTON_A] = 1;
         }
     }
 
     // compare with previous and call for each difference
     for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
-        if( hndl->keystatus[idx_prev][i] != hndl->keystatus[idx_new][i] ) {
-            if( cb ) cb(hndl, (KEY)i+KEY_JOY1_BUTTON_A, hndl->keystatus[idx_new][i]);
+        if( kbdHandle->btnstatus[idx_prev][i] != kbdHandle->btnstatus[idx_new][i] ) {
+            if( cb ) cb((KEY)i+KEY_JOY1_BUTTON_A, kbdHandle->btnstatus[idx_new][i]);
         }
     }
     // switch new<->previous
-    hndl->keyidx ^= 1;
+    kbdHandle->keyidx ^= 1;
 
     // handle leds
     int led = ledGetCapslock();
-    if( hndl->leds != led ) {
+    if( kbdHandle->leds != led ) {
         KEYBOARD_SetLed(KEYBOARD_LEDCAPS, led);
-        hndl->leds = led;
+        kbdHandle->leds = led;
     }
 }
 
-int KBD_GetKeyStatus(KBDHANDLE hndl, KEY key)
+int KBD_GetKeyStatus(KEY key)
 {
-    assert( key >= KEY_JOY1_BUTTON_A );
     assert( key < KEY_LAST );
-    return hndl->keystatus[hndl->keyidx][key-KEY_JOY1_BUTTON_A];
+    if( key < KEY_JOY1_BUTTON_A ) {
+        return kbdHandle->keystatus[key];
+    }else{
+        return kbdHandle->btnstatus[kbdHandle->keyidx][key-KEY_JOY1_BUTTON_A];
+    }
 }
 
-void KBD_DeInit(KBDHANDLE hndl)
+void KBD_DeInit(void)
 {
-    hndl->quiting = 1;
-    KEYBOARD_Deinit();
-    free(hndl);
+    if( kbdHandle != NULL ) {
+        kbdHandle->quiting = 1;
+        KEYBOARD_Deinit();
+        free(kbdHandle);
+        kbdHandle = NULL;
+    }
 }
 
-KBDHANDLE KBD_Init(void)
+int KBD_Init(void)
 {
     static int wpad_initialized = 0;
-    KBDHANDLE hndl = (KBDHANDLE)memalign(32, sizeof(KBDDATA));
-    memset(hndl, 0, sizeof(KBDDATA));
+
+    if( kbdHandle != NULL ) {
+        KBD_DeInit();
+    }
+
+    kbdHandle = (KBDHANDLE)memalign(32, sizeof(KBDDATA));
+    memset(kbdHandle, 0, sizeof(KBDDATA));
 
     FillKeyNames();
+
     if( !wpad_initialized ) {
         WPAD_Init();
         wpad_initialized = 1;
     }
-    hndl->connected = KEYBOARD_Init(NULL);
-    return hndl;
+
+    kbdHandle->connected = KEYBOARD_Init(NULL);
+    return kbdHandle->connected;
 }
 
