@@ -159,7 +159,7 @@ void allocLogPrint(void)
 #if 0
             do {
                 VIDEO_WaitVSync();
-                buttons = KBD_GetPadButtons(WPAD_CHAN_0) | KBD_GetPadButtons(WPAD_CHAN_1);
+                buttons = KBD_GetPadButtons();
             }while( !(buttons & WPAD_BUTTON_1) );
 #endif
             p = p->next;

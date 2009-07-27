@@ -442,6 +442,7 @@ Properties* propCreate(int useDefault,
                        PropKeyboardLanguage kbdLang, 
                        int syncMode, 
                        const char* themeName);
+void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage kbdLang, int syncMode, const char* themeName);
 void propSave(Properties* pProperties);
 void propDestroy(Properties* pProperties);
 void propertiesSetDirectory(const char* defDir, const char* altDir);

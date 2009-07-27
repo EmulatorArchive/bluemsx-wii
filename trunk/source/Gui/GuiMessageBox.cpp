@@ -44,13 +44,12 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 
     manager->Unlock();
 
-    (void)KBD_GetPadButtons(WPAD_CHAN_0); // flush first
-    (void)KBD_GetPadButtons(WPAD_CHAN_1);
+    (void)KBD_GetPadButtons(); // flush first
 
     for(;;) {
         // Buttons
         WPAD_ScanPads();
-        u32 buttons = KBD_GetPadButtons(WPAD_CHAN_0) | KBD_GetPadButtons(WPAD_CHAN_1);
+        u32 buttons = KBD_GetPadButtons();
 
         manager->Lock();
 

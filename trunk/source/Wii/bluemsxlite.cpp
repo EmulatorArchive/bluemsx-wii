@@ -74,6 +74,7 @@ extern "C" {
 #include "GuiImages.h"
 
 #define CONSOLE_DEBUG 0
+#define FORCE_50HZ    0
 
 #define TEX_WIDTH  (512+32)
 #define TEX_HEIGHT 480
@@ -93,8 +94,6 @@ static GuiBackground *background = NULL;
 static GuiConsole *console = NULL;
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
-
-extern KBDHANDLE kbdHandle;
 
 #define WIDTH  320
 #define HEIGHT 240
@@ -177,12 +176,15 @@ void blueMsxInit(int resetProperties)
 
     properties = propCreate(resetProperties, 0, P_KBD_EUROPEAN, 0, "");
 
+#if FORCE_50HZ
+    properties->emulation.vdpSyncMode = P_VDP_SYNC50HZ;
+#else
     if( manager->GetMode() == GW_VIDEO_MODE_NTSC_448 ) {
         properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
     }else{
         properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
     }
-
+#endif
     properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
 
     if (resetProperties == 2) {
@@ -294,11 +296,14 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 {
     int i;
 
+    // Loading message
+    msgbox->Show("Loading...");
+
     // Set current directory to the MSX-root
     archSetCurrentDirectory(MSX_ROOT_DIR);
 
-    // Loading message
-    msgbox->Show("Loading...");
+    // Reset properties
+    propInitDefaults(properties, 0, P_KBD_EUROPEAN, 0, "");
 
     g_doQuit = false;
 
@@ -374,7 +379,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 refresh = newrfsh;
             }
         }
-        if( KBD_GetKeyStatus(kbdHandle, KEY_JOY1_HOME) || KBD_GetKeyStatus(kbdHandle, KEY_JOY2_HOME) ) {
+        if( KBD_GetKeyStatus(KEY_JOY1_HOME) || KBD_GetKeyStatus(KEY_JOY2_HOME) ||
+            KBD_GetKeyStatus(KEY_F12) ) {
             if( !pressed ) {
                 emulatorSuspend();
                 osk->SetEnabled(false);
@@ -431,7 +437,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             break;
                     }
                 }while(!leave_menu);
-                KBD_GetKeys(kbdHandle, NULL); // flush
+                KBD_GetKeys(NULL); // flush
                 emulatorResume();
                 osk->SetEnabled(!g_doQuit);
                 pressed = true;
