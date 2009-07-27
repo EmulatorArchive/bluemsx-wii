@@ -1,0 +1,68 @@
+<GameList>
+    <Game Title="01 Deep Dungeon">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 01-DDUNGEON.ROM</CommandLine>
+        <ScreenShot>01-DDUNGEON-1.png</ScreenShot>
+        <ScreenShot>01-DDUNGEON-2.png</ScreenShot>
+    </Game>
+    <Game Title="02 I Need Speed">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 02-ineedspeed.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>02-ineedspeed-1.png</ScreenShot>
+        <ScreenShot>02-ineedspeed-2.png</ScreenShot>
+    </Game>
+    <Game Title="03 La Corona Encantada">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 03-rk714en.rom</CommandLine>
+        <ScreenShot>03-rk714en-1.png</ScreenShot>
+        <ScreenShot>03-rk714en-2.png</ScreenShot>
+    </Game>
+    <Game Title="04 Danger Tower">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 04-dangertower.rom</CommandLine>
+        <ScreenShot>04-dangertower-1.png</ScreenShot>
+        <ScreenShot>04-dangertower-2.png</ScreenShot>
+    </Game>
+    <Game Title="05 Peek-A-Boo">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 05-peekaboo.rom</CommandLine>
+        <ScreenShot>05-peekaboo-1.png</ScreenShot>
+        <ScreenShot>05-peekaboo-2.png</ScreenShot>
+    </Game>
+    <Game Title="06 Sp8 Invaders">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 06-SP8.ROM</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>06-SP8-1.png</ScreenShot>
+        <ScreenShot>06-SP8-2.png</ScreenShot>
+    </Game>
+    <Game Title="07 Tomb of Genghis Khan">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 07-togk.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>07-togk-1.png</ScreenShot>
+        <ScreenShot>07-togk-2.png</ScreenShot>
+    </Game>
+    <Game Title="08 Bakerman">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 08-bakerman.rom</CommandLine>
+        <ScreenShot>08-bakerman-1.png</ScreenShot>
+        <ScreenShot>08-bakerman-2.png</ScreenShot>
+    </Game>
+    <Game Title="09 PWND">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 09-PWND.rom</CommandLine>
+        <ScreenShot>09-PWND-1.png</ScreenShot>
+        <ScreenShot>09-PWND-2.png</ScreenShot>
+    </Game>
+    <Game Title="10 Formula Dice">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 10-formula.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>10-formula-1.png</ScreenShot>
+        <ScreenShot>10-formula-2.png</ScreenShot>
+    </Game>
+    <Game Title="11 Limaribu">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 11-limaribu.rom</CommandLine>
+        <ScreenShot>11-limaribu-1.png</ScreenShot>
+        <ScreenShot>11-limaribu-2.png</ScreenShot>
+    </Game>
+    <Game Title="12 The Bussas Quest">
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 12-hoseq.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>12-hoseq-1.png</ScreenShot>
+        <ScreenShot>12-hoseq-2.png</ScreenShot>
+    </Game>
+</GameList>
+
