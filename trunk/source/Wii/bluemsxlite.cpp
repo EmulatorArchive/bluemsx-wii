@@ -87,8 +87,6 @@ static int   bitDepth = 16;
 static int   zoom = 1;
 static int   displayPitch = TEX_WIDTH * 2;
 
-static bool  g_doQuit = false;
-
 static GuiManager *manager = NULL;
 static GuiBackground *background = NULL;
 static GuiConsole *console = NULL;
@@ -176,25 +174,12 @@ void blueMsxInit(int resetProperties)
 
     properties = propCreate(resetProperties, 0, P_KBD_EUROPEAN, 0, "");
 
-#if FORCE_50HZ
-    properties->emulation.vdpSyncMode = P_VDP_SYNC50HZ;
-#else
-    if( manager->GetMode() == GW_VIDEO_MODE_NTSC_448 ) {
-        properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
-    }else{
-        properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
-    }
-#endif
-    properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
-
     if (resetProperties == 2) {
         propDestroy(properties);
         return;
     }
 
     video = videoCreate();
-
-    videoUpdateAll(video, properties);
 
     if (properties->video.windowSize == P_VIDEO_SIZEFULLSCREEN) {
         zoom = properties->video.fullscreen.width / WIDTH;
@@ -305,7 +290,18 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     // Reset properties
     propInitDefaults(properties, 0, P_KBD_EUROPEAN, 0, "");
 
-    g_doQuit = false;
+    // Apply some default video propeties
+#if FORCE_50HZ
+    properties->emulation.vdpSyncMode = P_VDP_SYNC50HZ;
+#else
+    if( manager->GetMode() == GW_VIDEO_MODE_NTSC_448 ) {
+        properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
+    }else{
+        properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
+    }
+#endif
+    properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
+    videoUpdateAll(video, properties);
 
     printf("Title        : '%s'\n", game->GetName());
     printf("Command line : '%s'\n", game->GetCommandLine());
@@ -366,7 +362,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     int refresh = 0;
     bool pressed = true;
     GW_VIDEO_MODE prevVideo = manager->GetMode();
-    while(!g_doQuit) {
+    bool doQuit = false;
+    while(!doQuit) {
         if( prevVideo != GW_VIDEO_MODE_NTSC_448 ) {
             int newrfsh = boardGetRefreshRate();
             if( newrfsh != 0 && newrfsh != refresh ) {
@@ -429,7 +426,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             msgbox->Remove();
                             break;
                         case 3: /* Quit */
-                            g_doQuit = true;
+                            doQuit = true;
                             leave_menu = true;
                             break;
                         case -1: /* leaved menu */
@@ -439,7 +436,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 }while(!leave_menu);
                 KBD_GetKeys(NULL); // flush
                 emulatorResume();
-                osk->SetEnabled(!g_doQuit);
+                osk->SetEnabled(!doQuit);
                 pressed = true;
             }
         }else{

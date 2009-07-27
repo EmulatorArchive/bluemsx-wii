@@ -1,0 +1,21 @@
+<GameList>
+    <Game Title="Dvik &amp; Joyrex - Unleashed">
+        <CommandLine>/machine MSX /rom1 "Dvik &amp; Joyrex Demos.zip" /rom1zip unleashed.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>DvikJoyrex-unleashed-1.png</ScreenShot>
+        <ScreenShot>DvikJoyrex-unleashed-2.png</ScreenShot>
+    </Game>
+    <Game Title="Dvik &amp; Joyrex - Utopia">
+        <CommandLine>/machine MSX /rom1 "Dvik &amp; Joyrex Demos.zip" /rom1zip utopia.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>DvikJoyrex-utopia-1.png</ScreenShot>
+        <ScreenShot>DvikJoyrex-utopia-2.png</ScreenShot>
+    </Game>
+    <Game Title="Dvik &amp; Joyrex - Waves">
+        <CommandLine>/machine MSX /rom1 "Dvik &amp; Joyrex Demos.zip" /rom1zip waves.rom</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>DvikJoyrex-Waves-1.png</ScreenShot>
+        <ScreenShot>DvikJoyrex-Waves-2.png</ScreenShot>
+    </Game>
+</GameList>
+
