@@ -23,7 +23,7 @@ export PATH := $(DEVKITPPC_LOCAL)/bin:$(PATH_BACKUP)
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
+TARGET		:=	boot
 BUILD		:=	build
 SOURCES		:=	source/Bios \
               source/Board \

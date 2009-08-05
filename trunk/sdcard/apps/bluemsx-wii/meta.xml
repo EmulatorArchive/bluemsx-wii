@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
- <app version="0.0">
-   <name>BlueMsx Lite Wii</name>
-   <coder>Tim Brugman</coder>
-   <version>Beta</version>
-   <release_date>200904230000</release_date>
-   <short_description>BlueMsx Lite ported to Wii</short_description>
-   <long_description>
-Beta version of BlueMsx port for Wii.
-On the SD-Card there must be a 'MSX' directory which will beused as the BlueMsx working directory with all the stuff that is needed for BlueMsx.
-In subfolder 'Games' the gamepack must be placed.
-</long_description>
- </app>
+<app version="1.0RC">
+  <name>BlueMSX-Wii</name>
+  <coder>Tim Brugman</coder>
+  <version>Release Candidate</version>
+  <release_date>200908060000</release_date>
+  <short_description>BlueMSX port for Wii</short_description>
+  <long_description>
+BlueMSX ported to Wii with game selection GUI.
+On first start an MSX directory will be created in the root of your SD-Card with all necessary files.
+Games can easily be added to the MSX/Games folder by editing .xml files.
+  </long_description>
+</app>
