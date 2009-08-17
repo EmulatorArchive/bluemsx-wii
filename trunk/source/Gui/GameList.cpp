@@ -133,8 +133,10 @@ void XMLCALL GameList::endElement(void *userData, const char *name)
         }else{
             my->current_element->SetScreenShot(1, my->receiving_string);
         }
-        free(my->receiving_string);
-        my->receiving_string = NULL;
+        if( my->receiving_string != NULL ) {
+            free(my->receiving_string);
+            my->receiving_string = NULL;
+        }
         break;
     case CONTAINER_KEYMAP:
     case CONTAINER_SETTINGS:

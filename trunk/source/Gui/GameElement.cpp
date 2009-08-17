@@ -73,9 +73,11 @@ void GameElement::SetScreenShot(int number, const char *str)
 {
     if( number < 2 ) {
         if( screenshot[number] ) free(screenshot[number]);
-        screenshot[number] = (char*)malloc(strlen(str)+strlen(SCREENSHOT_DIR)+1);
-        strcpy(screenshot[number], SCREENSHOT_DIR);
-        strcat(screenshot[number], str);
+        if( str ) {
+            screenshot[number] = (char*)malloc(strlen(str)+strlen(SCREENSHOT_DIR)+1);
+            strcpy(screenshot[number], SCREENSHOT_DIR);
+            strcat(screenshot[number], str);
+        }
     }
 }
 
