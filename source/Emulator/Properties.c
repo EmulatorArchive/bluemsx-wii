@@ -415,6 +415,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     properties->cartridge.quickStartDrive = 0;
 
     properties->diskdrive.defDir[0]    = 0;
+    properties->diskdrive.defHdDir[0]  = 0;
     properties->diskdrive.autostartA   = 0;
     properties->diskdrive.quickStartDrive = 0;
     properties->diskdrive.cdromMethod     = P_CDROM_DRVNONE;
@@ -676,6 +677,7 @@ static void propLoad(Properties* properties)
     GET_INT_VALUE_2(cartridge, quickStartDrive);
 
     GET_STR_VALUE_2(diskdrive, defDir);
+    GET_STR_VALUE_2(diskdrive, defHdDir);
     GET_INT_VALUE_2(diskdrive, autostartA);
     GET_INT_VALUE_2(diskdrive, quickStartDrive);
     
@@ -914,6 +916,7 @@ void propSave(Properties* properties)
     SET_INT_VALUE_2(cartridge, quickStartDrive);
 
     SET_STR_VALUE_2(diskdrive, defDir);
+    SET_STR_VALUE_2(diskdrive, defHdDir);
     SET_INT_VALUE_2(diskdrive, autostartA);
     SET_INT_VALUE_2(diskdrive, quickStartDrive);
     

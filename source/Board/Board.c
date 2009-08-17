@@ -950,7 +950,7 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
-        saveStateDestroy()
+        saveStateDestroy();
     }
 
     // go back to idle state

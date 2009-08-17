@@ -378,6 +378,44 @@ static void updateOutputMode(VDP* vdp);
 
 #include "SpriteLine.h"
 
+// 2       2us       2us      7.95us   (R0&0x02)
+// 3       2us       2us      3.5us    (R1&0x08)
+static void checkVramAccessTimeTms(VDP* vdp)
+{
+    static UInt32 oldTime = 0xffff0000;
+
+    if (debuggerCheckVramAccess()) {
+        UInt32 minTime;
+
+        if (vdp->vdpStatus[2] & 0x40) {          // VBLANK
+            minTime = 43;                        // 2us
+        }
+        else {
+            if ((vdp->vdpRegs[1] & 0x40) == 0) { // BLK (screen disabled)
+                minTime = 43;                    // 2us
+            }
+            else if (vdp->vdpRegs[0] & 0x02) {   // Screen 2 (incl mixed modes)
+                minTime = 171;                   // 7.95us
+            }
+            else if (vdp->vdpRegs[1] & 0x08) {   // Screen 3
+                minTime = 76;                    // 3.5us
+            }
+            else if (vdp->vdpRegs[1] & 0x10) {   // Screen 0
+                minTime = 67;                    // 3.1us
+            }
+            else {                               // Screen 1
+                minTime = 171;                   // 7.95us
+            }
+        }
+
+        if (boardSystemTime() - oldTime < minTime) {
+            boardOnBreakpoint(0);
+        }
+        oldTime = boardSystemTime();
+    }
+}
+
+
 static void vdpBlink(VDP* vdp)
 {
     if(vdp->blinkCnt) {
@@ -909,7 +947,7 @@ static UInt8 peek(VDP* vdp, UInt16 ioPort)
 	return vdp->vdpData;
 }
 
-static UInt8 read(VDP* vdp, UInt16 ioPort) 
+static UInt8 readNoTimingCheck(VDP* vdp, UInt16 ioPort) 
 {
     UInt8 value;
 
@@ -926,6 +964,15 @@ static UInt8 read(VDP* vdp, UInt16 ioPort)
 	vdp->vdpKey = 0;
 
     return value;
+}
+
+static UInt8 read(VDP* vdp, UInt16 ioPort) 
+{
+    if (vdp->vdpVersion == VDP_TMS9929A || vdp->vdpVersion == VDP_TMS99x8A) {
+        checkVramAccessTimeTms(vdp);
+    }
+
+    return readNoTimingCheck(vdp, ioPort);
 }
 
 static UInt8 peekStatus(VDP* vdp, UInt16 ioPort)
@@ -1047,24 +1094,17 @@ static UInt8 readStatus(VDP* vdp, UInt16 ioPort)
 
     return vdpStatus;
 }
-
+                  
 static void write(VDP* vdp, UInt16 ioPort, UInt8 value)
 {
     sync(vdp, boardSystemTime());
 
-#if 0
-    {
-        static UInt32 oldTime = 0xffff0000;
-        if ((ioPort & 2) == 0 && (vdp->vdpStatus[2] & 0x40) == 0) {
-            if (boardSystemTime() - oldTime < 29 * 6) {
-                printf("outs too close !!\n");
-            }
-            oldTime = boardSystemTime();
-        }
+    if (vdp->vdpVersion == VDP_TMS9929A || vdp->vdpVersion == VDP_TMS99x8A) {
+        checkVramAccessTimeTms(vdp);
     }
-#endif
 
     if (vdp->vramEnable) {
+//        printf("W(0x%.4x): %.2x\n", (vdp->vdpRegs[14] << 14) | vdp->vramAddress, value);
         *MAP_VRAM(vdp, (vdp->vdpRegs[14] << 14) | vdp->vramAddress) = value;
     }
 	vdp->vdpData = value;
@@ -1088,7 +1128,7 @@ static void writeLatch(VDP* vdp, UInt16 ioPort, UInt8 value)
 				vdp->vramAddress = ((UInt16)value << 8 | (vdp->vramAddress & 0xff)) & 0x3fff;
 				if (!(value & 0x40)) {
 					if (value & 0x80) vdpUpdateRegisters(vdp, value, vdp->vdpDataLatch);
-					else read(vdp, ioPort);
+					else readNoTimingCheck(vdp, ioPort);
 				}
 				vdp->vdpKey = 0;
 			}
@@ -1107,7 +1147,7 @@ static void writeLatch(VDP* vdp, UInt16 ioPort, UInt8 value)
 				} 
 				else {
 					vdp->vramAddress = ((UInt16)value << 8 | vdp->vdpDataLatch) & 0x3fff;
-					if (!(value & 0x40)) read(vdp, ioPort);
+					if (!(value & 0x40)) readNoTimingCheck(vdp, ioPort);
 				}
 				vdp->vdpKey = 0;
 			}

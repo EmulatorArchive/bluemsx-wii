@@ -297,7 +297,22 @@ DSKE diskReadSector(int driveId, UInt8* buffer, int sector, int side, int track,
     return DSKE_NO_DATA;
 }
 
-static void diskUpdateInfo(int driveId)
+static int isSectorSize256(const UInt8* buf)
+{
+    // This implementation is quite rough, but it assmues that a disk with
+    // 256 sectors have content in sector 1, while a 512 sector disk has
+    // no data in the second half of the boot sector.
+    UInt8 rv = 0;
+    int cnt = 0xc0;
+    buf += 0x120;
+
+    while (cnt--) {
+        rv |= *buf++;
+    }
+    return rv != 0;
+}
+
+static void diskUpdateInfo(int driveId) 
 {
 	UInt8 buf[512];
     int secSize;
@@ -310,14 +325,6 @@ static void diskUpdateInfo(int driveId)
     sectorSize[driveId]      = 512;
     diskType[driveId]        = MSX_DISK;
     maxSector[driveId]       = MAXSECTOR;
-
-    if (fileSize[driveId] == 163840) {
-        sectorSize[driveId]      = 256;
-	    sectorsPerTrack[driveId] = 16;
-        tracks[driveId]          = 40;
-	    sides[driveId]           = 1;
-        return;
-    }
 
     if (fileSize[driveId] > 2 * 1024 * 1024) {
         // HD image
@@ -334,18 +341,33 @@ static void diskUpdateInfo(int driveId)
         return;
     }
 
+    rv = diskReadSector(driveId, buf, 1, 0, 0, 512, &secSize);
+    if (rv != DSKE_OK) {
+        return;
+    }
+
     switch (fileSize[driveId]) {
-        case 172032:	/* Single sided */
+        case 163840:
+            if (isSectorSize256(buf)) {
+                sectorSize[driveId]      = 256;
+	            sectorsPerTrack[driveId] = 16;
+                tracks[driveId]          = 40;
+	            sides[driveId]           = 1;
+            }
+            break;
+        case 172032:  /* SVI-328 SSDD */
             sides[driveId] = 1;
             tracks[driveId] = 40;
             sectorsPerTrack[driveId] = 17;
             diskType[driveId] = SVI328_DISK;
             return;
         case 184320:  /* BW 12 SSDD */
-            sectorSize[driveId] = 256;
-            sectorsPerTrack[driveId] = 18;
-            tracks[driveId] = 40;
-            sides[driveId] = 1;
+            if (isSectorSize256(buf)) {
+                sectorSize[driveId] = 256;
+                sectorsPerTrack[driveId] = 18;
+                tracks[driveId] = 40;
+                sides[driveId] = 1;
+            }
             return;
         case 204800:  /* Kaypro II SSDD */
             sectorSize[driveId] = 512;
@@ -360,17 +382,14 @@ static void diskUpdateInfo(int driveId)
             diskType[driveId] = SVI328_DISK;
             return;
         case 348160:  /* SVI-728 DSDD (CP/M) */
-            sectorSize[driveId] = 256;
-            sectorsPerTrack[driveId] = 17;
-            tracks[driveId] = 40;
-            sides[driveId] = 2;
+            if (isSectorSize256(buf)) {
+                sectorSize[driveId] = 256;
+                sectorsPerTrack[driveId] = 17;
+                tracks[driveId] = 40;
+                sides[driveId] = 2;
+            }
             return;
 	}
-
-    rv = diskReadSector(driveId, buf, 1, 0, 0, 512, &secSize);
-    if (rv != DSKE_OK) {
-        return;
-    }
 
     if (buf[0] ==0xeb) {
         switch (buf[0x15]) {
@@ -546,7 +565,7 @@ void diskSetInfo(int driveId, char* fileName, const char* fileInZipFile)
     drivesIsCdrom[driveId] = fileName && strcmp(fileName, DISK_CDROM) == 0;
 }
 
-static char *makeErrorsFileName(char *fileName)
+static char *makeErrorsFileName(const char *fileName)
 {
     char *p, *fname = (char*)malloc(strlen(fileName)+4);
     strcpy(fname, fileName);

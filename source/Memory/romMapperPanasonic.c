@@ -159,18 +159,15 @@ static void changeBank(RomMapperPanasonic* rm, int region, int bank)
     else if (bank >= RAM_BASE) {
         UInt8* ram;
 
-        if (region == 3) {
-            rm->readSection = READ_RAM;
-            rm->readOffset = bank - RAM_BASE;
-            rm->readBlock = boardGetRamPage(bank - RAM_BASE);
-            if (rm->readBlock == NULL) {
-                rm->readBlock = emptyRam;
-            }
-        }
-        
         ram = boardGetRamPage(bank - RAM_BASE);
         if (ram == NULL) {
             ram = emptyRam;
+        }
+
+        if (region == 3) {
+            rm->readSection = READ_RAM;
+            rm->readOffset = bank - RAM_BASE;
+            rm->readBlock = ram;
         }
 
         slotMapPage(rm->slot, rm->sslot, region, ram, region != 3, 0);
@@ -276,10 +273,9 @@ static void write(RomMapperPanasonic* rm, UInt16 address, UInt8 value)
 		} 
         else if (bank >= RAM_BASE) {
             UInt8* ram = boardGetRamPage(bank - RAM_BASE);
-            if (ram == NULL) {
-                ram = emptyRam;
+            if (ram != NULL) {
+                ram[address & 0x1fff] = value;
             }
-            ram[address & 0x1fff] = value;
 		}
 	} 
 }

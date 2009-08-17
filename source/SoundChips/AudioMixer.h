@@ -93,6 +93,7 @@ void mixerSync(Mixer* mixer);
 
 Int32 mixerRegisterChannel(Mixer* mixer, Int32 audioType, Int32 stereo,
                            MixerUpdateCallback callback, void*param);
+void mixerSetEnable(Mixer* mixer, int enable);
 void mixerUnregisterChannel(Mixer* mixer, Int32 handle);
 
 void mixerSetBoardFrequency(int CPUFrequency);

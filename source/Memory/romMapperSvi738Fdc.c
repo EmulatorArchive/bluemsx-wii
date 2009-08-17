@@ -158,6 +158,10 @@ static void write(RomMapperSvi738Fdc* rm, UInt16 address, UInt8 value)
                     wd2793SetDrive(rm->fdc, -1);
             }
             break;
+        case 0x3fbe:	// Set CP/M boot
+            break;
+        case 0x3fbf:	// Set DOS boot
+            break;
     }
 }       
 
