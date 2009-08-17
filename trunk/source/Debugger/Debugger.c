@@ -45,7 +45,7 @@ struct BlueDebugger {
 };
 
 #define MAX_DEVICES 64
-#define MAX_DEBUGGERS 64
+#define MAX_DEBUGGERS 8
 
 struct DbgSnapshot {
     int count;
@@ -54,6 +54,7 @@ struct DbgSnapshot {
 
 static BlueDebugger* debuggerList[MAX_DEBUGGERS];
 static DbgState  dbgState = DBG_STOPPED;
+static int debuggerVramAccessEnable = 0;
 
 static void onDefault(void* ref) {
 }
@@ -108,6 +109,11 @@ void debuggerDestroy(BlueDebugger* debugger)
     }
 
     free(debugger);
+}
+
+int debuggerCheckVramAccess(void)
+{
+    return debuggerVramAccessEnable > 0;
 }
 
 void debuggerNotifyEmulatorStart()
@@ -357,3 +363,12 @@ void dbgClearBreakpoint(UInt16 address)
     boardClearBreakpoint(address);
 }
 
+void dbgEnableVramAccessCheck(int enable)
+{
+    if (enable) {
+        debuggerVramAccessEnable++;
+    }
+    else {
+        debuggerVramAccessEnable--;
+    }
+}    

@@ -112,7 +112,8 @@ static void wd2793ReadSector(WD2793* wd)
 	    wd->regStatus |= ST_RECORD_NOT_FOUND;
 	    wd->intRequest = 1;
 	    wd->regStatus &= ~ST_BUSY;
-    }else{
+    }
+    else {
         if (rv == DSKE_CRC_ERROR) {
             wd->regStatus |= ST_CRC_ERROR;
         }

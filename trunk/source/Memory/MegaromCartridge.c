@@ -499,7 +499,7 @@ int cartridgeInsert(int cartNo, RomType romType, char* cart, char* cartZip)
             success &= romMapperHolyQuranCreate(romName, buf, size, slot, sslot, 2);
             break;
 
-		case ROM_KONAMISYNTH:
+        case ROM_KONAMISYNTH:
             success &= romMapperKonamiSynthCreate(romName, buf, size, slot, sslot, 2);
             break;
 

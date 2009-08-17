@@ -44,6 +44,7 @@ char* zipGetFileList(const char* zipName, const char* ext, int* count);
 int zipHasFileType(char* zipName, char* ext);
 int zipExtractCurrentfile(unzFile uf, int overwrite, const char* password);
 int zipExtract(unzFile uf, int overwrite, const char* password, ZIP_EXTRACT_CB progress_callback);
+void* zipCompress(void* buffer, int size, unsigned long* retSize);
 
 #ifdef __cplusplus
 }

@@ -62,9 +62,11 @@ char* extractToken(char* szLine, int argNo) {
 char* extractTokenEx(char* szLine, int argNo, char *dir) {
     static char argBuf[512];
     char *p;
-    int i;
 
     p = extractToken(szLine, argNo);
+    if (dir == NULL) {
+        return p;
+    }
     if( p ) {
         strcpy(argBuf, dir);
         strcat(argBuf, "/");

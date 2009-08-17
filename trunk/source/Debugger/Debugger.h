@@ -129,6 +129,10 @@ void dbgStep();
 void dbgSetBreakpoint(UInt16 address);
 void dbgClearBreakpoint(UInt16 address);
 
+int debuggerCheckVramAccess(void);
+
+void dbgEnableVramAccessCheck(int enable);
+
 // Internal structure and interface
 
 #define MAX_DBG_COMPONENTS 4
@@ -152,5 +156,7 @@ void debuggerNotifyEmulatorResume();
 void debuggerNotifyEmulatorReset();
 void debuggerTrace(const char* str);
 void debuggerSetBreakpoint(UInt16 slot, UInt16 page, UInt16 address);
+
+int debuggerIsPresent(void);
 
 #endif /*DEBUGGER_H*/

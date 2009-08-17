@@ -25,7 +25,7 @@
 **
 ******************************************************************************
 */
-#include "ZipHelper.h"
+#include "ziphelper.h"
 
 #include "zip.h"
 #include "unzip.h"
@@ -36,6 +36,15 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
+#ifdef WIN32
+#include <direct.h>
+#endif
+
+#ifdef MINGW
+ #define MKDIR(x) mkdir(x)
+#else
+ #define MKDIR(x) mkdir(x,0777)
+#endif
 
 static void toLower(char* str) {
     while (*str) {
@@ -89,6 +98,7 @@ void* _zipLoadFile(const char* zipName, const char* fileName, int* size, zlib_fi
     }
 
     if (unzOpenCurrentFile(zip) != UNZ_OK) {
+        unzClose(zip);
         return NULL;
     }
 
@@ -371,7 +381,7 @@ static int makedir(const char *newdir)
     if (buffer[len-1] == '/') {
         buffer[len-1] = '\0';
     }
-    if (mkdir(buffer, 0777) == 0) {
+    if (MKDIR(buffer) == 0) {
         free(buffer);
         return 1;
     }
@@ -383,7 +393,7 @@ static int makedir(const char *newdir)
         while(*p && *p != '\\' && *p != '/') p++;
         hold = *p;
         *p = 0;
-        if ((mkdir(buffer, 0777) == -1) && (errno == ENOENT))
+        if ((MKDIR(buffer) == -1) && (errno == ENOENT))
         {
             printf("couldn't create directory %s\n",buffer);
             free(buffer);
@@ -425,7 +435,7 @@ int zipExtractCurrentfile(unzFile uf, int overwrite, const char* password)
     }
 
     if ((*filename_withoutpath)=='\0') {
-        mkdir(filename_inzip, 0777);
+        MKDIR(filename_inzip);
     }else{
         const char* write_filename;
         int skip=0;
@@ -531,3 +541,17 @@ int zipExtract(unzFile uf, int overwrite, const char* password,
     return 1;
 }
 
+void* zipCompress(void* buffer, int size, unsigned long* retSize)
+{
+    void* retBuf;
+
+    *retSize = (size * 1001) / 1000 + 12;
+    retBuf = malloc(*retSize);
+
+    if (compress(retBuf, retSize, buffer, size) != Z_OK) {
+        free(retBuf);
+        retBuf = NULL;
+    }
+
+    return retBuf;
+}

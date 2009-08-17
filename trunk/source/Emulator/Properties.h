@@ -353,6 +353,7 @@ typedef struct {
 
 typedef struct {
     char defDir[PROP_MAXPATH];
+    char defHdDir[PROP_MAXPATH];
     int  autostartA;
     int  quickStartDrive;
     int  cdromMethod;
@@ -445,6 +446,7 @@ Properties* propCreate(int useDefault,
 void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage kbdLang, int syncMode, const char* themeName);
 void propSave(Properties* pProperties);
 void propDestroy(Properties* pProperties);
+
 void propertiesSetDirectory(const char* defDir, const char* altDir);
 
 Properties* propGetGlobalProperties();

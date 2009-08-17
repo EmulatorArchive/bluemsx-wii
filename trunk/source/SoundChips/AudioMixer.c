@@ -42,6 +42,7 @@
 
 
 static int mixerCPUFrequency;
+static int mixerConnector;
 static int mixerCPUFrequencyFixed;
 
 void mixerSetBoardFrequency(int CPUFrequency)
@@ -131,6 +132,7 @@ struct Mixer
     Int32   volCntLeft;
     Int32   volCntRight;
     FILE*   file;
+    int     enable;
 };
 
 
@@ -339,6 +341,7 @@ Mixer* mixerCreate()
     Mixer* mixer = (Mixer*)calloc(1, sizeof(Mixer));
 
     mixer->fragmentSize = 512;
+    mixer->enable = 1;
     if (globalMixer == NULL) globalMixer = mixer;
 
     return mixer;
@@ -443,6 +446,28 @@ void mixerSync(Mixer* mixer)
         return;
     }
 
+    if (!mixer->enable) {
+        while (count--) {
+            if (mixer->stereo) {
+                buffer[mixer->index++] = 0;
+                buffer[mixer->index++] = 0;
+            }
+            else {
+                buffer[mixer->index++] = 0;
+            }
+            if (mixer->index == mixer->fragmentSize) {
+                if (mixer->writeCallback != NULL) {
+                    mixer->writeCallback(mixer->writeRef, buffer, mixer->fragmentSize);
+                }
+                if (mixer->logging) {
+                    fwrite(buffer, 2 * mixer->fragmentSize, 1, mixer->file);
+                }
+                mixer->index = 0;
+            }
+        }
+        return;
+    }
+    
     for (i = 0; i < mixer->channelCount; i++) {
         if (mixer->channels[i].updateCallback != NULL) {
             chBuff[i] = mixer->channels[i].updateCallback(mixer->channels[i].ref, count);
@@ -653,4 +678,10 @@ void mixerStopLog(Mixer* mixer)
     fseek(mixer->file, 0, SEEK_SET);
     fwrite(&header, 1, sizeof(WavHeader), mixer->file);
     fclose(mixer->file);
+}
+
+void mixerSetEnable(Mixer* mixer, int enable)
+{
+    mixer->enable = enable;
+//    printf("AUDIO: %s\n", enable?"enabled":"disabled");
 }
