@@ -8,7 +8,7 @@ extern "C" {
 #include "Properties.h"
 }
 
-#define NUM_STATE_ITEMS   4
+#define NUM_STATE_ITEMS   5
 
 class GuiStateSelect : public GuiSelectionList {
 public:
