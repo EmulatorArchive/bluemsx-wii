@@ -23,7 +23,7 @@ extern "C" {
 #define SSEL_HEIGHT       256
 #define SSEL_MENU_SPACING 8
 #define SSEL_X_SPACING    12
-#define SSEL_LIST_WIDTH   300
+#define SSEL_LIST_WIDTH   280
 
 void GuiStateSelect::CreateStateFileList(Properties *properties, char *directory)
 {
@@ -60,12 +60,17 @@ void GuiStateSelect::CreateStateFileList(Properties *properties, char *directory
                 if( stat(glob->pathVector[i], &s) >= 0 ) {
                     int j, k;
                     time_t t = s.st_mtime;
+                    // libogc bug: year = 1929
+                    struct tm * timeinfo;
+                    timeinfo = localtime(&t);
+                    timeinfo->tm_year += 80;
+                    t = mktime(timeinfo);
                     // get date/time string and strip off milliseconds
                     char *str = strdup(ctime(&t));
                     char *p = &str[strlen(str)-1];
                     while( *p != ' ' ) p--;
                     *p = '\0';
-                    // to get sorted list, find position where to strore in list
+                    // to get sorted list, find position where to store in list
                     for(k = 0; k < num_states && filetimes[k] > t; k++);
                     // shift all entries behind
                     for(j = num_states; j > k; j--) {
@@ -116,12 +121,12 @@ void GuiStateSelect::UpdateScreenShot(char *file)
         }
 
         sprScreenShot = new Sprite;
-        sprScreenShot->SetPosition(posx+sizex-256-SSEL_X_SPACING-2*SSEL_MENU_SPACING,
+        sprScreenShot->SetPosition(posx+sizex-283-SSEL_X_SPACING-2*SSEL_MENU_SPACING,
                                    posy+sizey/2-106);
         sprScreenShot->SetImage(imgScreenShot);
         sprScreenShot->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprScreenShot->SetRefPixelPosition(0, 0);
-        sprScreenShot->SetStretchWidth(256.0f/imgScreenShot->GetWidth());
+        sprScreenShot->SetStretchWidth(283.0f/imgScreenShot->GetWidth());
         sprScreenShot->SetStretchHeight(212.0f/imgScreenShot->GetHeight());
         manager->AddTop(sprScreenShot, SSEL_FADE_FRAMES);
     }
@@ -154,12 +159,12 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     sizex = 640-28;
     sizey = SSEL_HEIGHT+32;
     GuiContainer *container = new GuiContainer(posx, posy, sizex, sizey, 160);
-	manager->AddTop(container, SSEL_FADE_FRAMES);
+    manager->AddTop(container, SSEL_FADE_FRAMES);
     sizex = container->GetWidth();
     sizey = container->GetHeight();
 
     // Selection
-    ShowSelection((const char **)timestrings, num_states, 0, 30, SSEL_YPITCH,
+    ShowSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
                   posx+SSEL_X_SPACING,
                   posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
                   SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false, SSEL_FADE_FRAMES);
@@ -197,7 +202,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     // Remove UI elements
     UpdateScreenShot(NULL);
     RemoveSelection();
-	manager->RemoveAndDelete(container, NULL, SSEL_FADE_FRAMES);
+    manager->RemoveAndDelete(container, NULL, SSEL_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
