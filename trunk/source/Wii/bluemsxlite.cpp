@@ -402,7 +402,6 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                         case 1: /* Save state */
                             msgbox->Show("Saving state...", NULL, false, 160);
                             actionQuickSaveState();
-                            emulatorSuspend();
                             msgbox->Remove();
                             break;
                         case 2: /* Screenshot */

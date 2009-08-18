@@ -432,11 +432,16 @@ void actionQuickLoadState() {
 }
 
 void actionQuickSaveState() {
-    if (emulatorGetState() != EMU_STOPPED) {
-        emulatorSuspend();
+    EmuState emu_state = emulatorGetState();
+    if (emu_state != EMU_STOPPED) {
+        if( emu_state == EMU_RUNNING ) {
+            emulatorSuspend();
+        }
         strcpy(state.properties->filehistory.quicksave, generateSaveFilename(state.properties, stateDir, statePrefix, ".sta", 2));
         boardSaveState(state.properties->filehistory.quicksave);
-        emulatorResume();
+        if( emu_state == EMU_RUNNING ) {
+            emulatorResume();
+        }
     }
 }
 
