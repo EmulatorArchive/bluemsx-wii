@@ -41,9 +41,9 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
                                  GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
     }
     sprScreenShot[0] = new Sprite;
-	sprScreenShot[0]->SetPosition(344+12-8, 24+16);
+    sprScreenShot[0]->SetPosition(344+12-8, 24+16);
     sprScreenShot[1] = new Sprite;
-	sprScreenShot[1]->SetPosition(344+12-8, 228+16);
+    sprScreenShot[1]->SetPosition(344+12-8, 228+16);
     // Update screenshots
     if( selected >= 0 ) {
         GameElement *game = games.GetGame(index+selected);
@@ -51,8 +51,8 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
         SetScreenShotImage(1, new Image(game->GetImage(1)));
     }
     // Add to screen
-	manager->AddTop(sprScreenShot[0], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
-	manager->AddTop(sprScreenShot[1], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
+    manager->AddTop(sprScreenShot[0], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
+    manager->AddTop(sprScreenShot[1], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
     // Free images of games that are not on the screen
     for(int i = 0; i < games.GetNumberOfGames(); i++) {
         GameElement *game = games.GetGame(i);
@@ -63,32 +63,36 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
     }
 }
 
-GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameElement *select)
+bool GuiGameSelect::Load(const char *dir, const char *filename)
 {
-    GameElement *returnValue = NULL;
-
     // Load games database
     chdir(dir);
     games.Load(filename);
     num_games = games.GetNumberOfGames();
     if( num_games == 0 ) {
-        return NULL;
+        return false;
     }
     title_list = (const char**)malloc(num_games * sizeof(const char*));
     for(int i = 0; i < num_games; i++) {
         title_list[i] = games.GetGame(i)->GetName();
     }
+    return true;
+}
+
+GameElement *GuiGameSelect::DoModal(GameElement *select)
+{
+    GameElement *returnValue = NULL;
 
     // Claim UI
     manager->Lock();
 
     // Containers
     GuiContainer *grWinList = new GuiContainer(32-8, 28, 288, 33*12);
-	manager->AddTop(grWinList, GAMESEL_FADE_DEFAULT);
+    manager->AddTop(grWinList, GAMESEL_FADE_DEFAULT);
     GuiContainer *grWinTitle = new GuiContainer(344-8, 28, 264+12, 16*12);
-	manager->AddTop(grWinTitle, GAMESEL_FADE_DEFAULT);
+    manager->AddTop(grWinTitle, GAMESEL_FADE_DEFAULT);
     GuiContainer *grWinPlay = new GuiContainer(344-8, 232, 264+12, 16*12);
-	manager->AddTop(grWinPlay, GAMESEL_FADE_DEFAULT);
+    manager->AddTop(grWinPlay, GAMESEL_FADE_DEFAULT);
 
     // On re-enter, find selected entry
     int sel = 0;
@@ -142,9 +146,9 @@ GameElement *GuiGameSelect::DoModal(const char *dir, const char *filename, GameE
     RemoveSelection();
     manager->RemoveAndDelete(sprScreenShot[0], sprScreenShot[0]->GetImage(), GAMESEL_FADE_DEFAULT);
     manager->RemoveAndDelete(sprScreenShot[1], sprScreenShot[1]->GetImage(), GAMESEL_FADE_DEFAULT);
-	manager->RemoveAndDelete(grWinList, NULL, GAMESEL_FADE_DEFAULT);
-	manager->RemoveAndDelete(grWinTitle, NULL, GAMESEL_FADE_DEFAULT);
-	manager->RemoveAndDelete(grWinPlay, NULL, GAMESEL_FADE_DEFAULT);
+    manager->RemoveAndDelete(grWinList, NULL, GAMESEL_FADE_DEFAULT);
+    manager->RemoveAndDelete(grWinTitle, NULL, GAMESEL_FADE_DEFAULT);
+    manager->RemoveAndDelete(grWinPlay, NULL, GAMESEL_FADE_DEFAULT);
 
     // Release UI
     manager->Unlock();

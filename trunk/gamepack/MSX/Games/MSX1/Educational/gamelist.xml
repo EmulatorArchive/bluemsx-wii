@@ -1,8 +1,0 @@
-<GameList>
-    <Game Title="Monkey Academy">
-        <CommandLine>/rom1 MonkeyAcademy.zip</CommandLine>
-        <KeyMap plus1="1" minus1="2"/>
-        <ScreenShot>MonkeyAcademy-1.png</ScreenShot>
-        <ScreenShot>MonkeyAcademy-2.png</ScreenShot>
-    </Game>
-</GameList>
