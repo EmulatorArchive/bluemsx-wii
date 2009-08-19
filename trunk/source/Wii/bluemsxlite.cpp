@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <wiiuse/wpad.h>
 
 #include "GuiBackground.h"
@@ -417,6 +418,14 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             strcat(fname2, game->GetScreenShot(1));
                             if( !archFileExists(fname1) ) {
                                 p = fname1;
+                                /* file does not exist, make sure there is a Screenshots directory */
+                                char scrshotdir[256];
+                                struct stat s;
+                                strcpy(scrshotdir, game_dir);
+                                strcat(scrshotdir, "/Screenshots");
+                                if( stat(scrshotdir, &s) != 0 ) {
+                                    mkdir(scrshotdir, 0x777);
+                                }
                             }else
                             if( !archFileExists(fname2) ) {
                                 p = fname2;
