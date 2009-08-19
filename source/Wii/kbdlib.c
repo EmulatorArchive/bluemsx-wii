@@ -60,6 +60,11 @@ typedef struct {
 } PADCODE;
 
 typedef struct {
+    int pad;
+    int wpad;
+} PAD2WPAD;
+
+typedef struct {
     u32 message;
     u32 id; // in fact it is a direction
     u8 modifiers;
@@ -116,6 +121,24 @@ static PADCODE keypad[] =
     {KEY_ESCAPE, KEY_NONE,  WPAD_BUTTON_B     },
     {KEY_F12,    KEY_NONE,  WPAD_BUTTON_HOME  },
     {KEY_NONE,   KEY_NONE,  0}
+};
+
+static PAD2WPAD pad2wpad[] =
+{
+    {PAD_BUTTON_LEFT , WPAD_CLASSIC_BUTTON_LEFT  },
+    {PAD_BUTTON_RIGHT, WPAD_CLASSIC_BUTTON_RIGHT },
+    {PAD_BUTTON_DOWN , WPAD_CLASSIC_BUTTON_DOWN  },
+    {PAD_BUTTON_UP   , WPAD_CLASSIC_BUTTON_UP    },
+    {PAD_TRIGGER_Z   , WPAD_CLASSIC_BUTTON_ZR    },
+    {PAD_TRIGGER_R   , WPAD_CLASSIC_BUTTON_FULL_R},
+    {PAD_TRIGGER_L   , WPAD_CLASSIC_BUTTON_FULL_L},
+    {PAD_BUTTON_A    , WPAD_CLASSIC_BUTTON_A     },
+    {PAD_BUTTON_B    , WPAD_CLASSIC_BUTTON_B     },
+    {PAD_BUTTON_X    , WPAD_CLASSIC_BUTTON_X     },
+    {PAD_BUTTON_Y    , WPAD_CLASSIC_BUTTON_Y     },
+    {PAD_BUTTON_MENU , WPAD_CLASSIC_BUTTON_HOME  },
+    {PAD_BUTTON_START, WPAD_CLASSIC_BUTTON_PLUS  },
+    {0               , 0                         }
 };
 
 static KEYCODE syms[] =
@@ -492,14 +515,28 @@ u32 KBD_GetPadButtonStatus(int channel)
 {
     u32 extensions;
     WPADData data;
-    u32 buttons;
+    u32 buttons, gcbuttons;
+    PAD2WPAD *p2w;
+    joystick_t padjoy;
+    static int count;
 
     // Check standard buttons
     buttons = WPAD_ButtonsHeld(channel);
 
+    // Add GameCube buttons
+    gcbuttons = PAD_ButtonsHeld(channel);
+    p2w = pad2wpad;
+    while( p2w->pad ) {
+        if( gcbuttons & p2w->pad ) {
+            buttons |= p2w->wpad;
+        }
+        p2w++;
+    }
+
     // Check extensions
     WPAD_Probe(channel, &extensions);
     if( extensions == WPAD_EXP_NUNCHUK ) {
+      // Special nunchuk mappings
       if( buttons & WPAD_NUNCHUK_BUTTON_Z ) {
         buttons &= ~WPAD_NUNCHUK_BUTTON_Z;
         buttons |= WPAD_CLASSIC_BUTTON_A;
@@ -508,13 +545,32 @@ u32 KBD_GetPadButtonStatus(int channel)
         buttons &= ~WPAD_NUNCHUK_BUTTON_C;
         buttons |= WPAD_CLASSIC_BUTTON_B;
       }
+      // Nunchuk stick
       WPAD_Expansion(channel, &data.exp);
       buttons |= GetJoystickDirection(&data.exp.nunchuk.js);
     } else if( extensions == WPAD_EXP_CLASSIC ) {
+      // Both classic controller sticks
       WPAD_Expansion(channel, &data.exp);
       buttons |= GetJoystickDirection(&data.exp.classic.ljs);
       buttons |= GetJoystickDirection(&data.exp.classic.rjs);
     }
+
+    // Scan GameCube sticks
+    padjoy.min.x = 0;
+    padjoy.min.y = 0;
+    padjoy.max.x = 255;
+    padjoy.max.y = 255;
+    padjoy.center.x = 128;
+    padjoy.center.y = 128;
+
+    padjoy.pos.x = (int)PAD_StickX(channel) + 128;
+    padjoy.pos.y = (int)PAD_StickY(channel) + 128;
+    buttons |= GetJoystickDirection(&padjoy);
+
+    padjoy.pos.x = (int)PAD_SubStickX(channel) + 128;
+    padjoy.pos.y = (int)PAD_SubStickY(channel) + 128;
+    buttons |= GetJoystickDirection(&padjoy);
+
     return buttons;
 }
 
@@ -586,6 +642,7 @@ void KBD_GetKeys(KBD_CALLBACK cb)
 
     // handle WPAD buttons
     WPAD_ScanPads();
+    PAD_ScanPads();
     kbdHandle->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
     kbdHandle->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
     for(i = 0; wpad[i].key_a != KEY_NONE; i++)  {

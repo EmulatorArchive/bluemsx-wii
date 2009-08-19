@@ -27,6 +27,7 @@
 **
 ******************************************************************************
 */
+#include <debug.h>
 #include <fat.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -89,7 +90,9 @@ static int   displayPitch = TEX_WIDTH * 2;
 
 static GuiManager *manager = NULL;
 static GuiBackground *background = NULL;
+#if CONSOLE_DEBUG
 static GuiConsole *console = NULL;
+#endif
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
 
@@ -462,12 +465,19 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 int main(int argc, char **argv)
 {
     bool fatInitialised;
+
+    // USB Gecko
+    DEBUG_Init(GDBSTUB_DEVICE_USB, 1);
+    CON_EnableGecko(1, false);
+
+    // Memory allocator instrumentation
     allocLogStart();
 
     // Set main thread priority
     LWP_SetThreadPriority(LWP_GetSelf(), 100);
 
     // Init Wiimote
+    PAD_Init();
     WPAD_Init();
     WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
     WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
@@ -484,8 +494,8 @@ int main(int argc, char **argv)
     GuiImageInit();
 
     // Init console
-    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
 #if CONSOLE_DEBUG
+    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
     console->SetVisible(true);
 #endif
 
@@ -531,9 +541,15 @@ int main(int argc, char **argv)
             for(;;) {
                 GuiGameSelect *menu = new GuiGameSelect(manager);
                 prev = game;
-                game = menu->DoModal(game_dir, "gamelist.xml", prev);
-                if( prev != NULL ) {
-                    delete prev;
+                if( menu->Load(game_dir, "gamelist.xml") ) {
+                    game = menu->DoModal(prev);
+                    if( prev != NULL ) {
+                        delete prev;
+                    }
+                }else{
+                    msgbox->Show("gamelist.xml not found!");
+                    archThreadSleep(2000);
+                    msgbox->Remove();
                 }
                 delete menu;
 
@@ -564,8 +580,10 @@ int main(int argc, char **argv)
     delete background;
     archThreadSleep(15*20);
 
+#if CONSOLE_DEBUG
     // Destroy console
     delete console;
+#endif
 
     // Free GUI resources
     GuiFontClose();

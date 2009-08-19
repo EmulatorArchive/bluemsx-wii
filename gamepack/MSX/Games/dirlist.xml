@@ -1,6 +1,0 @@
-<DirectoryList>
-	<Item Name="MSX-1 Games" Directory="MSX1"/>
-	<Item Name="MSX-2 Games" Directory="MSX2"/>
-	<Item Name="MSX-2 Music disks" Directory="MSX2Music"/>
-	<Item Name="MSX-2+ / Turbo-R" Directory="MSX2P"/>
-</DirectoryList>

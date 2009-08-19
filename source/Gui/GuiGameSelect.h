@@ -14,7 +14,8 @@ public:
     virtual ~GuiGameSelect();
 
     void OnSetSelected(int index, int selected);
-    GameElement *DoModal(const char *dir, const char *filename, GameElement *select = NULL);
+    bool Load(const char *dir, const char *filename);
+    GameElement *DoModal(GameElement *select = NULL);
 private:
     GameList games;
     int num_games;
