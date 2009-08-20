@@ -161,7 +161,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
-	@rm -f $(DEVKITPPC_LOCAL)
+	@rm -rf $(DEVKITPPC_LOCAL)
 
 #---------------------------------------------------------------------------------
 run:
