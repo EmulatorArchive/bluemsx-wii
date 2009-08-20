@@ -132,7 +132,7 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
 					$(sFILES:.s=.o) $(SFILES:.S=.o)
 
-export GENFILES	:=	$(DEVKITPPC_LOCAL)/devkitppc.log sdcard.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
+export GENFILES	:=	$(DEVKITPPC_LOCAL)/devkitppc.log sdcard.inc gamepack.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
@@ -161,6 +161,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
+	@rm -f $(DEVKITPPC_LOCAL)
 
 #---------------------------------------------------------------------------------
 run:
@@ -194,14 +195,21 @@ revision:
 	$(bin2o)
 
 #---------------------------------------------------------------------------------
-# This rule creates a zip file for the sd-card contents and converts it to a .h
+# This rule creates the zip files for the sd-card contents and converts it to a .h
 #---------------------------------------------------------------------------------
-sdcard.inc: ../sdcard
-	@echo Creating .zip file ...
+sdcard.inc: ../sdcard/MSX
+	@echo Creating sdcard.zip ...
 	@rm -f sdcard.zip
-	@../util/7za a -r -xr!*.svn -xr!thumbs.* sdcard.zip ../sdcard/msx
+	@../util/7za a -r -xr!*.svn -xr!thumbs.* sdcard.zip ../sdcard/MSX
 	@echo Converting sdcard.zip to sdcard.inc ...
 	@../util/raw2c sdcard.zip sdcard.inc sdcard
+
+gamepack.inc: ../sdcard/Gamepack
+	@echo Creating gamepack.zip ...
+	@rm -f gamepack.zip
+	@../util/7za a -r -xr!*.svn -xr!thumbs.* gamepack.zip ../sdcard/Gamepack/Games
+	@echo Converting gamepack.zip to gamepack.inc ...
+	@../util/raw2c gamepack.zip gamepack.inc gamepack
 
 #---------------------------------------------------------------------------------
 # This rule unpacks the local devkitPPC zip to a custom directory

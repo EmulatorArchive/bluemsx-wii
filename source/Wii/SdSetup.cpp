@@ -30,6 +30,7 @@
 #include <unistd.h>
 #if USE_EMBEDDED_SDCARD_IMAGE
 #include "sdcard.inc"
+#include "gamepack.inc"
 #endif
 #include "ZipFromMem.h"
 #include "ZipHelper.h"
@@ -54,55 +55,63 @@ void SetupSDProgressCallback(int total, int current)
     }
 }
 
-bool SetupSDCard(GuiManager *manager)
+bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
+                     const char *directory, const char *message)
 {
-    bool ok = true;
-
     // Prepare messagebox
     msgboxSdSetup = new GuiMessageBox(manager);
 
-#if USE_EMBEDDED_SDCARD_IMAGE
-    // Check if 'MSX' directory exists
-    struct stat s;
-    if( stat(MSX_ROOT_DIR, &s) == 0 ) {
-        delete msgboxSdSetup; // allready exists, done
-        return true;
-    }
-
-    ok = msgboxSdSetup->Show("SD-Card is not setup yet,\n"
-                             "Do you want to do it now?", NULL, true, 192);
+    bool ok = msgboxSdSetup->Show(message, NULL, true, 192);
     if( ok ) {
         bool failed = false;
         msgboxSdSetup->Show("Installing (0%%) ...    ");
 
         zlib_filefunc_def filefunc;
-        fill_fopen_memfunc(&filefunc, sizeof(sdcard));
-        unzFile uf = unzOpen2((const char *)sdcard, &filefunc);
+        fill_fopen_memfunc(&filefunc, zipsize);
+        unzFile uf = unzOpen2((const char *)zipptr, &filefunc);
         if( uf ) {
-            chdir(SD_ROOT_DIR);
+            chdir(directory);
             if( !zipExtract(uf, 1, NULL, SetupSDProgressCallback) ) {
                 printf("failed to extract zip resource\n");
                 failed = true;
             }
             unzClose(uf);
         }else{
-            printf("failed to open zip resource\n");
-            failed = true;
-        }
-        free_fopen_memfunc(&filefunc);
-
-        if( stat(MSX_ROOT_DIR, &s) != 0 ) {
-            printf("root dir still not exist\n");
-            failed = true;
-        }
-        if( failed ) {
             msgboxSdSetup->Show("Failed to install!");
             archThreadSleep(3000);
             ok = false; // leave
         }
+        free_fopen_memfunc(&filefunc);
+    }
+    delete msgboxSdSetup;
+    return ok;
+}
+
+bool SetupSDCard(GuiManager *manager)
+{
+    bool ok = true;
+
+#if USE_EMBEDDED_SDCARD_IMAGE
+    // Check if 'Database' and 'Machine' directories exists
+    struct stat s;
+    if( stat(MSX_ROOT_DIR"/Databases", &s) != 0 ||
+        stat(MSX_ROOT_DIR"/Machines", &s) != 0 ) {
+        // Does not exist yet, install
+        ok = SetupInstallZip(manager, sdcard, sizeof(sdcard), SD_ROOT_DIR,
+                             "SD-Card is not setup yet,\n"
+                             "Do you want to do it now?");
+    }
+    if( ok ) {
+        // Check if 'Games' directory exist
+        if( stat(MSX_ROOT_DIR"/Games", &s) != 0 ) {
+            // Does not exist yet, install
+            ok = SetupInstallZip(manager, gamepack, sizeof(gamepack), MSX_ROOT_DIR,
+                                 "No gamepack is installed yet,\n"
+                                 "Install the basic pack now?");
+        }
     }
 #endif
-    delete msgboxSdSetup;
+
     return ok;
 }
 
