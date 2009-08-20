@@ -551,7 +551,6 @@ int main(int argc, char **argv)
                 GuiGameSelect *menu = new GuiGameSelect(manager);
                 prev = game;
                 if( menu->Load(game_dir, "gamelist.xml") ) {
-                    archCreateDirectory("Screenshots"); // for in case it does not exist yet (dirty, sorry)
                     game = menu->DoModal(prev);
                     if( prev != NULL ) {
                         delete prev;
