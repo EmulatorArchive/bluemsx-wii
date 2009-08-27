@@ -91,9 +91,7 @@ static int   displayPitch = TEX_WIDTH * 2;
 
 static GuiManager *manager = NULL;
 static GuiBackground *background = NULL;
-#if CONSOLE_DEBUG
 static GuiConsole *console = NULL;
-#endif
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
 
@@ -503,8 +501,8 @@ int main(int argc, char **argv)
     GuiImageInit();
 
     // Init console
-#if CONSOLE_DEBUG
     console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
+#if CONSOLE_DEBUG
     console->SetVisible(true);
 #endif
 
@@ -589,10 +587,8 @@ int main(int argc, char **argv)
     delete background;
     archThreadSleep(15*20);
 
-#if CONSOLE_DEBUG
     // Destroy console
     delete console;
-#endif
 
     // Free GUI resources
     GuiFontClose();

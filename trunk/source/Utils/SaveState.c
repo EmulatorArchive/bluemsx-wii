@@ -38,7 +38,7 @@ struct SaveState {
     char   fileName[64];
 };
 
-static char stateFile[512];
+static ZipFile *stateZip;
 
 static UInt32 tagFromName(const char* tagName)
 {
@@ -99,28 +99,22 @@ static char* getIndexedFilename(const char* fileName)
     return indexedFileName;
 }
 
-void saveStateCreateForRead(const char* fileName)
+void saveStateCreateForRead(ZipFile *zip)
 {
     tableCount = 0;
-    strcpy(stateFile, fileName);
-    zipCacheReadOnlyZip(fileName);
+    stateZip = zip;
 }
 
-void saveStateCreateForWrite(const char* fileName)
+void saveStateCreateForWrite(void)
 {
     tableCount = 0;
-    strcpy(stateFile, fileName);
 }
 
-void saveStateDestroy(void)
+SaveState* saveStateOpenForRead(const char* fileName)
 {
-    zipCacheReadOnlyZip(NULL);
-}
-
-SaveState* saveStateOpenForRead(const char* fileName) {
     SaveState* state = (SaveState*)malloc(sizeof(SaveState));
     Int32 size = 0;
-    void* buffer = zipLoadFile(stateFile, getIndexedFilename(fileName), &size);
+    void* buffer = zipLoadFileFromOpenZip(stateZip, getIndexedFilename(fileName), &size);
 
     state->buffer = buffer;
     state->size = size / sizeof(UInt32);
@@ -136,15 +130,15 @@ SaveState* saveStateOpenForWrite(const char* fileName) {
     state->size      = 0;
     state->offset    = 0;
     state->buffer    = NULL;
-
+    
     strcpy(state->fileName, getIndexedFilename(fileName));
-
+    
     return state;
 }
 
 void saveStateClose(SaveState* state) {
     if (state->fileName[0]) {
-        zipSaveFile(stateFile, state->fileName, 1, state->buffer, state->offset * sizeof(UInt32));
+        zipAppendFile(state->fileName, state->buffer, state->offset * sizeof(UInt32));
     }
     if (state->buffer != NULL) {
         free(state->buffer);
@@ -157,7 +151,7 @@ static void stateExtendBuffer(SaveState* state, UInt32 extend) {
     state->buffer = realloc(state->buffer, state->size * sizeof(UInt32));
 }
 
-void saveStateSet(SaveState* state, const char* tagName, UInt32 value)
+void saveStateSet(SaveState* state, const char* tagName, UInt32 value) 
 {
     checkTag(state, tagName);
 
@@ -167,15 +161,18 @@ void saveStateSet(SaveState* state, const char* tagName, UInt32 value)
     state->buffer[state->offset++] = value;
 }
 
-void saveStateSetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length)
+void saveStateSetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length) 
 {
+    UInt32 sizedw = (length + sizeof(UInt32) - 1) / sizeof(UInt32);
     checkTag(state, tagName);
 
-    stateExtendBuffer(state, 2 + (length + sizeof(UInt32) - 1) / sizeof(UInt32));
+    stateExtendBuffer(state, 2 + sizedw);
     state->buffer[state->offset++] = tagFromName(tagName);
     state->buffer[state->offset++] = length;
+	if( sizedw )
+        state->buffer[state->offset + sizedw - 1] = 0;
     memcpy(state->buffer + state->offset, buffer, length);
-    state->offset += (length + sizeof(UInt32) - 1) / sizeof(UInt32);
+    state->offset += sizedw;
 }
 
 UInt32 saveStateGet(SaveState* state, const char* tagName, UInt32 defValue)

@@ -352,7 +352,8 @@ void boardCaptureStop() {
             fclose(f);
         }
 
-        saveStateCreateForWrite(cap.filename);
+        saveStateCreateForWrite();
+
         state = saveStateOpenForWrite("capture");
 
         saveStateSet(state, "version", CAPTURE_VERSION);
@@ -368,7 +369,6 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
-        saveStateDestroy();
     }
 
     // go back to idle state
@@ -675,7 +675,8 @@ void boardCaptureStop() {
             fclose(f);
         }
 
-        saveStateCreateForWrite(cap.filename);
+        saveStateCreateForWrite();
+
         state = saveStateOpenForWrite("capture");
 
         saveStateSet(state, "version", CAPTURE_VERSION);
@@ -691,7 +692,6 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
-        saveStateDestroy();
     }
 
     // go back to idle state
@@ -934,7 +934,8 @@ void boardCaptureStop() {
             fclose(f);
         }
 
-        saveStateCreateForWrite(cap.filename);
+        saveStateCreateForWrite();
+
         state = saveStateOpenForWrite("capture");
 
         saveStateSet(state, "version", CAPTURE_VERSION);
@@ -950,7 +951,6 @@ void boardCaptureStop() {
         }
 
         saveStateClose(state);
-        saveStateDestroy();
     }
 
     // go back to idle state
@@ -1153,6 +1153,7 @@ int boardRun(Machine* machine,
              int frequency,
              int (*syncCallback)(int, int))
 {
+    ZipFile *zip;
     int loadState = 0;
     int success = 0;
 
@@ -1171,18 +1172,20 @@ int boardRun(Machine* machine,
         int   size;
         char *version;
 
-        saveStateCreateForRead(stateFile);
+        zip = zipOpenFileForRead(stateFile, 1);
+        if( zip != NULL ) {
+            saveStateCreateForRead(zip);
+            version = zipLoadFileFromOpenZip(zip, "version", &size);
+            if (version != NULL) {
+                if (0 == strncmp(version, saveStateVersion, sizeof(saveStateVersion) - 1)) {
+                    loadState = 1;
 
-        version = zipLoadFile(stateFile, "version", &size);
-        if (version != NULL) {
-            if (0 == strncmp(version, saveStateVersion, sizeof(saveStateVersion) - 1)) {
-                loadState = 1;
+                    boardType = boardLoadState();
 
-                boardType = boardLoadState();
-
-                machineLoadState(boardMachine);
+                    machineLoadState(boardMachine);
+                }
+                free(version);
             }
-            free(version);
         }
     }
 
@@ -1238,9 +1241,8 @@ int boardRun(Machine* machine,
         boardInfo.loadState();
         boardCaptureLoadState();
     }
-
-    if (stateFile != NULL) {
-        saveStateDestroy();
+    if (zip) {
+        zipCloseReadFile(zip);
     }
 
     if (success) {
@@ -1427,9 +1429,10 @@ void boardSaveState(const char* stateFile)
         return;
     }
 
-    saveStateCreateForWrite(stateFile);
+    saveStateCreateForWrite();
 
-    rv = zipSaveFile(stateFile, "version", 0, saveStateVersion, strlen(saveStateVersion) + 1);
+    zipCreateFile(stateFile);
+    rv = zipAppendFile("version", saveStateVersion, strlen(saveStateVersion) + 1);
     if (!rv) {
         return;
     }
@@ -1489,9 +1492,9 @@ void boardSaveState(const char* stateFile)
     bitmap = archScreenCapture(SC_SMALL, &size, 1);
     if( bitmap != NULL && size > 0 ) {
 #ifdef WII
-        zipSaveFile(stateFile, "screenshot.png", 1, bitmap, size);
+        zipAppendFile("screenshot.png", bitmap, size);
 #else
-        zipSaveFile(stateFile, "screenshot.bmp", 1, bitmap, size);
+        zipAppendFile("screenshot.bmp", bitmap, size);
 #endif
     }
     if( bitmap != NULL ) {
@@ -1501,9 +1504,10 @@ void boardSaveState(const char* stateFile)
     memset(buf, 0, 128);
     time(&ltime);
     strftime(buf, 128, "%X   %A, %B %d, %Y", localtime(&ltime));
-    zipSaveFile(stateFile, "date.txt", 1, buf, strlen(buf) + 1);
+    //zipAppendFile("date.txt", buf, strlen(buf) + 1);
 
-    saveStateDestroy();
+    zipCloseWriteFile();
+
 }
 
 

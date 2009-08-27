@@ -28,7 +28,9 @@
 #ifndef ZIPHELPER_H
 #define ZIPHELPER_H
 
+#include "zip.h"
 #include "unzip.h"
+#include "ZipFromMem.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,9 +38,19 @@ extern "C" {
 
 typedef void(*ZIP_EXTRACT_CB)(int, int);
 
-void zipCacheReadOnlyZip(const char* zipName);
+typedef struct {
+    zipFile zip;
+    const char *fileName;
+    MemZip *memzip;
+} ZipFile;
+
+ZipFile* zipOpenFileForRead(const char* zipName, int cached);
+void* zipLoadFileFromOpenZip(ZipFile* zip, const char* fileName, int* size);
 void* zipLoadFile(const char* zipName, const char* fileName, int* size);
-int zipSaveFile(const char* zipName, const char* fileName, int append, void* buffer, int size);
+int zipCreateFile(const char* zipName);
+int zipAppendFile(const char* fileName, void* buffer, int size);
+void zipCloseReadFile(ZipFile *zip);
+void zipCloseWriteFile(void);
 int zipFileExists(const char* zipName, const char* fileName);
 char* zipGetFileList(const char* zipName, const char* ext, int* count);
 int zipHasFileType(char* zipName, char* ext);

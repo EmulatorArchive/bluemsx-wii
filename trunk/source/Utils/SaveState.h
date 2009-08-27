@@ -29,12 +29,12 @@
 #define SAVE_STATE_H
 
 #include "MsxTypes.h"
+#include "ZipHelper.h"
 
 typedef struct SaveState SaveState;
 
-void saveStateCreateForRead(const char* fileName);
-void saveStateCreateForWrite(const char* fileName);
-void saveStateDestroy(void);
+void saveStateCreateForRead(ZipFile *zip);
+void saveStateCreateForWrite(void);
 
 SaveState* saveStateOpenForRead(const char* fileName);
 SaveState* saveStateOpenForWrite(const char* fileName);
