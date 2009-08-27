@@ -1,13 +1,9 @@
 /*****************************************************************************
-** $Source: /cvsroot/bluemsx/blueMSX/Src/Utils/ziphelper.h,v $
+** $Source: /cvsroot/bluemsx/blueMSX/Src/Utils/ZipFromMem.h,v $
 **
 ** $Revision: 1.4 $
 **
 ** $Date: 2008/03/30 18:38:47 $
-**
-** More info: http://www.bluemsx.com
-**
-** Copyright (C) 2003-2006 Daniel Vik
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -32,11 +28,31 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
 #include "zip.h"
 #include "unzip.h"
 
-extern void fill_fopen_memfunc(zlib_filefunc_def *pzlib_filefunc_def, unsigned int size);
-extern void free_fopen_memfunc(zlib_filefunc_def *pzlib_filefunc_def);
+typedef enum {
+  MZMODE_READ_ONLY,
+  MZMODE_MODIFY,
+  MZMODE_CREATE
+} MZMODE;
+
+typedef struct {
+    FILE *file;
+    zlib_filefunc_def zlib_filefunc;
+    const char *filename;
+    void *buffer;
+    int size;
+    int index;
+    MZMODE mode;
+    unzFile unzip;
+    zipFile zip;
+} MemZip;
+
+extern MemZip* MemZipOpenResource(void *data, unsigned int size);
+extern MemZip* MemZipOpenZip(const char *filename, MZMODE mode);
+extern void MemZipClose(MemZip *zip);
 
 #ifdef __cplusplus
 }

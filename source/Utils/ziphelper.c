@@ -26,11 +26,11 @@
 ******************************************************************************
 */
 #include "ziphelper.h"
+#include "ZipFromMem.h"
 
 #include "zip.h"
 #include "unzip.h"
 #include "ctype.h"
-#include "ZipFromMem.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,104 +68,93 @@ static void toLower(char* str) {
 ***
 *******************************************************************************
 */
-void* _zipLoadFile(const char* zipName, const char* fileName, int* size, zlib_filefunc_def* filefunc)
+
+ZipFile* zipOpenFileForRead(const char* zipName, int cached)
+{
+    if( cached ) {
+        ZipFile *zip = (ZipFile*)malloc(sizeof(ZipFile));
+        zip->fileName = zipName;
+        zip->memzip = MemZipOpenZip(zipName, MZMODE_READ_ONLY);
+        if( zip->memzip == NULL ) {
+            free(zip);
+            return NULL;
+        }
+        zip->zip = zip->memzip->unzip;
+        return zip;
+    }else{
+        ZipFile *zip = (ZipFile*)malloc(sizeof(ZipFile));
+        zip->fileName = zipName;
+        zip->memzip = NULL;
+        zip->zip = unzOpen(zipName);
+        if (zip->zip == NULL) {
+            free(zip);
+            return NULL;
+        }
+        return zip;
+    }
+}
+
+void* zipLoadFileFromOpenZip(ZipFile *zip, const char* fileName, int* size)
 {
     void* buf;
     char name[256];
-    unzFile zip;
     unz_file_info info;
 
     *size = 0;
 
     if (fileName[0] == '*') {
-        strcpy(name, zipName);
-        name[strlen(zipName) - 3] = fileName[strlen(fileName) - 3];
-        name[strlen(zipName) - 2] = fileName[strlen(fileName) - 2];
-        name[strlen(zipName) - 1] = fileName[strlen(fileName) - 1];
+        strcpy(name, zip->fileName);
+        name[strlen(zip->fileName) - 3] = fileName[strlen(fileName) - 3];
+        name[strlen(zip->fileName) - 2] = fileName[strlen(fileName) - 2];
+        name[strlen(zip->fileName) - 1] = fileName[strlen(fileName) - 1];
     }
     else {
         strcpy(name, fileName);
     }
 
-    zip = unzOpen2(zipName, filefunc);
-    if (!zip) {
+    if (unzLocateFile(zip->zip, fileName, 1) == UNZ_END_OF_LIST_OF_FILE) {
         return NULL;
     }
 
-    if (unzLocateFile(zip, name, 1) == UNZ_END_OF_LIST_OF_FILE) {
-        unzClose(zip);
+    if (unzOpenCurrentFile(zip->zip) != UNZ_OK) {
         return NULL;
     }
 
-    if (unzOpenCurrentFile(zip) != UNZ_OK) {
-        unzClose(zip);
-        return NULL;
-    }
-
-    unzGetCurrentFileInfo(zip,&info,NULL,0,NULL,0,NULL,0);
+    unzGetCurrentFileInfo(zip->zip,&info,NULL,0,NULL,0,NULL,0);
 
     buf = malloc(info.uncompressed_size);
     *size = info.uncompressed_size;
 
     if (!buf) {
-        unzCloseCurrentFile(zip);
-        unzClose(zip);
+        unzCloseCurrentFile(zip->zip);
         return NULL;
     }
 
-    unzReadCurrentFile(zip, buf, info.uncompressed_size);
-    unzCloseCurrentFile(zip);
-    unzClose(zip);
+    unzReadCurrentFile(zip->zip, buf, info.uncompressed_size);
+    unzCloseCurrentFile(zip->zip);
 
     return buf;
 }
 
-
-/******************************************************************************
-*** Description
-***     Read cache to speed-up reading multiple files from one zip.
-***
-******************************************************************************/
-
-static char *cacheData = NULL, cacheFile[512];
-static zlib_filefunc_def cacheFilefunc;
+void zipCloseReadFile(ZipFile *zip)
+{
+    if( zip->memzip != NULL ) {
+        MemZipClose(zip->memzip);
+    }else{
+        unzClose(zip->zip);
+    }
+    free(zip);
+}
 
 void* zipLoadFile(const char* zipName, const char* fileName, int* size)
 {
-    if( cacheData != NULL && *cacheFile != '\0' && 0==strcmp(cacheFile, zipName) ) {
-        return _zipLoadFile(cacheData, fileName, size, &cacheFilefunc);
-    }else{
-        return _zipLoadFile(zipName, fileName, size, NULL);
+    void *p = NULL;
+    ZipFile *zip = zipOpenFileForRead(zipName, 0);
+    if( zip != NULL ) {
+        p = zipLoadFileFromOpenZip(zip, fileName, size);
+        zipCloseReadFile(zip);
     }
-}
-
-void zipCacheReadOnlyZip(const char* zipName)
-{
-    *cacheFile = '\0';
-    if( cacheData != NULL ) {
-        free(cacheData);
-        cacheData = NULL;
-        free_fopen_memfunc(&cacheFilefunc);
-    }
-    if( zipName != NULL ) {
-        FILE *file;
-        file = fopen(zipName, "rb");
-        if( file != NULL ) {
-            unsigned int filesize;
-            fseek(file, 0, SEEK_END);
-            filesize = ftell(file);
-            fill_fopen_memfunc(&cacheFilefunc, filesize);
-            fseek(file, 0, SEEK_SET);
-            cacheData = malloc(filesize);
-            if( cacheData != NULL ) {
-                size_t size = fread(cacheData, 1, filesize, file);
-                if( size == filesize ) {
-                    strcpy(cacheFile, zipName);
-                }
-            }
-            fclose(file);
-        }
-    }
+    return p;
 }
 
 
@@ -181,29 +170,40 @@ void zipCacheReadOnlyZip(const char* zipName)
 ***
 *******************************************************************************
 */
-int zipSaveFile(const char* zipName, const char* fileName, int append, void* buffer, int size)
+static MemZip *g_zipWrite;
+
+int zipCreateFile(const char* zipName)
 {
-    zipFile zip;
+    g_zipWrite = MemZipOpenZip(zipName, MZMODE_CREATE);
+    if (g_zipWrite == NULL) {
+        return 0;
+    }
+    return 1;
+}
+
+int zipAppendFile(const char* fileName, void* buffer, int size)
+{
     zip_fileinfo zi;
     int err;
 
-    zip = zipOpen(zipName, append ? 2 : 0);
-    if (zip == NULL) {
-        return 0;
-    }
-
     memset(&zi, 0, sizeof(zi));
 
-    err = zipOpenNewFileInZip(zip, fileName, &zi,
+    err = zipOpenNewFileInZip(g_zipWrite->zip, fileName, &zi,
                               NULL, 0, NULL, 0, NULL,
                               Z_DEFLATED, Z_DEFAULT_COMPRESSION);
     if (err == ZIP_OK) {
-        err = zipWriteInFileInZip(zip, buffer, size);
+        err = zipWriteInFileInZip(g_zipWrite->zip, buffer, size);
     }
 
-    zipClose(zip, NULL);
-
     return err >= 0;
+}
+
+void zipCloseWriteFile(void)
+{
+    if( g_zipWrite != NULL ) {
+        MemZipClose(g_zipWrite);
+        g_zipWrite = NULL;
+    }
 }
 
 int zipHasFileType(char* zipName, char* ext) {

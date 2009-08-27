@@ -66,22 +66,19 @@ bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
         bool failed = false;
         msgboxSdSetup->Show("Installing (0%%) ...    ");
 
-        zlib_filefunc_def filefunc;
-        fill_fopen_memfunc(&filefunc, zipsize);
-        unzFile uf = unzOpen2((const char *)zipptr, &filefunc);
-        if( uf ) {
+        MemZip *zip = MemZipOpenResource(zipptr, zipsize);
+        if( zip ) {
             chdir(directory);
-            if( !zipExtract(uf, 1, NULL, SetupSDProgressCallback) ) {
+            if( !zipExtract(zip->unzip, 1, NULL, SetupSDProgressCallback) ) {
                 printf("failed to extract zip resource\n");
                 failed = true;
             }
-            unzClose(uf);
+            MemZipClose(zip);
         }else{
             msgboxSdSetup->Show("Failed to install!");
             archThreadSleep(3000);
             ok = false; // leave
         }
-        free_fopen_memfunc(&filefunc);
     }
     delete msgboxSdSetup;
     return ok;

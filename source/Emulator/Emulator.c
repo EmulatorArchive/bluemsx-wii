@@ -388,7 +388,7 @@ static void emulatorThread() {
 }
 
 void emulatorStart(const char* stateName) {
-	dbgEnable();
+    dbgEnable();
 
     archEmulationStartNotification();
 
@@ -450,11 +450,14 @@ void emulatorStart(const char* stateName) {
         archEmulationStartFailure();
     }
 #else
+    //printf("Starting emulator thread\n");
     emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
 
-    archEventWait(emuStartEvent, 3000);
+    archEventWait(emuStartEvent, -1);
+    //printf("Emulator thread running\n");
 
     if (emulationStartFailure) {
+        //printf("Failed to start thread\n");
         archEmulationStopNotification();
         emuState = EMU_STOPPED;
         archEmulationStartFailure();
@@ -470,6 +473,7 @@ void emulatorStart(const char* stateName) {
 
         debuggerNotifyEmulatorStart();
 
+        //printf("State set to 'running'\n");
         emuState = EMU_RUNNING;
     }
 #endif
@@ -530,10 +534,12 @@ void emulatorSetFrequency(int logFrequency, int* frequency) {
 
 void emulatorSuspend() {
     if (emuState == EMU_RUNNING) {
+        //printf("Request suspend\n");
         emuState = EMU_SUSPENDED;
         do {
             archThreadSleep(10);
         } while (!emuSuspendFlag);
+        //printf("Emulator suspended\n");
         archSoundSuspend();
         archMidiEnable(0);
     }
@@ -544,6 +550,7 @@ void emulatorResume() {
         emuSysTime = 0;
         archSoundResume();
         archMidiEnable(1);
+        //printf("Emulator resuming\n");
         emuState = EMU_RUNNING;
         archUpdateEmuDisplay(0);
     }
@@ -628,18 +635,19 @@ static int WaitForSync(int maxSpeed, int breakpointHit)
 
     emuMaxEmuSpeed = maxSpeed;
 
-    emuSuspendFlag = 1;
-
     archPollInput();
 
     if (emuState != EMU_RUNNING) {
         archEventSet(emuStartEvent);
-        archThreadSleep(100);
+        emuSuspendFlag = 1;
+        //printf("Not running anymore, waiting\n");
+        do {
+            archThreadSleep(100);
+        }while(!emuExitFlag && emuState != EMU_RUNNING);
+        //printf("%s\n", emuExitFlag? "Exit requested" : "Continue");
         emuSuspendFlag = 0;
         return emuExitFlag ? -1 : 0;
     }
-
-    emuSuspendFlag = 0;
 
     if (emuSingleStep) {
         diffTime = 0;
