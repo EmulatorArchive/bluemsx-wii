@@ -56,6 +56,7 @@ public:
     void Remove(Layer *layer, int fade = 0, int delay = 0);
     void RemoveAndDelete(Layer *layer, Image *image = NULL, int fade = 0, int delay = 0);
     bool GetWiiMoteIR(int *x, int *y, int *angle);
+    int WriteScreenshot(const char *fname) { return gwd.WriteScreenshot(fname); };
 
 private:
     void RegisterRemove(Layer *layer, bool needdelete, int fade, int delay, Image *image);

@@ -235,6 +235,11 @@ int GuiSelectionList::DoSelection(void)
         WPAD_ScanPads();
         u32 buttons = KBD_GetPadButtons();
 
+        // Take screenshot on pressing '+' and '-' simultaneously
+        if( buttons == (WPAD_BUTTON_PLUS + WPAD_BUTTON_MINUS) ) {
+            manager->WriteScreenshot("fat0:/dump.png");
+        }
+
         // Exit on 'home' or 'B'
         if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
                        WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {

@@ -18,51 +18,53 @@ namespace wsp{
         GW_VIDEO_MODE_PAL60_448,
         GW_VIDEO_MODE_NTSC_448
     } GW_VIDEO_MODE;
-	//!Basic rendering unit.
-	class GameWindow{
-		public:
-			//!Constructor.
-			GameWindow();
-			//!Destructor. Does call StopVideo() automatically.
-			virtual ~GameWindow();
+    //!Basic rendering unit.
+    class GameWindow{
+        public:
+            //!Constructor.
+            GameWindow();
+            //!Destructor. Does call StopVideo() automatically.
+            virtual ~GameWindow();
 
             void SetMode(GW_VIDEO_MODE mode);
             GW_VIDEO_MODE GetMode(void);
 
-			//!Initializes the whole video subsystem.
-			//!Should be the first command called with the library.
-			void InitVideo();
-			//!Shuts the video subsystem down. It won't work if Video wasn't initialized before.
-			void StopVideo();
-			//!Checks if the video subsystem is already initialized.
-			//!\return true if initialized, false if not.
-			static bool IsInitialized();
-			//!Sets the background clear color
-			//!\param bgcolor is a GXColor containing r, g, b and a.
-			void SetBackground(GXColor bgcolor);
-			//!Finishes rendering.
-			void Flush();
+            //!Initializes the whole video subsystem.
+            //!Should be the first command called with the library.
+            void InitVideo();
+            //!Shuts the video subsystem down. It won't work if Video wasn't initialized before.
+            void StopVideo();
+            //!Checks if the video subsystem is already initialized.
+            //!\return true if initialized, false if not.
+            static bool IsInitialized();
+            //!Sets the background clear color
+            //!\param bgcolor is a GXColor containing r, g, b and a.
+            void SetBackground(GXColor bgcolor);
+            //!Finishes rendering.
+            void Flush();
+            //!Write screenshot from framebuffer.
+            int WriteScreenshot(const char *fname);
 
-			//!Gets the width of the screen.
-			//!\return The width of the screen if intialized. 0 if the video subsystem is not initialized.
-			static u32 GetWidth();
-			//!Gets the height of the screen.
-			//!\return The height of the screen if intialized. 0 if the video subsystem is not initialized.
-			static u32 GetHeight();
-			static Image* _lastimage;
-			static bool _lastimagebilinear;
-		protected:
-		private:
-			void* _frameBuffer[2]; u32 _fb;
-			bool _first;
-			GXRModeObj* _rmode;
-			void* _gp_fifo;
+            //!Gets the width of the screen.
+            //!\return The width of the screen if intialized. 0 if the video subsystem is not initialized.
+            static u32 GetWidth();
+            //!Gets the height of the screen.
+            //!\return The height of the screen if intialized. 0 if the video subsystem is not initialized.
+            static u32 GetHeight();
+            static Image* _lastimage;
+            static bool _lastimagebilinear;
+        protected:
+        private:
+            void* _frameBuffer[2]; u32 _fb;
+            bool _first;
+            GXRModeObj* _rmode;
+            void* _gp_fifo;
             static GW_VIDEO_MODE _mode;
-			static u32 _width, _height;
-			static bool _initialized;
+            static u32 _width, _height;
+            static bool _initialized;
 
-		friend class Image; // Lets image access the _lastimage and _lastimagebilinear member.
-	};
+        friend class Image; // Lets image access the _lastimage and _lastimagebilinear member.
+    };
 };
 
 /*! \mainpage libwiisprite Documentation

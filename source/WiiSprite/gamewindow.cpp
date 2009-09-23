@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <png.h>
 #include "gamewindow.h"
 
 #if 1
@@ -249,6 +250,105 @@ namespace wsp{
     u32 GameWindow::GetHeight(){
         if(!_initialized)return 0;
         return _height;
+    }
+
+    static void MyPngErrorFunction(png_structp png_ptr, const char *err_msg)
+    {
+        fprintf(stderr, "%s", err_msg);
+    }
+    
+    static void MyPngWarningFunction(png_structp png_ptr, const char *warn_msg)
+    {
+        return;
+    }
+
+    int GameWindow::WriteScreenshot(const char *fname)
+    {
+        png_structp png_ptr = NULL;
+        png_infop  info_ptr = NULL;
+        u32 **row_pointers;
+        int i, x, y;
+        int retval = 0;
+        int width = 640;
+        int height = 528;
+        u32 *pfb;
+
+        FILE *outfp = fopen(fname, "wb");
+        if( !outfp ) {
+            fprintf(stderr, "Error creating file '%s'\n", fname);
+            goto done;
+        }
+
+        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+                                          NULL, MyPngErrorFunction, MyPngWarningFunction);
+        if (!png_ptr) {
+            fprintf(stderr, "Error creating write_struct\n");
+            goto done;
+        }
+    
+        info_ptr = png_create_info_struct(png_ptr);
+        if (!info_ptr) {
+            fprintf(stderr, "Error creating write_info_struct\n");
+            goto done;
+        }
+    
+        png_init_io(png_ptr, outfp);
+
+        /* set png header */
+        png_set_IHDR(png_ptr, info_ptr, width, height, 8,
+                     PNG_COLOR_TYPE_RGBA, PNG_FILTER_TYPE_BASE,
+                     PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+        png_write_info(png_ptr, info_ptr);
+
+        /* create 32 bpp image */
+        row_pointers = (u32**)malloc(height * sizeof(char*));
+        pfb = (u32 *)_frameBuffer[_fb];
+        for(y = 0; y < (int)height; y++) {
+            u32 *pd = (u32 *)malloc(width*sizeof(u32));
+            row_pointers[y] = pd;
+            for(x = 0; x < (int)(width>>1) ; x++) {
+                u8 Y1, Y2, Cb, Cr;
+                int R, G, B;
+                u32 pix = *pfb++;
+                Y1 = (pix >> 24) & 0xff;
+                Cb = (pix >> 16) & 0xff;
+                Y2 = (pix >> 8) & 0xff;
+                Cr = pix & 0xff;
+                R = (int)Y1 + 1.371f * (float)(Cr - 128);
+                G = (int)Y1 - 0.698f * (float)(Cr - 128) - 0.336f * (float)(Cb - 128);
+                B = (int)Y1 + 1.732f * (float)(Cb - 128);
+                R = (R < 0)? 0 : ((R > 255)? 255 : R);
+                G = (G < 0)? 0 : ((G > 255)? 255 : G);
+                B = (B < 0)? 0 : ((B > 255)? 255 : B);
+                *pd++ = (R << 24) | (G << 16) | (B << 8) | 0xff;
+                R = (int)Y2 + 1.371f * (float)(Cr - 128);
+                G = (int)Y2 - 0.698f * (float)(Cr - 128) - 0.336f * (float)(Cb - 128);
+                B = (int)Y2 + 1.732f * (float)(Cb - 128);
+                R = (R < 0)? 0 : ((R > 255)? 255 : R);
+                G = (G < 0)? 0 : ((G > 255)? 255 : G);
+                B = (B < 0)? 0 : ((B > 255)? 255 : B);
+                *pd++ = (R << 24) | (G << 16) | (B << 8) | 0xff;
+            }
+        }
+    
+        png_write_image(png_ptr, (png_byte**)row_pointers);
+        png_write_end(png_ptr, info_ptr);
+
+        /* free row_pointers array */
+        for(i = 0; i < (int)height; i++) {
+            free(row_pointers[i]);
+        }
+        free(row_pointers);
+    
+        retval = 1;
+    done:
+        if(png_ptr) {
+            png_destroy_write_struct(&png_ptr, &info_ptr);
+        }
+        if(outfp) {
+            fclose(outfp);
+        }
+        return retval;
     }
 }
 
