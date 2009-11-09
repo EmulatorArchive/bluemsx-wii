@@ -22,7 +22,7 @@
 
 #include "GuiManager.h"
 
-#define SD_ROOT_DIR  "fat:/"
+#define SD_ROOT_DIR  "sd:/"
 #define MSX_ROOT_DIR SD_ROOT_DIR"/MSX"
 
 extern bool SetupSDCard(GuiManager *manager);

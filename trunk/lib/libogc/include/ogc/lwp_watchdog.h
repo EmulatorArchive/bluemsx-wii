@@ -35,6 +35,10 @@
 #define ticks_to_microsecs(ticks)	((u32)(((u64)(ticks)*8)/(u64)(TB_TIMER_CLOCK/125)))
 #define ticks_to_nanosecs(ticks)	((u32)(((u64)(ticks)*8000)/(u64)(TB_TIMER_CLOCK/125)))
 
+#define tick_microsecs(ticks)		((u32)(((u64)(ticks)*8)%(u64)(TB_TIMER_CLOCK/125)))
+#define tick_nanosecs(ticks)		((u32)(((u64)(ticks)*8000)%(u64)(TB_TIMER_CLOCK/125)))
+
+
 #define secs_to_ticks(sec)			((u64)(sec)*(TB_TIMER_CLOCK*1000))
 #define millisecs_to_ticks(msec)	((u64)(msec)*(TB_TIMER_CLOCK))
 #define microsecs_to_ticks(usec)	(((u64)(usec)*(TB_TIMER_CLOCK/125))/8)
@@ -64,8 +68,14 @@ extern u32 _wd_ticks_since_boot;
 
 extern lwp_queue _wd_ticks_queue;
 
-extern long long gettime();
-extern void settime(long long);
+extern u32 gettick();
+extern u64 gettime();
+extern void settime(u64);
+
+u32 diff_sec(u64 start,u64 end);
+u32 diff_msec(u64 start,u64 end);
+u32 diff_usec(u64 start,u64 end);
+u32 diff_nsec(u64 start,u64 end);
 
 typedef void (*wd_service_routine)(void *);
 
