@@ -2,7 +2,6 @@
 
 di.h -- Drive Interface library
 
-Team Twiizers
 Copyright (C) 2008
 
 Erant
@@ -40,6 +39,8 @@ All buffers in this document need to be 32-byte aligned!
 
 #include <stdint.h>
 #include <ogc/ipc.h>
+#include <ogc/disc_io.h>
+
 /*
 DEFINES GO HERE!
 */
@@ -70,7 +71,15 @@ DEFINES GO HERE!
 #define DVD_D0		0x20
 #define DVD_A8		0x40
 
-#define MAX_RETRY	16
+#define LIBDI_MAX_RETRIES	16
+#define DVD_COVER_DISC_INSERTED	0x02
+
+#define DEVICE_TYPE_WII_DVD		(('W'<<24)|('D'<<16)|('V'<<8)|'D')
+
+#ifdef __cplusplus
+	extern "C" {
+#endif
+
 /*
 TYPEDEFS GO HERE!
 */
@@ -84,6 +93,8 @@ typedef struct{
 typedef int(*di_callback)(uint32_t status, uint32_t error);
 typedef int(*read_func)(void*,uint32_t,uint32_t);
 typedef int(*read_func_async)(void*,uint32_t,uint32_t,ipccallback);
+
+extern const DISC_INTERFACE __io_wiidvd;
 /*
 FUNCTION PROTOTYPES GO HERE!
 */
@@ -117,5 +128,9 @@ int DI_ReportKey(int keytype, uint32_t lba, void* buf);
 
 int DI_OpenPartition(u32 offset);
 int DI_ClosePartition(void);
+
+#ifdef __cplusplus
+	}
+#endif
 
 #endif

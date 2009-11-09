@@ -27,7 +27,6 @@ must not be misrepresented as being the original software.
 distribution.
 
 -------------------------------------------------------------*/
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/iosupport.h>
@@ -41,7 +40,6 @@ distribution.
 #include <gccore.h>
 #include <ogc/usb.h>
 #include <ogc/lwp_queue.h>
-#include <ogc/lwp_queue.inl>
 
 #include "usbkeyboard.h"
 #include "keyboard.h"
@@ -106,6 +104,24 @@ static keyPressCallback _readKey_cb = NULL;
 
 static u8 *_kbd_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
 static u8 *_kbd_buf_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+
+// Queue taken from lwp_queue.inl
+static __inline__ lwp_node* __lwp_queue_tail(lwp_queue *queue)
+{
+	return (lwp_node*)&queue->perm_null;
+}
+
+static __inline__ lwp_node* __lwp_queue_head(lwp_queue *queue)
+{
+	return (lwp_node*)queue;
+}
+
+static __inline__ void __lwp_queue_init_empty(lwp_queue *queue)
+{
+	queue->first = __lwp_queue_tail(queue);
+	queue->perm_null = NULL;
+	queue->last = __lwp_queue_head(queue);
+}
 
 static kbd_t _get_keymap_by_name(const char *identifier) {
 	char name[64];
@@ -501,7 +517,7 @@ s32 KEYBOARD_Init(keyPressCallback keypress_cb)
 				(st.st_size == read(fd, keymap, st.st_size))) {
 				keymap[63] = 0;
 				for (i = 0; i < 64; ++i) {
-					if ((keymap[i] != '-') && (isalpha(keymap[i]) == 0)) {
+					if ((keymap[i] != '-') && (isalpha((int)keymap[i]) == 0)) {
 						keymap[i] = 0;
 						break;
 					}
