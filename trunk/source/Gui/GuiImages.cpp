@@ -9,16 +9,20 @@
 #include "image_keyboard.inc"
 #include "image_button_yes.inc"
 #include "image_button_no.inc"
+#include "image_checkbox_checked.inc"
+#include "image_checkbox.inc"
 
-Image *g_imgArrow       = NULL;
-Image *g_imgBackground  = NULL;
-Image *g_imgMousecursor = NULL;
-Image *g_imgNoise       = NULL;
-Image *g_imgSelector    = NULL;
-Image *g_imgFloppyDisk  = NULL;
-Image *g_imgKeyboard    = NULL;
-Image *g_imgButtonYes   = NULL;
-Image *g_imgButtonNo    = NULL;
+Image *g_imgArrow           = NULL;
+Image *g_imgBackground      = NULL;
+Image *g_imgMousecursor     = NULL;
+Image *g_imgNoise           = NULL;
+Image *g_imgSelector        = NULL;
+Image *g_imgFloppyDisk      = NULL;
+Image *g_imgKeyboard        = NULL;
+Image *g_imgButtonYes       = NULL;
+Image *g_imgButtonNo        = NULL;
+Image *g_imgCheckboxChecked = NULL;
+Image *g_imgCheckbox        = NULL;
 
 void GuiImageInit(void)
 {
@@ -40,6 +44,10 @@ void GuiImageInit(void)
     if(g_imgButtonYes->LoadImage(image_button_yes) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgButtonNo = new Image;
     if(g_imgButtonNo->LoadImage(image_button_no) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgCheckboxChecked = new Image;
+    if(g_imgCheckboxChecked->LoadImage(image_checkbox_checked) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgCheckbox = new Image;
+    if(g_imgCheckbox->LoadImage(image_checkbox) != IMG_LOAD_ERROR_NONE) exit(0);
 }
 
 void GuiImageClose(void)
@@ -62,5 +70,9 @@ void GuiImageClose(void)
     g_imgBackground = NULL;
     delete g_imgArrow;
     g_imgArrow = NULL;
+    delete g_imgCheckboxChecked;
+    g_imgCheckboxChecked = NULL;
+    delete g_imgCheckbox;
+    g_imgCheckbox = NULL;
 }
 

@@ -67,6 +67,7 @@ extern "C" {
 #include "WiiShortcuts.h"
 #include "ArchThread.h"
 #include "WiiInput.h"
+#include "WiiToolLoader.h"
 }
 
 #include "SdSetup.h"
@@ -181,6 +182,9 @@ void blueMsxInit(int resetProperties)
         return;
     }
 
+    // Load tools
+    toolLoadAll(properties->language, manager);
+
     video = videoCreate();
 
     if (properties->video.windowSize == P_VIDEO_SIZEFULLSCREEN) {
@@ -282,6 +286,7 @@ void RenderEmuImage(void *dpyData)
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
     int i;
+    char buffer[512];
 
     // Loading message
     msgbox->Show("Loading...");
@@ -316,6 +321,16 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         int event = game->GetKeyMapping((KEY)i);
         if( event != -1 ) {
             keyboardRemapKey((KEY)i, event);
+        }
+    }
+
+    ToolInfo* ti = toolInfoFind("Trainer");
+    if( ti ) {
+        if( game->GetCheatFile() ) {
+            sprintf(buffer, "%s/Tools/Cheats/%s", MSX_ROOT_DIR, game->GetCheatFile());
+            toolInfoAddArgument(ti, "CheatFile", buffer);
+        } else {
+            toolInfoAddArgument(ti, "CheatFile", NULL);
         }
     }
 
@@ -354,11 +369,12 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     osk = new GuiKeyboard(manager);
 
     // Loop while the user hasn't quit
-    GuiMenu *menu = new GuiMenu(manager, 4);
+    GuiMenu *menu = new GuiMenu(manager, 5);
     const char *menu_items[] = {
       "Load state",
       "Save state",
       "Screenshot",
+      "Cheats",
       "Quit"
     };
     int refresh = 0;
@@ -381,11 +397,11 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         if( KBD_GetKeyStatus(KEY_JOY1_HOME) || KBD_GetKeyStatus(KEY_JOY2_HOME) ||
             KBD_GetKeyStatus(KEY_F12) ) {
             if( !pressed ) {
-                emulatorSuspend();
+                actionEmuTogglePause();
                 osk->SetEnabled(false);
                 bool leave_menu = false;
                 do {
-                    int selection = menu->DoModal(menu_items, 4, 344);
+                    int selection = menu->DoModal(menu_items, 5, 344);
                     switch( selection ) {
                         GuiStateSelect *statesel;
                         char *statefile;
@@ -434,7 +450,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             (void)archScreenCaptureToFile(SC_NORMAL, p);
                             msgbox->Remove();
                             break;
-                        case 3: /* Quit */
+                        case 3: /* Cheats */
+                            actionToolsShowTrainer();
+                            break;
+                        case 4: /* Quit */
                             doQuit = true;
                             leave_menu = true;
                             break;
@@ -444,7 +463,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                     }
                 }while(!leave_menu);
                 KBD_GetKeys(NULL); // flush
-                emulatorResume();
+                actionEmuTogglePause();
                 osk->SetEnabled(!doQuit);
                 pressed = true;
             }
@@ -457,6 +476,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     delete menu;
 
     emulatorStop();
+    toolUnLoadAll();
 
     // Remove emulator+keyboard from display
     manager->Lock();

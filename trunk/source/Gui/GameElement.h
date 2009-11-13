@@ -18,9 +18,11 @@ public:
     void SetCommandLine(const char *str);
     void SetScreenShot(int number, const char *str);
     void SetKeyMapping(KEY key, int event);
-    char *GetName();
-    char *GetCommandLine();
+    void SetCheatFile(const char *str);
+    char *GetName(void);
+    char *GetCommandLine(void);
     char *GetScreenShot(int number);
+    char *GetCheatFile(void);
     int GetKeyMapping(KEY key);
     void FreeImage(int number);
     Image* GetImage(int number);
@@ -29,6 +31,7 @@ private:
     char *name;
     char *cmdline;
     char *screenshot[2];
+    char *cheatfile;
     Image *image[2];
     int key_map[KEY_LAST];
 };

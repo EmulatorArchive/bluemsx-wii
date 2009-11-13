@@ -83,11 +83,15 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                 }
             }
         }
+        if( strcmp("CheatFile", name)==0 ) {
+            my->current_container = CONTAINER_CHEATFILE;
+        }
         break;
     case CONTAINER_COMMANDLINE:
     case CONTAINER_SCREENSHOT:
     case CONTAINER_KEYMAP:
     case CONTAINER_SETTINGS:
+    case CONTAINER_CHEATFILE:
         break;
     }
 }
@@ -138,6 +142,13 @@ void XMLCALL GameList::endElement(void *userData, const char *name)
             my->receiving_string = NULL;
         }
         break;
+    case CONTAINER_CHEATFILE:
+        my->current_container = CONTAINER_GAME;
+        my->current_element->SetCheatFile(my->receiving_string);
+        if( my->receiving_string != NULL ) {
+            free(my->receiving_string);
+            my->receiving_string = NULL;
+        }
     case CONTAINER_KEYMAP:
     case CONTAINER_SETTINGS:
         my->current_container = CONTAINER_GAME;
@@ -264,4 +275,3 @@ GameList::~GameList()
 {
     Clear();
 }
-
