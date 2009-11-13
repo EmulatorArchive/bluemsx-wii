@@ -20,6 +20,7 @@ GameElement::GameElement()
     screenshot[1] = NULL;
     image[0] = NULL;
     image[1] = NULL;
+    cheatfile = NULL;
     memset(key_map, 0xff, sizeof(key_map)); /* set to -1 */
 }
 
@@ -32,10 +33,12 @@ GameElement::GameElement(GameElement *parent)
     screenshot[1] = NULL;
     image[0] = NULL;
     image[1] = NULL;
+    cheatfile = NULL;
     if( parent->name != NULL ) name = strdup(parent->name);
     if( parent->cmdline != NULL ) cmdline = strdup(parent->cmdline);
     if( parent->screenshot[0] != NULL ) screenshot[0] = strdup(parent->screenshot[0]);
     if( parent->screenshot[1] != NULL ) screenshot[1] = strdup(parent->screenshot[1]);
+    if( parent->cheatfile != NULL ) cheatfile = strdup(parent->cheatfile);
     memcpy(key_map, parent->key_map, sizeof(key_map));
 }
 
@@ -47,6 +50,7 @@ GameElement::~GameElement()
     if( screenshot[1] ) free(screenshot[1]);
     if( image[0] ) delete image[0];
     if( image[1] ) delete image[1];
+    if( cheatfile ) free (cheatfile);
 }
 
 void GameElement::SetName(const char *str)
@@ -86,12 +90,22 @@ void GameElement::SetKeyMapping(KEY key, int event)
     key_map[key] = event;
 }
 
-char* GameElement::GetName()
+void GameElement::SetCheatFile(const char *str)
+{
+    if( cheatfile ) free(cheatfile);
+    if( str ) {
+        cheatfile = strdup(str);
+    }else{
+        cheatfile = NULL;
+    }
+}
+
+char* GameElement::GetName(void)
 {
     return name;
 }
 
-char* GameElement::GetCommandLine()
+char* GameElement::GetCommandLine(void)
 {
     return cmdline;
 }
@@ -103,6 +117,11 @@ char* GameElement::GetScreenShot(int number)
     }else{
         return NULL;
     }
+}
+
+char* GameElement::GetCheatFile(void)
+{
+    return cheatfile;
 }
 
 int GameElement::GetKeyMapping(KEY key)

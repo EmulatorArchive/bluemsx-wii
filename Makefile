@@ -39,6 +39,7 @@ SOURCES		:=	source/Bios \
               source/Resource \
               source/SoundChips \
               source/TinyXML \
+              source/Tools/Trainer \
               source/Unzip \
               source/Utils \
               source/VideoChips \

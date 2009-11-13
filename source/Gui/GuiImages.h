@@ -15,6 +15,8 @@ extern Image *g_imgFloppyDisk;
 extern Image *g_imgKeyboard;
 extern Image *g_imgButtonYes;
 extern Image *g_imgButtonNo;
+extern Image *g_imgCheckboxChecked;
+extern Image *g_imgCheckbox;
 
 extern void GuiImageInit(void);
 extern void GuiImageClose(void);

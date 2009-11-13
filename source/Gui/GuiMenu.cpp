@@ -20,8 +20,6 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->AddTop(container, MENU_FADE_FRAMES);
     width = container->GetWidth();
     height = container->GetHeight();
-    posx = manager->GetWidth()/2-width/2;
-    posy = manager->GetHeight()/2-height/2;
 
     // Start displaying
     manager->Unlock();

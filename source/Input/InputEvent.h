@@ -234,8 +234,9 @@ const char* inputEventCodeToString(int eventCode);
 #define EC_HOT_WINDOW_SIZE_NORMAL       195
 #define EC_HOT_WINDOW_SIZE_FULLSCREEN   196
 #define EC_HOT_FULLSCREEN_TOGGLE        197
+#define EC_HOT_SHOW_TRAINER             198
 
-#define EC_KEYCOUNT                     198
+#define EC_KEYCOUNT                     199
 
 // Inlines
 extern int eventMap[256];
