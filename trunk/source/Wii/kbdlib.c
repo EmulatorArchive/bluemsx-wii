@@ -91,23 +91,30 @@ static const char *keynames[KEY_LAST];
 
 static PADCODE wpad[] =
 {
-    {KEY_JOY1_BUTTON_A, KEY_JOY2_BUTTON_A, (WPAD_BUTTON_A   | WPAD_CLASSIC_BUTTON_A)    },
-    {KEY_JOY1_BUTTON_B, KEY_JOY2_BUTTON_B, (WPAD_BUTTON_B   | WPAD_CLASSIC_BUTTON_B)    },
-    {KEY_JOY1_BUTTON_1, KEY_JOY2_BUTTON_1,  WPAD_BUTTON_1                               },
-    {KEY_JOY1_BUTTON_2, KEY_JOY2_BUTTON_2,  WPAD_BUTTON_2                               },
-    {KEY_JOY1_UP,       KEY_JOY2_UP,       (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)   },
-    {KEY_JOY1_DOWN,     KEY_JOY2_DOWN,     (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_DOWN) },
-    {KEY_JOY1_LEFT,     KEY_JOY2_LEFT,     (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_LEFT) },
-    {KEY_JOY1_RIGHT,    KEY_JOY2_RIGHT,    (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_RIGHT)},
-    {KEY_JOY1_HOME,     KEY_JOY2_HOME,     (WPAD_BUTTON_HOME  | WPAD_CLASSIC_BUTTON_HOME) },
-    {KEY_JOY1_PLUS,     KEY_JOY2_PLUS,     (WPAD_BUTTON_PLUS  | WPAD_CLASSIC_BUTTON_PLUS) },
-    {KEY_JOY1_MINUS,    KEY_JOY2_MINUS,    (WPAD_BUTTON_MINUS | WPAD_CLASSIC_BUTTON_MINUS)},
-    {KEY_JOY1_BUTTON_X, KEY_JOY2_BUTTON_X,  WPAD_CLASSIC_BUTTON_X                         },
-    {KEY_JOY1_BUTTON_Y, KEY_JOY2_BUTTON_Y,  WPAD_CLASSIC_BUTTON_Y                         },
-    {KEY_JOY1_BUTTON_L, KEY_JOY2_BUTTON_L,  WPAD_CLASSIC_BUTTON_FULL_L                    },
-    {KEY_JOY1_BUTTON_R, KEY_JOY2_BUTTON_R,  WPAD_CLASSIC_BUTTON_FULL_R                    },
-    {KEY_JOY1_BUTTON_ZL,KEY_JOY2_BUTTON_ZL, WPAD_CLASSIC_BUTTON_ZL                        },
-    {KEY_JOY1_BUTTON_ZR,KEY_JOY2_BUTTON_ZR, WPAD_CLASSIC_BUTTON_ZR                        },
+    {KEY_JOY1_BUTTON_A,             KEY_JOY2_BUTTON_A,              WPAD_BUTTON_A               },
+    {KEY_JOY1_BUTTON_B,             KEY_JOY2_BUTTON_B,              WPAD_BUTTON_B               },
+    {KEY_JOY1_BUTTON_1,             KEY_JOY2_BUTTON_1,              WPAD_BUTTON_1               },
+    {KEY_JOY1_BUTTON_2,             KEY_JOY2_BUTTON_2,              WPAD_BUTTON_2               },
+    {KEY_JOY1_UP,                   KEY_JOY2_UP,        (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)   },
+    {KEY_JOY1_DOWN,                 KEY_JOY2_DOWN,      (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_DOWN) },
+    {KEY_JOY1_LEFT,                 KEY_JOY2_LEFT,      (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_LEFT) },
+    {KEY_JOY1_RIGHT,                KEY_JOY2_RIGHT,     (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_RIGHT)},
+    {KEY_JOY1_HOME,                 KEY_JOY2_HOME,                  WPAD_BUTTON_HOME            },
+    {KEY_JOY1_PLUS,                 KEY_JOY2_PLUS,                  WPAD_BUTTON_PLUS            },
+    {KEY_JOY1_MINUS,                KEY_JOY2_MINUS,                 WPAD_BUTTON_MINUS           },
+    {KEY_JOY1_NUNCHUCK_BUTTON_C,    KEY_JOY2_NUNCHUCK_BUTTON_C,     WPAD_NUNCHUK_BUTTON_C       },
+    {KEY_JOY1_NUNCHUCK_BUTTON_Z,    KEY_JOY2_NUNCHUCK_BUTTON_Z,     WPAD_NUNCHUK_BUTTON_Z       },
+    {KEY_JOY1_CLASSIC_BUTTON_A,     KEY_JOY2_CLASSIC_BUTTON_A,      WPAD_CLASSIC_BUTTON_A       },
+    {KEY_JOY1_CLASSIC_BUTTON_B,     KEY_JOY2_CLASSIC_BUTTON_B,      WPAD_CLASSIC_BUTTON_B       },
+    {KEY_JOY1_CLASSIC_BUTTON_X,     KEY_JOY2_CLASSIC_BUTTON_X,      WPAD_CLASSIC_BUTTON_X       },
+    {KEY_JOY1_CLASSIC_BUTTON_Y,     KEY_JOY2_CLASSIC_BUTTON_Y,      WPAD_CLASSIC_BUTTON_Y       },
+    {KEY_JOY1_CLASSIC_BUTTON_L,     KEY_JOY2_CLASSIC_BUTTON_L,      WPAD_CLASSIC_BUTTON_FULL_L  },
+    {KEY_JOY1_CLASSIC_BUTTON_R,     KEY_JOY2_CLASSIC_BUTTON_R,      WPAD_CLASSIC_BUTTON_FULL_R  },
+    {KEY_JOY1_CLASSIC_BUTTON_ZL,    KEY_JOY2_CLASSIC_BUTTON_ZL,     WPAD_CLASSIC_BUTTON_ZL      },
+    {KEY_JOY1_CLASSIC_BUTTON_ZR,    KEY_JOY2_CLASSIC_BUTTON_ZR,     WPAD_CLASSIC_BUTTON_ZR      },
+    {KEY_JOY1_CLASSIC_BUTTON_SELECT,KEY_JOY2_CLASSIC_BUTTON_SELECT, WPAD_CLASSIC_BUTTON_MINUS   },
+    {KEY_JOY1_CLASSIC_BUTTON_HOME,  KEY_JOY2_CLASSIC_BUTTON_HOME,   WPAD_CLASSIC_BUTTON_HOME    },
+    {KEY_JOY1_CLASSIC_BUTTON_START, KEY_JOY2_CLASSIC_BUTTON_START,  WPAD_CLASSIC_BUTTON_PLUS    },
     {KEY_NONE, KEY_NONE, 0}
 };
 
@@ -429,12 +436,19 @@ static void FillKeyNames(void)
     keynames[KEY_JOY1_HOME]     = "home1";
     keynames[KEY_JOY1_PLUS]     = "plus1";
     keynames[KEY_JOY1_MINUS]    = "minus1";
-    keynames[KEY_JOY1_BUTTON_X] = "buttonX1";
-    keynames[KEY_JOY1_BUTTON_Y] = "buttonY1";
-    keynames[KEY_JOY1_BUTTON_L] = "buttonL1";
-    keynames[KEY_JOY1_BUTTON_R] = "buttonR1";
-    keynames[KEY_JOY1_BUTTON_ZL] = "buttonZL1";
-    keynames[KEY_JOY1_BUTTON_ZR] = "buttonZR1";
+    keynames[KEY_JOY1_NUNCHUCK_BUTTON_C] = "nunchuckbuttonc1";
+    keynames[KEY_JOY1_NUNCHUCK_BUTTON_Z] = "nunchuckbuttonz1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_A] = "classicbuttonA1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_B] = "classicbuttonB1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_X] = "classicbuttonX1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_Y] = "classicbuttonY1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_L] = "classicbuttonL1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_R] = "classicbuttonR1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_ZL] = "classicbuttonZL1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_ZR] = "classicbuttonZR1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_SELECT] = "classicbuttonselect1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_HOME] = "classicbuttonhome1";
+    keynames[KEY_JOY1_CLASSIC_BUTTON_START] = "classicbuttonstart1";
 
     keynames[KEY_JOY2_BUTTON_A] = "buttonA2";
     keynames[KEY_JOY2_BUTTON_B] = "buttonB2";
@@ -447,12 +461,19 @@ static void FillKeyNames(void)
     keynames[KEY_JOY2_HOME]     = "home2";
     keynames[KEY_JOY2_PLUS]     = "plus2";
     keynames[KEY_JOY2_MINUS]    = "minus2";
-    keynames[KEY_JOY2_BUTTON_X] = "buttonX2";
-    keynames[KEY_JOY2_BUTTON_Y] = "buttonY2";
-    keynames[KEY_JOY2_BUTTON_L] = "buttonL2";
-    keynames[KEY_JOY2_BUTTON_R] = "buttonR2";
-    keynames[KEY_JOY2_BUTTON_ZL] = "buttonZL2";
-    keynames[KEY_JOY2_BUTTON_ZR] = "buttonZR2";
+    keynames[KEY_JOY2_NUNCHUCK_BUTTON_C] = "nunchuckbuttonc2";
+    keynames[KEY_JOY2_NUNCHUCK_BUTTON_Z] = "nunchuckbuttonz2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_A] = "classicbuttonA2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_B] = "classicbuttonB2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_X] = "classicbuttonX2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_Y] = "classicbuttonY2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_L] = "classicbuttonL2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_R] = "classicbuttonR2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_ZL] = "classicbuttonZL2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_ZR] = "classicbuttonZR2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_SELECT] = "classicbuttonselect2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_HOME] = "classicbuttonhome2";
+    keynames[KEY_JOY2_CLASSIC_BUTTON_START] = "classicbuttonstart2";
 }
 
 int KBD_IsConnected(void)
@@ -518,7 +539,6 @@ u32 KBD_GetPadButtonStatus(int channel)
     u32 buttons, gcbuttons;
     PAD2WPAD *p2w;
     joystick_t padjoy;
-    static int count;
 
     // Check standard buttons
     buttons = WPAD_ButtonsHeld(channel);
@@ -536,15 +556,6 @@ u32 KBD_GetPadButtonStatus(int channel)
     // Check extensions
     WPAD_Probe(channel, &extensions);
     if( extensions == WPAD_EXP_NUNCHUK ) {
-      // Special nunchuk mappings
-      if( buttons & WPAD_NUNCHUK_BUTTON_Z ) {
-        buttons &= ~WPAD_NUNCHUK_BUTTON_Z;
-        buttons |= WPAD_CLASSIC_BUTTON_A;
-      }
-      if( buttons & WPAD_NUNCHUK_BUTTON_C ) {
-        buttons &= ~WPAD_NUNCHUK_BUTTON_C;
-        buttons |= WPAD_CLASSIC_BUTTON_B;
-      }
       // Nunchuk stick
       WPAD_Expansion(channel, &data.exp);
       buttons |= GetJoystickDirection(&data.exp.nunchuk.js);
