@@ -11,20 +11,24 @@ public:
     virtual ~GuiSelectionList();
 
     virtual void OnSetSelected(int index, int selected) {};
-    void ShowSelection(const char **items, int num, int select, int fontsz, int ypitch,
-                       int posx, int posy, int xspace, int width, bool centr = false, int fad = 0);
+    void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
+                       int posx, int posy, int xspace, int width, bool centr = false);
+    void ShowSelection(int fade = 0, int delay = 0);
     int DoSelection(void);
-    void RemoveSelection(void);
+    void RemoveSelection(int fade = 0, int delay = 0);
     bool IsShowing(void);
 
 protected:
     GuiManager *manager;
+    Sprite *sprCursor;
 private:
+	int xpos;
+	int ypos;
     int xsize;
     int xspacing;
+	int ypitch;
     int fontsize;
     bool center;
-    int fade;
     int selected, index;
     int current;
     int num_items;
@@ -36,17 +40,16 @@ private:
     const char **item_list;
     const char **visible_items;
     Sprite **titleTxtSprite;
-    Sprite *sprCursor;
     Sprite *sprSelector;
     Sprite *sprArrowUp;
     Sprite *sprArrowDown;
     DrawableImage *titleTxtImg;
     DrawableImage **titleTxtImgPtr;
 
-    void InitTitleList(TextRender *fontArial, int x, int y, int width, int ypitch);
-    void RemoveTitleList(void);
+    void InitTitleList(TextRender *fontArial, int x, int y, int width, int ypitch, int fade = 0);
+    void RemoveTitleList(int fade = 0, int delay = 0);
     void ClearTitleList(void);
-    void SetSelected(int index, int selected);
+    void SetSelected(int index, int selected, int fade = -1, int delay = -1);
 };
 
 #endif

@@ -10,6 +10,8 @@
 #include "GuiImages.h"
 
 #define GAMESEL_FADE_DEFAULT      10
+#define GAMESEL_FADE_RESTART      30
+#define GAMESEL_DELAY_RESTART     6
 #define GAMESEL_FADE_SCREENSHOTS  10
 #define GAMESEL_DELAY_SCREENSHOTS 8
 
@@ -22,28 +24,30 @@ void GuiGameSelect::SetScreenShotImage(int index, Image *img)
     spr->SetImage(img);
     spr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     spr->SetRefPixelPosition(0, 0);
-    spr->SetStretchWidth(252.0f/img->GetWidth());
-    spr->SetStretchHeight(168.0f/img->GetHeight());
+    spr->SetStretchWidth(screenshotWidth / img->GetWidth());
+    spr->SetStretchHeight(screenshotHeigth / img->GetHeight());
 }
 
 void GuiGameSelect::OnSetSelected(int index, int selected)
 {
     bool first = true;
+    last_index = index;
+    last_selected = selected;
     // (Re)create screenshot sprites
     if( sprScreenShot[0] != NULL ) {
         first = false;
         manager->RemoveAndDelete(sprScreenShot[0], sprScreenShot[0]->GetImage(),
-                                 GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
+                                 fade_time, fade_delay);
     }
     if( sprScreenShot[1] != NULL ) {
         first = false;
         manager->RemoveAndDelete(sprScreenShot[1], sprScreenShot[1]->GetImage(),
-                                 GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
+                                 fade_time, fade_delay);
     }
     sprScreenShot[0] = new Sprite;
-    sprScreenShot[0]->SetPosition(344+12-8, 24+16);
+    sprScreenShot[0]->SetPosition(344+12-8, screenshotYpos1);
     sprScreenShot[1] = new Sprite;
-    sprScreenShot[1]->SetPosition(344+12-8, 228+16);
+    sprScreenShot[1]->SetPosition(344+12-8, screenshotYpos2);
     // Update screenshots
     if( selected >= 0 ) {
         GameElement *game = games.GetGame(index+selected);
@@ -51,8 +55,8 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
         SetScreenShotImage(1, new Image(game->GetImage(1)));
     }
     // Add to screen
-    manager->AddTop(sprScreenShot[0], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
-    manager->AddTop(sprScreenShot[1], first? GAMESEL_FADE_DEFAULT : GAMESEL_FADE_SCREENSHOTS);
+    manager->AddBehind(sprCursor, sprScreenShot[0], fade_time);
+    manager->AddBehind(sprCursor, sprScreenShot[1], fade_time);
     // Free images of games that are not on the screen
     for(int i = 0; i < games.GetNumberOfGames(); i++) {
         GameElement *game = games.GetGame(i);
@@ -82,17 +86,7 @@ bool GuiGameSelect::Load(const char *dir, const char *filename)
 GameElement *GuiGameSelect::DoModal(GameElement *select)
 {
     GameElement *returnValue = NULL;
-
-    // Claim UI
-    manager->Lock();
-
-    // Containers
-    GuiContainer *grWinList = new GuiContainer(32-8, 28, 288, 33*12);
-    manager->AddTop(grWinList, GAMESEL_FADE_DEFAULT);
-    GuiContainer *grWinTitle = new GuiContainer(344-8, 28, 264+12, 16*12);
-    manager->AddTop(grWinTitle, GAMESEL_FADE_DEFAULT);
-    GuiContainer *grWinPlay = new GuiContainer(344-8, 232, 264+12, 16*12);
-    manager->AddTop(grWinPlay, GAMESEL_FADE_DEFAULT);
+    bool editMode = false;
 
     // On re-enter, find selected entry
     int sel = 0;
@@ -105,53 +99,119 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         }
     }
 
-    // Initialize screenshot variables
-    sprScreenShot[0] = NULL;
-    sprScreenShot[1] = NULL;
+    // Init fade parameters
+    fade_time = GAMESEL_FADE_DEFAULT;
+    fade_delay = 0;
 
-    // Add selection list
-    ShowSelection(title_list, num_games, sel, 22, 31,
-                  30, 38, 12, 264+12, false, GAMESEL_FADE_DEFAULT);
+    // Init selection list
+    InitSelection(title_list, num_games, sel, 22, 31,
+                  30, 38, 12, 264+12, false);
 
-    // Release UI
-    manager->Unlock();
-
-    // Menu loop
+    // Outer loop
+    bool restart = false;
     do {
-        sel = DoSelection();
+        // Claim UI
+        manager->Lock();
 
-        if( sel >= 0 ) {
-            returnValue = games.GetGame(sel);
-            // confirmation
-            char str[256];
-            strcpy(str, "Do you want to start\n\"");
-            strcat(str, returnValue->GetName());
-            strcat(str, "\"");
-            GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            bool ok = msgbox->Show(str, NULL, true, 192);
-            msgbox->Remove();
-            delete msgbox;
-            if( ok ) {
-                break;
-            }
-        }else{
-            returnValue = NULL;
+        // Add selection list
+        GuiContainer *grWinList;
+        if( !restart ) {
+            grWinList = new GuiContainer(32-8, 28, 288, 33*12);
+            manager->AddTop(grWinList, fade_time);
+            ShowSelection(fade_time);
         }
-    }while(sel >= 0);
+        restart = false;
 
-    // Claim UI
-    manager->Lock();
+        // Containers
+        GuiContainer *grWinTitle;
+        GuiContainer *grWinPlay;
+        GuiContainer *grWinControls;
+        if( editMode ) {
+            grWinTitle = new GuiContainer(344-8, 28, 264+12, 14*12);
+            manager->AddBehind(sprCursor, grWinTitle, fade_time);
+            grWinPlay = new GuiContainer(344-8, 232-30, 264+12, 14*12);
+            manager->AddBehind(sprCursor, grWinPlay, fade_time);
+            grWinControls = new GuiContainer(344-8, 232-30+14*12+6, 264+12, 4*12);
+            manager->AddBehind(sprCursor, grWinControls, fade_time);
+            screenshotWidth = (252.0f/16.0f)*14.0f;
+            screenshotHeigth = (168.0f/16.0f)*14.0f;
+            screenshotYpos1 = 24+16;
+            screenshotYpos2 = 228+16-30;
+        }else{
+            grWinTitle = new GuiContainer(344-8, 28, 264+12, 16*12);
+            manager->AddBehind(sprCursor, grWinTitle, fade_time);
+            grWinPlay = new GuiContainer(344-8, 232, 264+12, 16*12);
+            manager->AddBehind(sprCursor, grWinPlay, fade_time);
+            grWinControls = NULL;
+            screenshotWidth = 252.0f;
+            screenshotHeigth = 168.0f;
+            screenshotYpos1 = 24+16;
+            screenshotYpos2 = 228+16;
+        }
+        OnSetSelected(last_index, last_selected);
 
-    // Remove UI elements
-    RemoveSelection();
-    manager->RemoveAndDelete(sprScreenShot[0], sprScreenShot[0]->GetImage(), GAMESEL_FADE_DEFAULT);
-    manager->RemoveAndDelete(sprScreenShot[1], sprScreenShot[1]->GetImage(), GAMESEL_FADE_DEFAULT);
-    manager->RemoveAndDelete(grWinList, NULL, GAMESEL_FADE_DEFAULT);
-    manager->RemoveAndDelete(grWinTitle, NULL, GAMESEL_FADE_DEFAULT);
-    manager->RemoveAndDelete(grWinPlay, NULL, GAMESEL_FADE_DEFAULT);
+        // Release UI
+        manager->Unlock();
 
-    // Release UI
-    manager->Unlock();
+        // Menu loop
+        do {
+            fade_time = GAMESEL_FADE_SCREENSHOTS;
+            fade_delay = GAMESEL_DELAY_SCREENSHOTS;
+
+            sel = DoSelection();
+
+            if( sel >= 0 ) {
+                returnValue = games.GetGame(sel);
+                // confirmation
+                char str[256];
+                strcpy(str, "Do you want to start\n\"");
+                strcat(str, returnValue->GetName());
+                strcat(str, "\"");
+                GuiMessageBox *msgbox = new GuiMessageBox(manager);
+                bool ok = msgbox->Show(str, NULL, true, 192);
+                msgbox->Remove();
+                delete msgbox;
+                if( ok ) {
+                    break;
+                }
+            }else{
+                returnValue = NULL;
+                if( sel == -2 ) {
+                    editMode = !editMode;
+                    restart = true;
+                }
+            }
+        }while(sel >= 0);
+
+        if( restart ) {
+            fade_time = GAMESEL_FADE_RESTART;
+            fade_delay = GAMESEL_DELAY_RESTART;
+        }else{
+            fade_time = GAMESEL_FADE_DEFAULT;
+            fade_delay = 0;
+        }
+
+        // Claim UI
+        manager->Lock();
+
+        // Remove UI elements
+        if( !restart ) {
+            manager->RemoveAndDelete(grWinList, NULL, fade_time, fade_delay);
+            RemoveSelection(fade_time, fade_delay);
+        }
+        manager->RemoveAndDelete(sprScreenShot[0], sprScreenShot[0]->GetImage(), fade_time, fade_delay);
+        sprScreenShot[0] = NULL;
+        manager->RemoveAndDelete(sprScreenShot[1], sprScreenShot[1]->GetImage(), fade_time, fade_delay);
+        sprScreenShot[1] = NULL;
+        manager->RemoveAndDelete(grWinTitle, NULL, fade_time, fade_delay);
+        manager->RemoveAndDelete(grWinPlay, NULL, fade_time, fade_delay);
+        if( grWinControls != NULL ) {
+            manager->RemoveAndDelete(grWinControls, NULL, fade_time, fade_delay);
+        }
+
+        // Release UI
+        manager->Unlock();
+    }while( restart );
 
     if( returnValue != NULL ) {
         GameElement *game = new GameElement(returnValue);
@@ -167,6 +227,8 @@ GuiGameSelect::GuiGameSelect(GuiManager *man) : GuiSelectionList(man, NUM_LIST_I
 {
     manager = man;
     title_list = NULL;
+    sprScreenShot[0] = NULL;
+    sprScreenShot[1] = NULL;
 }
 
 GuiGameSelect::~GuiGameSelect()

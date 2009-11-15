@@ -64,10 +64,11 @@ char *GuiDirSelect::DoModal(void)
 
         // Selection
         if( IsShowing() ) {
-            RemoveSelection();
+            RemoveSelection(DIRSEL_FADE_FRAMES);
         }
-        ShowSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
-                      320-180+8, 24+24, 24, 2*180-16, false, DIRSEL_FADE_FRAMES);
+        InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
+                      320-180+8, 24+24, 24, 2*180-16, false);
+        ShowSelection(DIRSEL_FADE_FRAMES);
         for(;;) {
             sel = DoSelection();
 
@@ -85,7 +86,7 @@ char *GuiDirSelect::DoModal(void)
                     bool ok = msgbox.Show("Do you want to quit?", NULL, true, 192);
                     msgbox.Remove();
                     if( ok ) {
-                        RemoveSelection();
+                        RemoveSelection(DIRSEL_FADE_FRAMES);
                         quit = true;
                         break;
                     }
@@ -101,7 +102,7 @@ char *GuiDirSelect::DoModal(void)
             }
         }
     }while( !quit );
-    RemoveSelection();
+    RemoveSelection(DIRSEL_FADE_FRAMES);
     dirs.Clear();
 
     // Claim UI
