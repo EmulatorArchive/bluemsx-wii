@@ -164,10 +164,11 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     sizey = container->GetHeight();
 
     // Selection
-    ShowSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
+    InitSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
                   posx+SSEL_X_SPACING,
                   posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
-                  SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false, SSEL_FADE_FRAMES);
+                  SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);
+    ShowSelection(SSEL_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
@@ -201,7 +202,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
 
     // Remove UI elements
     UpdateScreenShot(NULL);
-    RemoveSelection();
+    RemoveSelection(SSEL_FADE_FRAMES);
     manager->RemoveAndDelete(container, NULL, SSEL_FADE_FRAMES);
 
     // Release UI

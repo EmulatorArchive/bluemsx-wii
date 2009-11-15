@@ -25,10 +25,11 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     manager->Unlock();
 
     // Menu list
-    ShowSelection(items, num, 0, 32, MENU_YPITCH,
-                  posx+16, posy+24, 24, width-32, false, MENU_FADE_FRAMES);
+    InitSelection(items, num, 0, 32, MENU_YPITCH,
+                  posx+16, posy+24, 24, width-32, false);
+    ShowSelection(MENU_FADE_FRAMES);
     int sel = DoSelection();
-    RemoveSelection();
+    RemoveSelection(MENU_FADE_FRAMES);
 
     // Claim UI
     manager->Lock();

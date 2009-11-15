@@ -24,7 +24,7 @@
 #define SELECTION_FADE_DELAY 4
 
 void GuiSelectionList::InitTitleList(TextRender *fontArial,
-                                     int x, int y, int width, int ypitch)
+                                     int x, int y, int width, int ypitch, int fade)
 {
     // Fill titles
     for(int i = 0, yy = y; i < num_item_rows; i++) {
@@ -66,12 +66,12 @@ void GuiSelectionList::InitTitleList(TextRender *fontArial,
     current_index = -1;
 }
 
-void GuiSelectionList::RemoveTitleList(void)
+void GuiSelectionList::RemoveTitleList(int fade, int delay)
 {
-    manager->RemoveAndDelete(sprArrowUp, NULL, fade);
-    manager->RemoveAndDelete(sprArrowDown, NULL, fade);
+    manager->RemoveAndDelete(sprArrowUp, NULL, fade, delay);
+    manager->RemoveAndDelete(sprArrowDown, NULL, fade, delay);
     for(int i = 0; i < num_item_rows; i++) {
-        manager->RemoveAndDelete(titleTxtSprite[i], titleTxtSprite[i]->GetImage(), fade);
+        manager->RemoveAndDelete(titleTxtSprite[i], titleTxtSprite[i]->GetImage(), fade, delay);
     }
 }
 
@@ -80,7 +80,7 @@ void GuiSelectionList::ClearTitleList(void)
     current_index = -1;
 }
 
-void GuiSelectionList::SetSelected(int index, int selected)
+void GuiSelectionList::SetSelected(int index, int selected, int fade, int delay)
 {
     // Claim UI
     manager->Lock();
@@ -139,7 +139,8 @@ void GuiSelectionList::SetSelected(int index, int selected)
     }
     // Update seletion
     if( sprSelector != NULL ) {
-        manager->RemoveAndDelete(sprSelector, NULL, SELECTION_FADE_TIME, SELECTION_FADE_DELAY);
+        manager->RemoveAndDelete(sprSelector, NULL, (fade != -1)? fade : SELECTION_FADE_TIME,
+                                                    (delay != -1)? delay : SELECTION_FADE_DELAY);
         sprSelector = NULL;
     }
     if( selected >= 0 ) {
@@ -151,7 +152,7 @@ void GuiSelectionList::SetSelected(int index, int selected)
         sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/5);
         sprSelector->SetStretchWidth((float)xsize / 4);
         sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
-        manager->AddBehind(selectedsprite, sprSelector, SELECTION_FADE_TIME);
+        manager->AddBehind(selectedsprite, sprSelector, (fade != -1)? fade : SELECTION_FADE_TIME);
     }
     // Call hook
     OnSetSelected(index, selected);
@@ -160,44 +161,20 @@ void GuiSelectionList::SetSelected(int index, int selected)
 }
 
 
-void GuiSelectionList::ShowSelection(const char **items, int num, int select, int fontsz, int ypitch,
-                                     int posx, int posy, int xspace, int width, bool centr, int fad)
+void GuiSelectionList::InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
+                                     int posx, int posy, int xspace, int width, bool centr)
 {
-#if RUMBLE
-    u64 time2rumble = 0;
-    bool rumbeling = false;
-#endif
-
-    if( is_showing ) {
-        return;
-    }
-
-    sprSelector = NULL;
+    xpos = posx;
+    ypos = posy;
     xsize = width;
     xspacing = xspace;
     fontsize = fontsz;
+    ypitch = pitchy;
     center = centr;
-    fade = fad;
 
     // Init items
     item_list = items;
     num_items = num;
-
-    // Claim UI
-    manager->Lock();
-
-    // Menu list
-    InitTitleList(g_fontArial, posx, posy, width-2*xspace, ypitch);
-
-    // Cursor
-    sprCursor = new Sprite;
-    sprCursor->SetImage(g_imgMousecursor);
-    sprCursor->SetPosition(0, 0);
-    sprCursor->SetVisible(false);
-    manager->AddTop(sprCursor);
-
-    // Start displaying
-    manager->Unlock();
 
     // Selected initial entry
     if( select ) {
@@ -217,10 +194,33 @@ void GuiSelectionList::ShowSelection(const char **items, int num, int select, in
         index = 0;
     }
     current = -1;
+    ClearTitleList();
+}
+
+void GuiSelectionList::ShowSelection(int fade, int delay)
+{
+    if( is_showing ) {
+        return;
+    }
+
+    // Claim UI
+    manager->Lock();
+
+    // Menu list
+    InitTitleList(g_fontArial, xpos, ypos, xsize-2*xspacing, ypitch, fade);
+
+    // Cursor
+    sprCursor = new Sprite;
+    sprCursor->SetImage(g_imgMousecursor);
+    sprCursor->SetPosition(0, 0);
+    sprCursor->SetVisible(false);
+    manager->AddTop(sprCursor);
+
+    // Start displaying
+    manager->Unlock();
 
     // Update title list
-    ClearTitleList();
-    SetSelected(index, selected);
+    SetSelected(index, selected, fade, delay);
 
     is_showing = true;
 }
@@ -237,7 +237,7 @@ int GuiSelectionList::DoSelection(void)
 
         // Take screenshot on pressing '+' and '-' simultaneously
         if( buttons == (WPAD_BUTTON_PLUS + WPAD_BUTTON_MINUS) ) {
-            manager->WriteScreenshot("fat0:/dump.png");
+            manager->WriteScreenshot("sd:/dump.png");
         }
 
         // Exit on 'home' or 'B'
@@ -245,6 +245,12 @@ int GuiSelectionList::DoSelection(void)
                        WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
             sprCursor->SetVisible(false);
             return -1;
+        }
+
+        // Special key
+        if( buttons & WPAD_BUTTON_PLUS ) {
+            sprCursor->SetVisible(false);
+            return -2;
         }
 
         // Claim UI
@@ -354,7 +360,7 @@ int GuiSelectionList::DoSelection(void)
     return index+selected;
 }
 
-void GuiSelectionList::RemoveSelection(void)
+void GuiSelectionList::RemoveSelection(int fade, int delay)
 {
     if( !is_showing ) {
         return;
@@ -364,8 +370,9 @@ void GuiSelectionList::RemoveSelection(void)
     manager->Lock();
 
     manager->RemoveAndDelete(sprCursor);
-    RemoveTitleList();
-    manager->RemoveAndDelete(sprSelector, NULL, fade*2);
+    RemoveTitleList(fade, delay);
+    manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
+    sprSelector = NULL;
 
     // Release UI
     manager->Unlock();
@@ -383,6 +390,7 @@ GuiSelectionList::GuiSelectionList(GuiManager *man, int rows)
     manager = man;
     num_item_rows = rows;
     is_showing = false;
+    sprSelector = NULL;
     visible_items = new const char*[rows];
     titleTxtSprite = new Sprite*[rows];
     titleTxtImgPtr = new DrawableImage*[rows];
