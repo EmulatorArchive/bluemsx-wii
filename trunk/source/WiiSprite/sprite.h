@@ -38,8 +38,8 @@ namespace wsp{
 	//!A basic drawable object with animation support.
 	class Sprite : public Layer{
 		public:
-			//!Constructor.
-			Sprite();
+			//!Constructors.
+			Sprite(Image* image=NULL, int x=0, int y=0);
 			//!Destructor.
 			virtual ~Sprite();
 

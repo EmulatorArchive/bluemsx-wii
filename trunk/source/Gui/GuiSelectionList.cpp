@@ -209,13 +209,6 @@ void GuiSelectionList::ShowSelection(int fade, int delay)
     // Menu list
     InitTitleList(g_fontArial, xpos, ypos, xsize-2*xspacing, ypitch, fade);
 
-    // Cursor
-    sprCursor = new Sprite;
-    sprCursor->SetImage(g_imgMousecursor);
-    sprCursor->SetPosition(0, 0);
-    sprCursor->SetVisible(false);
-    manager->AddTop(sprCursor);
-
     // Start displaying
     manager->Unlock();
 
@@ -227,6 +220,14 @@ void GuiSelectionList::ShowSelection(int fade, int delay)
 
 int GuiSelectionList::DoSelection(void)
 {
+    // Cursor
+    manager->Lock();
+    Sprite *sprCursor = new Sprite;
+    sprCursor->SetImage(g_imgMousecursor);
+    sprCursor->SetVisible(false);
+    manager->AddTop(sprCursor);
+    manager->Unlock();
+
     // Menu loop
     u64 scroll_time = 0;
     (void)KBD_GetPadButtons(); // flush first
@@ -240,17 +241,24 @@ int GuiSelectionList::DoSelection(void)
             manager->WriteScreenshot("sd:/dump.png");
         }
 
-        // Exit on 'home' or 'B'
-        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
-                       WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
-            sprCursor->SetVisible(false);
-            return -1;
+        // Exit on 'home', 'B', 'plus'
+        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME) ) {
+            manager->Lock();
+            manager->RemoveAndDelete(sprCursor);
+            manager->Unlock();
+            return SELRET_KEY_HOME;
         }
-
-        // Special key
+        if( buttons & (WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
+            manager->Lock();
+            manager->RemoveAndDelete(sprCursor);
+            manager->Unlock();
+            return SELRET_KEY_B;
+        }
         if( buttons & WPAD_BUTTON_PLUS ) {
-            sprCursor->SetVisible(false);
-            return -2;
+            manager->Lock();
+            manager->RemoveAndDelete(sprCursor);
+            manager->Unlock();
+            return SELRET_KEY_PLUS;
         }
 
         // Claim UI
@@ -258,21 +266,29 @@ int GuiSelectionList::DoSelection(void)
 
         // Infrared
         int x, y, angle;
+        bool cursor_visible = false;
         if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
             sprCursor->SetPosition(x, y);
             sprCursor->SetRotation(angle/2);
             sprCursor->SetVisible(true);
+            cursor_visible = true;
         }else{
             sprCursor->SetVisible(false);
             sprCursor->SetPosition(0, 0);
         }
+        if( OnUpdateCursorPosition(sprCursor) &&
+            (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) ) {
+            manager->RemoveAndDelete(sprCursor);
+            manager->Unlock();
+            return SELRET_CUSTOM;
+        }
 
         // Check mouse cursor colisions
-        int cursor_visible = false;
+        bool cursor_above_selection = false;
         for(int i = 0; i < num_item_rows; i++) {
             if( strlen(visible_items[i]) &&
                 sprCursor->CollidesWith(titleTxtSprite[i]) ) {
-                cursor_visible = true;
+                cursor_above_selection = true;
                 selected = i;
                 manager->Unlock();
                 break;
@@ -280,7 +296,7 @@ int GuiSelectionList::DoSelection(void)
         }
         if( selected == current ) {
             // Scroll when mouse stays on the arrows for a while
-            if( cursor_visible && (selected == 0 || selected == num_item_rows-1) ) {
+            if( cursor_above_selection && (selected == 0 || selected == num_item_rows-1) ) {
                 if( ticks_to_millisecs(gettime()) > scroll_time ) {
                     if( selected == 0 ) {
                         buttons |= WPAD_BUTTON_UP;
@@ -344,14 +360,18 @@ int GuiSelectionList::DoSelection(void)
         manager->Unlock();
 
         if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
-            (selected >= upper_index && selected <= lower_index) ) {
+            (selected >= upper_index && selected <= lower_index) &&
+            (cursor_above_selection || !cursor_visible) ) {
             break;
         }
 
         // wait a frame
         VIDEO_WaitVSync();
     }
-    sprCursor->SetVisible(false);
+
+    manager->Lock();
+    manager->RemoveAndDelete(sprCursor);
+    manager->Unlock();
 #if RUMBLE
     if( rumbeling ) {
         WPAD_Rumble(0,0);
@@ -369,7 +389,6 @@ void GuiSelectionList::RemoveSelection(int fade, int delay)
     // Claim UI
     manager->Lock();
 
-    manager->RemoveAndDelete(sprCursor);
     RemoveTitleList(fade, delay);
     manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
     sprSelector = NULL;

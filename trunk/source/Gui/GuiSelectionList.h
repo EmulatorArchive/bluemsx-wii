@@ -4,6 +4,12 @@
 
 #include "GuiManager.h"
 #include "DrawableImage.h"
+#include "Sprite.h"
+
+#define SELRET_KEY_HOME -1
+#define SELRET_KEY_B    -2
+#define SELRET_KEY_PLUS -3
+#define SELRET_CUSTOM   -4
 
 class GuiSelectionList {
 public:
@@ -11,6 +17,7 @@ public:
     virtual ~GuiSelectionList();
 
     virtual void OnSetSelected(int index, int selected) {};
+    virtual bool OnUpdateCursorPosition(Sprite *cursor) { return false; };
     void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
                        int posx, int posy, int xspace, int width, bool centr = false);
     void ShowSelection(int fade = 0, int delay = 0);
@@ -20,7 +27,6 @@ public:
 
 protected:
     GuiManager *manager;
-    Sprite *sprCursor;
 private:
 	int xpos;
 	int ypos;

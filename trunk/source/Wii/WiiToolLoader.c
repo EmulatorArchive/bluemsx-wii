@@ -339,6 +339,7 @@ void toolUnLoadAll()
         debuggerDestroy(toolList[i]->debugger);
         free(toolList[i]);
     }
+	toolListCount = 0;
 }
 
 int toolGetCount() {

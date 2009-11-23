@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "GuiButton.h"
 #include "GuiGameSelect.h"
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
@@ -55,8 +56,8 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
         SetScreenShotImage(1, new Image(game->GetImage(1)));
     }
     // Add to screen
-    manager->AddBehind(sprCursor, sprScreenShot[0], fade_time);
-    manager->AddBehind(sprCursor, sprScreenShot[1], fade_time);
+    manager->AddOnTopOf(grWinTitle, sprScreenShot[0], fade_time);
+    manager->AddOnTopOf(grWinPlay, sprScreenShot[1], fade_time);
     // Free images of games that are not on the screen
     for(int i = 0; i < games.GetNumberOfGames(); i++) {
         GameElement *game = games.GetGame(i);
@@ -65,6 +66,21 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
             game->FreeImage(1);
         }
     }
+}
+
+bool GuiGameSelect::OnUpdateCursorPosition(Sprite *sprite)
+{
+    selected_button = GLEDITSEL_NONE;
+    if( grButtonAdd != NULL ) {
+        if( grButtonAdd->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_ADD; }
+        if( grButtonDel->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_DEL; }
+        if( grButtonUp->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_UP; }
+        if( grButtonDown->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_DOWN; }
+        if( grButtonSettings->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_SETTINGS; }
+        if( grButtonDelScr1->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_SCRSHOT_1; }
+        if( grButtonDelScr2->Update(sprite) ) { sprite = NULL; selected_button = GLEDITSEL_SCRSHOT_2; }
+    }
+    return selected_button != GLEDITSEL_NONE;
 }
 
 bool GuiGameSelect::Load(const char *dir, const char *filename)
@@ -113,6 +129,9 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         // Claim UI
         manager->Lock();
 
+        // Remove version from background
+        background->HideVersion(fade_time);
+
         // Add selection list
         GuiContainer *grWinList;
         if( !restart ) {
@@ -122,27 +141,42 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         }
         restart = false;
 
-        // Containers
-        GuiContainer *grWinTitle;
-        GuiContainer *grWinPlay;
-        GuiContainer *grWinControls;
+        // GUI Elements
         if( editMode ) {
+            // Containers
             grWinTitle = new GuiContainer(344-8, 28, 264+12, 14*12);
-            manager->AddBehind(sprCursor, grWinTitle, fade_time);
+            manager->AddTop(grWinTitle, fade_time);
             grWinPlay = new GuiContainer(344-8, 232-30, 264+12, 14*12);
-            manager->AddBehind(sprCursor, grWinPlay, fade_time);
+            manager->AddTop(grWinPlay, fade_time);
             grWinControls = new GuiContainer(344-8, 232-30+14*12+6, 264+12, 4*12);
-            manager->AddBehind(sprCursor, grWinControls, fade_time);
+            manager->AddTop(grWinControls, fade_time);
+            // Icons
+            grButtonAdd = new GuiButton(manager);
+            grButtonAdd->ShowImageButton(g_imgAdd, 344+14, 232-30+14*12+6+8, fade_time);
+            grButtonDel = new GuiButton(manager);
+            grButtonDel->ShowImageButton(g_imgDelete, 344+14+50, 232-30+14*12+6+8, fade_time);
+            grButtonUp = new GuiButton(manager);
+            grButtonUp->ShowImageButton(g_imgUp, 344+14+2*50, 232-30+14*12+6+8, fade_time);
+            grButtonDown = new GuiButton(manager);
+            grButtonDown->ShowImageButton(g_imgDown, 344+14+3*50, 232-30+14*12+6+8, fade_time);
+            grButtonSettings = new GuiButton(manager);
+            grButtonSettings->ShowImageButton(g_imgSettings, 344+14+4*50, 232-30+14*12+6+8, fade_time);
+            grButtonDelScr1 = new GuiButton(manager);
+            grButtonDelScr1->ShowImageButton(g_imgDelete2, 344+8+264+12-54, 28+16, fade_time);
+            grButtonDelScr2 = new GuiButton(manager);
+            grButtonDelScr2->ShowImageButton(g_imgDelete2, 344+8+264+12-54, 232-30+16, fade_time);
+            // Screenshot coordinates
             screenshotWidth = (252.0f/16.0f)*14.0f;
             screenshotHeigth = (168.0f/16.0f)*14.0f;
             screenshotYpos1 = 24+16;
             screenshotYpos2 = 228+16-30;
         }else{
+            // Containers
             grWinTitle = new GuiContainer(344-8, 28, 264+12, 16*12);
-            manager->AddBehind(sprCursor, grWinTitle, fade_time);
+            manager->AddTop(grWinTitle, fade_time);
             grWinPlay = new GuiContainer(344-8, 232, 264+12, 16*12);
-            manager->AddBehind(sprCursor, grWinPlay, fade_time);
-            grWinControls = NULL;
+            manager->AddTop(grWinPlay, fade_time);
+            // Screenshot coordinates
             screenshotWidth = 252.0f;
             screenshotHeigth = 168.0f;
             screenshotYpos1 = 24+16;
@@ -175,10 +209,25 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
                     break;
                 }
             }else{
-                returnValue = NULL;
-                if( sel == -2 ) {
-                    editMode = !editMode;
-                    restart = true;
+                switch( sel ) {
+                    case SELRET_KEY_B:
+                    case SELRET_KEY_HOME:
+                        returnValue = NULL;
+                        break;
+                    case SELRET_KEY_PLUS:
+                        editMode = !editMode;
+                        restart = true;
+                        break;
+                    case SELRET_CUSTOM: /* User clicked in some of the buttons */
+                        {
+                            GuiMessageBox *msgbox = new GuiMessageBox(manager);
+                            (void)msgbox->Show("Hey, did you clicked something?", NULL, true, 192);
+                            msgbox->Remove();
+                            delete msgbox;
+                        }
+                        //...
+                        sel = 0; /* Don't leave */
+                        break;
                 }
             }
         }while(sel >= 0);
@@ -205,9 +254,34 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         sprScreenShot[1] = NULL;
         manager->RemoveAndDelete(grWinTitle, NULL, fade_time, fade_delay);
         manager->RemoveAndDelete(grWinPlay, NULL, fade_time, fade_delay);
-        if( grWinControls != NULL ) {
-            manager->RemoveAndDelete(grWinControls, NULL, fade_time, fade_delay);
+        manager->RemoveAndDelete(grWinControls, NULL, fade_time, fade_delay);
+        grWinTitle = grWinPlay = grWinControls = NULL;
+        if( grButtonAdd != NULL ) {
+            grButtonAdd->Remove(fade_time, fade_delay);
+            grButtonDel->Remove(fade_time, fade_delay);
+            grButtonUp->Remove(fade_time, fade_delay);
+            grButtonDown->Remove(fade_time, fade_delay);
+            grButtonSettings->Remove(fade_time, fade_delay);
+            grButtonDelScr1->Remove(fade_time, fade_delay);
+            grButtonDelScr2->Remove(fade_time, fade_delay);
+            delete grButtonAdd;
+            delete grButtonDel;
+            delete grButtonUp;
+            delete grButtonDown;
+            delete grButtonSettings;
+            delete grButtonDelScr1;
+            delete grButtonDelScr2;
+            grButtonAdd = NULL;
+            grButtonDel = NULL;
+            grButtonUp = NULL;
+            grButtonDown = NULL;
+            grButtonSettings = NULL;
+            grButtonDelScr1 = NULL;
+            grButtonDelScr2 = NULL;
         }
+
+        // Show version on background again
+        background->ShowVersion(fade_time);
 
         // Release UI
         manager->Unlock();
@@ -223,12 +297,25 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
     }
 }
 
-GuiGameSelect::GuiGameSelect(GuiManager *man) : GuiSelectionList(man, NUM_LIST_ITEMS)
+GuiGameSelect::GuiGameSelect(GuiManager *man, GuiBackground *bgr) : GuiSelectionList(man, NUM_LIST_ITEMS)
 {
     manager = man;
+    background = bgr;
     title_list = NULL;
     sprScreenShot[0] = NULL;
     sprScreenShot[1] = NULL;
+
+    grWinTitle = NULL;
+    grWinPlay = NULL;
+    grWinControls = NULL;
+
+    grButtonAdd = NULL;
+    grButtonDel = NULL;
+    grButtonUp = NULL;
+    grButtonDown = NULL;
+    grButtonSettings = NULL;
+    grButtonDelScr1 = NULL;
+    grButtonDelScr2 = NULL;
 }
 
 GuiGameSelect::~GuiGameSelect()
