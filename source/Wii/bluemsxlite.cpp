@@ -566,7 +566,7 @@ int main(int argc, char **argv)
             GameElement *game = NULL;
             GameElement *prev;
             for(;;) {
-                GuiGameSelect *menu = new GuiGameSelect(manager);
+                GuiGameSelect *menu = new GuiGameSelect(manager, background);
                 prev = game;
                 if( menu->Load(game_dir, "gamelist.xml") ) {
                     game = menu->DoModal(prev);
@@ -596,6 +596,7 @@ int main(int argc, char **argv)
 
         // Destroy emulator
         emulatorExit();
+        toolUnLoadAll();
         videoDestroy(video);
         propDestroy(properties);
         archSoundDestroy();

@@ -234,14 +234,16 @@ void GuiManager::Remove(Layer *layer, int fade, int delay)
 
 void GuiManager::RemoveAndDelete(Layer *layer, Image *image, int fade, int delay)
 {
-    if( fade == 0 ) {
-        Remove(layer);
-        if( image ) {
-            delete image;
+    if( layer != NULL ) {
+        if( fade == 0 ) {
+            Remove(layer);
+            if( image ) {
+                delete image;
+            }
+            delete layer;
+        }else{
+            RegisterRemove(layer, true, fade, delay, image);
         }
-        delete layer;
-    }else{
-        RegisterRemove(layer, true, fade, delay, image);
     }
 }
 
