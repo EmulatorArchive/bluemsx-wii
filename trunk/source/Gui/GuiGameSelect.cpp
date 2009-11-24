@@ -99,17 +99,28 @@ bool GuiGameSelect::Load(const char *dir, const char *filename)
     return true;
 }
 
+void GuiGameSelect::UpdateList(void)
+{
+    for(int i = 0; i < num_games; i++) {
+        title_list[i] = games.GetGame(i)->GetName();
+    }
+    SetNumberOfItems(num_games);
+    ClearTitleList();
+    SetSelected();
+}
+
 GameElement *GuiGameSelect::DoModal(GameElement *select)
 {
     GameElement *returnValue = NULL;
     bool editMode = false;
+    int selected = 0;
+    SELRET reason;
 
     // On re-enter, find selected entry
-    int sel = 0;
     if( select != NULL ) {
         for( int i = 0; i < num_games; i++ ) {
             if( strcmp(select->GetName(), title_list[i])==0 ) {
-                sel = i;
+                selected = i;
                 break;
             }
         }
@@ -120,7 +131,7 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
     fade_delay = 0;
 
     // Init selection list
-    InitSelection(title_list, num_games, sel, 22, 31,
+    InitSelection(title_list, num_games, selected, 22, 31,
                   30, 38, 12, 264+12, false);
 
     // Outer loop
@@ -188,49 +199,88 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         manager->Unlock();
 
         // Menu loop
+        bool quit = false;
         do {
             fade_time = GAMESEL_FADE_SCREENSHOTS;
             fade_delay = GAMESEL_DELAY_SCREENSHOTS;
 
-            sel = DoSelection();
+            reason = DoSelection(&selected);
 
-            if( sel >= 0 ) {
-                returnValue = games.GetGame(sel);
-                // confirmation
-                char str[256];
-                strcpy(str, "Do you want to start\n\"");
-                strcat(str, returnValue->GetName());
-                strcat(str, "\"");
-                GuiMessageBox *msgbox = new GuiMessageBox(manager);
-                bool ok = msgbox->Show(str, NULL, true, 192);
-                msgbox->Remove();
-                delete msgbox;
-                if( ok ) {
-                    break;
-                }
-            }else{
-                switch( sel ) {
-                    case SELRET_KEY_B:
-                    case SELRET_KEY_HOME:
-                        returnValue = NULL;
-                        break;
-                    case SELRET_KEY_PLUS:
-                        editMode = !editMode;
-                        restart = true;
-                        break;
-                    case SELRET_CUSTOM: /* User clicked in some of the buttons */
-                        {
-                            GuiMessageBox *msgbox = new GuiMessageBox(manager);
-                            (void)msgbox->Show("Hey, did you clicked something?", NULL, true, 192);
-                            msgbox->Remove();
-                            delete msgbox;
+            switch( reason ) {
+                case SELRET_SELECTED:
+                    returnValue = games.GetGame(selected);
+                    // confirmation
+                    {
+                        char str[256];
+                        strcpy(str, "Do you want to start\n\"");
+                        strcat(str, returnValue->GetName());
+                        strcat(str, "\"");
+                        GuiMessageBox *msgbox = new GuiMessageBox(manager);
+                        bool ok = msgbox->Show(str, NULL, true, 192);
+                        msgbox->Remove();
+                        delete msgbox;
+                        if( ok ) {
+                            quit = true;
                         }
-                        //...
-                        sel = 0; /* Don't leave */
-                        break;
-                }
+                    }
+                    break;
+                case SELRET_KEY_B:
+                case SELRET_KEY_HOME:
+                    returnValue = NULL;
+                    quit = true;
+                    break;
+                case SELRET_KEY_PLUS:
+                    editMode = !editMode;
+                    restart = true;
+                    quit = true;
+                    break;
+                case SELRET_CUSTOM: /* User clicked in one of the buttons */
+                    switch( selected_button ) {
+                        case GLEDITSEL_ADD:
+                            break;
+                        case GLEDITSEL_DEL:
+                            {
+                                char str[256];
+                                strcpy(str, "Do you want to delete\n\"");
+                                strcat(str, games.GetGame(selected)->GetName());
+                                strcat(str, "\"");
+                                GuiMessageBox *msgbox = new GuiMessageBox(manager);
+                                bool ok = msgbox->Show(str, NULL, true, 192);
+                                msgbox->Remove();
+                                delete msgbox;
+                                if( ok ) {
+                                    games.Delete(selected);
+                                    num_games--;
+                                    UpdateList();
+                                }
+                            }
+                            break;
+                        case GLEDITSEL_UP:
+                            games.MoveUp(selected);
+                            DoKeyUp();
+                            UpdateList();
+                            break;
+                        case GLEDITSEL_DOWN:
+                            games.MoveDown(selected);
+                            DoKeyDown();
+                            UpdateList();
+                            break;
+                        case GLEDITSEL_SETTINGS:
+                            break;
+                        case GLEDITSEL_SCRSHOT_1:
+                            games.GetGame(selected)->DeleteImage(0);
+                            UpdateList();
+                            break;
+                        case GLEDITSEL_SCRSHOT_2:
+                            games.GetGame(selected)->DeleteImage(1);
+                            UpdateList();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
             }
-        }while(sel >= 0);
+        }while(!quit);
 
         if( restart ) {
             fade_time = GAMESEL_FADE_RESTART;

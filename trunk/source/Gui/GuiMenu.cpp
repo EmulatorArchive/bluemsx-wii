@@ -7,7 +7,7 @@
 #define MENU_YPITCH      56
 #define MENU_FADE_FRAMES 10
 
-int GuiMenu::DoModal(const char **items, int num, int width)
+SELRET GuiMenu::DoModal(int *selected, const char **items, int num, int width)
 {
     // Claim UI
     manager->Lock();
@@ -28,7 +28,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     InitSelection(items, num, 0, 32, MENU_YPITCH,
                   posx+16, posy+24, 24, width-32, false);
     ShowSelection(MENU_FADE_FRAMES);
-    int sel = DoSelection();
+    SELRET retval = DoSelection(selected);
     RemoveSelection(MENU_FADE_FRAMES);
 
     // Claim UI
@@ -40,7 +40,7 @@ int GuiMenu::DoModal(const char **items, int num, int width)
     // Release UI
     manager->Unlock();
 
-    return sel;
+    return retval;
 }
 
 GuiMenu::GuiMenu(GuiManager *man, int rows)

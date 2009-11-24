@@ -60,6 +60,7 @@ private:
 	GuiButton *grButtonDelScr2;
 
     void SetScreenShotImage(int index, Image *img);
+	void UpdateList(void);
 };
 
 #endif

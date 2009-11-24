@@ -26,6 +26,7 @@ public:
     int GetKeyMapping(KEY key);
     void FreeImage(int number);
     Image* GetImage(int number);
+	void DeleteImage(int number);
     GameElement *next;
 private:
     char *name;
