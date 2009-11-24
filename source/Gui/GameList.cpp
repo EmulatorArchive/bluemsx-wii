@@ -187,20 +187,6 @@ void XMLCALL GameList::dataHandler(void *userData, const XML_Char *s, int len)
     }
 }
 
-int GameList::GetNumberOfGames(void)
-{
-    return elements;
-}
-
-GameElement* GameList::GetGame(int index)
-{
-    GameElement *p = first_element;
-    while(p && index--) {
-        p = p->next;
-    }
-    return p;
-}
-
 int GameList::Load(const char *filename)
 {
     char buf[1024];
@@ -258,6 +244,83 @@ void GameList::Clear(void)
         free(receiving_string);
         receiving_string = NULL;
     }
+}
+
+int GameList::GetNumberOfGames(void)
+{
+    return elements;
+}
+
+GameElement* GameList::GetGame(int index)
+{
+    GameElement *p = first_element;
+    while(p && index--) {
+        p = p->next;
+    }
+    return p;
+}
+
+GameElement* GameList::RemoveFromList(int index)
+{
+    GameElement *p = first_element;
+    GameElement *retval = NULL;
+    if( index == 0 ) {
+        if( first_element ) {
+            elements--;
+            retval = first_element;
+            first_element = first_element->next;
+        }
+    }else{
+        while( p && --index ) {
+            p = p->next;
+        }
+        if( p && p->next ) {
+            elements--;
+            retval = p->next;
+            p->next = p->next->next;
+        }
+    }
+    return retval;
+}
+
+bool GameList::AddToList(int index, GameElement *element)
+{
+    if( !element ) {
+        return false;
+    }
+    if( index == 0 ) {
+        element->next = first_element;
+        first_element = element;
+    }else{
+        GameElement *p = first_element;
+        while( p && p->next && --index ) {
+            p = p->next;
+        }
+        element->next = p->next;
+        p->next = element;
+    }
+    elements++;
+    return true;
+}
+
+void GameList::Delete(int index)
+{
+    GameElement *element = RemoveFromList(index);
+    if( element != NULL ) {
+        delete element;
+    }
+}
+
+void GameList::MoveUp(int index)
+{
+    if( index > 0 ) {
+        AddToList(index - 1, RemoveFromList(index));
+    }
+}
+
+void GameList::MoveDown(int index)
+{
+    AddToList(index + 1, RemoveFromList(index));
 }
 
 GameList::GameList()

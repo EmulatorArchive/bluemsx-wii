@@ -6,10 +6,13 @@
 #include "DrawableImage.h"
 #include "Sprite.h"
 
-#define SELRET_KEY_HOME -1
-#define SELRET_KEY_B    -2
-#define SELRET_KEY_PLUS -3
-#define SELRET_CUSTOM   -4
+typedef enum {
+  SELRET_SELECTED,
+  SELRET_CUSTOM,
+  SELRET_KEY_HOME,
+  SELRET_KEY_B,
+  SELRET_KEY_PLUS,
+} SELRET;
 
 class GuiSelectionList {
 public:
@@ -20,13 +23,18 @@ public:
     virtual bool OnUpdateCursorPosition(Sprite *cursor) { return false; };
     void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
                        int posx, int posy, int xspace, int width, bool centr = false);
+	void SetNumberOfItems(int num);
     void ShowSelection(int fade = 0, int delay = 0);
-    int DoSelection(void);
+    SELRET DoSelection(int *selection);
     void RemoveSelection(int fade = 0, int delay = 0);
     bool IsShowing(void);
 
 protected:
     GuiManager *manager;
+    void ClearTitleList(void);
+	void DoKeyUp(void);
+	void DoKeyDown(void);
+    void SetSelected(int fade = -1, int delay = -1);
 private:
 	int xpos;
 	int ypos;
@@ -54,8 +62,6 @@ private:
 
     void InitTitleList(TextRender *fontArial, int x, int y, int width, int ypitch, int fade = 0);
     void RemoveTitleList(int fade = 0, int delay = 0);
-    void ClearTitleList(void);
-    void SetSelected(int index, int selected, int fade = -1, int delay = -1);
 };
 
 #endif

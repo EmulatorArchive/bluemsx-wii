@@ -176,9 +176,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     // Menu loop
     int sel;
     do {
-        sel = DoSelection();
-
-        if( sel >= 0 ) {
+        if( DoSelection(&sel) == SELRET_SELECTED ) {
             returnValue = filenames[sel];
             // confirmation
             char str[256];

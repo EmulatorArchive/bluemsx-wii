@@ -401,63 +401,69 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 osk->SetEnabled(false);
                 bool leave_menu = false;
                 do {
-                    int selection = menu->DoModal(menu_items, 5, 344);
-                    switch( selection ) {
-                        GuiStateSelect *statesel;
-                        char *statefile;
-                        case 0: /* Load state */
-                            statesel = new GuiStateSelect(manager);
-                            statefile = statesel->DoModal(properties, stateDir);
-                            if( statefile ) {
-                                msgbox->Show("Loading state...", NULL, false, 160);
-                                emulatorStop();
-                                emulatorStart(statefile);
-                                msgbox->Remove();
-                                leave_menu = true;
+                    int selection;
+                    SELRET action = menu->DoModal(&selection, menu_items, 5, 344);
+                    switch( action ) {
+                        case SELRET_SELECTED:
+                            switch( selection ) {
+                                GuiStateSelect *statesel;
+                                char *statefile;
+                                case 0: /* Load state */
+                                    statesel = new GuiStateSelect(manager);
+                                    statefile = statesel->DoModal(properties, stateDir);
+                                    if( statefile ) {
+                                        msgbox->Show("Loading state...", NULL, false, 160);
+                                        emulatorStop();
+                                        emulatorStart(statefile);
+                                        msgbox->Remove();
+                                        leave_menu = true;
+                                    }
+                                    delete statesel;
+                                    break;
+                                case 1: /* Save state */
+                                    msgbox->Show("Saving state...", NULL, false, 160);
+                                    actionQuickSaveState();
+                                    msgbox->Remove();
+                                    break;
+                                case 2: /* Screenshot */
+                                    char *p, fname1[256], fname2[256];
+                                    strcpy(fname1, game_dir);
+                                    strcat(fname1, "/");
+                                    strcat(fname1, game->GetScreenShot(0));
+                                    strcpy(fname2, game_dir);
+                                    strcat(fname2, "/");
+                                    strcat(fname2, game->GetScreenShot(1));
+                                    if( !archFileExists(fname1) ) {
+                                        p = fname1;
+                                        /* file does not exist, make sure there is a Screenshots directory */
+                                        char scrshotdir[256];
+                                        struct stat s;
+                                        strcpy(scrshotdir, game_dir);
+                                        strcat(scrshotdir, "/Screenshots");
+                                        if( stat(scrshotdir, &s) != 0 ) {
+                                            mkdir(scrshotdir, 0x777);
+                                        }
+                                    }else
+                                    if( !archFileExists(fname2) ) {
+                                        p = fname2;
+                                    }else{
+                                        p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
+                                    }
+                                    msgbox->Show("Saving screenshot...", NULL, false, 160);
+                                    (void)archScreenCaptureToFile(SC_NORMAL, p);
+                                    msgbox->Remove();
+                                    break;
+                                case 3: /* Cheats */
+                                    actionToolsShowTrainer();
+                                    break;
+                                case 4: /* Quit */
+                                    doQuit = true;
+                                    leave_menu = true;
+                                    break;
                             }
-                            delete statesel;
                             break;
-                        case 1: /* Save state */
-                            msgbox->Show("Saving state...", NULL, false, 160);
-                            actionQuickSaveState();
-                            msgbox->Remove();
-                            break;
-                        case 2: /* Screenshot */
-                            char *p, fname1[256], fname2[256];
-                            strcpy(fname1, game_dir);
-                            strcat(fname1, "/");
-                            strcat(fname1, game->GetScreenShot(0));
-                            strcpy(fname2, game_dir);
-                            strcat(fname2, "/");
-                            strcat(fname2, game->GetScreenShot(1));
-                            if( !archFileExists(fname1) ) {
-                                p = fname1;
-                                /* file does not exist, make sure there is a Screenshots directory */
-                                char scrshotdir[256];
-                                struct stat s;
-                                strcpy(scrshotdir, game_dir);
-                                strcat(scrshotdir, "/Screenshots");
-                                if( stat(scrshotdir, &s) != 0 ) {
-                                    mkdir(scrshotdir, 0x777);
-                                }
-                            }else
-                            if( !archFileExists(fname2) ) {
-                                p = fname2;
-                            }else{
-                                p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
-                            }
-                            msgbox->Show("Saving screenshot...", NULL, false, 160);
-                            (void)archScreenCaptureToFile(SC_NORMAL, p);
-                            msgbox->Remove();
-                            break;
-                        case 3: /* Cheats */
-                            actionToolsShowTrainer();
-                            break;
-                        case 4: /* Quit */
-                            doQuit = true;
-                            leave_menu = true;
-                            break;
-                        case -1: /* leaved menu */
+                        case SELRET_KEY_B:
+                        case SELRET_KEY_HOME:
                             leave_menu = true;
                             break;
                     }

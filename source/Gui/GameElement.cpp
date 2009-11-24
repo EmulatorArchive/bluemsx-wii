@@ -1,6 +1,7 @@
+#include <fat.h>
 #include <stdio.h>
 #include <string.h>
-#include <fat.h>
+#include <unistd.h>
 #include <wiisprite.h>
 #include "GameElement.h"
 #include "GuiImages.h"
@@ -153,6 +154,17 @@ Image* GameElement::GetImage(int number)
         return image[number];
     }else{
         return g_imgNoise;
+    }
+}
+
+void GameElement::DeleteImage(int number)
+{
+    FreeImage(number);
+    if( image[number] == NULL ) {
+        char *filename = GetScreenShot(number);
+        if( filename ) {
+            unlink(filename);
+        }
     }
 }
 

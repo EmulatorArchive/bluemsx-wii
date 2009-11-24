@@ -80,7 +80,7 @@ void GuiSelectionList::ClearTitleList(void)
     current_index = -1;
 }
 
-void GuiSelectionList::SetSelected(int index, int selected, int fade, int delay)
+void GuiSelectionList::SetSelected(int fade, int delay)
 {
     // Claim UI
     manager->Lock();
@@ -197,6 +197,11 @@ void GuiSelectionList::InitSelection(const char **items, int num, int select, in
     ClearTitleList();
 }
 
+void GuiSelectionList::SetNumberOfItems(int num)
+{
+    num_items = num;
+}
+
 void GuiSelectionList::ShowSelection(int fade, int delay)
 {
     if( is_showing ) {
@@ -213,12 +218,37 @@ void GuiSelectionList::ShowSelection(int fade, int delay)
     manager->Unlock();
 
     // Update title list
-    SetSelected(index, selected, fade, delay);
+    SetSelected(fade, delay);
 
     is_showing = true;
 }
 
-int GuiSelectionList::DoSelection(void)
+void GuiSelectionList::DoKeyUp(void)
+{
+    if( current > upper_index ) {
+        selected--;
+    }else{
+        if( index > 0 ) {
+            index--;
+            SetSelected();
+        }
+    }
+}
+
+void GuiSelectionList::DoKeyDown(void)
+{
+    if( current < lower_index &&
+        strlen(visible_items[current+1]) ) {
+        selected++;
+    }else{
+        if( index+current < num_items-1 ) {
+            index++;
+            SetSelected();
+        }
+    }
+}
+
+SELRET GuiSelectionList::DoSelection(int *selection)
 {
     // Cursor
     manager->Lock();
@@ -280,6 +310,7 @@ int GuiSelectionList::DoSelection(void)
             (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) ) {
             manager->RemoveAndDelete(sprCursor);
             manager->Unlock();
+            *selection = index+selected;
             return SELRET_CUSTOM;
         }
 
@@ -313,31 +344,16 @@ int GuiSelectionList::DoSelection(void)
             if( (buttons & WPAD_BUTTON_LEFT) ||
                 (buttons & WPAD_BUTTON_DOWN) ||
                 (buttons & WPAD_CLASSIC_BUTTON_DOWN) ) {
-                if( current < lower_index &&
-                    strlen(visible_items[current+1]) ) {
-                    selected++;
-                }else{
-                    if( index+current < num_items-1 ) {
-                        index++;
-                        SetSelected(index, selected);
-                    }
-                }
+                DoKeyDown();
             }
             if( (buttons & WPAD_BUTTON_RIGHT) ||
                 (buttons & WPAD_BUTTON_UP) ||
                 (buttons & WPAD_CLASSIC_BUTTON_UP) ) {
-                if( current > upper_index ) {
-                    selected--;
-                }else{
-                    if( index > 0 ) {
-                        index--;
-                        SetSelected(index, selected);
-                    }
-                }
+                DoKeyUp();
             }
         }
         if( selected != current ) {
-            SetSelected(index, selected);
+            SetSelected();
 #if RUMBLE
             if( selected >= 0 && !rumbeling ) {
                 time2rumble = ticks_to_millisecs(gettime());
@@ -377,7 +393,8 @@ int GuiSelectionList::DoSelection(void)
         WPAD_Rumble(0,0);
     }
 #endif
-    return index+selected;
+    *selection = index+selected;
+    return SELRET_SELECTED;
 }
 
 void GuiSelectionList::RemoveSelection(int fade, int delay)

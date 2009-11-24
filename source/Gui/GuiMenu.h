@@ -9,7 +9,7 @@ public:
     GuiMenu(GuiManager *man, int rows);
     virtual ~GuiMenu();
 
-    int DoModal(const char **items, int num, int width);
+    SELRET DoModal(int *selected, const char **items, int num, int width);
 private:
     int num_item_rows;
 };

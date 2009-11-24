@@ -70,9 +70,7 @@ char *GuiDirSelect::DoModal(void)
                       320-180+8, 24+24, 24, 2*180-16, false);
         ShowSelection(DIRSEL_FADE_FRAMES);
         for(;;) {
-            sel = DoSelection();
-
-            if( sel >= 0 ) {
+            if( DoSelection(&sel) == SELRET_SELECTED ) {
                 // enter selected directory
                 selected_dir = dirs.GetDir(sel);
                 strcat(current_dir, "/");
