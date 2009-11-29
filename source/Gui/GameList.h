@@ -22,7 +22,9 @@ public:
     virtual ~GameList();
 
     int Load(const char *filename);
+    void Save(const char *filename);
     void Clear(void);
+	unsigned CalcCRC(unsigned crc = 0);
     int GetNumberOfGames(void);
     GameElement* GetGame(int index);
 	GameElement* RemoveFromList(int index);

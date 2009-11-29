@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <fat.h>
+#include "zlib.h" /* for crc32 */
+#include "xmlwriter.h"
 #include "GameList.h"
 extern "C" {
 #include "InputEvent.h"
@@ -62,24 +64,7 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                 const char *key = atts[i];
                 const char *val = atts[i+1];
                 if( strcmp("KeyboardJoystick", key)==0 && strcmp("true", val)==0 ) {
-                    /* Remap WiiMote 1 to keyboard */
-                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_A, EC_SPACE);
-                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_B, EC_NONE);
-                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_1, EC_NONE);
-                    my->current_element->SetKeyMapping(KEY_JOY1_BUTTON_2, EC_SPACE);
-                    my->current_element->SetKeyMapping(KEY_JOY1_UP, EC_UP);
-                    my->current_element->SetKeyMapping(KEY_JOY1_DOWN, EC_DOWN);
-                    my->current_element->SetKeyMapping(KEY_JOY1_LEFT, EC_LEFT);
-                    my->current_element->SetKeyMapping(KEY_JOY1_RIGHT, EC_RIGHT);
-                    /* Remap WiiMote 2 to joystick 1 */
-                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_A, EC_JOY1_BUTTON1);
-                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_B, EC_JOY1_BUTTON2);
-                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_1, EC_JOY1_BUTTON2);
-                    my->current_element->SetKeyMapping(KEY_JOY2_BUTTON_2, EC_JOY1_BUTTON1);
-                    my->current_element->SetKeyMapping(KEY_JOY2_UP, EC_JOY1_UP);
-                    my->current_element->SetKeyMapping(KEY_JOY2_DOWN, EC_JOY1_DOWN);
-                    my->current_element->SetKeyMapping(KEY_JOY2_LEFT, EC_JOY1_LEFT);
-                    my->current_element->SetKeyMapping(KEY_JOY2_RIGHT, EC_JOY1_RIGHT);
+                    my->current_element->SetProperty(GEP_KEYBOARD_JOYSTICK, true);
                 }
             }
         }
@@ -187,6 +172,16 @@ void XMLCALL GameList::dataHandler(void *userData, const XML_Char *s, int len)
     }
 }
 
+unsigned GameList::CalcCRC(unsigned crc)
+{
+    GameElement *p = first_element;
+    while( p ) {
+        crc = p->CalcCRC(crc);
+        p = p->next;
+    }
+    return crc;
+}
+
 int GameList::Load(const char *filename)
 {
     char buf[1024];
@@ -220,6 +215,47 @@ int GameList::Load(const char *filename)
         fclose(f);
     }
     return elements;
+}
+
+void GameList::Save(const char *filename)
+{
+    XmlWriter MyXml(filename);
+
+    MyXml.CreateTag("GameList");
+
+    GameElement *p = first_element;
+    while( p ) {
+        MyXml.AddAtributes("Title", p->GetName()); 
+        MyXml.CreateTag("Game");
+        
+        MyXml.CreateChild("CommandLine", p->GetCommandLine());
+
+        if( p->GetProperty(GEP_KEYBOARD_JOYSTICK) ) {
+            MyXml.AddAtributes("KeyboardJoystick","true"); 
+            MyXml.CreateTag("Settings", true);
+        }
+
+        bool keymaps = false;
+        for(int k = 1; k < KEY_LAST; k++) {
+            int event = p->GetKeyMapping((KEY)k);
+            if( event != EC_NONE ) {
+                MyXml.AddAtributes(KBD_GetKeyName((KEY)k), inputEventCodeToString(event));
+                keymaps = true;
+            }
+        }
+        if( keymaps ) {
+            MyXml.CreateTag("KeyMap", true);
+        }
+        
+        MyXml.CreateChild("ScreenShot", p->GetScreenShot(0));
+        MyXml.CreateChild("ScreenShot", p->GetScreenShot(1));
+        
+        MyXml.CloseLastTag(); // close 'Game'
+
+        p = p->next;
+    }
+
+    MyXml.CloseAllTags();
 }
 
 void GameList::Clear(void)

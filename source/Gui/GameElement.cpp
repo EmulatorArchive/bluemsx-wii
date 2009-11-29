@@ -6,8 +6,6 @@
 #include "GameElement.h"
 #include "GuiImages.h"
 
-#define SCREENSHOT_DIR "Screenshots/"
-
 /*************************************************
   Game Element
  *************************************************/
@@ -22,7 +20,8 @@ GameElement::GameElement()
     image[0] = NULL;
     image[1] = NULL;
     cheatfile = NULL;
-    memset(key_map, 0xff, sizeof(key_map)); /* set to -1 */
+    properties = 0;
+    memset(key_map, 0, sizeof(key_map)); /* set to EC_NONE */
 }
 
 GameElement::GameElement(GameElement *parent)
@@ -54,6 +53,17 @@ GameElement::~GameElement()
     if( cheatfile ) free (cheatfile);
 }
 
+unsigned GameElement::CalcCRC(unsigned crc)
+{
+    if( name ) crc = crc32(crc, (const unsigned char *)name, strlen(name)+1);
+    if( cmdline ) crc = crc32(crc, (const unsigned char *)name, strlen(cmdline)+1);
+    if( screenshot[0] ) crc = crc32(crc, (const unsigned char *)screenshot[0], strlen(screenshot[0])+1);
+    if( screenshot[1] ) crc = crc32(crc, (const unsigned char *)screenshot[1], strlen(screenshot[1])+1);
+    if( cheatfile ) crc = crc32(crc, (const unsigned char *)cheatfile, strlen(cheatfile)+1);
+    return crc;
+}
+
+
 void GameElement::SetName(const char *str)
 {
     if( name ) free(name);
@@ -79,9 +89,7 @@ void GameElement::SetScreenShot(int number, const char *str)
     if( number < 2 ) {
         if( screenshot[number] ) free(screenshot[number]);
         if( str ) {
-            screenshot[number] = (char*)malloc(strlen(str)+strlen(SCREENSHOT_DIR)+1);
-            strcpy(screenshot[number], SCREENSHOT_DIR);
-            strcat(screenshot[number], str);
+            screenshot[number] = strdup(str);
         }
     }
 }
@@ -99,6 +107,20 @@ void GameElement::SetCheatFile(const char *str)
     }else{
         cheatfile = NULL;
     }
+}
+
+void GameElement::SetProperty(GEP prop, bool value)
+{
+    if( value ) {
+        properties |= (1 << (int)prop);
+    }else{
+        properties &= ~(1 << (int)prop);
+    }
+}
+
+bool GameElement::GetProperty(GEP prop)
+{
+    return !!(properties & (1 << (int)prop));
 }
 
 char* GameElement::GetName(void)
@@ -143,8 +165,11 @@ Image* GameElement::GetImage(int number)
     if( image[number] == NULL ) {
         char *filename = GetScreenShot(number);
         if( filename ) {
+            char str[256];
+            strcpy(str, "Screenshots/");
+            strcat(str, filename);
             image[number] = new Image;
-            if(image[number]->LoadImage(filename) != IMG_LOAD_ERROR_NONE) {
+            if(image[number]->LoadImage(str) != IMG_LOAD_ERROR_NONE) {
                 delete image[number];
                 image[number] = NULL;
             }
@@ -163,7 +188,10 @@ void GameElement::DeleteImage(int number)
     if( image[number] == NULL ) {
         char *filename = GetScreenShot(number);
         if( filename ) {
-            unlink(filename);
+            char str[256];
+            strcpy(str, "Screenshots/");
+            strcat(str, filename);
+            unlink(str);
         }
     }
 }

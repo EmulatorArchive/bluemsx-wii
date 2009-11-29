@@ -68,6 +68,7 @@ extern "C" {
 #include "ArchThread.h"
 #include "WiiInput.h"
 #include "WiiToolLoader.h"
+#include "InputEvent.h"
 }
 
 #include "SdSetup.h"
@@ -317,9 +318,29 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     // Init keyboard and remap keys
     keyboardReset();
+    if( game->GetProperty(GEP_KEYBOARD_JOYSTICK) ) {
+        /* Remap WiiMote 1 to keyboard */
+        keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_SPACE);
+        keyboardRemapKey(KEY_JOY1_BUTTON_B, EC_NONE);
+        keyboardRemapKey(KEY_JOY1_BUTTON_1, EC_NONE);
+        keyboardRemapKey(KEY_JOY1_BUTTON_2, EC_SPACE);
+        keyboardRemapKey(KEY_JOY1_UP, EC_UP);
+        keyboardRemapKey(KEY_JOY1_DOWN, EC_DOWN);
+        keyboardRemapKey(KEY_JOY1_LEFT, EC_LEFT);
+        keyboardRemapKey(KEY_JOY1_RIGHT, EC_RIGHT);
+        /* Remap WiiMote 2 to joystick 1 */
+        keyboardRemapKey(KEY_JOY2_BUTTON_A, EC_JOY1_BUTTON1);
+        keyboardRemapKey(KEY_JOY2_BUTTON_B, EC_JOY1_BUTTON2);
+        keyboardRemapKey(KEY_JOY2_BUTTON_1, EC_JOY1_BUTTON2);
+        keyboardRemapKey(KEY_JOY2_BUTTON_2, EC_JOY1_BUTTON1);
+        keyboardRemapKey(KEY_JOY2_UP, EC_JOY1_UP);
+        keyboardRemapKey(KEY_JOY2_DOWN, EC_JOY1_DOWN);
+        keyboardRemapKey(KEY_JOY2_LEFT, EC_JOY1_LEFT);
+        keyboardRemapKey(KEY_JOY2_RIGHT, EC_JOY1_RIGHT);
+    }
     for(i = 0; i < KEY_LAST; i++) {
         int event = game->GetKeyMapping((KEY)i);
-        if( event != -1 ) {
+        if( event != EC_NONE ) {
             keyboardRemapKey((KEY)i, event);
         }
     }
@@ -428,10 +449,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                 case 2: /* Screenshot */
                                     char *p, fname1[256], fname2[256];
                                     strcpy(fname1, game_dir);
-                                    strcat(fname1, "/");
+                                    strcat(fname1, "/Screenshots/");
                                     strcat(fname1, game->GetScreenShot(0));
                                     strcpy(fname2, game_dir);
-                                    strcat(fname2, "/");
+                                    strcat(fname2, "/Screenshots/");
                                     strcat(fname2, game->GetScreenShot(1));
                                     if( !archFileExists(fname1) ) {
                                         p = fname1;
