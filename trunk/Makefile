@@ -168,6 +168,10 @@ clean:
 run:
 	wiiload $(TARGET).dol
 
+#---------------------------------------------------------------------------------
+disasm:
+	@echo Disassembling ...
+	@$(DEVKITPPC_LOCAL)/bin/powerpc-eabi-objdump -S $(TARGET).elf >$(TARGET).txt
 
 #---------------------------------------------------------------------------------
 else

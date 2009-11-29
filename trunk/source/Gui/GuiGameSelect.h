@@ -34,6 +34,8 @@ public:
 private:
 	GuiBackground *background;
     GameList games;
+	unsigned games_crc;
+	char *games_filename;
     int num_games;
     const char **title_list;
     Sprite *sprScreenShot[2];

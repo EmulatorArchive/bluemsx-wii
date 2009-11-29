@@ -6,6 +6,9 @@
 #include "GuiGameSelect.h"
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
+extern "C" {
+#include "ArchThread.h"
+}
 
 // Resources
 #include "GuiImages.h"
@@ -86,8 +89,9 @@ bool GuiGameSelect::OnUpdateCursorPosition(Sprite *sprite)
 bool GuiGameSelect::Load(const char *dir, const char *filename)
 {
     // Load games database
+    games_filename = strdup(filename);
     chdir(dir);
-    games.Load(filename);
+    games.Load(games_filename);
     num_games = games.GetNumberOfGames();
     if( num_games == 0 ) {
         return false;
@@ -96,6 +100,7 @@ bool GuiGameSelect::Load(const char *dir, const char *filename)
     for(int i = 0; i < num_games; i++) {
         title_list[i] = games.GetGame(i)->GetName();
     }
+    games_crc = games.CalcCRC();
     return true;
 }
 
@@ -290,6 +295,23 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
             fade_delay = 0;
         }
 
+        if( !restart && (games_crc != games.CalcCRC()) ) {
+            // Gamelist changed, ask to save
+            GuiMessageBox *msgbox = new GuiMessageBox(manager);
+            bool ok = msgbox->Show("Save changes?", NULL, true, 192);
+            msgbox->Remove();
+            delete msgbox;
+            if( ok ) {
+                games.Save(games_filename);
+                msgbox = new GuiMessageBox(manager);
+                (void)msgbox->Show("Changed saved", NULL, false, 192);
+                archThreadSleep(1000);
+                msgbox->Remove();
+                delete msgbox;
+            }
+            
+        }
+
         // Claim UI
         manager->Lock();
 
@@ -351,6 +373,8 @@ GuiGameSelect::GuiGameSelect(GuiManager *man, GuiBackground *bgr) : GuiSelection
 {
     manager = man;
     background = bgr;
+    games_crc = 0;
+    games_filename = NULL;
     title_list = NULL;
     sprScreenShot[0] = NULL;
     sprScreenShot[1] = NULL;
@@ -372,6 +396,9 @@ GuiGameSelect::~GuiGameSelect()
 {
     if( title_list ) {
         free(title_list);
+    }
+    if( games_filename ) {
+        free(games_filename);
     }
 }
 
