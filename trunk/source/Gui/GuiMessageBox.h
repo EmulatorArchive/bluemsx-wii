@@ -3,8 +3,25 @@
 #define _GUI_MESSAGEBOX_H
 
 #include "GuiManager.h"
+#include "GuiButton.h"
 #include "GuiContainer.h"
 #include "DrawableImage.h"
+
+typedef enum {
+  MSGT_TEXT,
+  MSGT_OK,
+  MSGT_OKCANCEL,
+  MSGT_YESNO,
+  MSGT_YESNOCANCEL
+} MSGT;
+
+typedef enum {
+  BTN_NONE,
+  BTN_OK,
+  BTN_CANCEL,
+  BTN_YES,
+  BTN_NO
+} BTN;
 
 class GuiMessageBox {
 public:
@@ -12,7 +29,7 @@ public:
     virtual ~GuiMessageBox();
 
     void ShowPopup(const char *txt, Image *image = NULL, int alpha = 128);
-    bool Show(const char *txt, Image *image = NULL, bool yesno = false, int alpha = 128);
+    BTN Show(const char *txt, Image *image = NULL, MSGT type = MSGT_TEXT, int alpha = 128);
     void Remove(void);
     void SetText(const char *fmt, ...);
 
@@ -23,13 +40,14 @@ private:
     GuiContainer *container;
     Sprite *txt_sprite;
     Sprite *img_sprite;
-    Sprite *spr_yes;
-    Sprite *spr_no;
+    GuiButton *button[3];
     DrawableImage *txt_image;
     void *thread_popup;
     bool quit_thread;
+    int no_buttons;
+    int default_button;
 
-    bool DoSelection(Sprite *yes, Sprite *no);
+    int DoSelection(void);
 };
 
 #endif
