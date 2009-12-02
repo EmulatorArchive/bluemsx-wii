@@ -184,7 +184,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
             strcat(str, timestrings[sel]);
             strcat(str, "\"");
             GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            bool ok = msgbox->Show(str, NULL, true, 192);
+            bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == BTN_YES;
             msgbox->Remove();
             delete msgbox;
             if( ok ) {

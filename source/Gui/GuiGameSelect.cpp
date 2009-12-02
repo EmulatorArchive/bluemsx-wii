@@ -6,9 +6,6 @@
 #include "GuiGameSelect.h"
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
-extern "C" {
-#include "ArchThread.h"
-}
 
 // Resources
 #include "GuiImages.h"
@@ -168,19 +165,19 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
             manager->AddTop(grWinControls, fade_time);
             // Icons
             grButtonAdd = new GuiButton(manager);
-            grButtonAdd->ShowImageButton(g_imgAdd, 344+14, 232-30+14*12+6+8, fade_time);
+            grButtonAdd->ShowImageSelectorButton(g_imgAdd, 344+14, 232-30+14*12+6+8, fade_time);
             grButtonDel = new GuiButton(manager);
-            grButtonDel->ShowImageButton(g_imgDelete, 344+14+50, 232-30+14*12+6+8, fade_time);
+            grButtonDel->ShowImageSelectorButton(g_imgDelete, 344+14+50, 232-30+14*12+6+8, fade_time);
             grButtonUp = new GuiButton(manager);
-            grButtonUp->ShowImageButton(g_imgUp, 344+14+2*50, 232-30+14*12+6+8, fade_time);
+            grButtonUp->ShowImageSelectorButton(g_imgUp, 344+14+2*50, 232-30+14*12+6+8, fade_time);
             grButtonDown = new GuiButton(manager);
-            grButtonDown->ShowImageButton(g_imgDown, 344+14+3*50, 232-30+14*12+6+8, fade_time);
+            grButtonDown->ShowImageSelectorButton(g_imgDown, 344+14+3*50, 232-30+14*12+6+8, fade_time);
             grButtonSettings = new GuiButton(manager);
-            grButtonSettings->ShowImageButton(g_imgSettings, 344+14+4*50, 232-30+14*12+6+8, fade_time);
+            grButtonSettings->ShowImageSelectorButton(g_imgSettings, 344+14+4*50, 232-30+14*12+6+8, fade_time);
             grButtonDelScr1 = new GuiButton(manager);
-            grButtonDelScr1->ShowImageButton(g_imgDelete2, 344+8+264+12-54, 28+16, fade_time);
+            grButtonDelScr1->ShowImageSelectorButton(g_imgDelete2, 344+8+264+12-54, 28+16, fade_time);
             grButtonDelScr2 = new GuiButton(manager);
-            grButtonDelScr2->ShowImageButton(g_imgDelete2, 344+8+264+12-54, 232-30+16, fade_time);
+            grButtonDelScr2->ShowImageSelectorButton(g_imgDelete2, 344+8+264+12-54, 232-30+16, fade_time);
             // Screenshot coordinates
             screenshotWidth = (252.0f/16.0f)*14.0f;
             screenshotHeigth = (168.0f/16.0f)*14.0f;
@@ -221,7 +218,7 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
                         strcat(str, returnValue->GetName());
                         strcat(str, "\"");
                         GuiMessageBox *msgbox = new GuiMessageBox(manager);
-                        bool ok = msgbox->Show(str, NULL, true, 192);
+                        bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == BTN_YES;
                         msgbox->Remove();
                         delete msgbox;
                         if( ok ) {
@@ -250,7 +247,7 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
                                 strcat(str, games.GetGame(selected)->GetName());
                                 strcat(str, "\"");
                                 GuiMessageBox *msgbox = new GuiMessageBox(manager);
-                                bool ok = msgbox->Show(str, NULL, true, 192);
+                                bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == BTN_YES;
                                 msgbox->Remove();
                                 delete msgbox;
                                 if( ok ) {
@@ -298,18 +295,17 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         if( !restart && (games_crc != games.CalcCRC()) ) {
             // Gamelist changed, ask to save
             GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            bool ok = msgbox->Show("Save changes?", NULL, true, 192);
+            BTN btn = msgbox->Show("Save changes?", NULL, MSGT_YESNOCANCEL, 192);
             msgbox->Remove();
-            delete msgbox;
-            if( ok ) {
+            if( btn == BTN_YES ) {
                 games.Save(games_filename);
-                msgbox = new GuiMessageBox(manager);
-                (void)msgbox->Show("Changed saved", NULL, false, 192);
-                archThreadSleep(1000);
+                (void)msgbox->Show("Changes saved", NULL, MSGT_OK, 192);
                 msgbox->Remove();
-                delete msgbox;
             }
-            
+            if( btn == BTN_CANCEL ) {
+                restart = true;
+            }
+            delete msgbox;
         }
 
         // Claim UI

@@ -3,20 +3,36 @@
 
 #include "GuiManager.h"
 
+class DrawableImage;
+
+typedef enum {
+  BTE_SELECTOR,
+  BTE_HIGHLIGHT,
+  BTE_HIGHLIGHTTEXT,
+} BTE;
+
 class GuiButton {
 public:
     GuiButton(GuiManager *man);
     virtual ~GuiButton();
 
-    void ShowImageButton(Image *image, int posx=0, int posy=0, int f_show=0, int f_sel=0);
+    void ShowImageSelectorButton(Image *image, int x=0, int y=0, int f_show=0, int f_sel=0);
+    void ShowImageHighlightButton(Image *image, int x=0, int y=0, int f_show=0, int f_sel=0);
+    void ShowImageTextHighlightButton(Image *image, const char *txt, int x=0, int y=0, int f_show=0, int f_sel=0);
+    void SetSelected(bool sel);
     void Remove(int fade=0, int delay=0);
-	bool Update(Sprite *cursor);
+    bool CollidesWith(Sprite *cursor);
+    bool Update(Sprite *cursor);
 
 private:
-	int posx, posy, fade_sel;
+    BTE effect;
+    bool selected;
+    int posx, posy, fade_sel;
     GuiManager *manager;
+    DrawableImage *imgText;
     Sprite *sprImage;
-	Sprite *sprSelector;
+    Sprite *sprText;
+    Sprite *sprSelector;
 };
 
 #endif

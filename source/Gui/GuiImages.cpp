@@ -10,6 +10,10 @@
 #include "image_keyboard.inc"
 #include "image_button_yes.inc"
 #include "image_button_no.inc"
+#include "image_button_red.inc"
+#include "image_button_green.inc"
+#include "image_button_blue.inc"
+#include "image_button_yellow.inc"
 #include "image_checkbox_checked.inc"
 #include "image_checkbox.inc"
 #include "image_up.inc"
@@ -28,8 +32,10 @@ Image *g_imgSelector        = NULL;
 Image *g_imgSelector2       = NULL;
 Image *g_imgFloppyDisk      = NULL;
 Image *g_imgKeyboard        = NULL;
-Image *g_imgButtonYes       = NULL;
-Image *g_imgButtonNo        = NULL;
+Image *g_imgButtonRed       = NULL;
+Image *g_imgButtonGreen     = NULL;
+Image *g_imgButtonBlue      = NULL;
+Image *g_imgButtonYellow    = NULL;
 Image *g_imgCheckboxChecked = NULL;
 Image *g_imgCheckbox        = NULL;
 Image *g_imgUp              = NULL;
@@ -57,10 +63,14 @@ void GuiImageInit(void)
     if(g_imgFloppyDisk->LoadImage(image_floppy_disk) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgKeyboard = new Image;
     if(g_imgKeyboard->LoadImage(image_keyboard) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgButtonYes = new Image;
-    if(g_imgButtonYes->LoadImage(image_button_yes) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgButtonNo = new Image;
-    if(g_imgButtonNo->LoadImage(image_button_no) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgButtonRed = new Image;
+    if(g_imgButtonRed->LoadImage(image_button_red) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgButtonGreen = new Image;
+    if(g_imgButtonGreen->LoadImage(image_button_green) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgButtonBlue = new Image;
+    if(g_imgButtonBlue->LoadImage(image_button_blue) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgButtonYellow = new Image;
+    if(g_imgButtonYellow->LoadImage(image_button_yellow) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgCheckboxChecked = new Image;
     if(g_imgCheckboxChecked->LoadImage(image_checkbox_checked) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgCheckbox = new Image;
@@ -81,10 +91,14 @@ void GuiImageInit(void)
 
 void GuiImageClose(void)
 {
-    delete g_imgButtonNo;
-    g_imgButtonNo = NULL;
-    delete g_imgButtonYes;
-    g_imgButtonYes = NULL;
+    delete g_imgButtonRed;
+    g_imgButtonRed = NULL;
+    delete g_imgButtonGreen;
+    g_imgButtonGreen = NULL;
+    delete g_imgButtonBlue;
+    g_imgButtonBlue = NULL;
+    delete g_imgButtonYellow;
+    g_imgButtonYellow = NULL;
     delete g_imgKeyboard;
     g_imgKeyboard = NULL;
     delete g_imgFloppyDisk;

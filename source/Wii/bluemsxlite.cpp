@@ -433,7 +433,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                     statesel = new GuiStateSelect(manager);
                                     statefile = statesel->DoModal(properties, stateDir);
                                     if( statefile ) {
-                                        msgbox->Show("Loading state...", NULL, false, 160);
+                                        msgbox->Show("Loading state...", NULL, MSGT_TEXT, 160);
                                         emulatorStop();
                                         emulatorStart(statefile);
                                         msgbox->Remove();
@@ -442,7 +442,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                     delete statesel;
                                     break;
                                 case 1: /* Save state */
-                                    msgbox->Show("Saving state...", NULL, false, 160);
+                                    msgbox->Show("Saving state...", NULL, MSGT_TEXT, 160);
                                     actionQuickSaveState();
                                     msgbox->Remove();
                                     break;
@@ -470,7 +470,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                     }else{
                                         p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
                                     }
-                                    msgbox->Show("Saving screenshot...", NULL, false, 160);
+                                    msgbox->Show("Saving screenshot...", NULL, MSGT_TEXT, 160);
                                     (void)archScreenCaptureToFile(SC_NORMAL, p);
                                     msgbox->Remove();
                                     break;
@@ -486,6 +486,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                         case SELRET_KEY_B:
                         case SELRET_KEY_HOME:
                             leave_menu = true;
+                            break;
+                        default:
                             break;
                     }
                 }while(!leave_menu);

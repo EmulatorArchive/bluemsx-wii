@@ -81,7 +81,7 @@ char *GuiDirSelect::DoModal(void)
                 if( dir_level == 0 ) {
                     // on root level, leave after confirmation
                     GuiMessageBox msgbox(manager);
-                    bool ok = msgbox.Show("Do you want to quit?", NULL, true, 192);
+                    bool ok = msgbox.Show("Do you want to quit?", NULL, MSGT_YESNO, 192) == BTN_YES;
                     msgbox.Remove();
                     if( ok ) {
                         RemoveSelection(DIRSEL_FADE_FRAMES);
