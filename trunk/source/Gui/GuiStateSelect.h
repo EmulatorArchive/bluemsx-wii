@@ -3,14 +3,17 @@
 #define _GUI_STATE_SELECT_H
 
 #include <time.h>
-#include "GuiSelectionList.h"
+#include "GuiDialog.h"
 extern "C" {
 #include "Properties.h"
 }
 
 #define NUM_STATE_ITEMS   5
 
-class GuiStateSelect : public GuiSelectionList {
+class GuiSelectionList;
+
+class GuiStateSelect : public GuiDialog
+{
 public:
     GuiStateSelect(GuiManager *man);
     virtual ~GuiStateSelect();
@@ -18,6 +21,9 @@ public:
     void OnSetSelected(int index, int selected);
     char *DoModal(Properties *properties, char *directory);
 private:
+    GuiManager *manager;
+    GuiRunner *runner;
+    GuiSelectionList *list;
     int num_states;
     int posx;
     int posy;

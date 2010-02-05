@@ -227,14 +227,20 @@ typedef enum {
     KEY_LAST
 } KEY;
 
+typedef enum {
+    WPADO_HORIZONTAL,
+    WPADO_VERTICAL,
+} WPADO;
+
 typedef struct _kbd_data KBDDATA, *KBDHANDLE;
-typedef void (*KBD_CALLBACK)(KEY, int);
+typedef void (*KBD_CALLBACK)(void*, KEY, int);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-extern void KBD_GetKeys(KBD_CALLBACK cb);
+extern void KBD_SetWpadOrientation(WPADO orient);
+extern void KBD_GetKeys(KBD_CALLBACK cb, void *context);
 extern int KBD_GetKeyStatus(KEY key);
 extern u32 KBD_GetPadButtons(void);
 extern u32 KBD_GetPadButtonStatus(int channel);

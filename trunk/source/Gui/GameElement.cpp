@@ -56,7 +56,7 @@ GameElement::~GameElement()
 unsigned GameElement::CalcCRC(unsigned crc)
 {
     if( name ) crc = crc32(crc, (const unsigned char *)name, strlen(name)+1);
-    if( cmdline ) crc = crc32(crc, (const unsigned char *)name, strlen(cmdline)+1);
+    if( cmdline ) crc = crc32(crc, (const unsigned char *)cmdline, strlen(cmdline)+1);
     if( screenshot[0] ) crc = crc32(crc, (const unsigned char *)screenshot[0], strlen(screenshot[0])+1);
     if( screenshot[1] ) crc = crc32(crc, (const unsigned char *)screenshot[1], strlen(screenshot[1])+1);
     if( cheatfile ) crc = crc32(crc, (const unsigned char *)cheatfile, strlen(cheatfile)+1);

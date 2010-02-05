@@ -2,11 +2,7 @@
 #ifndef _GUI_GAME_SELECT_H
 #define _GUI_GAME_SELECT_H
 
-#include "GuiBackground.h"
-#include "GuiButton.h"
-#include "GuiContainer.h"
-#include "GuiSelectionList.h"
-#include "GameElement.h"
+#include "GuiDialog.h"
 #include "GameList.h"
 
 #define NUM_LIST_ITEMS   12
@@ -22,47 +18,62 @@ typedef enum {
   GLEDITSEL_SCRSHOT_2
 } GLEDITSEL;
 
-class GuiGameSelect : public GuiSelectionList {
+class GuiRunner;
+class GuiBackground;
+class GuiButton;
+class GuiContainer;
+class GuiSelectionList;
+
+class GuiGameSelect : public GuiDialog
+{
 public:
     GuiGameSelect(GuiManager *man, GuiBackground *bgr);
     virtual ~GuiGameSelect();
 
-    void OnSetSelected(int index, int selected);
-	bool OnUpdateCursorPosition(Sprite *sprite);
+    // GuiDialog interface
+    virtual void OnKey(GuiRunner *runner, KEY key, bool pressed);
+    virtual void OnUpdateScreen(GuiRunner *runner);
+
     bool Load(const char *dir, const char *filename);
+    void Show(bool restart);
+    void Hide(bool restart);
     GameElement *DoModal(GameElement *select = NULL);
 private:
-	GuiBackground *background;
+    GuiManager *manager;
+    GuiRunner *runner;
+    GuiBackground *background;
+    GuiSelectionList *list;
     GameList games;
-	unsigned games_crc;
-	char *games_filename;
+    unsigned games_crc;
+    char *games_filename;
     int num_games;
     const char **title_list;
     Sprite *sprScreenShot[2];
-	float screenshotWidth;
-	float screenshotHeigth;
-	int screenshotYpos1;
-	int screenshotYpos2;
-	int fade_time;
-	int fade_delay;
-	int last_index;
-	int last_selected;
-	GLEDITSEL selected_button;
+    float screenshotWidth;
+    float screenshotHeigth;
+    int screenshotYpos1;
+    int screenshotYpos2;
+    int last_index;
+    int last_selected;
+    GLEDITSEL selected_button;
+    bool editMode;
 
-	GuiContainer *grWinTitle;
-	GuiContainer *grWinPlay;
-	GuiContainer *grWinControls;
+    GuiContainer *grWinList;
+    GuiContainer *grWinTitle;
+    GuiContainer *grWinPlay;
+    GuiContainer *grWinControls;
 
-	GuiButton *grButtonAdd;
-	GuiButton *grButtonDel;
-	GuiButton *grButtonUp;
-	GuiButton *grButtonDown;
-	GuiButton *grButtonSettings;
-	GuiButton *grButtonDelScr1;
-	GuiButton *grButtonDelScr2;
+    GuiButton *grButtonAdd;
+    GuiButton *grButtonDel;
+    GuiButton *grButtonUp;
+    GuiButton *grButtonDown;
+    GuiButton *grButtonSettings;
+    GuiButton *grButtonDelScr1;
+    GuiButton *grButtonDelScr2;
 
+    void SetSelected(int index, int selected, bool restart);
     void SetScreenShotImage(int index, Image *img);
-	void UpdateList(void);
+    void UpdateList(void);
 };
 
 #endif

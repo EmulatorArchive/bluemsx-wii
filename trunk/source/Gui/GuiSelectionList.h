@@ -3,6 +3,7 @@
 #define _GUI_SELECTION_LIST_H
 
 #include "GuiManager.h"
+#include "GuiElement.h"
 #include "DrawableImage.h"
 #include "Sprite.h"
 
@@ -14,37 +15,43 @@ typedef enum {
   SELRET_KEY_PLUS,
 } SELRET;
 
-class GuiSelectionList {
+class GuiSelectionList : public GuiElement {
 public:
     GuiSelectionList(GuiManager *man, int rows);
     virtual ~GuiSelectionList();
 
-    virtual void OnSetSelected(int index, int selected) {};
-    virtual bool OnUpdateCursorPosition(Sprite *cursor) { return false; };
+    virtual void ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay);
+    virtual void ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay);
+    virtual wsp::Layer* ElmGetTopLayer(void);
+    virtual wsp::Layer* ElmGetBottomLayer(void);
+
+    virtual bool ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite);
+    virtual void ElmSetSelected(GuiRunner *runner, bool sel, int x, int y);
+    virtual bool ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph);
+    virtual bool ElmHandleKey(GuiRunner *runner, KEY key, bool pressed);
+
     void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
                        int posx, int posy, int xspace, int width, bool centr = false);
-	void SetNumberOfItems(int num);
-    void ShowSelection(int fade = 0, int delay = 0);
+    void ClearTitleList(void);
+    void SetSelected(int fade = -1, int delay = -1);
+    void SetNumberOfItems(int num);
     SELRET DoSelection(int *selection);
-    void RemoveSelection(int fade = 0, int delay = 0);
     bool IsShowing(void);
+    int GetSelected(void);
+    void DoKeyUp(void);
+    void DoKeyDown(void);
 
 protected:
     GuiManager *manager;
-    void ClearTitleList(void);
-	void DoKeyUp(void);
-	void DoKeyDown(void);
-    void SetSelected(int fade = -1, int delay = -1);
 private:
-	int xpos;
-	int ypos;
+    int xpos;
+    int ypos;
     int xsize;
     int xspacing;
-	int ypitch;
+    int ypitch;
     int fontsize;
     bool center;
     int selected, index;
-    int current;
     int num_items;
     int num_item_rows;
     int current_index;
@@ -54,6 +61,7 @@ private:
     const char **item_list;
     const char **visible_items;
     Sprite **titleTxtSprite;
+    Sprite *sprCursor;
     Sprite *sprSelector;
     Sprite *sprArrowUp;
     Sprite *sprArrowDown;

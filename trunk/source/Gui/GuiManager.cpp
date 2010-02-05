@@ -122,6 +122,16 @@ void GuiManager::Unlock(void)
     LWP_MutexUnlock(mutex);
 }
 
+int GuiManager::GetIndex(Layer *layer)
+{
+    return manager->GetIndex(layer);
+}
+
+int GuiManager::GetFixedLayers(void)
+{
+    return fixed_layers;
+}
+
 void GuiManager::AddIndex(int index, Layer *layer, bool fix, int fade, int delay)
 {
     FrameAdd *add = NULL;
@@ -141,6 +151,10 @@ void GuiManager::AddIndex(int index, Layer *layer, bool fix, int fade, int delay
         // start at 'fully transparent'
         layer->SetTransparency(add->curalpha);
     }
+    if( index < fixed_layers ) {
+        manager->Insert(layer, index);
+        fixed_layers++;
+    }else
     if( fix ) {
         manager->Insert(layer, 0);
         fixed_layers++;
