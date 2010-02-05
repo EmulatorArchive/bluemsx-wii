@@ -318,6 +318,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     // Init keyboard and remap keys
     keyboardReset();
+    KBD_SetWpadOrientation(WPADO_HORIZONTAL);
     if( game->GetProperty(GEP_KEYBOARD_JOYSTICK) ) {
         /* Remap WiiMote 1 to keyboard */
         keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_SPACE);
@@ -420,6 +421,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
             if( !pressed ) {
                 actionEmuTogglePause();
                 osk->SetEnabled(false);
+                KBD_SetWpadOrientation(WPADO_VERTICAL);
                 bool leave_menu = false;
                 do {
                     int selection;
@@ -491,7 +493,8 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             break;
                     }
                 }while(!leave_menu);
-                KBD_GetKeys(NULL); // flush
+                KBD_GetKeys(NULL, NULL); // flush
+                KBD_SetWpadOrientation(WPADO_HORIZONTAL);
                 actionEmuTogglePause();
                 osk->SetEnabled(!doQuit);
                 pressed = true;
@@ -506,6 +509,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     emulatorStop();
     toolUnLoadAll();
+    KBD_SetWpadOrientation(WPADO_VERTICAL);
 
     // Remove emulator+keyboard from display
     manager->Lock();
@@ -543,6 +547,7 @@ int main(int argc, char **argv)
 
     // Init keyboard
     keyboardInit();
+    KBD_SetWpadOrientation(WPADO_VERTICAL);
 
     // GUI init
     manager = new GuiManager();

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "GuiRunner.h"
+#include "GuiSelectionList.h"
 #include "GuiDirSelect.h"
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
@@ -12,6 +14,7 @@
 
 char *GuiDirSelect::DoModal(void)
 {
+    const char **title_list = NULL;
     char *return_value = NULL;
 
     // Claim UI
@@ -63,14 +66,19 @@ char *GuiDirSelect::DoModal(void)
         }
 
         // Selection
-        if( IsShowing() ) {
-            RemoveSelection(DIRSEL_FADE_FRAMES);
+        if( list->IsShowing() ) {
+            runner->Remove(list, DIRSEL_FADE_FRAMES);
         }
-        InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
-                      320-180+8, 24+24, 24, 2*180-16, false);
-        ShowSelection(DIRSEL_FADE_FRAMES);
+        list->InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
+                            320-180+8, 24+24, 24, 2*180-16, false);
+        runner->AddTop(list, DIRSEL_FADE_FRAMES);
+        runner->SetSelected(list);
+
+        // Run GUI
         for(;;) {
-            if( DoSelection(&sel) == SELRET_SELECTED ) {
+            if( runner->Run() ) {
+                sel = list->GetSelected();
+
                 // enter selected directory
                 selected_dir = dirs.GetDir(sel);
                 strcat(current_dir, "/");
@@ -84,7 +92,7 @@ char *GuiDirSelect::DoModal(void)
                     bool ok = msgbox.Show("Do you want to quit?", NULL, MSGT_YESNO, 192) == BTN_YES;
                     msgbox.Remove();
                     if( ok ) {
-                        RemoveSelection(DIRSEL_FADE_FRAMES);
+                        runner->Remove(list, DIRSEL_FADE_FRAMES);
                         quit = true;
                         break;
                     }
@@ -100,8 +108,11 @@ char *GuiDirSelect::DoModal(void)
             }
         }
     }while( !quit );
-    RemoveSelection(DIRSEL_FADE_FRAMES);
+    runner->Remove(list, DIRSEL_FADE_FRAMES);
     dirs.Clear();
+    if( title_list ) {
+        free(title_list);
+    }
 
     // Claim UI
     manager->Lock();
@@ -116,19 +127,18 @@ char *GuiDirSelect::DoModal(void)
 }
 
 GuiDirSelect::GuiDirSelect(GuiManager *man, const char *startdir, const char *filename)
-            : GuiSelectionList(man, NUM_DIR_ITEMS)
 {
+    runner = new GuiRunner(man, this);
+    list = new GuiSelectionList(man, NUM_DIR_ITEMS);
     manager = man;
     strcpy(current_dir, startdir);
     strcpy(xmlfile, filename);
     dir_level = 0;
-    title_list = NULL;
 }
 
 GuiDirSelect::~GuiDirSelect()
 {
-    if( title_list ) {
-        free(title_list);
-    }
+    delete list;
+    delete runner;
 }
 

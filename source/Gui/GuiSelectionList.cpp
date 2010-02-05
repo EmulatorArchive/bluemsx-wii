@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,6 +10,7 @@
 #include <wiiuse/wpad.h>
 
 #include "kbdlib.h"
+#include "GuiRunner.h"
 #include "GuiSelectionList.h"
 #include "GuiContainer.h"
 
@@ -22,6 +24,167 @@
 
 #define SELECTION_FADE_TIME  10
 #define SELECTION_FADE_DELAY 4
+
+//-----------------------
+
+void GuiSelectionList::ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay)
+{
+    if( !is_showing ) {
+        // Title list
+        ClearTitleList();
+        InitTitleList(g_fontArial, xpos, ypos, xsize-2*xspacing, ypitch, fade);
+
+        // Titles
+        for(int i = 0; i < num_item_rows; i++) {
+            manager->AddIndex(index++, titleTxtSprite[i], false, fade, delay);
+        }
+
+        // Arrows
+        manager->AddIndex(index++, sprArrowUp, false, fade);
+        manager->AddIndex(index++, sprArrowDown, false, fade);
+
+        SetSelected(fade, delay);
+        is_showing = true;
+    }
+}
+
+void GuiSelectionList::ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay)
+{
+    if( is_showing ) {
+        // Titles
+        for(int i = 0; i < num_item_rows; i++) {
+            manager->RemoveAndDelete(titleTxtSprite[i], titleTxtSprite[i]->GetImage(), fade, delay);
+            titleTxtSprite[i] = NULL;
+        }
+
+        // Arrows
+        manager->RemoveAndDelete(sprArrowUp, NULL, fade, delay);
+        sprArrowUp = NULL;
+        manager->RemoveAndDelete(sprArrowDown, NULL, fade, delay);
+        sprArrowDown = NULL;
+
+        // Title list
+        RemoveTitleList(fade, delay);
+        manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
+        sprSelector = NULL;
+
+        is_showing = false;
+    }
+}
+
+wsp::Layer* GuiSelectionList::ElmGetTopLayer(void)
+{
+    return titleTxtSprite[0];
+}
+
+wsp::Layer* GuiSelectionList::ElmGetBottomLayer(void)
+{
+    return sprArrowDown;
+}
+
+
+//-----------------------
+
+bool GuiSelectionList::ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite)
+{
+    for(int i = upper_index; i <= lower_index; i++) {
+        if( strlen(visible_items[i]) &&
+            sprite->CollidesWith(titleTxtSprite[i]) ) {
+            if( i != selected ) {
+                selected = i;
+                SetSelected();
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+void GuiSelectionList::ElmSetSelected(GuiRunner *runner, bool sel, int x, int y)
+{
+    if( sel ) {
+        int s = upper_index;
+        for(int i = upper_index; i <= lower_index; i++) {
+            int yy = titleTxtSprite[i]->GetY() + titleTxtSprite[i]->GetHeight() / 2;
+            if( yy > y ) {
+                break;
+            }
+            s = i;
+        }
+        selected = s;
+        SetSelected();
+    }else{
+        // We're never deselected
+    }
+}
+
+bool GuiSelectionList::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph)
+{
+    if( is_showing ) {
+        *px = xpos;
+        *py = ypos;
+        *pw = xsize;
+        *ph = ypitch*num_item_rows;
+        return true;
+    }else{
+        return false;
+    }
+}
+
+bool GuiSelectionList::ElmHandleKey(GuiRunner *runner, KEY key, bool pressed)
+{
+    if (runner->GetSelected(false) == NULL && selected >= 0) { /* When nothing selected, we're in charge */
+        runner->SetSelected(this, 0, titleTxtSprite[selected]->GetY() + titleTxtSprite[selected]->GetHeight() / 2);
+    }
+    if( pressed &&
+        runner->GetSelected(false) == this )
+    {
+        switch( key ) {
+            case KEY_UP:
+            case KEY_JOY1_UP:
+            case KEY_JOY2_UP:
+                DoKeyUp();
+                return true;
+            case KEY_DOWN:
+            case KEY_JOY1_DOWN:
+            case KEY_JOY2_DOWN:
+                DoKeyDown();
+                return true;
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
+//-----------------------
+
+void GuiSelectionList::DoKeyUp(void)
+{
+    if( selected > upper_index ) {
+        selected--;
+        SetSelected();
+    }else{
+        if( index > 0 ) {
+            index--;
+            SetSelected();
+        }
+    }
+}
+
+void GuiSelectionList::DoKeyDown(void)
+{
+    if( selected < lower_index &&
+        strlen(visible_items[selected+1]) ) {
+        selected++;
+        SetSelected();
+    }else{
+        if( index+selected < num_items-1 ) {
+            index++;
+            SetSelected();
+        }
+    }
+}
 
 void GuiSelectionList::InitTitleList(TextRender *fontArial,
                                      int x, int y, int width, int ypitch, int fade)
@@ -37,7 +200,6 @@ void GuiSelectionList::InitTitleList(TextRender *fontArial,
         titleTxtSprite[i] = new Sprite;
         titleTxtSprite[i]->SetImage(img);
         titleTxtSprite[i]->SetPosition(x + xspacing, yy + fontsize/5);
-        manager->AddTop(titleTxtSprite[i], fade);
         yy += ypitch;
     }
 
@@ -51,7 +213,6 @@ void GuiSelectionList::InitTitleList(TextRender *fontArial,
     sprArrowUp->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
     sprArrowUp->SetRotation(180.0f/2);
     sprArrowUp->SetVisible(false);
-    manager->AddTop(sprArrowUp, fade);
 
     sprArrowDown = new Sprite;
     sprArrowDown->SetImage(g_imgArrow);
@@ -61,23 +222,22 @@ void GuiSelectionList::InitTitleList(TextRender *fontArial,
     sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
     sprArrowDown->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
     sprArrowDown->SetVisible(false);
-    manager->AddTop(sprArrowDown, fade);
 
     current_index = -1;
 }
 
 void GuiSelectionList::RemoveTitleList(int fade, int delay)
 {
-    manager->RemoveAndDelete(sprArrowUp, NULL, fade, delay);
-    manager->RemoveAndDelete(sprArrowDown, NULL, fade, delay);
-    for(int i = 0; i < num_item_rows; i++) {
-        manager->RemoveAndDelete(titleTxtSprite[i], titleTxtSprite[i]->GetImage(), fade, delay);
-    }
 }
 
 void GuiSelectionList::ClearTitleList(void)
 {
     current_index = -1;
+}
+
+int GuiSelectionList::GetSelected(void)
+{
+    return selected;
 }
 
 void GuiSelectionList::SetSelected(int fade, int delay)
@@ -154,8 +314,6 @@ void GuiSelectionList::SetSelected(int fade, int delay)
         sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
         manager->AddBehind(selectedsprite, sprSelector, (fade != -1)? fade : SELECTION_FADE_TIME);
     }
-    // Call hook
-    OnSetSelected(index, selected);
     // Release UI
     manager->Unlock();
 }
@@ -193,227 +351,11 @@ void GuiSelectionList::InitSelection(const char **items, int num, int select, in
         selected = 0;
         index = 0;
     }
-    current = -1;
-    ClearTitleList();
 }
 
 void GuiSelectionList::SetNumberOfItems(int num)
 {
     num_items = num;
-}
-
-void GuiSelectionList::ShowSelection(int fade, int delay)
-{
-    if( is_showing ) {
-        return;
-    }
-
-    // Claim UI
-    manager->Lock();
-
-    // Menu list
-    InitTitleList(g_fontArial, xpos, ypos, xsize-2*xspacing, ypitch, fade);
-
-    // Start displaying
-    manager->Unlock();
-
-    // Update title list
-    SetSelected(fade, delay);
-
-    is_showing = true;
-}
-
-void GuiSelectionList::DoKeyUp(void)
-{
-    if( current > upper_index ) {
-        selected--;
-    }else{
-        if( index > 0 ) {
-            index--;
-            SetSelected();
-        }
-    }
-}
-
-void GuiSelectionList::DoKeyDown(void)
-{
-    if( current < lower_index &&
-        strlen(visible_items[current+1]) ) {
-        selected++;
-    }else{
-        if( index+current < num_items-1 ) {
-            index++;
-            SetSelected();
-        }
-    }
-}
-
-SELRET GuiSelectionList::DoSelection(int *selection)
-{
-    // Cursor
-    manager->Lock();
-    Sprite *sprCursor = new Sprite;
-    sprCursor->SetImage(g_imgMousecursor);
-    sprCursor->SetVisible(false);
-    manager->AddTop(sprCursor);
-    manager->Unlock();
-
-    // Menu loop
-    u64 scroll_time = 0;
-    (void)KBD_GetPadButtons(); // flush first
-    current = selected;
-    for(;;) {
-        WPAD_ScanPads();
-        u32 buttons = KBD_GetPadButtons();
-
-        // Take screenshot on pressing '+' and '-' simultaneously
-        if( buttons == (WPAD_BUTTON_PLUS + WPAD_BUTTON_MINUS) ) {
-            manager->WriteScreenshot("sd:/dump.png");
-        }
-
-        // Exit on 'home', 'B', 'plus'
-        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME) ) {
-            manager->Lock();
-            manager->RemoveAndDelete(sprCursor);
-            manager->Unlock();
-            return SELRET_KEY_HOME;
-        }
-        if( buttons & (WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
-            manager->Lock();
-            manager->RemoveAndDelete(sprCursor);
-            manager->Unlock();
-            return SELRET_KEY_B;
-        }
-        if( buttons & WPAD_BUTTON_PLUS ) {
-            manager->Lock();
-            manager->RemoveAndDelete(sprCursor);
-            manager->Unlock();
-            return SELRET_KEY_PLUS;
-        }
-
-        // Claim UI
-        manager->Lock();
-
-        // Infrared
-        int x, y, angle;
-        bool cursor_visible = false;
-        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
-            sprCursor->SetPosition(x, y);
-            sprCursor->SetRotation(angle/2);
-            sprCursor->SetVisible(true);
-            cursor_visible = true;
-        }else{
-            sprCursor->SetVisible(false);
-            sprCursor->SetPosition(0, 0);
-        }
-        if( OnUpdateCursorPosition(sprCursor) &&
-            (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) ) {
-            manager->RemoveAndDelete(sprCursor);
-            manager->Unlock();
-            *selection = index+selected;
-            return SELRET_CUSTOM;
-        }
-
-        // Check mouse cursor colisions
-        bool cursor_above_selection = false;
-        for(int i = 0; i < num_item_rows; i++) {
-            if( strlen(visible_items[i]) &&
-                sprCursor->CollidesWith(titleTxtSprite[i]) ) {
-                cursor_above_selection = true;
-                selected = i;
-                manager->Unlock();
-                break;
-            }
-        }
-        if( selected == current ) {
-            // Scroll when mouse stays on the arrows for a while
-            if( cursor_above_selection && (selected == 0 || selected == num_item_rows-1) ) {
-                if( ticks_to_millisecs(gettime()) > scroll_time ) {
-                    if( selected == 0 ) {
-                        buttons |= WPAD_BUTTON_UP;
-                    }else{
-                        buttons |= WPAD_BUTTON_DOWN;
-                    }
-                    scroll_time = ticks_to_millisecs(gettime()) + REPEAT_TIME;
-                }
-            }else{
-                scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
-            }
-
-            // WPAD keys
-            if( (buttons & WPAD_BUTTON_LEFT) ||
-                (buttons & WPAD_BUTTON_DOWN) ||
-                (buttons & WPAD_CLASSIC_BUTTON_DOWN) ) {
-                DoKeyDown();
-            }
-            if( (buttons & WPAD_BUTTON_RIGHT) ||
-                (buttons & WPAD_BUTTON_UP) ||
-                (buttons & WPAD_CLASSIC_BUTTON_UP) ) {
-                DoKeyUp();
-            }
-        }
-        if( selected != current ) {
-            SetSelected();
-#if RUMBLE
-            if( selected >= 0 && !rumbeling ) {
-                time2rumble = ticks_to_millisecs(gettime());
-                WPAD_Rumble(0,1);
-                rumbeling = true;
-            }
-#endif
-            current = selected;
-            scroll_time = ticks_to_millisecs(gettime()) + SCROLL_TIME;
-        }
-
-#if RUMBLE
-        //stop rumble after 50ms
-        if(ticks_to_millisecs(gettime())>time2rumble+50 && rumbeling){ WPAD_Rumble(0,0); }
-        //let it rumble again after 250ms
-        if(ticks_to_millisecs(gettime())>time2rumble+250 && rumbeling){ rumbeling = false; }
-#endif
-
-        // Release UI
-        manager->Unlock();
-
-        if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
-            (selected >= upper_index && selected <= lower_index) &&
-            (cursor_above_selection || !cursor_visible) ) {
-            break;
-        }
-
-        // wait a frame
-        VIDEO_WaitVSync();
-    }
-
-    manager->Lock();
-    manager->RemoveAndDelete(sprCursor);
-    manager->Unlock();
-#if RUMBLE
-    if( rumbeling ) {
-        WPAD_Rumble(0,0);
-    }
-#endif
-    *selection = index+selected;
-    return SELRET_SELECTED;
-}
-
-void GuiSelectionList::RemoveSelection(int fade, int delay)
-{
-    if( !is_showing ) {
-        return;
-    }
-
-    // Claim UI
-    manager->Lock();
-
-    RemoveTitleList(fade, delay);
-    manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
-    sprSelector = NULL;
-
-    // Release UI
-    manager->Unlock();
-
-    is_showing = false;
 }
 
 bool GuiSelectionList::IsShowing(void)
@@ -427,6 +369,7 @@ GuiSelectionList::GuiSelectionList(GuiManager *man, int rows)
     num_item_rows = rows;
     is_showing = false;
     sprSelector = NULL;
+    sprCursor = NULL;
     visible_items = new const char*[rows];
     titleTxtSprite = new Sprite*[rows];
     titleTxtImgPtr = new DrawableImage*[rows];
@@ -434,9 +377,7 @@ GuiSelectionList::GuiSelectionList(GuiManager *man, int rows)
 
 GuiSelectionList::~GuiSelectionList()
 {
-    if( is_showing ) {
-        RemoveSelection();
-    }
+    assert( !is_showing );
     delete[] titleTxtImgPtr;
     delete[] titleTxtSprite;
     delete[] visible_items;

@@ -47,7 +47,9 @@ public:
     void DisplayThread(void);
     void Lock(void);
     void Unlock(void);
-    void AddIndex(int index, Layer *layer, bool fix, int fade, int delay);
+    int GetIndex(Layer *layer);
+    int GetFixedLayers(void);
+    void AddIndex(int index, Layer *layer, bool fix, int fade = 0, int delay = 0);
     void AddTop(Layer *layer, int fade = 0, int delay = 0);
     void AddTopFixed(Layer *layer, int fade = 0, int delay = 0);
     void AddOnTopOf(Layer *ontopof, Layer *layer, int fade = 0, int delay = 0);

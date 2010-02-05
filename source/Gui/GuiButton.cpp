@@ -7,7 +7,7 @@
 #define BUTTON_TRANSPARENCY_NORMAL    160
 #define BUTTON_TRANSPARENCY_HIGHLIGHT 255
 
-GuiButton::GuiButton(GuiManager *man)
+GuiButton::GuiButton(GuiManager *man) : GuiElement()
 {
     manager = man;
     imgText = NULL;
@@ -15,82 +15,77 @@ GuiButton::GuiButton(GuiManager *man)
     sprText = NULL;
     sprSelector = NULL;
     selected = false;
+    shown = false;
 }
 
 GuiButton::~GuiButton()
 {
-    Remove();
+    ElmRemoveLayers(manager, false, 0, 0);
 }
 
-void GuiButton::ShowImageSelectorButton(Image *image, int x, int y, int f_show, int f_sel)
+//-----------------------
+
+void GuiButton::ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay)
 {
-    effect = BTE_SELECTOR;
-    posx = x;
-    posy = y;
-    fade_sel = f_sel;
-    selected = false;
-    sprImage = new Sprite(image, x, y);
-    manager->Lock();
-    manager->AddTop(sprImage, f_show);
-    manager->Unlock();
+    switch( effect ) {
+        case BTE_SELECTOR:
+        case BTE_HIGHLIGHT:
+            manager->AddTop(sprImage, fade, delay);
+            shown = true;
+            break;
+        case BTE_HIGHLIGHTTEXT:
+            manager->AddTop(sprImage, fade, delay);
+            manager->AddTop(sprText, fade, delay);
+            shown = true;
+            break;
+        default:
+            break;
+    }
 }
 
-void GuiButton::ShowImageHighlightButton(Image *image, int x, int y, int f_show, int f_sel)
+void GuiButton::ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay)
 {
-    effect = BTE_HIGHLIGHT;
-    posx = x;
-    posy = y;
-    fade_sel = f_sel;
-    selected = false;
-    sprImage = new Sprite(image, x, y);
-    sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-    manager->Lock();
-    manager->AddTop(sprImage, f_show);
-    manager->Unlock();
+    if( shown ) {
+        manager->RemoveAndDelete(sprText, imgText, fade, delay);
+        sprText = NULL;
+        imgText = NULL;
+        manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
+        sprSelector = NULL;
+        manager->RemoveAndDelete(sprImage, NULL, fade, delay);
+        sprImage = NULL;
+        shown = false;
+    }
 }
 
-void GuiButton::ShowImageTextHighlightButton(Image *image, const char *txt, int x, int y, int f_show, int f_sel)
+wsp::Layer* GuiButton::ElmGetTopLayer(void)
 {
-    effect = BTE_HIGHLIGHTTEXT;
-    posx = x;
-    posy = y;
-    fade_sel = f_sel;
-    selected = false;
-
-    // Image
-    sprImage = new Sprite(image, x, y);
-    sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-    int imgwidth = sprImage->GetWidth();
-    int imgheight = sprImage->GetHeight();
-
-    // Prepare text
-    int txtwidth;
-    int txtheight;
-    imgText = new DrawableImage;
-    imgText->SetFont(g_fontImpact);
-    imgText->SetSize(36);
-    imgText->SetColor((GXColor){255,255,255,255});
-    imgText->GetTextSize(&txtwidth, &txtheight, txt);
-    txtwidth = (txtwidth + 3) & ~3;
-    txtheight = (txtheight + 3) & ~3;
-    imgText->CreateImage(txtwidth, txtheight);
-    imgText->RenderText(true, txt);
-
-    // Text image
-    sprText= new Sprite(imgText, x + (imgwidth - txtwidth) / 2, y + (imgheight - (txtheight * 10)/9) / 2);
-    sprText->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-
-    // Add to screen
-    manager->Lock();
-    manager->AddTop(sprImage, f_show);
-    manager->AddTop(sprText, f_show);
-    manager->Unlock();
+    return sprImage;
 }
 
-void GuiButton::SetSelected(bool sel)
+wsp::Layer* GuiButton::ElmGetBottomLayer(void)
 {
-    manager->Lock();
+    return sprText? sprText : sprImage;
+}
 
+//-----------------------
+
+bool GuiButton::ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite)
+{
+    if( shown && sprite != NULL && sprImage != NULL &&
+        sprite->CollidesWith(sprImage, true) )
+    {
+        ElmSetSelected(runner, true, 0, 0);
+        return true;
+    }else{
+        return false;
+    }
+}
+
+void GuiButton::ElmSetSelected(GuiRunner *runner, bool sel, int x, int y)
+{
+    if( !shown ) {
+        return;
+    }
     switch( effect ) {
         case BTE_SELECTOR:
             if( !selected && sel && sprImage != NULL ) {
@@ -129,40 +124,82 @@ void GuiButton::SetSelected(bool sel)
         default:
             break;
     }
-    
-    manager->Unlock();
 }
 
-bool GuiButton::CollidesWith(Sprite *cursor)
+bool GuiButton::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph)
 {
-    if( cursor != NULL && sprImage != NULL ) {
-        return cursor->CollidesWith(sprImage, true);
-    }
-    return false;
-}
-
-bool GuiButton::Update(Sprite *cursor)
-{
-    if( cursor != NULL && sprImage != NULL ) {
-        SetSelected(cursor->CollidesWith(sprImage, true));
+    if( shown ) {
+        *px = posx;
+        *py = posy;
+        *pw = width;
+        *ph = height;
+        return true;
     }else{
-        SetSelected(false);
+        return false;
     }
-    return selected;
 }
 
-void GuiButton::Remove(int fade, int delay)
+//-----------------------
+
+void GuiButton::CreateImageSelectorButton(Image *image, int x, int y, int f_sel)
 {
-    manager->Lock();
+    ElmRemoveLayers(manager, false, 0, 0);
+    effect = BTE_SELECTOR;
+    posx = x;
+    posy = y;
+    width = image->GetWidth();
+    height = image->GetHeight();
+    fade_sel = f_sel;
+    selected = false;
+    sprImage = new Sprite(image, x, y);
+}
 
-    manager->RemoveAndDelete(sprText, imgText, fade, delay);
-    sprText = NULL;
-    imgText = NULL;
-    manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
-    sprSelector = NULL;
-    manager->RemoveAndDelete(sprImage, NULL, fade, delay);
-    sprImage = NULL;
+void GuiButton::CreateImageHighlightButton(Image *image, int x, int y, int f_sel)
+{
+    ElmRemoveLayers(manager, false, 0, 0);
+    effect = BTE_HIGHLIGHT;
+    posx = x;
+    posy = y;
+    width = image->GetWidth();
+    height = image->GetHeight();
+    fade_sel = f_sel;
+    selected = false;
+    sprImage = new Sprite(image, x, y);
+    sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+}
 
-    manager->Unlock();
+void GuiButton::CreateImageTextHighlightButton(Image *image, const char *txt, int x, int y, int f_sel)
+{
+    ElmRemoveLayers(manager, false, 0, 0);
+    effect = BTE_HIGHLIGHTTEXT;
+    posx = x;
+    posy = y;
+    width = image->GetWidth();
+    height = image->GetHeight();
+    fade_sel = f_sel;
+    selected = false;
+
+    // Image
+    sprImage = new Sprite(image, x, y);
+    sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+    int imgwidth = sprImage->GetWidth();
+    int imgheight = sprImage->GetHeight();
+
+    // Prepare text
+    int txtwidth;
+    int txtheight;
+    imgText = new DrawableImage;
+    imgText->SetFont(g_fontImpact);
+    imgText->SetSize(36);
+    imgText->SetColor((GXColor){255,255,255,255});
+    imgText->GetTextSize(&txtwidth, &txtheight, txt);
+    txtwidth = (txtwidth + 3) & ~3;
+    txtheight = (txtheight + 3) & ~3;
+    imgText->CreateImage(txtwidth, txtheight);
+    imgText->RenderText(true, txt);
+
+    // Text image
+    sprText= new Sprite(imgText, x + (imgwidth - txtwidth) / 2, y + (imgheight - (txtheight * 10)/9) / 2);
+    sprText->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
 }
 

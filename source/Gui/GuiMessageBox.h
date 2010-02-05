@@ -3,6 +3,7 @@
 #define _GUI_MESSAGEBOX_H
 
 #include "GuiManager.h"
+#include "GuiDialog.h"
 #include "GuiButton.h"
 #include "GuiContainer.h"
 #include "DrawableImage.h"
@@ -23,7 +24,7 @@ typedef enum {
   BTN_NO
 } BTN;
 
-class GuiMessageBox {
+class GuiMessageBox : public GuiDialog {
 public:
     GuiMessageBox(GuiManager *man);
     virtual ~GuiMessageBox();
@@ -35,6 +36,7 @@ public:
 
     void MessageBoxPopupThread(void);
 private:
+    GuiRunner *runner;
     bool is_showing;
     GuiManager *manager;
     GuiContainer *container;

@@ -2,14 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <gccore.h>
-#include <ogc/lwp_watchdog.h>
-
-#include <wiiuse/wpad.h>
-
-#include "kbdlib.h"
 #include "GuiMessageBox.h"
 #include "GuiContainer.h"
+#include "GuiRunner.h"
 
 // Resources
 #include "GuiImages.h"
@@ -24,94 +19,20 @@ extern "C" {
 int GuiMessageBox::DoSelection(void)
 {
     int i;
-    bool use_keyboard = true;
-    int active_button = -1;
-
-    manager->Lock();
-
-    // Cursor
-    Sprite *cursor = new Sprite;
-    cursor->SetImage(g_imgMousecursor);
-    cursor->SetPosition(0, 0);
-    cursor->SetVisible(false);
-    manager->AddTop(cursor);
 
     // Set default button
-    active_button = default_button;
+    runner->SetSelected(button[default_button]);
+
+    // Run GUI
+    GuiButton *selected = (GuiButton *)( runner->Run() );
+
+    // Return
     for(i = 0; i < no_buttons; i++) {
-        button[i]->SetSelected( i == default_button );
+        if( button[i] == selected ) {
+            return i;
+        }
     }
-
-    manager->Unlock();
-
-    (void)KBD_GetPadButtons(); // flush first
-
-    for(;;) {
-        // Buttons
-        WPAD_ScanPads();
-        u32 buttons = KBD_GetPadButtons();
-
-        manager->Lock();
-
-        // Infrared
-        int x, y, angle;
-        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
-            cursor->SetPosition(x, y);
-            cursor->SetRotation(angle/2);
-            cursor->SetVisible(true);
-        }else{
-            cursor->SetVisible(false);
-            cursor->SetPosition(0, 0);
-        }
-
-        // Check mouse cursor colisions
-        bool is_above_button = false;
-        for(i = 0; i < no_buttons; i++) {
-            if( cursor->IsVisible() && button[i]->CollidesWith(cursor) ) {
-                active_button = i;
-                use_keyboard = false;
-                is_above_button = true;
-                break;
-            }
-        }
-
-        // Check arrow keys
-        if( !is_above_button && active_button != -1 ) {
-            if( active_button > 0 && (buttons & (WPAD_BUTTON_LEFT | WPAD_CLASSIC_BUTTON_LEFT)) ) {
-                active_button--;
-                use_keyboard = true;
-            }
-            if( active_button < no_buttons-1 && (buttons & (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_RIGHT)) ) {
-                active_button++;
-                use_keyboard = true;
-            }
-        }
-
-        // Set selected button
-        for(i = 0; i < no_buttons; i++) {
-            button[i]->SetSelected(i == active_button);
-        }
-
-        // Check A button
-        if( (use_keyboard || is_above_button) && (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) ) {
-            break;
-        }
-        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
-                       WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B)) {
-            active_button = -1;
-            break;
-        }
-
-        manager->Unlock();
-        VIDEO_WaitVSync();
-    }
-    manager->Unlock();
-
-    // Cleanup
-    manager->Remove(cursor);
-    delete cursor;
-
-    return active_button;
+    return -1;
 }
 
 void GuiMessageBox::SetText(const char *fmt, ...)
@@ -215,7 +136,8 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
         by = y + sizey - btnimg[0]->GetHeight() - 36;
         for(i = 0; i < no_buttons; i++) {
             button[i] = new GuiButton(manager);
-            button[i]->ShowImageTextHighlightButton(btnimg[i], btntxt[i], bx, by, MESSAGE_BOX_FADE_FRAMES);
+            button[i]->CreateImageTextHighlightButton(btnimg[i], btntxt[i], bx, by);
+            runner->AddTop(button[i], MESSAGE_BOX_FADE_FRAMES);
             bx += btnimg[i]->GetWidth() + 24;
         }
         sizey -= btnimg[0]->GetHeight() + 36;
@@ -248,7 +170,7 @@ void GuiMessageBox::Remove(void)
         }
         for(int i = 0; i < 3; i++) {
             if( button[i] ) {
-                button[i]->Remove(MESSAGE_BOX_FADE_FRAMES);
+                runner->Remove(button[i], MESSAGE_BOX_FADE_FRAMES);
                 delete button[i];
                 button[i] = NULL;
             }
@@ -305,6 +227,7 @@ void GuiMessageBox::ShowPopup(const char *txt, Image *image, int alpha)
 GuiMessageBox::GuiMessageBox(GuiManager *man)
 {
     manager = man;
+    runner = new GuiRunner(man, this);
     is_showing = false;
     container = NULL;
     txt_sprite = NULL;
@@ -326,5 +249,6 @@ GuiMessageBox::~GuiMessageBox()
         archThreadJoin(thread_popup, -1);
         archThreadDestroy(thread_popup);
     }
+    delete runner;
 }
 

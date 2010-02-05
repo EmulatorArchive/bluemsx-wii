@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include "GuiRunner.h"
+#include "GuiSelectionList.h"
 #include "GuiStateSelect.h"
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
@@ -164,11 +166,12 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     sizey = container->GetHeight();
 
     // Selection
-    InitSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
-                  posx+SSEL_X_SPACING,
-                  posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
-                  SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);
-    ShowSelection(SSEL_FADE_FRAMES);
+    list->InitSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
+                        posx+SSEL_X_SPACING,
+                        posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
+                        SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);
+    runner->AddTop(list, SSEL_FADE_FRAMES);
+    runner->SetSelected(list);
 
     // Release UI
     manager->Unlock();
@@ -176,7 +179,10 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     // Menu loop
     int sel;
     do {
-        if( DoSelection(&sel) == SELRET_SELECTED ) {
+        // Run GUI
+        sel = -1;
+        if( runner->Run() ) {
+            sel = list->GetSelected();
             returnValue = filenames[sel];
             // confirmation
             char str[256];
@@ -200,7 +206,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
 
     // Remove UI elements
     UpdateScreenShot(NULL);
-    RemoveSelection(SSEL_FADE_FRAMES);
+    runner->Remove(list, SSEL_FADE_FRAMES);
     manager->RemoveAndDelete(container, NULL, SSEL_FADE_FRAMES);
 
     // Release UI
@@ -209,8 +215,10 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     return returnValue;
 }
 
-GuiStateSelect::GuiStateSelect(GuiManager *man) : GuiSelectionList(man, NUM_STATE_ITEMS)
+GuiStateSelect::GuiStateSelect(GuiManager *man)
 {
+    runner = new GuiRunner(man, this);
+    list = new GuiSelectionList(man, NUM_STATE_ITEMS);
     manager = man;
     num_states = 0;
     sprScreenShot = NULL;
@@ -220,5 +228,7 @@ GuiStateSelect::~GuiStateSelect()
 {
     // Free stuff
     FreeStateFileList();
+    delete list;
+    delete runner;
 }
 

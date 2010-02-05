@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "GuiMenu.h"
+#include "GuiRunner.h"
+#include "GuiSelectionList.h"
 #include "GuiContainer.h"
 
 #define MENU_YPITCH      56
@@ -9,6 +11,8 @@
 
 SELRET GuiMenu::DoModal(int *selected, const char **items, int num, int width)
 {
+    GuiRunner *runner = new GuiRunner(manager, this);
+
     // Claim UI
     manager->Lock();
 
@@ -21,36 +25,45 @@ SELRET GuiMenu::DoModal(int *selected, const char **items, int num, int width)
     width = container->GetWidth();
     height = container->GetHeight();
 
+    // Menu list
+    list->InitSelection(items, num, 0, 32, MENU_YPITCH,
+                           posx+16, posy+24, 24, width-32, false);
+    runner->AddTop(list, MENU_FADE_FRAMES);
+    runner->SetSelected(list);
+
     // Start displaying
     manager->Unlock();
 
-    // Menu list
-    InitSelection(items, num, 0, 32, MENU_YPITCH,
-                  posx+16, posy+24, 24, width-32, false);
-    ShowSelection(MENU_FADE_FRAMES);
-    SELRET retval = DoSelection(selected);
-    RemoveSelection(MENU_FADE_FRAMES);
+    // Run GUI
+    SELRET retval = SELRET_KEY_B;
+    if( runner->Run() ) {
+        retval = SELRET_SELECTED;
+        *selected = list->GetSelected();
+    }
 
     // Claim UI
     manager->Lock();
 
-    // Remove container
+    // Remove elements
+    runner->Remove(list, MENU_FADE_FRAMES);
     manager->RemoveAndDelete(container, NULL, MENU_FADE_FRAMES);
 
     // Release UI
     manager->Unlock();
 
+    delete runner;
     return retval;
 }
 
 GuiMenu::GuiMenu(GuiManager *man, int rows)
-       : GuiSelectionList(man, rows)
 {
+    list = new GuiSelectionList(man, rows);
     manager = man;
     num_item_rows = rows;
 }
 
 GuiMenu::~GuiMenu()
 {
+    delete list;
 }
 

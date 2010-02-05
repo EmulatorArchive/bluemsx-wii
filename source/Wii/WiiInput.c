@@ -303,7 +303,7 @@ static void keyboardHandleKeypress(KEY code, int pressed)
     }
 }
 
-static void keyboardCallbackKeypress(KEY code, int pressed)
+static void keyboardCallbackKeypress(void *context, KEY code, int pressed)
 {
     keyboardHandleKeypress(code, pressed);
 }
@@ -324,7 +324,7 @@ void keyboardUpdate(void)
         keyboardResetKbd();
         return;
     }
-    KBD_GetKeys(keyboardCallbackKeypress);
+    KBD_GetKeys(keyboardCallbackKeypress, NULL);
 
     kbdModifiers = ((keyStatus[KEY_LSHIFT] ? 1 : 0) << 0) | ((keyStatus[KEY_RSHIFT] ? 1 : 0) << 1) |
                    ((keyStatus[KEY_LCTRL]  ? 1 : 0) << 2) | ((keyStatus[KEY_RCTRL]  ? 1 : 0) << 3) |
