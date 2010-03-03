@@ -114,7 +114,8 @@ void GuiSelectionList::ElmSetSelected(GuiRunner *runner, bool sel, int x, int y)
         selected = s;
         SetSelected();
     }else{
-        // We're never deselected
+        // We're never deselected, just inactive
+        is_active = false;
     }
 }
 
@@ -240,6 +241,21 @@ int GuiSelectionList::GetSelected(void)
     return selected;
 }
 
+void GuiSelectionList::SetNumberOfItems(int num)
+{
+    num_items = num;
+}
+
+bool GuiSelectionList::IsShowing(void)
+{
+    return is_showing;
+}
+
+int GuiSelectionList::IsActive(void)
+{
+    return is_showing && is_active;
+}
+
 void GuiSelectionList::SetSelected(int fade, int delay)
 {
     // Claim UI
@@ -313,6 +329,7 @@ void GuiSelectionList::SetSelected(int fade, int delay)
         sprSelector->SetStretchWidth((float)xsize / 4);
         sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
         manager->AddBehind(selectedsprite, sprSelector, (fade != -1)? fade : SELECTION_FADE_TIME);
+        is_active = true;
     }
     // Release UI
     manager->Unlock();
@@ -353,21 +370,12 @@ void GuiSelectionList::InitSelection(const char **items, int num, int select, in
     }
 }
 
-void GuiSelectionList::SetNumberOfItems(int num)
-{
-    num_items = num;
-}
-
-bool GuiSelectionList::IsShowing(void)
-{
-    return is_showing;
-}
-
 GuiSelectionList::GuiSelectionList(GuiManager *man, int rows)
 {
     manager = man;
     num_item_rows = rows;
     is_showing = false;
+    is_active = false;
     sprSelector = NULL;
     sprCursor = NULL;
     visible_items = new const char*[rows];

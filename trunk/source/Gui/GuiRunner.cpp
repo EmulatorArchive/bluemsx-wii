@@ -15,6 +15,7 @@ GuiRunner::GuiRunner(GuiManager *man, GuiDialog *dia)
   dialog = dia;
   first_item = last_item = NULL;
   selected_element = NULL;
+  last_selected = NULL;
   return_value = NULL;
   use_keyboard = true;
   quit = false;
@@ -35,6 +36,9 @@ void GuiRunner::AddElement(GuiElement *element)
         }else{
             last_item->next = item;
             last_item = item;
+        }
+        if( last_selected == NULL ) {
+            last_selected = element;
         }
     }
 }
@@ -70,6 +74,9 @@ void GuiRunner::RemoveElement(GuiElement *element)
                 item = item->next;
             }
         }
+    }
+    if( last_selected == element ) {
+        last_selected = (first_item != NULL)? first_item->element : NULL;
     }
 }
 
@@ -165,6 +172,7 @@ void GuiRunner::SetSelected(GuiElement *elm, int x, int y)
         }
         if( elm != NULL ) {
             elm->ElmSetSelected(this, true, x, y);
+            last_selected = elm;
         }
         selected_element = elm;
     }
@@ -244,9 +252,27 @@ GuiElement* GuiRunner::FindNearestElement(GuiElement *elm, GRDIR dir)
     return rvalue;
 }
 
-void GuiRunner::GetKeysCallback(KEY code, int pressed)
+bool GuiRunner::SelectNearestElement(GuiElement *elm, GRDIR dir)
 {
     int x, y, w, h;
+    GuiElement *select = NULL;
+    if( elm != NULL && elm->ElmGetRegion(this, &x, &y, &w, &h) ) {
+        x = x + w/2;
+        y = y + y/2;
+        select = FindNearestElement(elm, dir);
+        if( select == NULL && selected_element == NULL ) {
+            select = elm;
+        }
+        if( select != NULL ) {
+            SetSelected(select, x, y);
+            return true;
+        }
+    }
+    return false;
+}
+
+void GuiRunner::GetKeysCallback(KEY code, int pressed)
+{
     GRITEM *item = first_item;
     while( item != NULL ) {
         if( item->element->ElmHandleKey(this, code, pressed) ) {
@@ -256,45 +282,33 @@ void GuiRunner::GetKeysCallback(KEY code, int pressed)
         item = item->next;
     }
     if( pressed &&
-        selected_element != NULL &&
-        selected_element->ElmGetRegion(this, &x, &y, &w, &h) ) {
-        GuiElement *elm = NULL;
-        x = x + w/2;
-        y = y + y/2;
+        last_selected != NULL ) {
         switch( code ) {
             case KEY_UP:
             case KEY_JOY1_UP:
             case KEY_JOY2_UP:
-                elm = FindNearestElement(selected_element, GRDIR_UP);
-                if( elm ) {
-                    SetSelected(elm, x, y);
+                if( SelectNearestElement(last_selected, GRDIR_UP) ) {
                     use_keyboard = true;
                 }
                 break;
             case KEY_DOWN:
             case KEY_JOY1_DOWN:
             case KEY_JOY2_DOWN:
-                elm = FindNearestElement(selected_element, GRDIR_DOWN);
-                if( elm ) {
-                    SetSelected(elm, x, y);
+                if( SelectNearestElement(last_selected, GRDIR_DOWN) ) {
                     use_keyboard = true;
                 }
                 break;
             case KEY_LEFT:
             case KEY_JOY1_LEFT:
             case KEY_JOY2_LEFT:
-                elm = FindNearestElement(selected_element, GRDIR_LEFT);
-                if( elm ) {
-                    SetSelected(elm, x, y);
+                if( SelectNearestElement(last_selected, GRDIR_LEFT) ) {
                     use_keyboard = true;
                 }
                 break;
             case KEY_RIGHT:
             case KEY_JOY1_RIGHT:
             case KEY_JOY2_RIGHT:
-                elm = FindNearestElement(selected_element, GRDIR_RIGHT);
-                if( elm ) {
-                    SetSelected(elm, x, y);
+                if( SelectNearestElement(last_selected, GRDIR_RIGHT) ) {
                     use_keyboard = true;
                 }
                 break;
@@ -329,11 +343,15 @@ void* GuiRunner::Run(void)
     cursor->SetImage(g_imgMousecursor);
     cursor->SetPosition(0, 0);
     cursor->SetVisible(false);
-    manager->AddTop(cursor);
+    manager->AddTopFixed(cursor);
 
     manager->Unlock();
 
     for(;;) {
+        manager->Lock();
+        cursor->SetVisible(false);
+        manager->Unlock();
+
         // Check keys
         KBD_GetKeys(GetKeysCallbackWrapper, this);
 

@@ -105,7 +105,7 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
         case KEY_JOY2_CLASSIC_BUTTON_A:
         case KEY_RETURN:
         case KEY_SPACE:
-            if( elm == list ) {
+            if( elm == list && list->IsActive() ) {
                 // confirmation
                 char str[256];
                 GameElement *game = games.GetGame(selected_game);

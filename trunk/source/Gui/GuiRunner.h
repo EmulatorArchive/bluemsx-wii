@@ -40,11 +40,13 @@ public:
 private:
     GuiElement* CheckCollision(Sprite *sprite);
     GuiElement* FindNearestElement(GuiElement *elm, GRDIR dir);
+    bool SelectNearestElement(GuiElement *elm, GRDIR dir);
 
     GuiManager *manager;
     GuiDialog *dialog;
     GRITEM *first_item;
     GRITEM *last_item;
+    GuiElement *last_selected;
     GuiElement *selected_element;
     GuiElement *is_above;
     bool use_keyboard;
