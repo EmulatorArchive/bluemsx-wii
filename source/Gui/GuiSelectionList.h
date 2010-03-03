@@ -37,6 +37,7 @@ public:
     void SetNumberOfItems(int num);
     SELRET DoSelection(int *selection);
     bool IsShowing(void);
+    int IsActive(void);
     int GetSelected(void);
     void DoKeyUp(void);
     void DoKeyDown(void);
@@ -58,6 +59,7 @@ private:
     int upper_index;
     int lower_index;
     bool is_showing;
+    bool is_active;
     const char **item_list;
     const char **visible_items;
     Sprite **titleTxtSprite;
