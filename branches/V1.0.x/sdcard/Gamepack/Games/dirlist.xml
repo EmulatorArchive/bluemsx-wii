@@ -1,0 +1,7 @@
+<DirectoryList>
+    <Item Name="MSX1 Demos" Directory="MSX1Demos"/>
+    <Item Name="MSX2 Demos" Directory="MSX2Demos"/>
+    <Item Name="Remakes" Directory="Remakes"/>
+    <Item Name="MSXDev '08" Directory="MSXDev08"/>
+    <Item Name="MSX Machines" Directory="Machines"/>
+</DirectoryList>

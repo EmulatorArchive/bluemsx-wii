@@ -1,0 +1,23 @@
+<GameList>
+    <Game Title="European MSX1">
+        <CommandLine>/machine MSX /diskA workdisk.dsk</CommandLine>
+        <ScreenShot>EuroMSX1-1.png</ScreenShot>
+        <ScreenShot>EuroMSX1-2.png</ScreenShot>
+    </Game>
+    <Game Title="European MSX2">
+        <CommandLine>/machine MSX2 /diskA workdisk.dsk</CommandLine>
+        <ScreenShot>EuroMSX2-1.png</ScreenShot>
+        <ScreenShot>EuroMSX2-2.png</ScreenShot>
+    </Game>
+    <Game Title="Japanese MSX2+">
+        <CommandLine>/machine MSX2+ /diskA workdisk.dsk</CommandLine>
+        <ScreenShot>JapMSX2P-1.png</ScreenShot>
+        <ScreenShot>JapMSX2P-2.png</ScreenShot>
+    </Game>
+    <Game Title="MSX Turbo-R">
+        <CommandLine>/machine MSXturboR /diskA workdisk.dsk</CommandLine>
+        <ScreenShot>MSXturboR-1.png</ScreenShot>
+        <ScreenShot>MSXturboR-2.png</ScreenShot>
+    </Game>
+</GameList>
+

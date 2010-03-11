@@ -1,0 +1,13 @@
+<GameList>
+    <Game Title="Alien 8 Remake">
+        <CommandLine>/rom1 Alien8Remake.zip</CommandLine>
+        <ScreenShot>Alien8Remake-1.png</ScreenShot>
+        <ScreenShot>Alien8Remake-2.png</ScreenShot>
+    </Game>
+    <Game Title="Knightlore Remake">
+        <CommandLine>/rom1 KnightloreRemake.zip</CommandLine>
+        <ScreenShot>KnightloreRemake-1.png</ScreenShot>
+        <ScreenShot>KnightloreRemake-2.png</ScreenShot>
+    </Game>
+</GameList>
+

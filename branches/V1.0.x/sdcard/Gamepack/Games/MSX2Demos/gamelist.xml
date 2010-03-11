@@ -1,0 +1,15 @@
+<GameList>
+    <Game Title="Anma's Amusement Disk">
+        <CommandLine>/diskA AnmaAmusementDisk.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>AnmaAmusementDisk-1.png</ScreenShot>
+        <ScreenShot>AnmaAmusementDisk-2.png</ScreenShot>
+    </Game>
+    <Game Title="Syntax Infinity">
+        <CommandLine>/diskA SyntaxInfinity.zip</CommandLine>
+        <Settings KeyboardJoystick="true"/>
+        <ScreenShot>SyntaxInfinity-1.png</ScreenShot>
+        <ScreenShot>SyntaxInfinity-2.png</ScreenShot>
+    </Game>
+</GameList>
+
