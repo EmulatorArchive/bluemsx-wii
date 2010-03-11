@@ -41,9 +41,9 @@ void GuiGameSelect::OnSetSelected(int index, int selected)
                                  GAMESEL_FADE_SCREENSHOTS, GAMESEL_DELAY_SCREENSHOTS);
     }
     sprScreenShot[0] = new Sprite;
-    sprScreenShot[0]->SetPosition(344+12-8, 24+16);
+    sprScreenShot[0]->SetPosition(344+12-8, 18+16);
     sprScreenShot[1] = new Sprite;
-    sprScreenShot[1]->SetPosition(344+12-8, 228+16);
+    sprScreenShot[1]->SetPosition(344+12-8, 222+16);
     // Update screenshots
     if( selected >= 0 ) {
         GameElement *game = games.GetGame(index+selected);
@@ -87,11 +87,11 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
     manager->Lock();
 
     // Containers
-    GuiContainer *grWinList = new GuiContainer(32-8, 28, 288, 33*12);
+    GuiContainer *grWinList = new GuiContainer(32-8, 22, 288, 33*12);
     manager->AddTop(grWinList, GAMESEL_FADE_DEFAULT);
-    GuiContainer *grWinTitle = new GuiContainer(344-8, 28, 264+12, 16*12);
+    GuiContainer *grWinTitle = new GuiContainer(344-8, 22, 264+12, 16*12);
     manager->AddTop(grWinTitle, GAMESEL_FADE_DEFAULT);
-    GuiContainer *grWinPlay = new GuiContainer(344-8, 232, 264+12, 16*12);
+    GuiContainer *grWinPlay = new GuiContainer(344-8, 226, 264+12, 16*12);
     manager->AddTop(grWinPlay, GAMESEL_FADE_DEFAULT);
 
     // On re-enter, find selected entry
@@ -111,7 +111,7 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
 
     // Add selection list
     ShowSelection(title_list, num_games, sel, 22, 31,
-                  30, 38, 12, 264+12, false, GAMESEL_FADE_DEFAULT);
+                  30, 32, 12, 264+12, false, GAMESEL_FADE_DEFAULT);
 
     // Release UI
     manager->Unlock();
