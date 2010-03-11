@@ -195,19 +195,6 @@ static void initKbdTable()
     kbdTable[KEY_JOY1_DOWN    ] = EC_JOY1_DOWN;
     kbdTable[KEY_JOY1_LEFT    ] = EC_JOY1_LEFT;
     kbdTable[KEY_JOY1_RIGHT   ] = EC_JOY1_RIGHT;
-    kbdTable[KEY_JOY1_NUNCHUCK_BUTTON_C] = EC_JOY1_BUTTON2;
-    kbdTable[KEY_JOY1_NUNCHUCK_BUTTON_Z] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_A] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_B] = EC_JOY1_BUTTON2;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_X] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_Y] = EC_JOY1_BUTTON2;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_L] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_R] = EC_JOY1_BUTTON2;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_ZL] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_ZR] = EC_JOY1_BUTTON2;
-/*  kbdTable[KEY_JOY1_CLASSIC_BUTTON_SELECT] = ;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_HOME] = ;
-    kbdTable[KEY_JOY1_CLASSIC_BUTTON_START] = ;*/
 
     kbdTable[KEY_JOY2_BUTTON_A] = EC_JOY2_BUTTON1;
     kbdTable[KEY_JOY2_BUTTON_B] = EC_JOY2_BUTTON2;
@@ -217,20 +204,6 @@ static void initKbdTable()
     kbdTable[KEY_JOY2_DOWN    ] = EC_JOY2_DOWN;
     kbdTable[KEY_JOY2_LEFT    ] = EC_JOY2_LEFT;
     kbdTable[KEY_JOY2_RIGHT   ] = EC_JOY2_RIGHT;
-    kbdTable[KEY_JOY2_NUNCHUCK_BUTTON_C] = EC_JOY2_BUTTON2;
-    kbdTable[KEY_JOY2_NUNCHUCK_BUTTON_Z] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_A] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_B] = EC_JOY2_BUTTON2;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_X] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_Y] = EC_JOY2_BUTTON2;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_L] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_R] = EC_JOY2_BUTTON2;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_ZL] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_ZR] = EC_JOY2_BUTTON2;
-/*  kbdTable[KEY_JOY2_CLASSIC_BUTTON_SELECT] = ;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_HOME] = ;
-    kbdTable[KEY_JOY2_CLASSIC_BUTTON_START] = ;*/
-
 }
 
 void keyboardRemapKey(KEY key, int event)
@@ -303,7 +276,7 @@ static void keyboardHandleKeypress(KEY code, int pressed)
     }
 }
 
-static void keyboardCallbackKeypress(void *context, KEY code, int pressed)
+static void keyboardCallbackKeypress(KEY code, int pressed)
 {
     keyboardHandleKeypress(code, pressed);
 }
@@ -324,7 +297,7 @@ void keyboardUpdate(void)
         keyboardResetKbd();
         return;
     }
-    KBD_GetKeys(keyboardCallbackKeypress, NULL);
+    KBD_GetKeys(keyboardCallbackKeypress);
 
     kbdModifiers = ((keyStatus[KEY_LSHIFT] ? 1 : 0) << 0) | ((keyStatus[KEY_RSHIFT] ? 1 : 0) << 1) |
                    ((keyStatus[KEY_LCTRL]  ? 1 : 0) << 2) | ((keyStatus[KEY_RCTRL]  ? 1 : 0) << 3) |

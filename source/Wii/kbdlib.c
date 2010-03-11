@@ -86,49 +86,28 @@ struct _kbd_data {
 };
 
 static KBDHANDLE kbdHandle = NULL;
+
 static const char *keynames[KEY_LAST];
-static WPADO wpad_orientation = WPADO_VERTICAL;
 
 static PADCODE wpad[] =
 {
-    {KEY_JOY1_BUTTON_A,             KEY_JOY2_BUTTON_A,              WPAD_BUTTON_A               },
-    {KEY_JOY1_BUTTON_B,             KEY_JOY2_BUTTON_B,              WPAD_BUTTON_B               },
-    {KEY_JOY1_BUTTON_1,             KEY_JOY2_BUTTON_1,              WPAD_BUTTON_1               },
-    {KEY_JOY1_BUTTON_2,             KEY_JOY2_BUTTON_2,              WPAD_BUTTON_2               },
-    {KEY_JOY1_HOME,                 KEY_JOY2_HOME,                  WPAD_BUTTON_HOME            },
-    {KEY_JOY1_PLUS,                 KEY_JOY2_PLUS,                  WPAD_BUTTON_PLUS            },
-    {KEY_JOY1_MINUS,                KEY_JOY2_MINUS,                 WPAD_BUTTON_MINUS           },
-    {KEY_JOY1_NUNCHUCK_BUTTON_C,    KEY_JOY2_NUNCHUCK_BUTTON_C,     WPAD_NUNCHUK_BUTTON_C       },
-    {KEY_JOY1_NUNCHUCK_BUTTON_Z,    KEY_JOY2_NUNCHUCK_BUTTON_Z,     WPAD_NUNCHUK_BUTTON_Z       },
-    {KEY_JOY1_CLASSIC_BUTTON_A,     KEY_JOY2_CLASSIC_BUTTON_A,      WPAD_CLASSIC_BUTTON_A       },
-    {KEY_JOY1_CLASSIC_BUTTON_B,     KEY_JOY2_CLASSIC_BUTTON_B,      WPAD_CLASSIC_BUTTON_B       },
-    {KEY_JOY1_CLASSIC_BUTTON_X,     KEY_JOY2_CLASSIC_BUTTON_X,      WPAD_CLASSIC_BUTTON_X       },
-    {KEY_JOY1_CLASSIC_BUTTON_Y,     KEY_JOY2_CLASSIC_BUTTON_Y,      WPAD_CLASSIC_BUTTON_Y       },
-    {KEY_JOY1_CLASSIC_BUTTON_L,     KEY_JOY2_CLASSIC_BUTTON_L,      WPAD_CLASSIC_BUTTON_FULL_L  },
-    {KEY_JOY1_CLASSIC_BUTTON_R,     KEY_JOY2_CLASSIC_BUTTON_R,      WPAD_CLASSIC_BUTTON_FULL_R  },
-    {KEY_JOY1_CLASSIC_BUTTON_ZL,    KEY_JOY2_CLASSIC_BUTTON_ZL,     WPAD_CLASSIC_BUTTON_ZL      },
-    {KEY_JOY1_CLASSIC_BUTTON_ZR,    KEY_JOY2_CLASSIC_BUTTON_ZR,     WPAD_CLASSIC_BUTTON_ZR      },
-    {KEY_JOY1_CLASSIC_BUTTON_SELECT,KEY_JOY2_CLASSIC_BUTTON_SELECT, WPAD_CLASSIC_BUTTON_MINUS   },
-    {KEY_JOY1_CLASSIC_BUTTON_HOME,  KEY_JOY2_CLASSIC_BUTTON_HOME,   WPAD_CLASSIC_BUTTON_HOME    },
-    {KEY_JOY1_CLASSIC_BUTTON_START, KEY_JOY2_CLASSIC_BUTTON_START,  WPAD_CLASSIC_BUTTON_PLUS    },
-    {KEY_NONE, KEY_NONE, 0}
-};
-
-static PADCODE wpad_horizontal[] =
-{
-    {KEY_JOY1_UP,                   KEY_JOY2_UP,        (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)   },
-    {KEY_JOY1_DOWN,                 KEY_JOY2_DOWN,      (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_DOWN) },
-    {KEY_JOY1_LEFT,                 KEY_JOY2_LEFT,      (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_LEFT) },
-    {KEY_JOY1_RIGHT,                KEY_JOY2_RIGHT,     (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_RIGHT)},
-    {KEY_NONE, KEY_NONE, 0}
-};
-
-static PADCODE wpad_vertical[] =
-{
-    {KEY_JOY1_UP,                   KEY_JOY2_UP,        (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_UP)   },
-    {KEY_JOY1_DOWN,                 KEY_JOY2_DOWN,      (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_DOWN) },
-    {KEY_JOY1_LEFT,                 KEY_JOY2_LEFT,      (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_LEFT) },
-    {KEY_JOY1_RIGHT,                KEY_JOY2_RIGHT,     (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_RIGHT)},
+    {KEY_JOY1_BUTTON_A, KEY_JOY2_BUTTON_A, (WPAD_BUTTON_A   | WPAD_CLASSIC_BUTTON_A)    },
+    {KEY_JOY1_BUTTON_B, KEY_JOY2_BUTTON_B, (WPAD_BUTTON_B   | WPAD_CLASSIC_BUTTON_B)    },
+    {KEY_JOY1_BUTTON_1, KEY_JOY2_BUTTON_1,  WPAD_BUTTON_1                               },
+    {KEY_JOY1_BUTTON_2, KEY_JOY2_BUTTON_2,  WPAD_BUTTON_2                               },
+    {KEY_JOY1_UP,       KEY_JOY2_UP,       (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)   },
+    {KEY_JOY1_DOWN,     KEY_JOY2_DOWN,     (WPAD_BUTTON_LEFT  | WPAD_CLASSIC_BUTTON_DOWN) },
+    {KEY_JOY1_LEFT,     KEY_JOY2_LEFT,     (WPAD_BUTTON_UP    | WPAD_CLASSIC_BUTTON_LEFT) },
+    {KEY_JOY1_RIGHT,    KEY_JOY2_RIGHT,    (WPAD_BUTTON_DOWN  | WPAD_CLASSIC_BUTTON_RIGHT)},
+    {KEY_JOY1_HOME,     KEY_JOY2_HOME,     (WPAD_BUTTON_HOME  | WPAD_CLASSIC_BUTTON_HOME) },
+    {KEY_JOY1_PLUS,     KEY_JOY2_PLUS,     (WPAD_BUTTON_PLUS  | WPAD_CLASSIC_BUTTON_PLUS) },
+    {KEY_JOY1_MINUS,    KEY_JOY2_MINUS,    (WPAD_BUTTON_MINUS | WPAD_CLASSIC_BUTTON_MINUS)},
+    {KEY_JOY1_BUTTON_X, KEY_JOY2_BUTTON_X,  WPAD_CLASSIC_BUTTON_X                         },
+    {KEY_JOY1_BUTTON_Y, KEY_JOY2_BUTTON_Y,  WPAD_CLASSIC_BUTTON_Y                         },
+    {KEY_JOY1_BUTTON_L, KEY_JOY2_BUTTON_L,  WPAD_CLASSIC_BUTTON_FULL_L                    },
+    {KEY_JOY1_BUTTON_R, KEY_JOY2_BUTTON_R,  WPAD_CLASSIC_BUTTON_FULL_R                    },
+    {KEY_JOY1_BUTTON_ZL,KEY_JOY2_BUTTON_ZL, WPAD_CLASSIC_BUTTON_ZL                        },
+    {KEY_JOY1_BUTTON_ZR,KEY_JOY2_BUTTON_ZR, WPAD_CLASSIC_BUTTON_ZR                        },
     {KEY_NONE, KEY_NONE, 0}
 };
 
@@ -450,19 +429,12 @@ static void FillKeyNames(void)
     keynames[KEY_JOY1_HOME]     = "home1";
     keynames[KEY_JOY1_PLUS]     = "plus1";
     keynames[KEY_JOY1_MINUS]    = "minus1";
-    keynames[KEY_JOY1_NUNCHUCK_BUTTON_C] = "nunchuckbuttonc1";
-    keynames[KEY_JOY1_NUNCHUCK_BUTTON_Z] = "nunchuckbuttonz1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_A] = "classicbuttonA1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_B] = "classicbuttonB1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_X] = "classicbuttonX1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_Y] = "classicbuttonY1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_L] = "classicbuttonL1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_R] = "classicbuttonR1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_ZL] = "classicbuttonZL1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_ZR] = "classicbuttonZR1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_SELECT] = "classicbuttonselect1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_HOME] = "classicbuttonhome1";
-    keynames[KEY_JOY1_CLASSIC_BUTTON_START] = "classicbuttonstart1";
+    keynames[KEY_JOY1_BUTTON_X] = "buttonX1";
+    keynames[KEY_JOY1_BUTTON_Y] = "buttonY1";
+    keynames[KEY_JOY1_BUTTON_L] = "buttonL1";
+    keynames[KEY_JOY1_BUTTON_R] = "buttonR1";
+    keynames[KEY_JOY1_BUTTON_ZL] = "buttonZL1";
+    keynames[KEY_JOY1_BUTTON_ZR] = "buttonZR1";
 
     keynames[KEY_JOY2_BUTTON_A] = "buttonA2";
     keynames[KEY_JOY2_BUTTON_B] = "buttonB2";
@@ -475,19 +447,12 @@ static void FillKeyNames(void)
     keynames[KEY_JOY2_HOME]     = "home2";
     keynames[KEY_JOY2_PLUS]     = "plus2";
     keynames[KEY_JOY2_MINUS]    = "minus2";
-    keynames[KEY_JOY2_NUNCHUCK_BUTTON_C] = "nunchuckbuttonc2";
-    keynames[KEY_JOY2_NUNCHUCK_BUTTON_Z] = "nunchuckbuttonz2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_A] = "classicbuttonA2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_B] = "classicbuttonB2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_X] = "classicbuttonX2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_Y] = "classicbuttonY2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_L] = "classicbuttonL2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_R] = "classicbuttonR2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_ZL] = "classicbuttonZL2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_ZR] = "classicbuttonZR2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_SELECT] = "classicbuttonselect2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_HOME] = "classicbuttonhome2";
-    keynames[KEY_JOY2_CLASSIC_BUTTON_START] = "classicbuttonstart2";
+    keynames[KEY_JOY2_BUTTON_X] = "buttonX2";
+    keynames[KEY_JOY2_BUTTON_Y] = "buttonY2";
+    keynames[KEY_JOY2_BUTTON_L] = "buttonL2";
+    keynames[KEY_JOY2_BUTTON_R] = "buttonR2";
+    keynames[KEY_JOY2_BUTTON_ZL] = "buttonZL2";
+    keynames[KEY_JOY2_BUTTON_ZR] = "buttonZR2";
 }
 
 int KBD_IsConnected(void)
@@ -553,6 +518,7 @@ u32 KBD_GetPadButtonStatus(int channel)
     u32 buttons, gcbuttons;
     PAD2WPAD *p2w;
     joystick_t padjoy;
+    static int count;
 
     // Check standard buttons
     buttons = WPAD_ButtonsHeld(channel);
@@ -570,6 +536,15 @@ u32 KBD_GetPadButtonStatus(int channel)
     // Check extensions
     WPAD_Probe(channel, &extensions);
     if( extensions == WPAD_EXP_NUNCHUK ) {
+      // Special nunchuk mappings
+      if( buttons & WPAD_NUNCHUK_BUTTON_Z ) {
+        buttons &= ~WPAD_NUNCHUK_BUTTON_Z;
+        buttons |= WPAD_CLASSIC_BUTTON_A;
+      }
+      if( buttons & WPAD_NUNCHUK_BUTTON_C ) {
+        buttons &= ~WPAD_NUNCHUK_BUTTON_C;
+        buttons |= WPAD_CLASSIC_BUTTON_B;
+      }
       // Nunchuk stick
       WPAD_Expansion(channel, &data.exp);
       buttons |= GetJoystickDirection(&data.exp.nunchuk.js);
@@ -605,7 +580,7 @@ u32 KBD_GetPadButtons(void)
     static u32 prev_buttons = 0;
     static u64 repeat_time = 0;
     u32 buttons = KBD_GetPadButtonStatus(WPAD_CHAN_0) | KBD_GetPadButtonStatus(WPAD_CHAN_1);
-    KBD_GetKeys(NULL, NULL);
+    KBD_GetKeys(NULL);
     for( i = 0; keypad[i].code != 0; i++ ) {
         if( KBD_GetKeyStatus(keypad[i].key_a) ||
             KBD_GetKeyStatus(keypad[i].key_b) ) {
@@ -624,18 +599,12 @@ u32 KBD_GetPadButtons(void)
     return 0;
 }
 
-void KBD_SetWpadOrientation(WPADO orient)
-{
-    wpad_orientation = orient;
-}
-
-void KBD_GetKeys(KBD_CALLBACK cb, void *context)
+void KBD_GetKeys(KBD_CALLBACK cb)
 {
     int i;
     int idx_prev = kbdHandle->keyidx;
     int idx_new  = kbdHandle->keyidx ^ 1;
     keyboard_event kbdEvent;
-    u8 run_callbacks[KEY_LAST-KEY_JOY1_BUTTON_A];
 
     while( KEYBOARD_GetEvent(&kbdEvent) ) {
         switch( kbdEvent.type ) {
@@ -643,7 +612,7 @@ void KBD_GetKeys(KBD_CALLBACK cb, void *context)
                 for(i = 0; syms[i].key != KEY_NONE; i++)  {
                     if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
                         kbdHandle->keystatus[syms[i].key] = 1;
-                        if( cb ) cb(context, syms[i].key, 1);
+                        if( cb ) cb(syms[i].key, 1);
                         //printf("Key_press %s\n", KBD_GetKeyName(syms[i].key));
                     }
                 }
@@ -652,7 +621,7 @@ void KBD_GetKeys(KBD_CALLBACK cb, void *context)
                 for(i = 0; syms[i].key != KEY_NONE; i++)  {
                     if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
                         kbdHandle->keystatus[syms[i].key] = 0;
-                        if( cb ) cb(context, syms[i].key, 0);
+                        if( cb ) cb(syms[i].key, 0);
                         //printf("Key_release %s\n", KBD_GetKeyName(syms[i].key));
                     }
                 }
@@ -674,36 +643,23 @@ void KBD_GetKeys(KBD_CALLBACK cb, void *context)
     // handle WPAD buttons
     WPAD_ScanPads();
     PAD_ScanPads();
-    PADCODE *p = wpad;
-    for(i = 0; i < 2; i++) {
-        kbdHandle->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
-        kbdHandle->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
-        while(p->key_a != KEY_NONE)  {
-            if( (kbdHandle->wpad[0] & p->code) != 0  ) {
-                kbdHandle->btnstatus[idx_new][p->key_a-KEY_JOY1_BUTTON_A] = 1;
-            }
-            if( (kbdHandle->wpad[1] & p->code) != 0  ) {
-                kbdHandle->btnstatus[idx_new][p->key_b-KEY_JOY1_BUTTON_A] = 1;
-            }
-            p++;
+    kbdHandle->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
+    kbdHandle->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
+    for(i = 0; wpad[i].key_a != KEY_NONE; i++)  {
+        if( (kbdHandle->wpad[0] & wpad[i].code) != 0  ) {
+            kbdHandle->btnstatus[idx_new][wpad[i].key_a-KEY_JOY1_BUTTON_A] = 1;
         }
-        if( wpad_orientation == WPADO_HORIZONTAL ) {
-            p = wpad_horizontal;
-        }else{
-            p = wpad_vertical;
+        if( (kbdHandle->wpad[1] & wpad[i].code) != 0  ) {
+            kbdHandle->btnstatus[idx_new][wpad[i].key_b-KEY_JOY1_BUTTON_A] = 1;
         }
     }
 
     // compare with previous and call for each difference
-    if( cb ) {
-        memset(run_callbacks, 0, sizeof(run_callbacks));
-        for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
-            if( kbdHandle->btnstatus[idx_prev][i] != kbdHandle->btnstatus[idx_new][i] ) {
-                run_callbacks[i] = kbdHandle->btnstatus[idx_new][i] + 1;
-            }
+    for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
+        if( kbdHandle->btnstatus[idx_prev][i] != kbdHandle->btnstatus[idx_new][i] ) {
+            if( cb ) cb((KEY)i+KEY_JOY1_BUTTON_A, kbdHandle->btnstatus[idx_new][i]);
         }
     }
-
     // switch new<->previous
     kbdHandle->keyidx ^= 1;
 
@@ -712,15 +668,6 @@ void KBD_GetKeys(KBD_CALLBACK cb, void *context)
     if( kbdHandle->leds != led ) {
         KEYBOARD_SetLed(KEYBOARD_LEDCAPS, led);
         kbdHandle->leds = led;
-    }
-
-    // run callbacks
-    if( cb ) {
-        for(i = 0; i < KEY_LAST-KEY_JOY1_BUTTON_A; i++) {
-            if( run_callbacks[i] ) {
-                cb(context, (KEY)i+KEY_JOY1_BUTTON_A, run_callbacks[i] - 1);
-            }
-        }
     }
 }
 

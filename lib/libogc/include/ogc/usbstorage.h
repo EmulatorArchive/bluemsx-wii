@@ -3,13 +3,13 @@
 
 #if defined(HW_RVL)
 
-#include <gctypes.h>
-#include <ogc/mutex.h>
-#include <ogc/disc_io.h>
-
 #ifdef __cplusplus
    extern "C" {
 #endif /* __cplusplus */
+
+#include <gctypes.h>
+#include <ogc/cond.h>
+#include <ogc/disc_io.h>
 
 #define	USBSTORAGE_OK			0
 #define	USBSTORAGE_ENOINTERFACE		-10000
@@ -22,7 +22,6 @@
 #define	USBSTORAGE_EDATARESIDUE		-10007
 #define	USBSTORAGE_ETIMEDOUT		-10008
 #define	USBSTORAGE_EINIT		-10009
-#define USBSTORAGE_PROCESSING	-10010
 
 typedef struct
 {
@@ -39,7 +38,7 @@ typedef struct
 	s32 usb_fd;
 
 	mutex_t lock;
-	syswd_t alarm;
+	cond_t cond;
 	s32 retval;
 
 	u32 tag;
@@ -64,7 +63,7 @@ s32 USBStorage_Write(usbstorage_handle *dev, u8 lun, u32 sector, u16 n_sectors, 
 
 #define DEVICE_TYPE_WII_USB (('W'<<24)|('U'<<16)|('S'<<8)|'B')
 
-extern DISC_INTERFACE __io_usbstorage;
+extern const DISC_INTERFACE __io_usbstorage;
 
 #ifdef __cplusplus
    }

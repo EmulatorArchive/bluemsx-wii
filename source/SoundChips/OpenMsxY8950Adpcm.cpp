@@ -1,6 +1,5 @@
 // $Id: OpenMsxY8950Adpcm.cpp,v 1.5 2007/08/05 21:14:39 dvik Exp $
 
-#include <string.h>
 #include "OpenMsxY8950Adpcm.h"
 #include "OpenMsxY8950.h"
 

@@ -4,11 +4,12 @@
 #include "GuiImages.h"
 #include "version.h"
 
+#define BACKGROUND_FADE_FRAMES 10
+
 GuiBackground::GuiBackground(GuiManager *man)
 {
     manager = man;
-    sprBackground = NULL;
-    sprTxt = NULL;
+    is_shown = false;
 }
 
 GuiBackground::~GuiBackground()
@@ -16,9 +17,12 @@ GuiBackground::~GuiBackground()
     Hide();
 }
 
-void GuiBackground::Show(int fade)
+void GuiBackground::Show(void)
 {
-    if( sprBackground == NULL ) {
+    int txtwidth;
+    int txtheight;
+
+    if( !is_shown ) {
         manager->Lock();
 
         // Background picture
@@ -31,33 +35,6 @@ void GuiBackground::Show(int fade)
         sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprBackground->SetRefPixelPosition(0, 0);
         sprBackground->SetPosition(0, 0);
-
-        // Show it
-        manager->AddBottom(sprBackground, fade);
-        ShowVersion(fade);
-
-        manager->Unlock();
-    }
-}
-
-void GuiBackground::Hide(int fade, int delay)
-{
-    if( sprBackground != NULL ) {
-        manager->Lock();
-        HideVersion();
-        manager->RemoveAndDelete(sprBackground, NULL, fade, delay);
-        sprBackground = NULL;
-        manager->Unlock();
-    }
-}
-
-void GuiBackground::ShowVersion(int fade)
-{
-    if( sprBackground != NULL && sprTxt == NULL ) {
-        int txtwidth;
-        int txtheight;
-
-        manager->Lock();
 
         // Create image with version text
         imgTxt = new DrawableImage;
@@ -78,19 +55,22 @@ void GuiBackground::ShowVersion(int fade)
         sprTxt->SetTransparency(192);
 
         // Show it
-        manager->AddOnTopOf(sprBackground, sprTxt, fade);
+        manager->AddBottom(sprBackground, BACKGROUND_FADE_FRAMES);
+        manager->AddOnTopOf(sprBackground, sprTxt, BACKGROUND_FADE_FRAMES);
 
         manager->Unlock();
+        is_shown = true;
     }
 }
 
-void GuiBackground::HideVersion(int fade, int delay)
+void GuiBackground::Hide(void)
 {
-    if( sprTxt != NULL ) {
+    if( is_shown ) {
         manager->Lock();
-        manager->RemoveAndDelete(sprTxt, imgTxt, fade, delay);
-        sprTxt = NULL;
+        manager->RemoveAndDelete(sprBackground, NULL, BACKGROUND_FADE_FRAMES);
+        manager->RemoveAndDelete(sprTxt, imgTxt, BACKGROUND_FADE_FRAMES);
         manager->Unlock();
+        is_shown = false;
     }
 }
 

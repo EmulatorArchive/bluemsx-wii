@@ -6,7 +6,6 @@
 
 */ 
 
-#include <stdbool.h>
 
 #ifdef __cplusplus
    extern "C" {
@@ -34,10 +33,10 @@ typedef volatile signed int vs32;					///< 32bit signed volatile integer
 typedef volatile signed long long vs64;		///< 64bit signed volatile integer
 /*+----------------------------------------------------------------------------------------------+*/
 // fixed point math typedefs
-typedef s16 sfp16;                              ///< signed 8:8 fixed point
-typedef s32 sfp32;                              ///< signed 20:8 fixed point
-typedef u16 ufp16;                              ///< unsigned 8:8 fixed point
-typedef u32 ufp32;                              ///< unsigned 24:8 fixed point
+typedef s16 sfp16;                              ///< 1:7:8 fixed point
+typedef s32 sfp32;                              ///< 1:19:8 fixed point
+typedef u16 ufp16;                              ///< 8:8 fixed point
+typedef u32 ufp32;                              ///< 24:8 fixed point
 /*+----------------------------------------------------------------------------------------------+*/
 typedef float f32;
 typedef double f64;
@@ -46,6 +45,14 @@ typedef volatile float vf32;
 typedef volatile double vf64;
 /*+----------------------------------------------------------------------------------------------+*/
 
+// bool is a standard type in cplusplus, but not in c.
+#ifndef __cplusplus
+/** C++ compatible bool for C
+
+*/
+typedef u8 bool;
+enum { false, true };
+#endif
 
 typedef unsigned int BOOL;
 /*+----------------------------------------------------------------------------------------------+*/

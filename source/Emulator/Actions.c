@@ -13,7 +13,7 @@
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-**
+** 
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -78,7 +78,7 @@ void actionCartInsert(int cartNo)
 
     emulatorSuspend();
     filename = archFilenameGetOpenRom(state.properties, cartNo, &romType);
-    if (filename != NULL) {
+    if (filename != NULL) {        
         insertCartridge(state.properties, cartNo, filename, NULL, romType, 0);
     }
     else {
@@ -93,7 +93,7 @@ void actionDiskInsert(int diskNo)
 
     emulatorSuspend();
     filename = archFilenameGetOpenDisk(state.properties, diskNo, 0);
-    if (filename != NULL) {
+    if (filename != NULL) {        
         insertDiskette(state.properties, diskNo, filename, NULL, 0);
     }
     emulatorResume();
@@ -106,7 +106,7 @@ void actionDiskInsertNew(int diskNo)
 
     emulatorSuspend();
     filename = archFilenameGetOpenDisk(state.properties, diskNo, 1);
-    if (filename != NULL) {
+    if (filename != NULL) {        
         insertDiskette(state.properties, diskNo, filename, NULL, 0);
     }
     emulatorResume();
@@ -119,7 +119,7 @@ void actionDiskInsertDir(int diskNo)
 
     emulatorSuspend();
     filename = archDirnameGetOpenDisk(state.properties, diskNo);
-    if (filename != NULL) {
+    if (filename != NULL) {        
         strcpy(state.properties->media.disks[diskNo].directory, filename);
         insertDiskette(state.properties, diskNo, filename, NULL, 0);
     }
@@ -145,7 +145,7 @@ void actionHarddiskInsert(int diskNo)
 
     emulatorSuspend();
     filename = archFilenameGetOpenHarddisk(state.properties, diskNo, 0);
-    if (filename != NULL) {
+    if (filename != NULL) {        
         insertDiskette(state.properties, diskNo, filename, NULL, 0);
     }
     emulatorResume();
@@ -166,7 +166,7 @@ void actionHarddiskInsertNew(int diskNo)
 
     emulatorSuspend();
     filename = archFilenameGetOpenHarddisk(state.properties, diskNo, 1);
-    if (filename != NULL) {
+    if (filename != NULL) {        
         insertDiskette(state.properties, diskNo, filename, NULL, 0);
     }
     emulatorResume();
@@ -359,9 +359,9 @@ void actionVideoCaptureStop() {
     if (emulatorGetState() == EMU_STOPPED) {
         return;
     }
-
+    
     emulatorSuspend();
-
+    
     boardCaptureStop();
 
     emulatorResume();
@@ -472,7 +472,7 @@ void actionEmuTogglePause() {
         emulatorSetState(EMU_RUNNING);
         debuggerNotifyEmulatorResume();
     }
-    else {
+    else {  
         emulatorSetState(EMU_PAUSED);
         debuggerNotifyEmulatorPause();
     }
@@ -622,7 +622,7 @@ void actionCasRewind() {
         }
         else {
             tapeSetReadOnly(1);
-            boardChangeCassette(0, strlen(state.properties->media.tapes[0].fileName) ? state.properties->media.tapes[0].fileName : NULL,
+            boardChangeCassette(0, strlen(state.properties->media.tapes[0].fileName) ? state.properties->media.tapes[0].fileName : NULL, 
                                 strlen(state.properties->media.tapes[0].fileNameInZip) ? state.properties->media.tapes[0].fileNameInZip : NULL);
         }
         tapeSetCurrentPos(0);
@@ -672,7 +672,7 @@ void actionEmuResetClean() {
         state.properties->media.carts[i].type = ROM_UNKNOWN;
         updateExtendedRomName(i, state.properties->media.carts[i].fileName, state.properties->media.carts[i].fileNameInZip);
     }
-
+    
     for (i = 0; i < PROP_MAX_DISKS; i++) {
         state.properties->media.disks[i].fileName[0] = 0;
         state.properties->media.disks[i].fileNameInZip[0] = 0;
@@ -783,13 +783,13 @@ void actionCasSave() {
 
         if (emulatorGetState() == EMU_STOPPED) {
             tapeSetReadOnly(1);
-            boardChangeCassette(0, strlen(state.properties->media.tapes[0].fileName) ? state.properties->media.tapes[0].fileName : NULL,
+            boardChangeCassette(0, strlen(state.properties->media.tapes[0].fileName) ? state.properties->media.tapes[0].fileName : NULL, 
                                 strlen(state.properties->media.tapes[0].fileNameInZip) ? state.properties->media.tapes[0].fileNameInZip : NULL);
         }
         else {
             emulatorSuspend();
         }
-
+        
         type = tapeGetFormat();
 
         filename = archFilenameGetSaveCas(state.properties, &type);
@@ -868,17 +868,7 @@ void actionToolsShowDebugger() {
 }
 
 void actionToolsShowTrainer() {
-    EmuState emu_state = emulatorGetState();
-    if (emu_state != EMU_STOPPED) {
-        if( emu_state == EMU_RUNNING ) {
-            actionEmuTogglePause();
-        }
-        archShowTrainer();
-        if( emu_state == EMU_RUNNING ) {
-            actionEmuTogglePause();
-        }
-    }
-    archUpdateMenu(0);
+    archShowTrainer();
 }
 
 void actionHelpShowHelp() {
@@ -916,7 +906,7 @@ void actionVolumeDecrease() {
     }
     mixerSetMasterVolume(state.mixer, state.properties->sound.masterVolume);
 }
-
+ 
 void actionMuteToggleMaster() {
     state.properties->sound.masterEnable = !state.properties->sound.masterEnable;
     mixerEnableMaster(state.mixer, state.properties->sound.masterEnable);
@@ -1290,8 +1280,8 @@ void actionSetWaveCapture(int value) {
         mixerStopLog(state.mixer);
     }
     else {
-        mixerStartLog(state.mixer, generateSaveFilename(state.properties,
-                                                        audioDir,
+        mixerStartLog(state.mixer, generateSaveFilename(state.properties, 
+                                                        audioDir, 
                                                         audioPrefix, ".wav", 2));
     }
     archUpdateMenu(0);

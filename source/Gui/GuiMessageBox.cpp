@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <gccore.h>
+#include <ogc/lwp_watchdog.h>
+
+#include <wiiuse/wpad.h>
+
+#include "kbdlib.h"
 #include "GuiMessageBox.h"
 #include "GuiContainer.h"
-#include "GuiRunner.h"
 
 // Resources
 #include "GuiImages.h"
@@ -14,40 +19,122 @@ extern "C" {
 #include "ArchThread.h"
 }
 
+#define BUTTON_TRANSPARENCY_NORMAL    160
+#define BUTTON_TRANSPARENCY_HIGHLIGHT 255
+
 #define MESSAGE_BOX_FADE_FRAMES       10
 
-int GuiMessageBox::DoSelection(void)
+bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 {
-    int i;
+    bool use_keyboard = true;
+
+    manager->Lock();
+
+    // Cursor
+    Sprite *cursor = new Sprite;
+    cursor->SetImage(g_imgMousecursor);
+    cursor->SetPosition(0, 0);
+    cursor->SetVisible(false);
+    manager->AddTop(cursor);
 
     // Set default button
-    runner->SetSelected(button[default_button]);
+    bool selected = true;
+    yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+    no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
 
-    // Run GUI
-    GuiButton *selected = (GuiButton *)( runner->Run() );
+    manager->Unlock();
 
-    // Return
-    for(i = 0; i < no_buttons; i++) {
-        if( button[i] == selected ) {
-            return i;
+    (void)KBD_GetPadButtons(); // flush first
+
+    for(;;) {
+        // Buttons
+        WPAD_ScanPads();
+        u32 buttons = KBD_GetPadButtons();
+
+        manager->Lock();
+
+        // Infrared
+        int x, y, angle;
+        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+            cursor->SetPosition(x, y);
+            cursor->SetRotation(angle/2);
+            cursor->SetVisible(true);
+        }else{
+            cursor->SetVisible(false);
+            cursor->SetPosition(0, 0);
         }
+
+        // Check mouse cursor colisions
+        if( cursor->CollidesWith(yes, true) ) {
+            yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            selected = true;
+            use_keyboard = false;
+            if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+                break;
+            }
+        }else
+        if( cursor->CollidesWith(no, true) ) {
+            yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            no->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            selected = false;
+            use_keyboard = false;
+            if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+                break;
+            }
+        }else
+        if( !use_keyboard ) {
+            yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+        }
+
+        // Check keys
+        if( buttons & (WPAD_BUTTON_LEFT | WPAD_CLASSIC_BUTTON_LEFT) ) {
+            yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            selected = true;
+            use_keyboard = true;
+        }
+        if( buttons & (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_RIGHT) ) {
+            yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            no->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            selected = false;
+            use_keyboard = true;
+        }
+        if( use_keyboard && buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+            break;
+        }
+        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
+                       WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B)) {
+            selected = false;
+            break;
+        }
+
+        manager->Unlock();
+        VIDEO_WaitVSync();
     }
-    return -1;
+    manager->Unlock();
+
+    // Cleanup
+    manager->Remove(cursor);
+    delete cursor;
+
+    return selected;
 }
 
 void GuiMessageBox::SetText(const char *fmt, ...)
 {
     manager->Lock();
 
-    va_list marker;
-    va_start(marker,fmt);
-    txt_image->RenderTextVA(true, fmt, marker);
-    va_end(marker);
+	va_list marker;
+	va_start(marker,fmt);
+	txt_image->RenderTextVA(true, fmt, marker);
+	va_end(marker);
 
     manager->Unlock();
 }
 
-BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
+bool GuiMessageBox::Show(const char *txt, Image *image, bool yesno, int alpha)
 {
     manager->Lock();
 
@@ -76,13 +163,13 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
     if( sizex < minsizex ) {
         sizex = minsizex;
     }
-    if( type != MSGT_TEXT ) {
+    if( yesno ) {
         sizex += 120;
         sizey += 40;
     }
     int x = manager->GetWidth()/2-sizex/2;
     int y = manager->GetHeight()/2-sizey/2;
-    container = new GuiContainer(x, y, sizex, sizey, alpha);
+    container = new GuiContainer(x, y , sizex, sizey, alpha);
     manager->AddTop(container, MESSAGE_BOX_FADE_FRAMES);
     sizex = container->GetWidth();
     sizey = container->GetHeight();
@@ -97,52 +184,22 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
         x += 24+image->GetWidth();
         sizex -= 24+image->GetWidth();
     }
-    // yes/no/ok/cancel buttons (optional)
-    char const *btntxt[3];
-    Image *btnimg[3];
-    BTN btnret[3];
-    switch( type ) {
-        case MSGT_OK:
-            no_buttons = 1; default_button = 0;
-            btntxt[0] = "Ok";     btnret[0] = BTN_OK;     btnimg[0] = g_imgButtonBlue;
-            break;
-        case MSGT_OKCANCEL:
-            no_buttons = 2; default_button = 0;
-            btntxt[0] = "Ok";     btnret[0] = BTN_OK;     btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "Cancel"; btnret[1] = BTN_CANCEL; btnimg[1] = g_imgButtonRed;
-            break;
-        case MSGT_YESNO:
-            no_buttons = 2; default_button = 0;
-            btntxt[0] = "Yes";    btnret[0] = BTN_YES;    btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "No";     btnret[1] = BTN_NO;     btnimg[1] = g_imgButtonRed;
-            break;
-        case MSGT_YESNOCANCEL:
-            no_buttons = 3; default_button = 0;
-            btntxt[0] = "Yes";    btnret[0] = BTN_YES;    btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "No";     btnret[1] = BTN_NO;     btnimg[1] = g_imgButtonRed;
-            btntxt[2] = "Cancel"; btnret[2] = BTN_CANCEL; btnimg[2] = g_imgButtonYellow;
-            break;
-        case MSGT_TEXT:
-        default:
-            no_buttons = 0;
-            break;
-    }
-    if( no_buttons > 0 ) {
-        int bx, by, i;
-        bx = x + sizex/2 - (no_buttons - 1) * 12 - 6;
-        for(i = 0; i < no_buttons; i++) {
-            bx -= btnimg[i]->GetWidth() / 2;
-        }
-        by = y + sizey - btnimg[0]->GetHeight() - 36;
-        for(i = 0; i < no_buttons; i++) {
-            button[i] = new GuiButton(manager);
-            button[i]->CreateImageTextHighlightButton(btnimg[i], btntxt[i], bx, by);
-            runner->AddTop(button[i], MESSAGE_BOX_FADE_FRAMES);
-            bx += btnimg[i]->GetWidth() + 24;
-        }
-        sizey -= btnimg[0]->GetHeight() + 36;
-    }
-
+    // yes/no buttons (optional)
+    if( yesno ) {
+        int bx = x+sizex/2-g_imgButtonYes->GetWidth()-12;
+        int by = y+sizey-g_imgButtonYes->GetHeight()-36;
+        spr_yes = new Sprite;
+        spr_yes->SetImage(g_imgButtonYes);
+        spr_yes->SetPosition(bx, by);
+        manager->AddTop(spr_yes, MESSAGE_BOX_FADE_FRAMES);
+        bx = x+sizex/2+12;
+        by = y+sizey-g_imgButtonYes->GetHeight()-36;
+        spr_no = new Sprite;
+        spr_no->SetImage(g_imgButtonNo);
+        spr_no->SetPosition(bx, by);
+        manager->AddTop(spr_no, MESSAGE_BOX_FADE_FRAMES);
+        sizey -= g_imgButtonYes->GetHeight() + 36;
+   }
     // text
     txt_sprite = new Sprite;
     txt_sprite->SetImage(txt_image);
@@ -151,11 +208,10 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
     is_showing = true;
     manager->Unlock();
     // selection
-    if( type != MSGT_TEXT ) {
-        int i = DoSelection();
-        return ( i >= 0 )? btnret[i] : BTN_NONE;
+    if( yesno ) {
+        return DoSelection(spr_yes, spr_no);
     }else{
-        return BTN_NONE;
+        return true;
     }
 }
 
@@ -168,12 +224,13 @@ void GuiMessageBox::Remove(void)
             txt_sprite = NULL;
             txt_image = NULL;
         }
-        for(int i = 0; i < 3; i++) {
-            if( button[i] ) {
-                runner->Remove(button[i], MESSAGE_BOX_FADE_FRAMES);
-                delete button[i];
-                button[i] = NULL;
-            }
+        if( spr_yes ) {
+            manager->RemoveAndDelete(spr_yes, NULL, MESSAGE_BOX_FADE_FRAMES);
+            spr_yes = NULL;
+        }
+        if( spr_no ) {
+            manager->RemoveAndDelete(spr_no, NULL, MESSAGE_BOX_FADE_FRAMES);
+            spr_no = NULL;
         }
         if( img_sprite ) {
             manager->RemoveAndDelete(img_sprite, NULL, MESSAGE_BOX_FADE_FRAMES);
@@ -215,7 +272,7 @@ void GuiMessageBox::ShowPopup(const char *txt, Image *image, int alpha)
     }
     manager->Lock();
     // Show popup
-    (void)Show(txt, image, MSGT_TEXT, alpha);
+    (void)Show(txt, image, false, alpha);
     // Start thread
     myself = this;
     quit_thread = false;
@@ -227,15 +284,13 @@ void GuiMessageBox::ShowPopup(const char *txt, Image *image, int alpha)
 GuiMessageBox::GuiMessageBox(GuiManager *man)
 {
     manager = man;
-    runner = new GuiRunner(man, this);
     is_showing = false;
     container = NULL;
     txt_sprite = NULL;
     img_sprite = NULL;
     txt_image = NULL;
-    for(int i = 0; i < 3; i++) {
-        button[i] = NULL;
-    }
+    spr_yes = NULL;
+    spr_no = NULL;
     thread_popup = NULL;
 }
 
@@ -249,6 +304,5 @@ GuiMessageBox::~GuiMessageBox()
         archThreadJoin(thread_popup, -1);
         archThreadDestroy(thread_popup);
     }
-    delete runner;
 }
 

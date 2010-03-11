@@ -39,7 +39,6 @@ SOURCES		:=	source/Bios \
               source/Resource \
               source/SoundChips \
               source/TinyXML \
-              source/Tools/Trainer \
               source/Unzip \
               source/Utils \
               source/VideoChips \
@@ -79,7 +78,7 @@ INCLUDES	:=	include/libpng \
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) -DNO_ASM -DWII -DDEVKITPPC_STDLIB_INCLUDE=\"$(DEVKITPPC_LOCAL)/powerpc-eabi/include/stdlib.h\"
+CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) -DNO_ASM -DWII -DDEVKITPPC_STDLIB_INCLUDE=\"$(DEVKITPPC_LOCAL)/powerpc-gekko/include/stdlib.h\"
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -168,10 +167,6 @@ clean:
 run:
 	wiiload $(TARGET).dol
 
-#---------------------------------------------------------------------------------
-disasm:
-	@echo Disassembling ...
-	@$(DEVKITPPC_LOCAL)/bin/powerpc-eabi-objdump -S $(TARGET).elf >$(TARGET).txt
 
 #---------------------------------------------------------------------------------
 else

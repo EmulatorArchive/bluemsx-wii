@@ -172,75 +172,54 @@ typedef enum {
     KEY_PRINT       = 316,
 
     /* Joy pad */
-    KEY_JOY1_BUTTON_A               = 400,
-    KEY_JOY1_BUTTON_B               = 401,
-    KEY_JOY1_BUTTON_1               = 402,
-    KEY_JOY1_BUTTON_2               = 403,
-    KEY_JOY1_UP                     = 404,
-    KEY_JOY1_DOWN                   = 405,
-    KEY_JOY1_LEFT                   = 406,
-    KEY_JOY1_RIGHT                  = 407,
-    KEY_JOY1_HOME                   = 408,
-    KEY_JOY1_PLUS                   = 409,
-    KEY_JOY1_MINUS                  = 410,
-    KEY_JOY1_NUNCHUCK_BUTTON_C      = 411,
-    KEY_JOY1_NUNCHUCK_BUTTON_Z      = 412,
-    KEY_JOY1_CLASSIC_BUTTON_A       = 413,
-    KEY_JOY1_CLASSIC_BUTTON_B       = 414,
-    KEY_JOY1_CLASSIC_BUTTON_X       = 415,
-    KEY_JOY1_CLASSIC_BUTTON_Y       = 416,
-    KEY_JOY1_CLASSIC_BUTTON_L       = 417,
-    KEY_JOY1_CLASSIC_BUTTON_R       = 418,
-    KEY_JOY1_CLASSIC_BUTTON_ZL      = 419,
-    KEY_JOY1_CLASSIC_BUTTON_ZR      = 420,
-    KEY_JOY1_CLASSIC_BUTTON_SELECT  = 421,
-    KEY_JOY1_CLASSIC_BUTTON_HOME    = 422,
-    KEY_JOY1_CLASSIC_BUTTON_START   = 423,
+    KEY_JOY1_BUTTON_A  = 400,
+    KEY_JOY1_BUTTON_B  = 401,
+    KEY_JOY1_BUTTON_1  = 402,
+    KEY_JOY1_BUTTON_2  = 403,
+    KEY_JOY1_UP        = 404,
+    KEY_JOY1_DOWN      = 405,
+    KEY_JOY1_LEFT      = 406,
+    KEY_JOY1_RIGHT     = 407,
+    KEY_JOY1_HOME      = 408,
+    KEY_JOY1_PLUS      = 409,
+    KEY_JOY1_MINUS     = 410,
+    KEY_JOY1_BUTTON_X  = 411,
+    KEY_JOY1_BUTTON_Y  = 412,
+    KEY_JOY1_BUTTON_L  = 413,
+    KEY_JOY1_BUTTON_R  = 414,
+    KEY_JOY1_BUTTON_ZL = 415,
+    KEY_JOY1_BUTTON_ZR = 416,
 
-
-    KEY_JOY2_BUTTON_A               = 425,
-    KEY_JOY2_BUTTON_B               = 426,
-    KEY_JOY2_BUTTON_1               = 427,
-    KEY_JOY2_BUTTON_2               = 428,
-    KEY_JOY2_UP                     = 429,
-    KEY_JOY2_DOWN                   = 430,
-    KEY_JOY2_LEFT                   = 431,
-    KEY_JOY2_RIGHT                  = 432,
-    KEY_JOY2_HOME                   = 433,
-    KEY_JOY2_PLUS                   = 434,
-    KEY_JOY2_MINUS                  = 435,
-    KEY_JOY2_NUNCHUCK_BUTTON_C      = 436,
-    KEY_JOY2_NUNCHUCK_BUTTON_Z      = 437,
-    KEY_JOY2_CLASSIC_BUTTON_A       = 438,
-    KEY_JOY2_CLASSIC_BUTTON_B       = 439,
-    KEY_JOY2_CLASSIC_BUTTON_X       = 440,
-    KEY_JOY2_CLASSIC_BUTTON_Y       = 441,
-    KEY_JOY2_CLASSIC_BUTTON_L       = 442,
-    KEY_JOY2_CLASSIC_BUTTON_R       = 443,
-    KEY_JOY2_CLASSIC_BUTTON_ZL      = 444,
-    KEY_JOY2_CLASSIC_BUTTON_ZR      = 445,
-    KEY_JOY2_CLASSIC_BUTTON_SELECT  = 445,
-    KEY_JOY2_CLASSIC_BUTTON_HOME    = 446,
-    KEY_JOY2_CLASSIC_BUTTON_START   = 447,
+    KEY_JOY2_BUTTON_A  = 420,
+    KEY_JOY2_BUTTON_B  = 421,
+    KEY_JOY2_BUTTON_1  = 422,
+    KEY_JOY2_BUTTON_2  = 423,
+    KEY_JOY2_UP        = 424,
+    KEY_JOY2_DOWN      = 425,
+    KEY_JOY2_LEFT      = 426,
+    KEY_JOY2_RIGHT     = 427,
+    KEY_JOY2_HOME      = 428,
+    KEY_JOY2_PLUS      = 429,
+    KEY_JOY2_MINUS     = 430,
+    KEY_JOY2_BUTTON_X  = 431,
+    KEY_JOY2_BUTTON_Y  = 432,
+    KEY_JOY2_BUTTON_L  = 433,
+    KEY_JOY2_BUTTON_R  = 434,
+    KEY_JOY2_BUTTON_ZL = 435,
+    KEY_JOY2_BUTTON_ZR = 436,
 
     /* Add any other keys here */
     KEY_LAST
 } KEY;
 
-typedef enum {
-    WPADO_HORIZONTAL,
-    WPADO_VERTICAL,
-} WPADO;
-
 typedef struct _kbd_data KBDDATA, *KBDHANDLE;
-typedef void (*KBD_CALLBACK)(void*, KEY, int);
+typedef void (*KBD_CALLBACK)(KEY, int);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-extern void KBD_SetWpadOrientation(WPADO orient);
-extern void KBD_GetKeys(KBD_CALLBACK cb, void *context);
+extern void KBD_GetKeys(KBD_CALLBACK cb);
 extern int KBD_GetKeyStatus(KEY key);
 extern u32 KBD_GetPadButtons(void);
 extern u32 KBD_GetPadButtonStatus(int channel);

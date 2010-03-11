@@ -2,26 +2,21 @@
 #ifndef _GUI_DIRSELECT_H
 #define _GUI_DIRSELECT_H
 
-#include "GuiDialog.h"
+#include "GuiSelectionList.h"
 #include "DirectoryList.h"
 
 #define MAX_PATH        256
 #define NUM_DIR_ITEMS   7
 
-class GuiSelectionList;
-
-class GuiDirSelect : public GuiDialog
-{
+class GuiDirSelect : public GuiSelectionList {
 public:
     GuiDirSelect(GuiManager *man, const char *startdir, const char *filename);
     virtual ~GuiDirSelect();
 
     char *DoModal(void);
 private:
-    GuiManager *manager;
-    GuiRunner *runner;
-    GuiSelectionList *list;
     DirList dirs;
+    const char **title_list;
     int num_dirs;
     int dir_level;
     char current_dir[MAX_PATH];

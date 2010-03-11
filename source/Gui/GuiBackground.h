@@ -4,17 +4,13 @@
 #include "GuiManager.h"
 #include "DrawableImage.h"
 
-#define BACKGROUND_FADE_FRAMES 10
-
 class GuiBackground
 {
 	public:
 		GuiBackground(GuiManager *man);
 		virtual ~GuiBackground();
-        void Show(int fade = BACKGROUND_FADE_FRAMES);
-        void Hide(int fade = BACKGROUND_FADE_FRAMES, int delay = 0);
-        void ShowVersion(int fade = BACKGROUND_FADE_FRAMES);
-        void HideVersion(int fade = BACKGROUND_FADE_FRAMES, int delay = 0);
+        void Show(void);
+        void Hide(void);
 
 	private:
         GuiManager *manager;

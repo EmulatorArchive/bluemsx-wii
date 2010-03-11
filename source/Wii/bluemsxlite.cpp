@@ -67,8 +67,6 @@ extern "C" {
 #include "WiiShortcuts.h"
 #include "ArchThread.h"
 #include "WiiInput.h"
-#include "WiiToolLoader.h"
-#include "InputEvent.h"
 }
 
 #include "SdSetup.h"
@@ -183,9 +181,6 @@ void blueMsxInit(int resetProperties)
         return;
     }
 
-    // Load tools
-    toolLoadAll(properties->language, manager);
-
     video = videoCreate();
 
     if (properties->video.windowSize == P_VIDEO_SIZEFULLSCREEN) {
@@ -287,7 +282,6 @@ void RenderEmuImage(void *dpyData)
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
     int i;
-    char buffer[512];
 
     // Loading message
     msgbox->Show("Loading...");
@@ -318,41 +312,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     // Init keyboard and remap keys
     keyboardReset();
-    KBD_SetWpadOrientation(WPADO_HORIZONTAL);
-    if( game->GetProperty(GEP_KEYBOARD_JOYSTICK) ) {
-        /* Remap WiiMote 1 to keyboard */
-        keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_SPACE);
-        keyboardRemapKey(KEY_JOY1_BUTTON_B, EC_NONE);
-        keyboardRemapKey(KEY_JOY1_BUTTON_1, EC_NONE);
-        keyboardRemapKey(KEY_JOY1_BUTTON_2, EC_SPACE);
-        keyboardRemapKey(KEY_JOY1_UP, EC_UP);
-        keyboardRemapKey(KEY_JOY1_DOWN, EC_DOWN);
-        keyboardRemapKey(KEY_JOY1_LEFT, EC_LEFT);
-        keyboardRemapKey(KEY_JOY1_RIGHT, EC_RIGHT);
-        /* Remap WiiMote 2 to joystick 1 */
-        keyboardRemapKey(KEY_JOY2_BUTTON_A, EC_JOY1_BUTTON1);
-        keyboardRemapKey(KEY_JOY2_BUTTON_B, EC_JOY1_BUTTON2);
-        keyboardRemapKey(KEY_JOY2_BUTTON_1, EC_JOY1_BUTTON2);
-        keyboardRemapKey(KEY_JOY2_BUTTON_2, EC_JOY1_BUTTON1);
-        keyboardRemapKey(KEY_JOY2_UP, EC_JOY1_UP);
-        keyboardRemapKey(KEY_JOY2_DOWN, EC_JOY1_DOWN);
-        keyboardRemapKey(KEY_JOY2_LEFT, EC_JOY1_LEFT);
-        keyboardRemapKey(KEY_JOY2_RIGHT, EC_JOY1_RIGHT);
-    }
     for(i = 0; i < KEY_LAST; i++) {
         int event = game->GetKeyMapping((KEY)i);
-        if( event != EC_NONE ) {
+        if( event != -1 ) {
             keyboardRemapKey((KEY)i, event);
-        }
-    }
-
-    ToolInfo* ti = toolInfoFind("Trainer");
-    if( ti ) {
-        if( game->GetCheatFile() ) {
-            sprintf(buffer, "%s/Tools/Cheats/%s", MSX_ROOT_DIR, game->GetCheatFile());
-            toolInfoAddArgument(ti, "CheatFile", buffer);
-        } else {
-            toolInfoAddArgument(ti, "CheatFile", NULL);
         }
     }
 
@@ -391,12 +354,11 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     osk = new GuiKeyboard(manager);
 
     // Loop while the user hasn't quit
-    GuiMenu *menu = new GuiMenu(manager, 5);
+    GuiMenu *menu = new GuiMenu(manager, 4);
     const char *menu_items[] = {
       "Load state",
       "Save state",
       "Screenshot",
-      "Cheats",
       "Quit"
     };
     int refresh = 0;
@@ -419,83 +381,70 @@ static void blueMsxRun(GameElement *game, char *game_dir)
         if( KBD_GetKeyStatus(KEY_JOY1_HOME) || KBD_GetKeyStatus(KEY_JOY2_HOME) ||
             KBD_GetKeyStatus(KEY_F12) ) {
             if( !pressed ) {
-                actionEmuTogglePause();
+                emulatorSuspend();
                 osk->SetEnabled(false);
-                KBD_SetWpadOrientation(WPADO_VERTICAL);
                 bool leave_menu = false;
                 do {
-                    int selection;
-                    SELRET action = menu->DoModal(&selection, menu_items, 5, 344);
-                    switch( action ) {
-                        case SELRET_SELECTED:
-                            switch( selection ) {
-                                GuiStateSelect *statesel;
-                                char *statefile;
-                                case 0: /* Load state */
-                                    statesel = new GuiStateSelect(manager);
-                                    statefile = statesel->DoModal(properties, stateDir);
-                                    if( statefile ) {
-                                        msgbox->Show("Loading state...", NULL, MSGT_TEXT, 160);
-                                        emulatorStop();
-                                        emulatorStart(statefile);
-                                        msgbox->Remove();
-                                        leave_menu = true;
-                                    }
-                                    delete statesel;
-                                    break;
-                                case 1: /* Save state */
-                                    msgbox->Show("Saving state...", NULL, MSGT_TEXT, 160);
-                                    actionQuickSaveState();
-                                    msgbox->Remove();
-                                    break;
-                                case 2: /* Screenshot */
-                                    char *p, fname1[256], fname2[256];
-                                    strcpy(fname1, game_dir);
-                                    strcat(fname1, "/Screenshots/");
-                                    strcat(fname1, game->GetScreenShot(0));
-                                    strcpy(fname2, game_dir);
-                                    strcat(fname2, "/Screenshots/");
-                                    strcat(fname2, game->GetScreenShot(1));
-                                    if( !archFileExists(fname1) ) {
-                                        p = fname1;
-                                        /* file does not exist, make sure there is a Screenshots directory */
-                                        char scrshotdir[256];
-                                        struct stat s;
-                                        strcpy(scrshotdir, game_dir);
-                                        strcat(scrshotdir, "/Screenshots");
-                                        if( stat(scrshotdir, &s) != 0 ) {
-                                            mkdir(scrshotdir, 0x777);
-                                        }
-                                    }else
-                                    if( !archFileExists(fname2) ) {
-                                        p = fname2;
-                                    }else{
-                                        p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
-                                    }
-                                    msgbox->Show("Saving screenshot...", NULL, MSGT_TEXT, 160);
-                                    (void)archScreenCaptureToFile(SC_NORMAL, p);
-                                    msgbox->Remove();
-                                    break;
-                                case 3: /* Cheats */
-                                    actionToolsShowTrainer();
-                                    break;
-                                case 4: /* Quit */
-                                    doQuit = true;
-                                    leave_menu = true;
-                                    break;
+                    int selection = menu->DoModal(menu_items, 4, 344);
+                    switch( selection ) {
+                        GuiStateSelect *statesel;
+                        char *statefile;
+                        case 0: /* Load state */
+                            statesel = new GuiStateSelect(manager);
+                            statefile = statesel->DoModal(properties, stateDir);
+                            if( statefile ) {
+                                msgbox->Show("Loading state...", NULL, false, 160);
+                                emulatorStop();
+                                emulatorStart(statefile);
+                                msgbox->Remove();
+                                leave_menu = true;
                             }
+                            delete statesel;
                             break;
-                        case SELRET_KEY_B:
-                        case SELRET_KEY_HOME:
+                        case 1: /* Save state */
+                            msgbox->Show("Saving state...", NULL, false, 160);
+                            actionQuickSaveState();
+                            msgbox->Remove();
+                            break;
+                        case 2: /* Screenshot */
+                            char *p, fname1[256], fname2[256];
+                            strcpy(fname1, game_dir);
+                            strcat(fname1, "/");
+                            strcat(fname1, game->GetScreenShot(0));
+                            strcpy(fname2, game_dir);
+                            strcat(fname2, "/");
+                            strcat(fname2, game->GetScreenShot(1));
+                            if( !archFileExists(fname1) ) {
+                                p = fname1;
+                                /* file does not exist, make sure there is a Screenshots directory */
+                                char scrshotdir[256];
+                                struct stat s;
+                                strcpy(scrshotdir, game_dir);
+                                strcat(scrshotdir, "/Screenshots");
+                                if( stat(scrshotdir, &s) != 0 ) {
+                                    mkdir(scrshotdir, 0x777);
+                                }
+                            }else
+                            if( !archFileExists(fname2) ) {
+                                p = fname2;
+                            }else{
+                                p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
+                            }
+                            msgbox->Show("Saving screenshot...", NULL, false, 160);
+                            (void)archScreenCaptureToFile(SC_NORMAL, p);
+                            msgbox->Remove();
+                            break;
+                        case 3: /* Quit */
+                            doQuit = true;
                             leave_menu = true;
                             break;
-                        default:
+                        case -1: /* leaved menu */
+                            leave_menu = true;
                             break;
                     }
                 }while(!leave_menu);
-                KBD_GetKeys(NULL, NULL); // flush
-                KBD_SetWpadOrientation(WPADO_HORIZONTAL);
-                actionEmuTogglePause();
+                KBD_GetKeys(NULL); // flush
+                emulatorResume();
                 osk->SetEnabled(!doQuit);
                 pressed = true;
             }
@@ -508,8 +457,6 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     delete menu;
 
     emulatorStop();
-    toolUnLoadAll();
-    KBD_SetWpadOrientation(WPADO_VERTICAL);
 
     // Remove emulator+keyboard from display
     manager->Lock();
@@ -547,7 +494,6 @@ int main(int argc, char **argv)
 
     // Init keyboard
     keyboardInit();
-    KBD_SetWpadOrientation(WPADO_VERTICAL);
 
     // GUI init
     manager = new GuiManager();
@@ -600,7 +546,7 @@ int main(int argc, char **argv)
             GameElement *game = NULL;
             GameElement *prev;
             for(;;) {
-                GuiGameSelect *menu = new GuiGameSelect(manager, background);
+                GuiGameSelect *menu = new GuiGameSelect(manager);
                 prev = game;
                 if( menu->Load(game_dir, "gamelist.xml") ) {
                     game = menu->DoModal(prev);
@@ -630,7 +576,6 @@ int main(int argc, char **argv)
 
         // Destroy emulator
         emulatorExit();
-        toolUnLoadAll();
         videoDestroy(video);
         propDestroy(properties);
         archSoundDestroy();

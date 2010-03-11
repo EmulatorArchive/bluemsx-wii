@@ -4,7 +4,6 @@
 #include "TextRender.h"
 
 extern TextRender *g_fontArial;
-extern TextRender *g_fontImpact;
 
 extern void GuiFontInit(void);
 extern void GuiFontClose(void);
