@@ -51,7 +51,7 @@ void GuiBackground::Show(void)
         // Version text sprite
         sprTxt = new Sprite;
         sprTxt->SetImage(imgTxt);
-        sprTxt->SetPosition(530, 384);
+        sprTxt->SetPosition(530, 380);
         sprTxt->SetTransparency(192);
 
         // Show it
