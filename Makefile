@@ -13,7 +13,7 @@ DEVKITPPC_LOCAL		:=	$(DEVKITPPC)/../devkitPPC_blueMSXWii
 
 # include from origional devkitPPC but for the rest, use our own!
 PATH_BACKUP := $(PATH)
-include $(DEVKITPPC)/wii_rules
+include $(DEVKITPPC_LOCAL)/wii_rules
 export PATH := $(DEVKITPPC_LOCAL)/bin:$(PATH_BACKUP)
 
 

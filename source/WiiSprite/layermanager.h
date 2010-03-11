@@ -53,7 +53,7 @@ namespace wsp{
 			//!\param x The X offset for drawing.
 			//!\param y The Y offset for drawing.
 			//!\sa \ref layermanager_viewwindows_page
-			void Draw(s32 x, s32 y) const;
+			void Draw(void) const;
 		protected:
 		private:
 			Layer** _layers;
