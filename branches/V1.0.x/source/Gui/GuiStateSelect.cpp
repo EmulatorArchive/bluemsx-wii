@@ -9,6 +9,7 @@
 
 extern "C" {
 #include "ArchGlob.h"
+#include "ArchThread.h"
 #include "FileHistory.h"
 #include "ZipHelper.h"
 }
@@ -111,13 +112,18 @@ void GuiStateSelect::UpdateScreenShot(char *file)
     if( file != NULL ) {
         int size;
         void* buffer = zipLoadFile(file, "screenshot.png", &size);
+        imgScreenShot = new Image;
         if( buffer != NULL ) {
-            imgScreenShot = new Image;
             if(imgScreenShot->LoadImage((const unsigned char*)buffer) != IMG_LOAD_ERROR_NONE) {
-                delete imgScreenShot;
-                imgScreenShot = new Image(g_imgNoise);
+                free(buffer);
+                buffer = NULL;
+            }else{
+                free(buffer);
             }
-            free(buffer);
+        }
+        if( buffer == NULL ) {
+            delete imgScreenShot;
+            imgScreenShot = new Image(g_imgNoise);
         }
 
         sprScreenShot = new Sprite;
@@ -147,6 +153,10 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     // Load states
     CreateStateFileList(properties, directory);
     if( num_states == 0 ) {
+        GuiMessageBox *msgbox = new GuiMessageBox(manager);
+        msgbox->Show("No state files found!", NULL, false, 160);
+        archThreadSleep(2000);
+        delete msgbox;
         return NULL;
     }
 
