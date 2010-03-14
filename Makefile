@@ -7,9 +7,10 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
-LIBOGC_INC_LOCAL	:=	$(CURDIR)/lib/libogc/include
-LIBOGC_LIB_LOCAL	:=	$(CURDIR)/lib/libogc/lib/wii
 DEVKITPPC_LOCAL		:=	$(DEVKITPPC)/../devkitPPC_blueMSXWii
+LIBOGC_LOCAL        :=  $(DEVKITPPC)/../libogc_blueMSXWii
+LIBOGC_INC_LOCAL	:=	$(LIBOGC_LOCAL)/include
+LIBOGC_LIB_LOCAL	:=	$(LIBOGC_LOCAL)/lib/wii
 
 # include from origional devkitPPC but for the rest, use our own!
 PATH_BACKUP := $(PATH)
@@ -85,7 +86,7 @@ INCLUDES	:=	include/libpng \
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) -DNO_ASM -DWII -DDEVKITPPC_STDLIB_INCLUDE=\"$(DEVKITPPC_LOCAL)/powerpc-gekko/include/stdlib.h\"
+CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) -DNO_ASM -DWII -DDEVKITPPC_STDLIB_INCLUDE=\"$(DEVKITPPC_LOCAL)/powerpc-eabi/include/stdlib.h\"
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -139,7 +140,7 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
 					$(sFILES:.s=.o) $(SFILES:.S=.o)
 
-export GENFILES	:=	$(DEVKITPPC_LOCAL)/devkitppc.log sdcard.inc gamepack.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
+export GENFILES	:=	$(DEVKITPPC_LOCAL)/devkitppc.log $(LIBOGC_LOCAL)/libogc.log sdcard.inc gamepack.inc $(PNGFILES:.png=.inc) $(TTFFILES:.ttf=.inc)
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
@@ -169,11 +170,16 @@ clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
 	@rm -rf $(DEVKITPPC_LOCAL)
+	@rm -rf $(LIBOGC_LOCAL)
 
 #---------------------------------------------------------------------------------
 run:
 	wiiload $(TARGET).dol
 
+#---------------------------------------------------------------------------------
+disasm:
+	@echo Disassembling ...
+	@$(DEVKITPPC_LOCAL)/bin/powerpc-eabi-objdump -S $(TARGET).elf >$(TARGET).txt
 
 #---------------------------------------------------------------------------------
 else
@@ -219,12 +225,16 @@ gamepack.inc: ../sdcard/Gamepack
 	@../util/raw2c gamepack.zip gamepack.inc gamepack
 
 #---------------------------------------------------------------------------------
-# This rule unpacks the local devkitPPC zip to a custom directory
+# This rule unpacks the local devkitPPC/libogc zip to a custom directory
 #---------------------------------------------------------------------------------
 $(DEVKITPPC_LOCAL)/devkitppc.log: ../lib/devkitPPC.zip
 	@echo Installing devkitPPC to $(DEVKITPPC_LOCAL)
 	@[ -d $(DEVKITPPC_LOCAL) ] || mkdir -p $(DEVKITPPC_LOCAL)
 	@../util/unzip -o ../lib/devkitPPC.zip -d $(DEVKITPPC_LOCAL) >$(DEVKITPPC_LOCAL)/devkitppc.log
+$(LIBOGC_LOCAL)/libogc.log: ../lib/libogc.zip
+	@echo Installing libogc to $(LIBOGC_LOCAL)
+	@[ -d $(LIBOGC_LOCAL) ] || mkdir -p $(LIBOGC_LOCAL)
+	@../util/unzip -o ../lib/libogc.zip -d $(LIBOGC_LOCAL) >$(LIBOGC_LOCAL)/libogc.log
 
 #---------------------------------------------------------------------------------
 # This rule converts .png to .inc files

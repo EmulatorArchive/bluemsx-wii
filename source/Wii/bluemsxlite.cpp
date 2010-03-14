@@ -75,6 +75,7 @@ extern "C" {
 #include "GuiFonts.h"
 #include "GuiImages.h"
 
+#define ENABLE_GECKO  0
 #define CONSOLE_DEBUG 0
 #define FORCE_50HZ    0
 
@@ -405,6 +406,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             msgbox->Show("Saving state...", NULL, false, 160);
                             actionQuickSaveState();
                             msgbox->Remove();
+                            msgbox->Show("State saved", NULL, false, 160);
+                            archThreadSleep(2000);
+                            msgbox->Remove();
                             break;
                         case 2: /* Screenshot */
                             char *p, fname1[256], fname2[256];
@@ -432,6 +436,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             }
                             msgbox->Show("Saving screenshot...", NULL, false, 160);
                             (void)archScreenCaptureToFile(SC_NORMAL, p);
+                            msgbox->Remove();
+                            msgbox->Show("Screenshot saved", NULL, false, 160);
+                            archThreadSleep(2000);
                             msgbox->Remove();
                             break;
                         case 3: /* Quit */
@@ -474,8 +481,11 @@ int main(int argc, char **argv)
     bool fatInitialised;
 
     // USB Gecko
+#if ENABLE_GECKO
     DEBUG_Init(GDBSTUB_DEVICE_USB, 1);
     CON_EnableGecko(1, false);
+#endif
+    printf("Starting...\n");
 
     // Memory allocator instrumentation
     allocLogStart();
