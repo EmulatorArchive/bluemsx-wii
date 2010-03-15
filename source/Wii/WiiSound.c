@@ -42,44 +42,81 @@
 #define SAMPLE_SIZE 2
 #define BUFFER_SIZE_BYTES (32*1024) /* 32 kB */
 #define BUFFER_SIZE_SAMPLES (BUFFER_SIZE_BYTES / SAMPLE_SIZE)
+#define BUFFER_CHUNKS  64
 #define SAMPLERATE_IN  44100
 #define SAMPLERATE_OUT 48000
 
+typedef enum {
+  AUDIOSTATE_UNINITIALIZED,
+  AUDIOSTATE_PAUSED,
+  AUDIOSTATE_PREPARE_RESUME,
+  AUDIOSTATE_RESUMING,
+  AUDIOSTATE_PLAYING
+} AUDIOSTATE;
+  
 static Int16 sample_buffer[BUFFER_SIZE_SAMPLES] __attribute__((aligned(32)));
 static unsigned int buffer_offset = 0;
 
-static sem_t audio_free;
-static int   audio_paused = 0;
-static int   audio_initialized = 0;
+static mutex_t audio_free;
+static AUDIOSTATE audio_state = AUDIOSTATE_UNINITIALIZED;
 static int   buffer_tuning = 0;
+static Int32 tuning_sample_sign = 0;
 static Int32 samplerate_tuning_p = 0;
 static Int32 samplerate_tuning_i = 0;
 static Mixer *audio_mixer;
 static Int32 resample_divider;
 static Int16 prev_sample[2];
 
-static void done_playing(void)
+static void soundDMACallback(void)
 {
-    if( !audio_paused ) {
-        // (re)start DMA
-        LWP_SemWait(audio_free);
-        buffer_tuning = buffer_offset - BUFFER_SIZE_SAMPLES / 2;
-        AUDIO_InitDMA((unsigned int)&sample_buffer, BUFFER_SIZE_BYTES);
-        AUDIO_StartDMA();
-        LWP_SemPost(audio_free);
+    Int32 sample;
+    LWP_MutexLock(audio_free);
+    // Sample current position of writepointer
+    sample = buffer_offset - BUFFER_SIZE_SAMPLES / 2;
+    if( sample < 0 && sample > -BUFFER_SIZE_SAMPLES / 4 ) {
+        tuning_sample_sign = -1;
+    }else
+    if( sample >= 0 && sample < BUFFER_SIZE_SAMPLES / 4 ) {
+        tuning_sample_sign = 1;
+    }else
+    if( tuning_sample_sign > 0 && sample < 0 ) {
+        sample += BUFFER_SIZE_SAMPLES;
+    }else
+    if( sample > 0 ) {
+        sample -= BUFFER_SIZE_SAMPLES;
     }
+    buffer_tuning = sample;
+    // Restart DMA
+    AUDIO_InitDMA((unsigned int)&sample_buffer, BUFFER_SIZE_BYTES);
+    AUDIO_StartDMA();
+    if( audio_state == AUDIOSTATE_RESUMING ) {
+        audio_state = AUDIOSTATE_PLAYING;
+    }
+    LWP_MutexUnlock(audio_free);
+}
+
+static void soundClearBuffer(void)
+{
+    memset(sample_buffer, 0, sizeof(sample_buffer));
+    DCFlushRange(sample_buffer, sizeof(sample_buffer));
 }
 
 static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length)
 {
     // This shouldn't lose any data and works for any size
-    if( !audio_initialized ) {
+    if( audio_state == AUDIOSTATE_PREPARE_RESUME ) {
+#if AUDIO_DEBUG
+        printf("Audio: Resuming\n");
+#endif
+        audio_state = AUDIOSTATE_RESUMING;
+        return 0;
+    }else if( audio_state != AUDIOSTATE_PLAYING ) {
         return 0;
     }
-    LWP_SemWait(audio_free);
+    LWP_MutexLock(audio_free);
 
     // Tuning
-    if( !audio_paused && buffer_tuning ) {
+    if( buffer_tuning ) {
         samplerate_tuning_p = -buffer_tuning / (BUFFER_SIZE_SAMPLES / 256);
         if( samplerate_tuning_p > 0 ) {
             samplerate_tuning_i++;
@@ -140,16 +177,14 @@ static Int32 soundWrite(void* dummy, Int16 *stream, UInt32 length)
     }
     DCFlushRange(sample_buffer, sizeof(sample_buffer));
 
-    LWP_SemPost(audio_free);
+    LWP_MutexUnlock(audio_free);
 
     return 0;
 }
 
 void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 channels)
 {
-    if( audio_initialized ) {
-        archSoundDestroy();
-    }
+    archSoundDestroy();
     // Check parameters
     if( sampleRate != SAMPLERATE_IN ) {
         fprintf(stderr, "Audio: Samplerate of %d not supported\n", sampleRate);
@@ -160,61 +195,67 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
         exit(1);
     }
     // Init audio
-    audio_paused = 1;
+    soundClearBuffer();
     AUDIO_Init(NULL);
     AUDIO_SetDSPSampleRate(AI_SAMPLERATE_48KHZ);
-    LWP_SemInit(&audio_free, 1, 0xffffffff);
-    AUDIO_RegisterDMACallback(done_playing);
+    LWP_MutexInit(&audio_free, 1);
+    AUDIO_RegisterDMACallback(soundDMACallback);
     // Initialize mixer
     audio_mixer = mixer;
     mixerSetStereo(mixer, channels == 2);
-    mixerSetWriteCallback(mixer, soundWrite, NULL, BUFFER_SIZE_BYTES / 64);
-    audio_initialized = 1;
+    mixerSetWriteCallback(mixer, soundWrite, NULL, BUFFER_SIZE_BYTES / BUFFER_CHUNKS);
+#if AUDIO_DEBUG
+    printf("Audio: Initialized\n");
+#endif
+    audio_state = AUDIOSTATE_PAUSED;
+    // Start DMA
+    AUDIO_InitDMA((unsigned int)&sample_buffer, BUFFER_SIZE_BYTES);
+    AUDIO_StartDMA();
 }
 
 void archSoundDestroy(void)
 {
-    if( audio_initialized ) {
+    if( audio_state != AUDIOSTATE_UNINITIALIZED ) {
         // De-register to mixer
         mixerSetWriteCallback(audio_mixer, NULL, NULL, 0);
         // Stop DMA
         AUDIO_StopDMA();
         // Destroy semaphores and suspend the thread so audio can't play
-        LWP_SemWait(audio_free);
-        LWP_SemDestroy(audio_free);
-        audio_paused = 0;
-        audio_initialized = 0;
+        LWP_MutexLock(audio_free);
+        LWP_MutexDestroy(audio_free);
+        audio_state = AUDIOSTATE_UNINITIALIZED;
+#if AUDIO_DEBUG
+        printf("Audio: Destroyed\n");
+#endif
     }
 }
 
 void archSoundSuspend(void)
 {
-    if( audio_initialized && !audio_paused ) {
+    if( audio_state != AUDIOSTATE_UNINITIALIZED &&
+        audio_state != AUDIOSTATE_PAUSED ) {
 #if AUDIO_DEBUG
         printf("Audio: Pause\n");
 #endif
-        AUDIO_StopDMA();
-        audio_paused = 1;
+        audio_state = AUDIOSTATE_PAUSED;
+        soundClearBuffer();
     }
 }
 
 void archSoundResume(void)
 {
-    if( audio_initialized && audio_paused ){
+    if( audio_state == AUDIOSTATE_PAUSED ) {
 #if AUDIO_DEBUG
-        printf("Audio: Resume\n");
+        printf("Audio: Prepare resume\n");
 #endif
-        LWP_SemWait(audio_free);
-        memset(sample_buffer, 0, sizeof(sample_buffer));
-        DCFlushRange(sample_buffer, sizeof(sample_buffer));
-        audio_paused = 0;
+        LWP_MutexLock(audio_free);
         buffer_offset = BUFFER_SIZE_SAMPLES / 2;
         buffer_tuning = 0;
         resample_divider = 0;
         prev_sample[0] = 0;
         prev_sample[1] = 0;
-        LWP_SemPost(audio_free);
-        done_playing();
+        audio_state = AUDIOSTATE_PREPARE_RESUME;
+        LWP_MutexUnlock(audio_free);
     }
 }
 
