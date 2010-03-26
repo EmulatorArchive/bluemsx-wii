@@ -54,7 +54,7 @@ typedef enum {
 } AUDIOSTATE;
   
 static Int16 sample_buffer[BUFFER_SIZE_SAMPLES] __attribute__((aligned(32)));
-static unsigned Int32 buffer_offset = 0;
+static UInt32 buffer_offset = 0;
 
 static AUDIOSTATE audio_state = AUDIOSTATE_UNINITIALIZED;
 static Int32 tuning_sample_min, tuning_sample_max;
