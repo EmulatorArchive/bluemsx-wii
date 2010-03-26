@@ -28,6 +28,10 @@
 #include "FrameBuffer.h"
 #include "ArchEvent.h"
 #include "ArchVideoIn.h"
+#ifdef WII
+#include "ArchSound.h"
+#include "ArchThread.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -209,7 +213,6 @@ static FrameBuffer* frameBufferFlipDrawFrame3()
 static FrameBuffer* frameBufferFlipDrawFrame4()
 {
     FrameBuffer* frame;
-    int drawFrame = currentBuffer->drawFrame;
     int drawAge = 0x7fffffff;
     int i;
 
@@ -319,6 +322,7 @@ FrameBuffer* frameBufferFlipDrawFrame()
 
 #ifdef WII
     archThreadSleep(0); // wait one frame
+    soundCallibrate();
 #endif
     if (currentBuffer == NULL) {
         return NULL;

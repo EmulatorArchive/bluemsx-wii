@@ -407,7 +407,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             actionQuickSaveState();
                             msgbox->Remove();
                             msgbox->Show("State saved", NULL, false, 160);
-                            archThreadSleep(2000);
+                            archThreadSleep(1000);
                             msgbox->Remove();
                             break;
                         case 2: /* Screenshot */
@@ -438,7 +438,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             (void)archScreenCaptureToFile(SC_NORMAL, p);
                             msgbox->Remove();
                             msgbox->Show("Screenshot saved", NULL, false, 160);
-                            archThreadSleep(2000);
+                            archThreadSleep(1000);
                             msgbox->Remove();
                             break;
                         case 3: /* Quit */
