@@ -119,7 +119,11 @@ void vdpUnregisterDaConverter(int vdpDaHandle)
 
 // VDP emulation
 
-#define HPERIOD      1368
+#ifdef WII
+#define HPERIOD     (refreshRate==50? 1368+4 : 1368)
+#else
+#define HPERIOD     1368
+#endif
 
 #define INT_IE0     0x01
 #define INT_IE1     0x02

@@ -155,7 +155,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
     if( num_states == 0 ) {
         GuiMessageBox *msgbox = new GuiMessageBox(manager);
         msgbox->Show("No state files found!", NULL, false, 160);
-        archThreadSleep(2000);
+        archThreadSleep(1000);
         delete msgbox;
         return NULL;
     }
