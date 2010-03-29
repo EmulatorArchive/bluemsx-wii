@@ -379,7 +379,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                 refresh = newrfsh;
             }
         }
-        if( KBD_GetKeyStatus(KEY_JOY1_HOME) || KBD_GetKeyStatus(KEY_JOY2_HOME) ||
+        if( KBD_GetKeyStatus(KEY_JOY1_COMMON_HOME) || KBD_GetKeyStatus(KEY_JOY2_COMMON_HOME) ||
             KBD_GetKeyStatus(KEY_F12) ) {
             if( !pressed ) {
                 emulatorSuspend();
