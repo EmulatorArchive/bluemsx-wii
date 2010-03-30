@@ -187,16 +187,18 @@ static void initKbdTable()
     kbdTable[KEY_KP_ENTER   ] = EC_PAUSE;
     kbdTable[KEY_PRINT      ] = EC_PRINT;
 
-    kbdTable[KEY_JOY1_COMMON_A  ] = EC_JOY1_BUTTON1;
-    kbdTable[KEY_JOY1_COMMON_B  ] = EC_JOY1_BUTTON2;
     kbdTable[KEY_JOY1_UP        ] = EC_JOY1_UP;
     kbdTable[KEY_JOY1_DOWN      ] = EC_JOY1_DOWN;
     kbdTable[KEY_JOY1_LEFT      ] = EC_JOY1_LEFT;
     kbdTable[KEY_JOY1_RIGHT     ] = EC_JOY1_RIGHT;
+    kbdTable[KEY_JOY1_WIIMOTE_A ] = EC_JOY1_BUTTON1;
+    kbdTable[KEY_JOY1_WIIMOTE_B ] = EC_JOY1_BUTTON2;
     kbdTable[KEY_JOY1_WIIMOTE_1 ] = EC_JOY1_BUTTON2;
     kbdTable[KEY_JOY1_WIIMOTE_2 ] = EC_JOY1_BUTTON1;
     kbdTable[KEY_JOY1_NUNCHUCK_C] = EC_JOY1_BUTTON2;
     kbdTable[KEY_JOY1_NUNCHUCK_Z] = EC_JOY1_BUTTON1;
+    kbdTable[KEY_JOY1_CLASSIC_A ] = EC_JOY1_BUTTON1;
+    kbdTable[KEY_JOY1_CLASSIC_B ] = EC_JOY1_BUTTON2;
     kbdTable[KEY_JOY1_CLASSIC_X ] = EC_JOY1_BUTTON1;
     kbdTable[KEY_JOY1_CLASSIC_Y ] = EC_JOY1_BUTTON2;
     kbdTable[KEY_JOY1_CLASSIC_L ] = EC_JOY1_BUTTON1;
@@ -204,16 +206,18 @@ static void initKbdTable()
     kbdTable[KEY_JOY1_CLASSIC_ZL] = EC_JOY1_BUTTON1;
     kbdTable[KEY_JOY1_CLASSIC_ZR] = EC_JOY1_BUTTON2;
 
-    kbdTable[KEY_JOY2_COMMON_A  ] = EC_JOY2_BUTTON1;
-    kbdTable[KEY_JOY2_COMMON_B  ] = EC_JOY2_BUTTON2;
     kbdTable[KEY_JOY2_UP        ] = EC_JOY2_UP;
     kbdTable[KEY_JOY2_DOWN      ] = EC_JOY2_DOWN;
     kbdTable[KEY_JOY2_LEFT      ] = EC_JOY2_LEFT;
     kbdTable[KEY_JOY2_RIGHT     ] = EC_JOY2_RIGHT;
+    kbdTable[KEY_JOY2_WIIMOTE_A ] = EC_JOY2_BUTTON1;
+    kbdTable[KEY_JOY2_WIIMOTE_B ] = EC_JOY2_BUTTON2;
     kbdTable[KEY_JOY2_WIIMOTE_1 ] = EC_JOY2_BUTTON2;
     kbdTable[KEY_JOY2_WIIMOTE_2 ] = EC_JOY2_BUTTON1;
     kbdTable[KEY_JOY2_NUNCHUCK_C] = EC_JOY2_BUTTON2;
     kbdTable[KEY_JOY2_NUNCHUCK_Z] = EC_JOY2_BUTTON1;
+    kbdTable[KEY_JOY2_CLASSIC_A ] = EC_JOY2_BUTTON1;
+    kbdTable[KEY_JOY2_CLASSIC_B ] = EC_JOY2_BUTTON2;
     kbdTable[KEY_JOY2_CLASSIC_X ] = EC_JOY2_BUTTON1;
     kbdTable[KEY_JOY2_CLASSIC_Y ] = EC_JOY2_BUTTON2;
     kbdTable[KEY_JOY2_CLASSIC_L ] = EC_JOY2_BUTTON1;
