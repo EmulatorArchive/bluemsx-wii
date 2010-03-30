@@ -36,6 +36,7 @@ void archSoundResume(void);
 void archSoundSuspend(void);
 #ifdef WII
 void soundCallibrate(void);
+void soundRestart(int time);
 #endif
 
 #endif

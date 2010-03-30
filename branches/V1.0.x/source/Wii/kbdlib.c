@@ -88,18 +88,10 @@ struct _kbd_data {
 static KBDHANDLE kbdHandle = NULL;
 
 static const char *keynames[KEY_LAST];
+static const char *keynames2[KEY_LAST];
 
 static PADCODE wpad_default[] =
 {
-    /* common+obsolete mappings */
-    {KEY_JOY1_COMMON_A,      KEY_JOY2_COMMON_A,       WPAD_BUTTON_A     },
-    {KEY_JOY1_COMMON_B,      KEY_JOY2_COMMON_B,       WPAD_BUTTON_B     },
-    {KEY_JOY1_OBSOLETE_1,    KEY_JOY2_OBSOLETE_1,     WPAD_BUTTON_1     },
-    {KEY_JOY1_OBSOLETE_2,    KEY_JOY2_OBSOLETE_2,     WPAD_BUTTON_2     },
-    {KEY_JOY1_COMMON_HOME,   KEY_JOY2_COMMON_HOME,    WPAD_BUTTON_HOME  },
-    {KEY_JOY1_COMMON_PLUS,   KEY_JOY2_COMMON_PLUS,    WPAD_BUTTON_PLUS  },
-    {KEY_JOY1_COMMON_MINUS,  KEY_JOY2_COMMON_MINUS,   WPAD_BUTTON_MINUS },
-    /* wiimote specific mappings */
     {KEY_JOY1_WIIMOTE_A,     KEY_JOY2_WIIMOTE_A,     WPAD_BUTTON_A      },
     {KEY_JOY1_WIIMOTE_B,     KEY_JOY2_WIIMOTE_B,     WPAD_BUTTON_B      },
     {KEY_JOY1_WIIMOTE_1,     KEY_JOY2_WIIMOTE_1,     WPAD_BUTTON_1      },
@@ -116,23 +108,10 @@ static PADCODE wpad_default[] =
 
 static PADCODE wpad_classic[] =
 {
-    /* common+obsolete mappings */
-    {KEY_JOY1_COMMON_A,      KEY_JOY2_COMMON_A,      WPAD_CLASSIC_BUTTON_A      },
-    {KEY_JOY1_COMMON_B,      KEY_JOY2_COMMON_B,      WPAD_CLASSIC_BUTTON_B      },
-    {KEY_JOY1_OBSOLETE_X,    KEY_JOY2_OBSOLETE_X,    WPAD_CLASSIC_BUTTON_X      },
-    {KEY_JOY1_OBSOLETE_Y,    KEY_JOY2_OBSOLETE_Y,    WPAD_CLASSIC_BUTTON_Y      },
-    {KEY_JOY1_OBSOLETE_L,    KEY_JOY2_OBSOLETE_L,    WPAD_CLASSIC_BUTTON_FULL_L },
-    {KEY_JOY1_OBSOLETE_R,    KEY_JOY2_OBSOLETE_R,    WPAD_CLASSIC_BUTTON_FULL_R },
-    {KEY_JOY1_OBSOLETE_ZL,   KEY_JOY2_OBSOLETE_ZL,   WPAD_CLASSIC_BUTTON_ZL     },
-    {KEY_JOY1_OBSOLETE_ZR,   KEY_JOY2_OBSOLETE_ZR,   WPAD_CLASSIC_BUTTON_ZR     },
     {KEY_JOY1_UP,            KEY_JOY2_UP,            WPAD_CLASSIC_BUTTON_UP     },
     {KEY_JOY1_DOWN,          KEY_JOY2_DOWN,          WPAD_CLASSIC_BUTTON_DOWN   },
     {KEY_JOY1_LEFT,          KEY_JOY2_LEFT,          WPAD_CLASSIC_BUTTON_LEFT   },
     {KEY_JOY1_RIGHT,         KEY_JOY2_RIGHT,         WPAD_CLASSIC_BUTTON_RIGHT  },
-    {KEY_JOY1_COMMON_MINUS,  KEY_JOY2_COMMON_MINUS,  WPAD_CLASSIC_BUTTON_MINUS  },
-    {KEY_JOY1_COMMON_PLUS,   KEY_JOY2_COMMON_PLUS,   WPAD_CLASSIC_BUTTON_PLUS   },
-    {KEY_JOY1_COMMON_HOME,   KEY_JOY2_COMMON_HOME,   WPAD_CLASSIC_BUTTON_HOME   },
-    /* classic specific mappings */
     {KEY_JOY1_CLASSIC_A,     KEY_JOY2_CLASSIC_A,     WPAD_CLASSIC_BUTTON_A      },
     {KEY_JOY1_CLASSIC_B,     KEY_JOY2_CLASSIC_B,     WPAD_CLASSIC_BUTTON_B      },
     {KEY_JOY1_CLASSIC_X,     KEY_JOY2_CLASSIC_X,     WPAD_CLASSIC_BUTTON_X      },
@@ -461,89 +440,63 @@ static void FillKeyNames(void)
 
     keynames[KEY_PRINT]     = "print_screen";
 
-    /* common buttons / legacy */
-    keynames[KEY_JOY1_COMMON_A]     = "buttonA1";
-    keynames[KEY_JOY1_COMMON_B]     = "buttonB1";
-    keynames[KEY_JOY1_OBSOLETE_1]   = "button11";
-    keynames[KEY_JOY1_OBSOLETE_2]   = "button21";
+    /* common buttons */
     keynames[KEY_JOY1_UP]           = "up1";
     keynames[KEY_JOY1_DOWN]         = "down1";
     keynames[KEY_JOY1_LEFT]         = "left1";
     keynames[KEY_JOY1_RIGHT]        = "right1";
-    keynames[KEY_JOY1_COMMON_HOME]  = "home1";
-    keynames[KEY_JOY1_COMMON_PLUS]  = "plus1";
-    keynames[KEY_JOY1_COMMON_MINUS] = "minus1";
-    keynames[KEY_JOY1_OBSOLETE_X]   = "buttonX1";
-    keynames[KEY_JOY1_OBSOLETE_Y]   = "buttonY1";
-    keynames[KEY_JOY1_OBSOLETE_L]   = "buttonL1";
-    keynames[KEY_JOY1_OBSOLETE_R]   = "buttonR1";
-    keynames[KEY_JOY1_OBSOLETE_ZL]  = "buttonZL1";
-    keynames[KEY_JOY1_OBSOLETE_ZR]  = "buttonZR1";
     /* wiimote */
-    keynames[KEY_JOY1_WIIMOTE_A]    = "wiimoteA1";
-    keynames[KEY_JOY1_WIIMOTE_B]    = "wiimoteB1";
-    keynames[KEY_JOY1_WIIMOTE_1]    = "wiimote11";
-    keynames[KEY_JOY1_WIIMOTE_2]    = "wiimote21";
-    keynames[KEY_JOY1_WIIMOTE_HOME] = "wiimotehome1";
-    keynames[KEY_JOY1_WIIMOTE_PLUS] = "wiimoteplus1";
-    keynames[KEY_JOY1_WIIMOTE_MINUS]= "wiimoteminus1";
+    keynames[KEY_JOY1_WIIMOTE_A]    = "wiimoteA1";     keynames2[KEY_JOY1_WIIMOTE_A]    = "buttonA1";
+    keynames[KEY_JOY1_WIIMOTE_B]    = "wiimoteB1";     keynames2[KEY_JOY1_WIIMOTE_B]    = "buttonB1";
+    keynames[KEY_JOY1_WIIMOTE_1]    = "wiimote11";     keynames2[KEY_JOY1_WIIMOTE_1]    = "button11";
+    keynames[KEY_JOY1_WIIMOTE_2]    = "wiimote21";     keynames2[KEY_JOY1_WIIMOTE_2]    = "button21";
+    keynames[KEY_JOY1_WIIMOTE_HOME] = "wiimotehome1";  keynames2[KEY_JOY1_WIIMOTE_HOME] = "home1";
+    keynames[KEY_JOY1_WIIMOTE_PLUS] = "wiimoteplus1";  keynames2[KEY_JOY1_WIIMOTE_PLUS] = "plus1";
+    keynames[KEY_JOY1_WIIMOTE_MINUS]= "wiimoteminus1"; keynames2[KEY_JOY1_WIIMOTE_MINUS]= "minus1";
     /* nunchuck */
     keynames[KEY_JOY1_NUNCHUCK_C]   = "nunchuckC1";
     keynames[KEY_JOY1_NUNCHUCK_Z]   = "nunchuckZ1";
     /* classic */
-    keynames[KEY_JOY1_CLASSIC_A]    = "classicA1";
-    keynames[KEY_JOY1_CLASSIC_B]    = "classicB1";
-    keynames[KEY_JOY1_CLASSIC_X]    = "classicX1";
-    keynames[KEY_JOY1_CLASSIC_Y]    = "classicY1";
-    keynames[KEY_JOY1_CLASSIC_L]    = "classicL1";
-    keynames[KEY_JOY1_CLASSIC_R]    = "classicR1";
-    keynames[KEY_JOY1_CLASSIC_ZL]   = "classicZL1";
-    keynames[KEY_JOY1_CLASSIC_ZR]   = "classicZR1";
-    keynames[KEY_JOY1_CLASSIC_HOME] = "classichome1";
-    keynames[KEY_JOY1_CLASSIC_PLUS] = "classicplus1";
-    keynames[KEY_JOY1_CLASSIC_MINUS]= "classicminus1";
+    keynames[KEY_JOY1_CLASSIC_A]    = "classicA1";     keynames2[KEY_JOY1_CLASSIC_A]    = "buttonA1";
+    keynames[KEY_JOY1_CLASSIC_B]    = "classicB1";     keynames2[KEY_JOY1_CLASSIC_B]    = "buttonB1";
+    keynames[KEY_JOY1_CLASSIC_X]    = "classicX1";     keynames2[KEY_JOY1_CLASSIC_X]    = "buttonX1";
+    keynames[KEY_JOY1_CLASSIC_Y]    = "classicY1";     keynames2[KEY_JOY1_CLASSIC_Y]    = "buttonY1";
+    keynames[KEY_JOY1_CLASSIC_L]    = "classicL1";     keynames2[KEY_JOY1_CLASSIC_L]    = "buttonL1";
+    keynames[KEY_JOY1_CLASSIC_R]    = "classicR1";     keynames2[KEY_JOY1_CLASSIC_R]    = "buttonR1";
+    keynames[KEY_JOY1_CLASSIC_ZL]   = "classicZL1";    keynames2[KEY_JOY1_CLASSIC_ZL]   = "buttonZL1";
+    keynames[KEY_JOY1_CLASSIC_ZR]   = "classicZR1";    keynames2[KEY_JOY1_CLASSIC_ZR]   = "buttonZR1";
+    keynames[KEY_JOY1_CLASSIC_HOME] = "classichome1";  keynames2[KEY_JOY1_CLASSIC_HOME] = "home1";
+    keynames[KEY_JOY1_CLASSIC_PLUS] = "classicplus1";  keynames2[KEY_JOY1_CLASSIC_PLUS] = "plus1";
+    keynames[KEY_JOY1_CLASSIC_MINUS]= "classicminus1"; keynames2[KEY_JOY1_CLASSIC_MINUS]= "minus1";
 
-    /* common buttons / legacy */
-    keynames[KEY_JOY2_COMMON_A]     = "buttonA2";
-    keynames[KEY_JOY2_COMMON_B]     = "buttonB2";
-    keynames[KEY_JOY2_OBSOLETE_1]   = "button12";
-    keynames[KEY_JOY2_OBSOLETE_2]   = "button22";
+    /* common buttons */
     keynames[KEY_JOY2_UP]           = "up2";
     keynames[KEY_JOY2_DOWN]         = "down2";
     keynames[KEY_JOY2_LEFT]         = "left2";
     keynames[KEY_JOY2_RIGHT]        = "right2";
-    keynames[KEY_JOY2_COMMON_HOME]  = "home2";
-    keynames[KEY_JOY2_COMMON_PLUS]  = "plus2";
-    keynames[KEY_JOY2_COMMON_MINUS] = "minus2";
-    keynames[KEY_JOY2_OBSOLETE_X]   = "buttonX2";
-    keynames[KEY_JOY2_OBSOLETE_Y]   = "buttonY2";
-    keynames[KEY_JOY2_OBSOLETE_L]   = "buttonL2";
-    keynames[KEY_JOY2_OBSOLETE_R]   = "buttonR2";
-    keynames[KEY_JOY2_OBSOLETE_ZL]  = "buttonZL2";
-    keynames[KEY_JOY2_OBSOLETE_ZR]  = "buttonZR2";
     /* wiimote */
-    keynames[KEY_JOY2_WIIMOTE_A]    = "wiimoteA2";
-    keynames[KEY_JOY2_WIIMOTE_B]    = "wiimoteB2";
-    keynames[KEY_JOY2_WIIMOTE_1]    = "wiimote12";
-    keynames[KEY_JOY2_WIIMOTE_2]    = "wiimote22";
-    keynames[KEY_JOY2_WIIMOTE_HOME] = "wiimotehome2";
-    keynames[KEY_JOY2_WIIMOTE_PLUS] = "wiimoteplus2";
-    keynames[KEY_JOY2_WIIMOTE_MINUS]= "wiimoteminus2";
+    keynames[KEY_JOY2_WIIMOTE_A]    = "wiimoteA2";     keynames2[KEY_JOY2_WIIMOTE_A]    = "buttonA2";
+    keynames[KEY_JOY2_WIIMOTE_B]    = "wiimoteB2";     keynames2[KEY_JOY2_WIIMOTE_B]    = "buttonB2";
+    keynames[KEY_JOY2_WIIMOTE_1]    = "wiimote12";     keynames2[KEY_JOY2_WIIMOTE_1]    = "button12";
+    keynames[KEY_JOY2_WIIMOTE_2]    = "wiimote22";     keynames2[KEY_JOY2_WIIMOTE_2]    = "button22";
+    keynames[KEY_JOY2_WIIMOTE_HOME] = "wiimotehome2";  keynames2[KEY_JOY2_WIIMOTE_HOME] = "home2";
+    keynames[KEY_JOY2_WIIMOTE_PLUS] = "wiimoteplus2";  keynames2[KEY_JOY2_WIIMOTE_PLUS] = "plus2";
+    keynames[KEY_JOY2_WIIMOTE_MINUS]= "wiimoteminus2"; keynames2[KEY_JOY2_WIIMOTE_MINUS]= "minus2";
     /* nunchuck */
     keynames[KEY_JOY2_NUNCHUCK_C]   = "nunchuckC2";
     keynames[KEY_JOY2_NUNCHUCK_Z]   = "nunchuckZ2";
     /* classic */
-    keynames[KEY_JOY2_CLASSIC_A]    = "classicA2";
-    keynames[KEY_JOY2_CLASSIC_B]    = "classicB2";
-    keynames[KEY_JOY2_CLASSIC_X]    = "classicX2";
-    keynames[KEY_JOY2_CLASSIC_Y]    = "classicY2";
-    keynames[KEY_JOY2_CLASSIC_L]    = "classicL2";
-    keynames[KEY_JOY2_CLASSIC_R]    = "classicR2";
-    keynames[KEY_JOY2_CLASSIC_ZL]   = "classicZL2";
-    keynames[KEY_JOY2_CLASSIC_ZR]   = "classicZR2";
-    keynames[KEY_JOY2_CLASSIC_HOME] = "classichome2";
-    keynames[KEY_JOY2_CLASSIC_PLUS] = "classicplus2";
-    keynames[KEY_JOY2_CLASSIC_MINUS]= "classicminus2";
+    keynames[KEY_JOY2_CLASSIC_A]    = "classicA2";     keynames2[KEY_JOY2_CLASSIC_A]    = "buttonA2";
+    keynames[KEY_JOY2_CLASSIC_B]    = "classicB2";     keynames2[KEY_JOY2_CLASSIC_B]    = "buttonB2";
+    keynames[KEY_JOY2_CLASSIC_X]    = "classicX2";     keynames2[KEY_JOY2_CLASSIC_X]    = "buttonX2";
+    keynames[KEY_JOY2_CLASSIC_Y]    = "classicY2";     keynames2[KEY_JOY2_CLASSIC_Y]    = "buttonY2";
+    keynames[KEY_JOY2_CLASSIC_L]    = "classicL2";     keynames2[KEY_JOY2_CLASSIC_L]    = "buttonL2";
+    keynames[KEY_JOY2_CLASSIC_R]    = "classicR2";     keynames2[KEY_JOY2_CLASSIC_R]    = "buttonR2";
+    keynames[KEY_JOY2_CLASSIC_ZL]   = "classicZL2";    keynames2[KEY_JOY2_CLASSIC_ZL]   = "buttonZL2";
+    keynames[KEY_JOY2_CLASSIC_ZR]   = "classicZR2";    keynames2[KEY_JOY2_CLASSIC_ZR]   = "buttonZR2";
+    keynames[KEY_JOY2_CLASSIC_HOME] = "classichome2";  keynames2[KEY_JOY2_CLASSIC_HOME] = "home2";
+    keynames[KEY_JOY2_CLASSIC_PLUS] = "classicplus2";  keynames2[KEY_JOY2_CLASSIC_PLUS] = "plus2";
+    keynames[KEY_JOY2_CLASSIC_MINUS]= "classicminus2"; keynames2[KEY_JOY2_CLASSIC_MINUS]= "minus2";
 }
 
 int KBD_IsConnected(void)
@@ -551,15 +504,14 @@ int KBD_IsConnected(void)
     return kbdHandle->connected;
 }
 
-const char *KBD_GetKeyName(KEY key)
+int KBD_CheckKeyName(KEY key, const char *kname)
 {
-    const char *keyname;
-
-    keyname = NULL;
-    if ( key < KEY_LAST ) {
-        keyname = keynames[key];
+    if( key < KEY_LAST &&
+        ((keynames[key] && strcmp(kname, keynames[key])==0) ||
+         (keynames2[key] && strcmp(kname, keynames2[key])==0)) ) {
+        return 1;
     }
-    return keyname;
+    return 0;
 }
 
 static u32 GetJoystickDirection(joystick_t *js)
@@ -712,7 +664,6 @@ void KBD_GetKeys(KBD_CALLBACK cb)
                     if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
                         kbdHandle->keystatus[syms[i].key] = 1;
                         if( cb ) cb(syms[i].key, 1);
-                        //printf("Key_press %s\n", KBD_GetKeyName(syms[i].key));
                     }
                 }
                 break;
@@ -721,7 +672,6 @@ void KBD_GetKeys(KBD_CALLBACK cb)
                     if( kbdEvent.symbol == syms[i].code_a || kbdEvent.symbol == syms[i].code_b ) {
                         kbdHandle->keystatus[syms[i].key] = 0;
                         if( cb ) cb(syms[i].key, 0);
-                        //printf("Key_release %s\n", KBD_GetKeyName(syms[i].key));
                     }
                 }
                 break;

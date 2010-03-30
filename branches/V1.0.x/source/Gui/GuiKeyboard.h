@@ -30,8 +30,6 @@ private:
     float yscale;
     int keymap1;
     int keymap2;
-    int keymap3;
-    int keymap4;
 
     GuiManager *manager;
     DrawableImage *img_hover;
