@@ -344,7 +344,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     emuSpr->SetStretchHeight(1.0f);
     emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     emuSpr->SetRefPixelPosition(0, 0);
-    emuSpr->SetPosition(0, 0);
+    emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
     manager->AddTop(emuSpr, 90);
     manager->Unlock();
 
