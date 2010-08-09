@@ -11,7 +11,7 @@
         <ScreenShot>02-ineedspeed-2.png</ScreenShot>
     </Game>
     <Game Title="03 La Corona Encantada">
-        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 03-rk714en.rom</CommandLine>
+        <CommandLine>/machine MSX /rom1 msxdev08.zip /rom1zip 03-RLV901.rom</CommandLine>
         <ScreenShot>03-rk714en-1.png</ScreenShot>
         <ScreenShot>03-rk714en-2.png</ScreenShot>
     </Game>
