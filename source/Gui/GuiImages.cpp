@@ -8,8 +8,6 @@
 #include "image_selector2.inc"
 #include "image_floppy_disk.inc"
 #include "image_keyboard.inc"
-#include "image_button_yes.inc"
-#include "image_button_no.inc"
 #include "image_button_red.inc"
 #include "image_button_green.inc"
 #include "image_button_blue.inc"
