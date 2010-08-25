@@ -1,5 +1,5 @@
 /*****************************************************************************
-** $Source: sdsetup.h,v $
+** $Source: StorageSetup.h,v $
 **
 **  This software is provided 'as-is', without any express or implied
 **  warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,9 @@
 #include "GuiManager.h"
 
 #define SD_ROOT_DIR  "sd:/"
-#define MSX_ROOT_DIR SD_ROOT_DIR"/MSX"
+#define USB_ROOT_DIR "usb:/"
+#define MSX_DIR      "/MSX"
 
-extern bool SetupSDCard(GuiManager *manager);
+extern bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted);
+extern char *GetMSXRootPath(void);
 

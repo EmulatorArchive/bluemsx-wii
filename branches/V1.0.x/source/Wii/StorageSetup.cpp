@@ -1,5 +1,5 @@
 /*****************************************************************************
-** $Source: sdsetup.c,v $
+** $Source: StorageSetup.c,v $
 **
 **  This software is provided 'as-is', without any express or implied
 **  warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 ******************************************************************************
 */
 
-#include "SdSetup.h"
+#include "StorageSetup.h"
 
 #define USE_EMBEDDED_SDCARD_IMAGE 1
 
@@ -38,12 +38,15 @@
 extern "C" {
 #include "ArchThread.h"
 }
+#include "GuiMenu.h"
 #include "GuiMessageBox.h"
 
 
 static GuiMessageBox *msgboxSdSetup = NULL;
+static char sMSXRootPath[10] = {0};
+static char sStorageRoot[10] = {0};
 
-void SetupSDProgressCallback(int total, int current)
+static void SetupStorageProgressCallback(int total, int current)
 {
     static int prev_percent = -1;
     int percent;
@@ -69,7 +72,7 @@ bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
         MemZip *zip = MemZipOpenResource(zipptr, zipsize);
         if( zip ) {
             chdir(directory);
-            if( !zipExtract(zip->unzip, 1, NULL, SetupSDProgressCallback) ) {
+            if( !zipExtract(zip->unzip, 1, NULL, SetupStorageProgressCallback) ) {
                 printf("failed to extract zip resource\n");
                 failed = true;
             }
@@ -84,25 +87,83 @@ bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
     return ok;
 }
 
-bool SetupSDCard(GuiManager *manager)
+static void SetStorageSDCard(void)
+{
+    sprintf(sMSXRootPath, SD_ROOT_DIR MSX_DIR);
+    sprintf(sStorageRoot, SD_ROOT_DIR);
+}
+
+static void SetStorageUSBDevice(void)
+{
+    sprintf(sMSXRootPath, USB_ROOT_DIR MSX_DIR);
+    sprintf(sStorageRoot, USB_ROOT_DIR);
+}
+
+bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted)
 {
     bool ok = true;
 
-#if USE_EMBEDDED_SDCARD_IMAGE
-    // Check if 'Database' and 'Machine' directories exists
+    // Check if there already is a MSX folder on a storage device
+    // Prevalate USB, as it is a lot faster than SD (USB 2.0 supported since IOS58)
+    bool bBlueMSXInstalled = false;
     struct stat s;
-    if( stat(MSX_ROOT_DIR"/Databases", &s) != 0 ||
-        stat(MSX_ROOT_DIR"/Machines", &s) != 0 ) {
+    if( bUSBMounted && stat(USB_ROOT_DIR MSX_DIR, &s) == 0 ) {
+        SetStorageUSBDevice();
+        bBlueMSXInstalled = true;
+    } else
+    if( bSDMounted && stat(SD_ROOT_DIR MSX_DIR, &s) == 0 ) {
+        SetStorageSDCard();
+        bBlueMSXInstalled = true;
+    }
+
+#if USE_EMBEDDED_SDCARD_IMAGE
+    if( !bBlueMSXInstalled ) {
+        if( bSDMounted && bUSBMounted ) {
+            // Have the user decide which device to install to
+            GuiMenu *menu = new GuiMenu(manager, 2);
+            const char *menu_items[] = {
+              "Use USB Device",
+              "Use SD-Card",
+            };
+            int action = menu->DoModal(menu_items, 2, 344);
+            switch( action ) {
+                case 0: /* USB Device */
+                    SetStorageUSBDevice();
+                    break;
+                case 1: /* SD-Card */
+                    SetStorageSDCard();
+                    break;
+                default:
+                    break;
+            }
+            delete menu;
+        } else if( bSDMounted ) {
+            SetStorageSDCard();
+        } else if( bUSBMounted ) {
+            SetStorageUSBDevice();
+        }
+    }
+
+    char sDatabasePath[30];
+    char sMachinesPath[30];
+    sprintf(sDatabasePath, "%s/Databases", sMSXRootPath);
+    sprintf(sMachinesPath, "%s/Machines", sMSXRootPath);
+    // Check if 'Database' and 'Machine' directories exists
+    if( stat(sDatabasePath, &s) != 0 ||
+        stat(sMachinesPath, &s) != 0 ) {
+
         // Does not exist yet, install
-        ok = SetupInstallZip(manager, sdcard, sizeof(sdcard), SD_ROOT_DIR,
-                             "SD-Card is not setup yet,\n"
+        ok = SetupInstallZip(manager, sdcard, sizeof(sdcard), sStorageRoot,
+                             "Storage is not setup yet,\n"
                              "Do you want to do it now?");
     }
     if( ok ) {
+        char sGamesPath[20];
+        sprintf(sGamesPath, "%s/Games", sMSXRootPath);
         // Check if 'Games' directory exist
-        if( stat(MSX_ROOT_DIR"/Games", &s) != 0 ) {
+        if( stat(sGamesPath, &s) != 0 ) {
             // Does not exist yet, install
-            ok = SetupInstallZip(manager, gamepack, sizeof(gamepack), MSX_ROOT_DIR,
+            ok = SetupInstallZip(manager, gamepack, sizeof(gamepack), sMSXRootPath,
                                  "No gamepack is installed yet,\n"
                                  "Install the basic pack now?");
         }
@@ -110,5 +171,10 @@ bool SetupSDCard(GuiManager *manager)
 #endif
 
     return ok;
+}
+
+char * GetMSXRootPath(void)
+{
+    return sMSXRootPath;
 }
 
