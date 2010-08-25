@@ -29,6 +29,9 @@
 */
 #include <debug.h>
 #include <fat.h>
+#include <ogc/system.h>      // for syswd_t (required in ogc/usbstorage.h)
+#include <ogc/usbstorage.h>
+#include <sdcard/wiisd_io.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -69,11 +72,11 @@ extern "C" {
 #include "WiiInput.h"
 }
 
-#include "SdSetup.h"
 #include "GuiConsole.h"
 #include "GuiContainer.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
+#include "StorageSetup.h"
 
 #define ENABLE_GECKO  0
 #define CONSOLE_DEBUG 0
@@ -92,7 +95,9 @@ static int   displayPitch = TEX_WIDTH * 2;
 
 static GuiManager *manager = NULL;
 static GuiBackground *background = NULL;
+#if CONSOLE_DEBUG
 static GuiConsole *console = NULL;
+#endif
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
 
@@ -288,7 +293,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     msgbox->Show("Loading...");
 
     // Set current directory to the MSX-root
-    archSetCurrentDirectory(MSX_ROOT_DIR);
+    archSetCurrentDirectory(GetMSXRootPath());
 
     // Reset properties
     propInitDefaults(properties, 0, P_KBD_EUROPEAN, 0, "");
@@ -479,8 +484,6 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
 int main(int argc, char **argv)
 {
-    bool fatInitialised;
-
     // USB Gecko
 #if ENABLE_GECKO
     DEBUG_Init(GDBSTUB_DEVICE_USB, 1);
@@ -500,8 +503,9 @@ int main(int argc, char **argv)
     WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
     WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
 
-    // Init SD (keyboard layout can be saved on SD)
-    fatInitialised = fatInitDefault();
+    // Init Storage (keyboard layout can be saved)
+    bool bSDMounted  = fatMountSimple("sd", &__io_wiisd);
+    bool bUSBMounted = fatMountSimple("usb", &__io_usbstorage);
 
     // Init keyboard
     keyboardInit();
@@ -512,8 +516,8 @@ int main(int argc, char **argv)
     GuiImageInit();
 
     // Init console
-    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
 #if CONSOLE_DEBUG
+    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
     console->SetVisible(true);
 #endif
 
@@ -521,19 +525,18 @@ int main(int argc, char **argv)
     background = new GuiBackground(manager);
     background->Show();
 
-    // Init SD-Card access
-    if( !fatInitialised ) {
+    // Init storage access
+    if( !bSDMounted && !bUSBMounted ) {
         // Prepare messagebox
         GuiMessageBox *msgboxSdSetup = new GuiMessageBox(manager);
-        msgboxSdSetup->Show("SD-Card error!");
+        msgboxSdSetup->Show("No Storage (USB/SD-Card) found!");
         archThreadSleep(3000);
         delete msgboxSdSetup;
     } else
-    // Init SD-Card access
-    if( SetupSDCard(manager) ) {
-
+    // Init storage access
+    if( SetupStorage(manager, bSDMounted, bUSBMounted) ) {
         // Set current directory to the MSX-root
-        archSetCurrentDirectory(MSX_ROOT_DIR);
+        archSetCurrentDirectory(GetMSXRootPath());
 
         // Please wait...
         msgbox = new GuiMessageBox(manager);
@@ -545,7 +548,9 @@ int main(int argc, char **argv)
         msgbox->Remove();
 
         char *game_dir = NULL;
-        GuiDirSelect *dirs = new GuiDirSelect(manager, MSX_ROOT_DIR"/Games", "dirlist.xml");
+        char sGamesPath[100];
+        sprintf(sGamesPath, "%s/Games", GetMSXRootPath());
+        GuiDirSelect *dirs = new GuiDirSelect(manager, sGamesPath, "dirlist.xml");
 
         for(;;) {
             // Browse directory
@@ -592,20 +597,24 @@ int main(int argc, char **argv)
         archSoundDestroy();
         mixerDestroy(mixer);
     }
-    keyboardClose();
-
     // Destroy background and layer manager
     delete background;
     archThreadSleep(15*20);
 
+#if CONSOLE_DEBUG
     // Destroy console
     delete console;
-
+#endif
     // Free GUI resources
     GuiFontClose();
     GuiImageClose();
 
     delete manager;
+
+    keyboardClose();
+
+    fatUnmount("sd");
+    fatUnmount("usb");
 
     allocLogStop();
     return 0;
