@@ -91,6 +91,11 @@ static void*        periodicRef;
 static UInt32       periodicInterval;
 static BoardTimer*  periodicTimer;
 
+#ifdef WII
+#define MIXER_UPDATE_RATE 1000
+#else
+#define MIXER_UPDATE_RATE 50
+#endif
 
 #define HIRES_CYCLES_PER_LORES_CYCLE (UInt64)100000
 #define boardFrequency64() (HIRES_CYCLES_PER_LORES_CYCLE * boardFrequency())
@@ -1098,7 +1103,7 @@ static void onMixerSync(void* ref, UInt32 time)
 {
     mixerSync(boardMixer);
 
-    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 50);
+    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / MIXER_UPDATE_RATE);
 }
 
 static void onSync(void* ref, UInt32 time)
@@ -1251,7 +1256,7 @@ int boardRun(Machine* machine,
         mixerTimer = boardTimerCreate(onMixerSync, NULL);
 
         boardTimerAdd(syncTimer, boardSystemTime() + 1);
-        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 50);
+        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / MIXER_UPDATE_RATE);
 
         if (boardPeriodicCallback != NULL) {
             periodicTimer = boardTimerCreate(boardPeriodicCallback, periodicRef);

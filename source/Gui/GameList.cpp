@@ -46,11 +46,10 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                 const char *key = atts[i];
                 const char *val = atts[i+1];
                 if( val != NULL ) {
-                    for(int k = 1; k < KEY_LAST; k++) {
-                        const char *kname = KBD_GetKeyName((KEY)k);
-                        if( kname && strcmp(key, kname)==0 ) {
-                            int event = inputEventStringToCode(val);
-                            if( event ) {
+                    int event = inputEventStringToCode(val);
+                    if( event ) {
+                        for(int k = 1; k < KEY_LAST; k++) {
+                            if( KBD_CheckKeyName((KEY)k, key) ) {
                                 my->current_element->SetKeyMapping((KEY)k, event);
                             }
                         }

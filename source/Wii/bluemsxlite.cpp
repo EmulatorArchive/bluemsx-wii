@@ -29,6 +29,9 @@
 */
 #include <debug.h>
 #include <fat.h>
+#include <ogc/system.h>      // for syswd_t (required in ogc/usbstorage.h)
+#include <ogc/usbstorage.h>
+#include <sdcard/wiisd_io.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -71,12 +74,13 @@ extern "C" {
 #include "InputEvent.h"
 }
 
-#include "SdSetup.h"
 #include "GuiConsole.h"
 #include "GuiContainer.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
+#include "StorageSetup.h"
 
+#define ENABLE_GECKO  0
 #define CONSOLE_DEBUG 0
 #define FORCE_50HZ    0
 
@@ -93,7 +97,9 @@ static int   displayPitch = TEX_WIDTH * 2;
 
 static GuiManager *manager = NULL;
 static GuiBackground *background = NULL;
+#if CONSOLE_DEBUG
 static GuiConsole *console = NULL;
+#endif
 static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
 
@@ -287,13 +293,12 @@ void RenderEmuImage(void *dpyData)
 static void blueMsxRun(GameElement *game, char *game_dir)
 {
     int i;
-    char buffer[512];
 
     // Loading message
     msgbox->Show("Loading...");
 
     // Set current directory to the MSX-root
-    archSetCurrentDirectory(MSX_ROOT_DIR);
+    archSetCurrentDirectory(GetMSXRootPath());
 
     // Reset properties
     propInitDefaults(properties, 0, P_KBD_EUROPEAN, 0, "");
@@ -302,7 +307,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 #if FORCE_50HZ
     properties->emulation.vdpSyncMode = P_VDP_SYNC50HZ;
 #else
-    if( manager->GetMode() == GW_VIDEO_MODE_NTSC_448 ) {
+    if( manager->GetMode() == GW_VIDEO_MODE_NTSC_440 ) {
         properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
     }else{
         properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
@@ -321,19 +326,23 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     KBD_SetWpadOrientation(WPADO_HORIZONTAL);
     if( game->GetProperty(GEP_KEYBOARD_JOYSTICK) ) {
         /* Remap WiiMote 1 to keyboard */
-        keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_SPACE);
-        keyboardRemapKey(KEY_JOY1_BUTTON_B, EC_NONE);
-        keyboardRemapKey(KEY_JOY1_BUTTON_1, EC_NONE);
-        keyboardRemapKey(KEY_JOY1_BUTTON_2, EC_SPACE);
+        keyboardRemapKey(KEY_JOY1_WIIMOTE_A, EC_SPACE);
+        keyboardRemapKey(KEY_JOY1_WIIMOTE_B, EC_NONE);
+        keyboardRemapKey(KEY_JOY1_WIIMOTE_1, EC_NONE);
+        keyboardRemapKey(KEY_JOY1_WIIMOTE_2, EC_SPACE);
+        keyboardRemapKey(KEY_JOY1_CLASSIC_A, EC_SPACE);
+        keyboardRemapKey(KEY_JOY1_CLASSIC_B, EC_NONE);
         keyboardRemapKey(KEY_JOY1_UP, EC_UP);
         keyboardRemapKey(KEY_JOY1_DOWN, EC_DOWN);
         keyboardRemapKey(KEY_JOY1_LEFT, EC_LEFT);
         keyboardRemapKey(KEY_JOY1_RIGHT, EC_RIGHT);
         /* Remap WiiMote 2 to joystick 1 */
-        keyboardRemapKey(KEY_JOY2_BUTTON_A, EC_JOY1_BUTTON1);
-        keyboardRemapKey(KEY_JOY2_BUTTON_B, EC_JOY1_BUTTON2);
-        keyboardRemapKey(KEY_JOY2_BUTTON_1, EC_JOY1_BUTTON2);
-        keyboardRemapKey(KEY_JOY2_BUTTON_2, EC_JOY1_BUTTON1);
+        keyboardRemapKey(KEY_JOY2_WIIMOTE_A, EC_JOY1_BUTTON1);
+        keyboardRemapKey(KEY_JOY2_WIIMOTE_B, EC_JOY1_BUTTON2);
+        keyboardRemapKey(KEY_JOY2_WIIMOTE_1, EC_JOY1_BUTTON2);
+        keyboardRemapKey(KEY_JOY2_WIIMOTE_2, EC_JOY1_BUTTON1);
+        keyboardRemapKey(KEY_JOY2_CLASSIC_A, EC_SPACE);
+        keyboardRemapKey(KEY_JOY2_CLASSIC_B, EC_NONE);
         keyboardRemapKey(KEY_JOY2_UP, EC_JOY1_UP);
         keyboardRemapKey(KEY_JOY2_DOWN, EC_JOY1_DOWN);
         keyboardRemapKey(KEY_JOY2_LEFT, EC_JOY1_LEFT);
@@ -348,9 +357,10 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     ToolInfo* ti = toolInfoFind("Trainer");
     if( ti ) {
+        char path[256];
         if( game->GetCheatFile() ) {
-            sprintf(buffer, "%s/Tools/Cheats/%s", MSX_ROOT_DIR, game->GetCheatFile());
-            toolInfoAddArgument(ti, "CheatFile", buffer);
+            sprintf(path, "%s/Tools/Cheats/%s", GetMSXRootPath(), game->GetCheatFile());
+            toolInfoAddArgument(ti, "CheatFile", path);
         } else {
             toolInfoAddArgument(ti, "CheatFile", NULL);
         }
@@ -380,7 +390,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     emuSpr->SetStretchHeight(1.0f);
     emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     emuSpr->SetRefPixelPosition(0, 0);
-    emuSpr->SetPosition(0, 0);
+    emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
     manager->AddTop(emuSpr, 90);
     manager->Unlock();
 
@@ -404,19 +414,20 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     GW_VIDEO_MODE prevVideo = manager->GetMode();
     bool doQuit = false;
     while(!doQuit) {
-        if( prevVideo != GW_VIDEO_MODE_NTSC_448 ) {
+        if( prevVideo != GW_VIDEO_MODE_NTSC_440 ) {
             int newrfsh = boardGetRefreshRate();
             if( newrfsh != 0 && newrfsh != refresh ) {
                 if( newrfsh==50 ) {
-                    manager->SetMode(GW_VIDEO_MODE_PAL50_448 /*GW_VIDEO_MODE_PAL528*/);
+                    manager->SetMode(GW_VIDEO_MODE_PAL50_440 /*GW_VIDEO_MODE_PAL528*/);
                 }else{
-                    manager->SetMode(GW_VIDEO_MODE_PAL60_448);
+                    manager->SetMode(GW_VIDEO_MODE_PAL60_440);
                 }
                 emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
                 refresh = newrfsh;
             }
         }
-        if( KBD_GetKeyStatus(KEY_JOY1_HOME) || KBD_GetKeyStatus(KEY_JOY2_HOME) ||
+        if( KBD_GetKeyStatus(KEY_JOY1_WIIMOTE_HOME) || KBD_GetKeyStatus(KEY_JOY2_WIIMOTE_HOME) ||
+            KBD_GetKeyStatus(KEY_JOY1_CLASSIC_HOME) || KBD_GetKeyStatus(KEY_JOY2_CLASSIC_HOME) ||
             KBD_GetKeyStatus(KEY_F12) ) {
             if( !pressed ) {
                 actionEmuTogglePause();
@@ -447,6 +458,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                     msgbox->Show("Saving state...", NULL, MSGT_TEXT, 160);
                                     actionQuickSaveState();
                                     msgbox->Remove();
+                                    msgbox->Show("State saved", NULL, MSGT_TEXT, 160);
+                                    archThreadSleep(2000);
+                                    msgbox->Remove();
                                     break;
                                 case 2: /* Screenshot */
                                     char *p, fname1[256], fname2[256];
@@ -474,6 +488,9 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                                     }
                                     msgbox->Show("Saving screenshot...", NULL, MSGT_TEXT, 160);
                                     (void)archScreenCaptureToFile(SC_NORMAL, p);
+                                    msgbox->Remove();
+                                    msgbox->Show("Screenshot saved", NULL, MSGT_TEXT, 160);
+                                    archThreadSleep(2000);
                                     msgbox->Remove();
                                     break;
                                 case 3: /* Cheats */
@@ -524,11 +541,12 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
 int main(int argc, char **argv)
 {
-    bool fatInitialised;
-
     // USB Gecko
+#if ENABLE_GECKO
     DEBUG_Init(GDBSTUB_DEVICE_USB, 1);
     CON_EnableGecko(1, false);
+#endif
+    printf("Starting...\n");
 
     // Memory allocator instrumentation
     allocLogStart();
@@ -542,8 +560,9 @@ int main(int argc, char **argv)
     WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
     WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
 
-    // Init SD (keyboard layout can be saved on SD)
-    fatInitialised = fatInitDefault();
+    // Init Storage (keyboard layout can be saved)
+    bool bSDMounted  = fatMountSimple("sd", &__io_wiisd);
+    bool bUSBMounted = fatMountSimple("usb", &__io_usbstorage);
 
     // Init keyboard
     keyboardInit();
@@ -555,8 +574,8 @@ int main(int argc, char **argv)
     GuiImageInit();
 
     // Init console
-    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
 #if CONSOLE_DEBUG
+    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
     console->SetVisible(true);
 #endif
 
@@ -564,19 +583,18 @@ int main(int argc, char **argv)
     background = new GuiBackground(manager);
     background->Show();
 
-    // Init SD-Card access
-    if( !fatInitialised ) {
+    // Init storage access
+    if( !bSDMounted && !bUSBMounted ) {
         // Prepare messagebox
         GuiMessageBox *msgboxSdSetup = new GuiMessageBox(manager);
-        msgboxSdSetup->Show("SD-Card error!");
+        msgboxSdSetup->Show("No Storage (USB/SD-Card) found!");
         archThreadSleep(3000);
         delete msgboxSdSetup;
     } else
-    // Init SD-Card access
-    if( SetupSDCard(manager) ) {
-
+    // Init storage access
+    if( SetupStorage(manager, bSDMounted, bUSBMounted) ) {
         // Set current directory to the MSX-root
-        archSetCurrentDirectory(MSX_ROOT_DIR);
+        archSetCurrentDirectory(GetMSXRootPath());
 
         // Please wait...
         msgbox = new GuiMessageBox(manager);
@@ -588,7 +606,9 @@ int main(int argc, char **argv)
         msgbox->Remove();
 
         char *game_dir = NULL;
-        GuiDirSelect *dirs = new GuiDirSelect(manager, MSX_ROOT_DIR"/Games", "dirlist.xml");
+        char sGamesPath[100];
+        sprintf(sGamesPath, "%s/Games", GetMSXRootPath());
+        GuiDirSelect *dirs = new GuiDirSelect(manager, sGamesPath, "dirlist.xml");
 
         for(;;) {
             // Browse directory
@@ -636,22 +656,27 @@ int main(int argc, char **argv)
         archSoundDestroy();
         mixerDestroy(mixer);
     }
-    keyboardClose();
-
     // Destroy background and layer manager
     delete background;
     archThreadSleep(15*20);
 
+#if CONSOLE_DEBUG
     // Destroy console
     delete console;
-
+#endif
     // Free GUI resources
     GuiFontClose();
     GuiImageClose();
 
     delete manager;
 
+    keyboardClose();
+
+    fatUnmount("sd");
+    fatUnmount("usb");
+
     allocLogStop();
+    printf("Leaving...\n");
     return 0;
 }
 

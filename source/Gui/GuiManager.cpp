@@ -68,7 +68,7 @@ void GuiManager::DisplayThread(void)
             }
         }
 
-        manager->Draw(0, 0);
+        manager->Draw();
         LWP_MutexUnlock(mutex);
         gwd.Flush();
     }while( !quit_thread );

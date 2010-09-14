@@ -225,6 +225,14 @@ void saveStateGetBuffer(SaveState* state, const char* tagName, void* buffer, UIn
         elemLen = state->buffer[offset++];
         if (elemTag == tag) {
             memcpy(buffer, state->buffer + offset, length < elemLen ? length : elemLen);
+#ifdef WII
+            /* A bit of a dirty trick, change old-style path names to make it possible
+               to play old (V1.0) saves on newer versions */
+            if( strncmp("fat:/", buffer, 5) == 0 ) {
+                strcpy(buffer, "sd:/");
+                strcat(buffer, &((char*)buffer)[5]);
+            }
+#endif
         }
         offset += (elemLen + sizeof(UInt32) - 1) / sizeof(UInt32);
         if (offset >= state->size) {

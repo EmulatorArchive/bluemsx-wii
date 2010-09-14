@@ -21,10 +21,10 @@ void GuiDialog::OnKey(GuiRunner *runner, KEY key, bool pressed)
         return;
     }
     switch( key ) {
-        case KEY_JOY1_BUTTON_A:
-        case KEY_JOY1_CLASSIC_BUTTON_A:
-        case KEY_JOY2_BUTTON_A:
-        case KEY_JOY2_CLASSIC_BUTTON_A:
+        case KEY_JOY1_WIIMOTE_A:
+        case KEY_JOY1_CLASSIC_A:
+        case KEY_JOY2_WIIMOTE_A:
+        case KEY_JOY2_CLASSIC_A:
         case KEY_RETURN:
         case KEY_SPACE:
             rval = runner->GetSelected(true);
@@ -32,10 +32,10 @@ void GuiDialog::OnKey(GuiRunner *runner, KEY key, bool pressed)
                 runner->Leave(rval);
             }
             break;
-        case KEY_JOY1_BUTTON_B:
-        case KEY_JOY1_CLASSIC_BUTTON_B:
-        case KEY_JOY2_BUTTON_B:
-        case KEY_JOY2_CLASSIC_BUTTON_B:
+        case KEY_JOY1_WIIMOTE_B:
+        case KEY_JOY1_CLASSIC_B:
+        case KEY_JOY2_WIIMOTE_B:
+        case KEY_JOY2_CLASSIC_B:
         case KEY_ESCAPE:
             runner->Leave(NULL);
             break;

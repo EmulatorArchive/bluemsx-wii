@@ -14,9 +14,9 @@ namespace wsp{
     typedef enum {
         GW_VIDEO_MODE_INVALID,
         GW_VIDEO_MODE_PAL50_528,
-        GW_VIDEO_MODE_PAL50_448,
-        GW_VIDEO_MODE_PAL60_448,
-        GW_VIDEO_MODE_NTSC_448
+        GW_VIDEO_MODE_PAL50_440,
+        GW_VIDEO_MODE_PAL60_440,
+        GW_VIDEO_MODE_NTSC_440
     } GW_VIDEO_MODE;
     //!Basic rendering unit.
     class GameWindow{
