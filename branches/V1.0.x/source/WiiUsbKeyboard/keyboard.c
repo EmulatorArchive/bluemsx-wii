@@ -499,8 +499,11 @@ s32 KEYBOARD_Init(keyPressCallback keypress_cb)
 	char keymap[64] = {0};
 	size_t i;
 
+// TIM: Removed calling USB_Initialize() since it is already done by libogc
+#if 0
 	if (USB_Initialize() != IPC_OK)
 		return -1;
+#endif
 
 	if (USBKeyboard_Initialize() != IPC_OK) {
 		USB_Deinitialize();
@@ -634,7 +637,11 @@ s32 KEYBOARD_Deinit(void)
 	USBKeyboard_Close();
 	KEYBOARD_FlushEvents();
 	USBKeyboard_Deinitialize();
+// TIM: Removed calling USB_Deinitialize() since it causes a freeze on leaving our application.
+//      USB init/deinit shouldn't be the responsebility of the keyboard driver anyway.
+#if 0
 	USB_Deinitialize();
+#endif
 
 	if (_sc_map) {
 		free(_sc_map);

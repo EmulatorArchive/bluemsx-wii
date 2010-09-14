@@ -617,6 +617,7 @@ int main(int argc, char **argv)
     fatUnmount("usb");
 
     allocLogStop();
+    printf("Leaving...\n");
     return 0;
 }
 
