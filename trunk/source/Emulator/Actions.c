@@ -45,6 +45,9 @@
 #include "ArchFile.h"
 #include "ArchNotifications.h"
 #include "ArchPrinter.h"
+#ifdef WII
+#include "ArchSound.h"
+#endif
 #include "ArchMidi.h"
 #include "ArchInput.h"
 #include "ArchVideoIn.h"
@@ -511,6 +514,9 @@ void actionMaxSpeedRelease() {
 }
 
 void actionDiskQuickChange() {
+#ifdef WII
+    soundRestart(25);
+#endif
     if (*state.properties->media.disks[0].fileName) {
         if (*state.properties->media.disks[0].fileNameInZip) {
             strcpy(state.properties->media.disks[0].fileNameInZip, fileGetNext(state.properties->media.disks[0].fileNameInZip, state.properties->media.disks[0].fileName));

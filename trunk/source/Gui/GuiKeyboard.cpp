@@ -274,10 +274,10 @@ void GuiKeyboard::Show(void)
     spr_code = new Sprite;
     spr_code->SetImage(img_pressed->GetImage());
 
-    keymap1 = keyboardGetMapping(KEY_JOY1_BUTTON_A);
-    keymap2 = keyboardGetMapping(KEY_JOY2_BUTTON_A);
-    keyboardRemapKey(KEY_JOY1_BUTTON_A, EC_NONE);
-    keyboardRemapKey(KEY_JOY2_BUTTON_A, EC_NONE);
+    keymap1 = keyboardGetMapping(KEY_JOY1_WIIMOTE_A);
+    keymap2 = keyboardGetMapping(KEY_JOY2_WIIMOTE_A);
+    keyboardRemapKey(KEY_JOY1_WIIMOTE_A, EC_NONE);
+    keyboardRemapKey(KEY_JOY2_WIIMOTE_A, EC_NONE);
 
     manager->Lock();
 
@@ -330,8 +330,8 @@ void GuiKeyboard::Remove(void)
     is_showing = false;
     manager->Unlock();
 
-    keyboardRemapKey(KEY_JOY1_BUTTON_A, keymap1);
-    keyboardRemapKey(KEY_JOY2_BUTTON_A, keymap2);
+    keyboardRemapKey(KEY_JOY1_WIIMOTE_A, keymap1);
+    keyboardRemapKey(KEY_JOY2_WIIMOTE_A, keymap2);
 }
 
 bool GuiKeyboard::IsShowing(void)

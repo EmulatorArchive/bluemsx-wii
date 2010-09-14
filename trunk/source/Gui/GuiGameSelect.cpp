@@ -99,10 +99,10 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
         return;
     }
     switch( key ) {
-        case KEY_JOY1_BUTTON_A:
-        case KEY_JOY1_CLASSIC_BUTTON_A:
-        case KEY_JOY2_BUTTON_A:
-        case KEY_JOY2_CLASSIC_BUTTON_A:
+        case KEY_JOY1_WIIMOTE_A:
+        case KEY_JOY2_WIIMOTE_A:
+        case KEY_JOY1_CLASSIC_A:
+        case KEY_JOY2_CLASSIC_A:
         case KEY_RETURN:
         case KEY_SPACE:
             if( elm == list && list->IsActive() ) {
@@ -158,16 +158,17 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
                 UpdateList();
             }
             break;
-        case KEY_JOY1_PLUS:
-        case KEY_JOY2_PLUS:
+        case KEY_JOY1_WIIMOTE_PLUS:
+        case KEY_JOY2_WIIMOTE_PLUS:
+        case KEY_F11:
             Hide(true);
             editMode = !editMode;
             Show(true);
             break;
-        case KEY_JOY1_BUTTON_B:
-        case KEY_JOY2_BUTTON_B:
-        case KEY_JOY1_CLASSIC_BUTTON_B:
-        case KEY_JOY2_CLASSIC_BUTTON_B:
+        case KEY_JOY1_WIIMOTE_B:
+        case KEY_JOY2_WIIMOTE_B:
+        case KEY_JOY1_CLASSIC_B:
+        case KEY_JOY2_CLASSIC_B:
         case KEY_ESCAPE:
             runner->Leave(NULL);
             break;

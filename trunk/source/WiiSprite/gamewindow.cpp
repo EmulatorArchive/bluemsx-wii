@@ -33,25 +33,26 @@ namespace wsp{
     {
         return _mode;
     }
-    void GameWindow::SetMode(GW_VIDEO_MODE mode) {
+    void GameWindow::SetMode(GW_VIDEO_MODE mode)
+    {
+        int yoffset = 0;
         if( mode == _mode )
             return;
         switch( mode ) {
             case GW_VIDEO_MODE_PAL50_528:
                 _rmode = &TVPal528IntDf;
                 break;
-            case GW_VIDEO_MODE_PAL50_448:
+            case GW_VIDEO_MODE_PAL50_440:
                 _rmode = &TVPal574IntDfScale;
-                _rmode->efbHeight = 480+8;
-                _rmode->viYOrigin = 22;
+                yoffset = 20;
                 break;
-            case GW_VIDEO_MODE_PAL60_448:
+            case GW_VIDEO_MODE_PAL60_440:
                 _rmode = &TVEurgb60Hz480IntDf;
-                _rmode->viYOrigin = 18;
+                yoffset = 20;
                 break;
-            case GW_VIDEO_MODE_NTSC_448:
+            case GW_VIDEO_MODE_NTSC_440:
                 _rmode = &TVNtsc480IntDf;
-                _rmode->viYOrigin = 18;
+                yoffset = 20;
                 break;
             default:
                 return;
@@ -71,10 +72,10 @@ namespace wsp{
 
         // Use these values for GetWidth() and GetHeight()
         _width = (u32)_rmode->fbWidth; _height = (u32)_rmode->efbHeight;
-        if( _mode == GW_VIDEO_MODE_PAL50_448 ||
-            _mode == GW_VIDEO_MODE_PAL60_448 ||
-            _mode == GW_VIDEO_MODE_NTSC_448) {
-            _height = 448;
+        if( _mode == GW_VIDEO_MODE_PAL50_440 ||
+            _mode == GW_VIDEO_MODE_PAL60_440 ||
+            _mode == GW_VIDEO_MODE_NTSC_440) {
+            _height = 440;
         }
 
         // Init GX (once)
@@ -150,7 +151,7 @@ namespace wsp{
         GX_SetAlphaUpdate(GX_TRUE);
 
         // The final scissor box
-        GX_SetScissorBoxOffset(0, 0);
+        GX_SetScissorBoxOffset(0, -yoffset);
         GX_SetScissor(0, 0, _width, _height);
     }
 
@@ -181,15 +182,15 @@ namespace wsp{
             case VI_NTSC:
             case VI_MPAL:
             case VI_DEBUG:
-                SetMode(GW_VIDEO_MODE_NTSC_448);
+                SetMode(GW_VIDEO_MODE_NTSC_440);
                 break;
             case VI_EURGB60:
-                SetMode(GW_VIDEO_MODE_PAL60_448);
+                SetMode(GW_VIDEO_MODE_PAL60_440);
                 break;
             case VI_PAL:
             case VI_DEBUG_PAL:
             default:
-                SetMode(GW_VIDEO_MODE_PAL50_448);
+                SetMode(GW_VIDEO_MODE_PAL50_440);
                 break;
          }
 

@@ -1,0 +1,30 @@
+ifeq ($(strip $(DEVKITPPC_LOCAL)),)
+$(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPro/devkitPPC)
+endif
+
+#export	LIBOGC_INC	:=	$(DEVKITPRO)/libogc/include
+#export	LIBOGC_LIB	:=	$(DEVKITPRO)/libogc/lib/wii
+
+MACHDEP =  -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
+
+# Stupid tricks needed to include the local copy of the base_rules
+ifneq ($(findstring base_rules,$(wildcard ../lib/base_rules)), )
+include ../lib/base_rules
+else
+include lib/base_rules
+endif
+
+#---------------------------------------------------------------------------------
+%.dol: %.elf
+	@echo output ... $(notdir $@)
+	@elf2dol $< $@
+
+#---------------------------------------------------------------------------------
+%.tpl : %.scf
+	@echo $(notdir $<)
+	@gxtexconv -s $< -d $(DEPSDIR)/$*.d -o $@
+
+#---------------------------------------------------------------------------------
+%.elf:
+	@echo linking ... $(notdir $@)
+	@$(LD)  $^ $(LDFLAGS) $(LIBPATHS) $(LIBS) -o $@

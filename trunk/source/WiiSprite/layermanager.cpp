@@ -95,11 +95,7 @@ namespace wsp{
 		return _size;
 	}
 
-	void LayerManager::Draw(s32 x, s32 y) const{
-		// Since this manager is using a modified scissor box, we use the data + hardcoded values
-		GX_SetScissorBoxOffset(-x,-y);
-		GX_SetScissor(0, 0, GameWindow::GetWidth(), GameWindow::GetHeight());
-
+	void LayerManager::Draw(void) const{
 		// Do the layers!
 		for(u32 i = _size; i > 0; i--){
 			if(i == 0) break;

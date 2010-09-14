@@ -75,7 +75,7 @@ struct ukbd {
 };
 
 static s32 hId = -1;
-static struct ukbd *_kbd;
+static struct ukbd *_kbd = NULL;
 
 static u8 _ukbd_mod_map[][2] = {
 	{ USB_MOD_CTRL_L, 224 },
@@ -114,18 +114,20 @@ static s32 _disconnect(s32 retval, void *data)
 	return 1;
 }
 
-//Get the protocol, 0=bout protocol and 1=report protocol
+//Get the protocol, 0=boot protocol and 1=report protocol
 static s32 _get_protocol(void)
 {
 	s32 protocol;
 	u8 *buffer = 0;
+
+	if(!_kbd || _kbd->fd==-1) return -1;
 
 	buffer = iosAlloc(hId, 1);
 
 	if (buffer == NULL)
 		return -1;
 
-	USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_GET, USB_REQ_GETPROTOCOL, 0, 0, 1, buffer);
+	USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_GET, USB_REQ_GETPROTOCOL, 0, _kbd->interface, 1, buffer);
 
 	protocol = *buffer;
 	iosFree(hId, buffer);
@@ -133,10 +135,11 @@ static s32 _get_protocol(void)
 	return protocol;
 }
 
-//Modify the protocol, 0=bout protocol and 1=report protocol
+//Modify the protocol, 0=boot protocol and 1=report protocol
 static s32 _set_protocol(u8 protocol)
 {
-	return USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_SET, USB_REQ_SETPROTOCOL, protocol, 0, 0, 0);
+	if(!_kbd || _kbd->fd==-1) return -1;
+	return USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_SET, USB_REQ_SETPROTOCOL, protocol, _kbd->interface, 0, NULL);
 }
 
 //Get an input report from interrupt pipe
@@ -144,6 +147,7 @@ static s32 _get_input_report(void)
 {
 	u8 *buffer = 0;
 
+	if(!_kbd || _kbd->fd==-1) return -1;
 	buffer = iosAlloc(hId, 8);
 
 	if (buffer == NULL)
@@ -164,13 +168,13 @@ static s32 _get_input_report(void)
 static s32 _get_output_report(u8 *leds)
 {
 	u8 *buffer = 0;
-
+	if(!_kbd || _kbd->fd==-1) return -1;
 	buffer = iosAlloc(hId, 1);
 
 	if (buffer == NULL)
 		return -1;
 
-	s32 ret = USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_GET, USB_REQ_GETREPORT, USB_REPTYPE_OUTPUT << 8, 0, 1, buffer);
+	s32 ret = USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_GET, USB_REQ_GETREPORT, USB_REPTYPE_OUTPUT << 8, _kbd->interface, 1, buffer);
 
 	memcpy(leds, buffer, 1);
 	iosFree(hId, buffer);
@@ -183,13 +187,14 @@ static s32 _get_output_report(u8 *leds)
 static s32 _set_output_report(void)
 {
 	u8 *buffer = 0;
+	if(!_kbd || _kbd->fd==-1) return -1;
 	buffer = iosAlloc(hId, 1);
 
 	if (buffer == NULL)
 		return -1;
 
 	memcpy(buffer, &_kbd->leds, 1);
-	s32 ret = USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_SET, USB_REQ_SETREPORT, USB_REPTYPE_OUTPUT << 8, 0, 1, buffer);
+	s32 ret = USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_SET, USB_REQ_SETREPORT, USB_REPTYPE_OUTPUT << 8, _kbd->interface, 1, buffer);
 
 	iosFree(hId, buffer);
 
@@ -227,8 +232,8 @@ s32 USBKeyboard_Deinitialize(void)
 //Thanks to Sven Peter usbstorage support
 s32 USBKeyboard_Open(const eventcallback cb)
 {
-	u8 *buffer;
-	u8 dummy, i, conf;
+	usb_device_entry *buffer;
+	u8 device_count, i, conf;
 	u16 vid, pid;
 	bool found = false;
 	u32 iConf, iInterface, iEp;
@@ -237,20 +242,20 @@ s32 USBKeyboard_Open(const eventcallback cb)
 	usb_interfacedesc *uid;
 	usb_endpointdesc *ued;
 
-	buffer = iosAlloc(hId, DEVLIST_MAXSIZE << 3);
+	buffer = (usb_device_entry*)iosAlloc(hId, DEVLIST_MAXSIZE * sizeof(usb_device_entry));
 	if(buffer == NULL)
 		return -1;
 
-	memset(buffer, 0, DEVLIST_MAXSIZE << 3);
+	memset(buffer, 0, DEVLIST_MAXSIZE * sizeof(usb_device_entry));
 
-	if (USB_GetDeviceList("/dev/usb/oh0", buffer, DEVLIST_MAXSIZE, 0, &dummy) < 0)
+	if (USB_GetDeviceList(buffer, DEVLIST_MAXSIZE, USB_CLASS_HID, &device_count) < 0)
 	{
 		iosFree(hId, buffer);
 		return -2;
 	}
 
 	if (_kbd) {
-		USB_CloseDevice(&_kbd->fd);
+		if (_kbd->fd != -1) USB_CloseDevice(&_kbd->fd);
 	} else {
 		_kbd = (struct ukbd *) malloc(sizeof(struct ukbd));
 
@@ -259,20 +264,25 @@ s32 USBKeyboard_Open(const eventcallback cb)
 	}
 
 	memset(_kbd, 0, sizeof(struct ukbd));
+	_kbd->fd = -1;
 
-	for (i = 0; i < DEVLIST_MAXSIZE; i++)
+	for (i = 0; i < device_count; i++)
 	{
-		vid = *((u16 *) (buffer + (i << 3) + 4));
-		pid = *((u16 *) (buffer + (i << 3) + 6));
+		vid = buffer[i].vid;;
+		pid = buffer[i].pid;
 
 		if ((vid == 0) || (pid == 0))
 			continue;
 
 		s32 fd = 0;
-		if (USB_OpenDevice("oh0", vid, pid, &fd) < 0)
+		if (USB_OpenDevice(buffer[i].device_id, vid, pid, &fd) < 0)
 			continue;
 
-		USB_GetDescriptors(fd, &udd);
+		if (USB_GetDescriptors(fd, &udd) < 0) {
+			USB_CloseDevice(&fd);
+			continue;
+		}
+
 		for(iConf = 0; iConf < udd.bNumConfigurations; iConf++)
 		{
 			ucd = &udd.configurations[iConf];
@@ -384,7 +394,8 @@ void USBKeyboard_Close(void)
 	if (!_kbd)
 		return;
 
-	USB_CloseDevice(&_kbd->fd);
+	if(_kbd->fd != -1)
+		USB_CloseDevice(&_kbd->fd);
 
 	free(_kbd);
 	_kbd = NULL;
