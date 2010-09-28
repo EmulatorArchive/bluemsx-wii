@@ -32,6 +32,10 @@
 
 typedef enum { AM_DISABLE = 0, AM_ENABLE_MOUSE, AM_ENABLE_LASER } AmEnableMode;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void  archMouseEmuEnable(AmEnableMode mode);
 void archMouseSetForceLock(int lock);
 void archMouseGetState(int* dx, int* dy);
@@ -48,5 +52,9 @@ int   archKeyboardIsKeySelected(int msxKeyCode);
 char* archKeyconfigSelectedKeyTitle();
 char* archKeyconfigMappedToTitle();
 char* archKeyconfigMappingSchemeTitle();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

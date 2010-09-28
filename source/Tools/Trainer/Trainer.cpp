@@ -4,9 +4,7 @@
 #include <sstream>
 #include <iomanip>
 
-extern "C" {
 #include "ArchThread.h"
-}
 
 #include "Language.h"
 #include "ToolInterface.h"

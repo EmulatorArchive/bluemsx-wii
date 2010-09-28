@@ -30,6 +30,10 @@
 
 #include "MsxTypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 UInt32 archGetSystemUpTime(UInt32 frequency);
 void* archCreateTimer(int period, int (*timerCallback)(void*));
 void archTimerDestroy(void* timer);
@@ -40,5 +44,9 @@ UInt32 archGetHiresTimer();
 void rdtsc_start_timer (int timer) ;
 void rdtsc_end_timer (int timer);
 unsigned long long int rdtsc_get_timer (int timer) ;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

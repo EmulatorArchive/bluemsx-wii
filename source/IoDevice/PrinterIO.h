@@ -34,6 +34,10 @@ typedef struct PrinterIO PrinterIO;
 
 typedef enum {PRN_NONE, PRN_SIMPL, PRN_FILE, PRN_HOST } PrinterType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PrinterIO* printerIOCreate(void);
 void printerIODestroy(PrinterIO* printerIO);
 
@@ -42,5 +46,9 @@ int  printerIOGetStatus(PrinterIO* printerIO);
 int  printerIODoStrobe(PrinterIO* printerIO);
 
 void printerIoSetType(PrinterType type, const char* fileName);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

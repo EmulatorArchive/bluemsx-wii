@@ -30,6 +30,10 @@
 
 #include "Properties.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archShowPropertiesDialog(PropPage page);
 void archShowLanguageDialog();
 void archShowHelpDialog();
@@ -50,5 +54,9 @@ void archShowStartEmuFailDialog();
 void archMaximizeWindow();
 void archMinimizeWindow();
 void archCloseWindow();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

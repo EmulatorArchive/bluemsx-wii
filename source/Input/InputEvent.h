@@ -28,7 +28,11 @@
 #ifndef INPUT_EVENT_H
 #define INPUT_EVENT_H
 
-#include "MsxTypes.h"
+#include "../common/MsxTypes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void inputEventReset();
 
@@ -255,5 +259,9 @@ extern int eventMap[256];
 #define inputEventSet(eventCode) eventMap[eventCode] = 1
 #define inputEventUnset(eventCode) eventMap[eventCode] = 0
 #define inputEventGetState(eventCode) eventMap[eventCode]
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

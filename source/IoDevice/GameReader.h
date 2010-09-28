@@ -30,6 +30,10 @@
 
 #include "MsxTypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void* GrHandle;
 
 int gameReaderSupported();
@@ -42,5 +46,9 @@ int gameReaderWrite(GrHandle* grHandle, UInt16 address, void* buffer, int length
 
 int gameReaderReadIo(GrHandle* grHandle, UInt16 port, UInt8* value);
 int gameReaderWriteIo(GrHandle* grHandle, UInt16 port, UInt8 value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

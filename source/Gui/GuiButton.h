@@ -19,8 +19,8 @@ public:
 
     virtual void ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay);
     virtual void ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay);
-    virtual wsp::Layer* ElmGetTopLayer(void);
-    virtual wsp::Layer* ElmGetBottomLayer(void);
+    virtual Layer* ElmGetTopLayer(void);
+    virtual Layer* ElmGetBottomLayer(void);
 
     virtual bool ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite);
     virtual void ElmSetSelected(GuiRunner *runner, bool sel, int x, int y);

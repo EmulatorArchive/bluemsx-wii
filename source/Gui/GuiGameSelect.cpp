@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifndef WII
+#include <direct.h>
+#endif
 
 #include "GuiRunner.h"
 #include "GuiBackground.h"
@@ -90,7 +93,7 @@ void GuiGameSelect::OnUpdateScreen(GuiRunner *runner)
     }
 }
 
-void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
+void GuiGameSelect::OnKey(GuiRunner *runner, BTN key, bool pressed)
 {
     GuiElement *elm = runner->GetSelected();
     int selected_game = list->GetSelected();
@@ -99,12 +102,12 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
         return;
     }
     switch( key ) {
-        case KEY_JOY1_WIIMOTE_A:
-        case KEY_JOY2_WIIMOTE_A:
-        case KEY_JOY1_CLASSIC_A:
-        case KEY_JOY2_CLASSIC_A:
-        case KEY_RETURN:
-        case KEY_SPACE:
+        case BTN_JOY1_WIIMOTE_A:
+        case BTN_JOY2_WIIMOTE_A:
+        case BTN_JOY1_CLASSIC_A:
+        case BTN_JOY2_CLASSIC_A:
+        case BTN_RETURN:
+        case BTN_SPACE:
             if( elm == list && list->IsActive() ) {
                 // confirmation
                 char str[256];
@@ -113,7 +116,7 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
                 strcat(str, game->GetName());
                 strcat(str, "\"");
                 GuiMessageBox *msgbox = new GuiMessageBox(manager);
-                bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == BTN_YES;
+                bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == MSGBTN_YES;
                 msgbox->Remove();
                 delete msgbox;
                 if( ok ) {
@@ -126,7 +129,7 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
                 strcat(str, games.GetGame(selected_game)->GetName());
                 strcat(str, "\"");
                 GuiMessageBox *msgbox = new GuiMessageBox(manager);
-                bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == BTN_YES;
+                bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == MSGBTN_YES;
                 msgbox->Remove();
                 delete msgbox;
                 if( ok ) {
@@ -158,18 +161,18 @@ void GuiGameSelect::OnKey(GuiRunner *runner, KEY key, bool pressed)
                 UpdateList();
             }
             break;
-        case KEY_JOY1_WIIMOTE_PLUS:
-        case KEY_JOY2_WIIMOTE_PLUS:
-        case KEY_F11:
+        case BTN_JOY1_WIIMOTE_PLUS:
+        case BTN_JOY2_WIIMOTE_PLUS:
+        case BTN_F11:
             Hide(true);
             editMode = !editMode;
             Show(true);
             break;
-        case KEY_JOY1_WIIMOTE_B:
-        case KEY_JOY2_WIIMOTE_B:
-        case KEY_JOY1_CLASSIC_B:
-        case KEY_JOY2_CLASSIC_B:
-        case KEY_ESCAPE:
+        case BTN_JOY1_WIIMOTE_B:
+        case BTN_JOY2_WIIMOTE_B:
+        case BTN_JOY1_CLASSIC_B:
+        case BTN_JOY2_CLASSIC_B:
+        case BTN_ESCAPE:
             runner->Leave(NULL);
             break;
         default:
@@ -181,7 +184,11 @@ bool GuiGameSelect::Load(const char *dir, const char *filename)
 {
     // Load games database
     games_filename = strdup(filename);
-    chdir(dir);
+#ifdef WII
+        chdir(dir);
+#else
+        _chdir(dir);
+#endif
     games.Load(games_filename);
     num_games = games.GetNumberOfGames();
     if( num_games == 0 ) {
@@ -366,14 +373,14 @@ GameElement *GuiGameSelect::DoModal(GameElement *select)
         if( !restart && (games_crc != games.CalcCRC()) ) {
             // Gamelist changed, ask to save
             GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            BTN btn = msgbox->Show("Save changes?", NULL, MSGT_YESNOCANCEL, 192);
+            MSGBTN btn = msgbox->Show("Save changes?", NULL, MSGT_YESNOCANCEL, 192);
             msgbox->Remove();
-            if( btn == BTN_YES ) {
+            if( btn == MSGBTN_YES ) {
                 games.Save(games_filename);
                 (void)msgbox->Show("Changes saved", NULL, MSGT_OK, 192);
                 msgbox->Remove();
             }
-            if( btn == BTN_CANCEL ) {
+            if( btn == MSGBTN_CANCEL ) {
                 restart = true;
             }
             delete msgbox;

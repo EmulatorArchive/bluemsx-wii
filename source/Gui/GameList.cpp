@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include <fat.h>
-#include "zlib.h" /* for crc32 */
-#include "xmlwriter.h"
+#include "../unzip/zlib.h" /* for crc32 */
+#include "../Utils/xmlwriter.h"
 #include "GameList.h"
-extern "C" {
-#include "InputEvent.h"
-}
+#ifdef WII
+#include "../Input/InputEvent.h"
+#endif
 
 /*************************************************
   Game List
@@ -46,14 +45,16 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                 const char *key = atts[i];
                 const char *val = atts[i+1];
                 if( val != NULL ) {
+#ifdef WII
                     int event = inputEventStringToCode(val);
                     if( event ) {
-                        for(int k = 1; k < KEY_LAST; k++) {
-                            if( KBD_CheckKeyName((KEY)k, key) ) {
-                                my->current_element->SetKeyMapping((KEY)k, event);
+                        for(int k = 1; k < BTN_LAST; k++) {
+                            if( InputDevices::CheckButtonName((BTN)k, key) ) {
+                                my->current_element->SetKeyMapping((BTN)k, event);
                             }
                         }
                     }
+#endif
                 }
             }
         }
@@ -235,12 +236,14 @@ void GameList::Save(const char *filename)
         }
 
         bool keymaps = false;
-        for(int k = 1; k < KEY_LAST; k++) {
-            int event = p->GetKeyMapping((KEY)k);
+        for(int k = 1; k < BTN_LAST; k++) {
+            int event = p->GetKeyMapping((BTN)k);
+#ifdef WII
             if( event != EC_NONE ) {
-                MyXml.AddAtributes(KBD_GetKeyName((KEY)k), inputEventCodeToString(event));
+                MyXml.AddAtributes(InputDevices::GetButtonName((BTN)k), inputEventCodeToString(event));
                 keymaps = true;
             }
+#endif
         }
         if( keymaps ) {
             MyXml.CreateTag("KeyMap", true);

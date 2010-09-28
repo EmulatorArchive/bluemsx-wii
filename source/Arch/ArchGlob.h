@@ -36,7 +36,15 @@ typedef struct {
     char **pathVector;
 } ArchGlob;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 ArchGlob* archGlob(const char* pattern, int flags);
 void archGlobFree(ArchGlob* globHandle);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

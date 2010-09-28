@@ -2,7 +2,6 @@
 #define _GUI_BACKGROUND_H
 
 #include "GuiManager.h"
-#include "DrawableImage.h"
 
 #define BACKGROUND_FADE_FRAMES 10
 

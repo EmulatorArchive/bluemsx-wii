@@ -34,6 +34,10 @@ typedef struct UartIO UartIO;
 
 typedef enum {UART_NONE, UART_FILE, UART_HOST } UartType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 UartIO* uartIOCreate(void (*recvCallback)(UInt8));
 void uartIODestroy(UartIO* uartIO);
 
@@ -41,5 +45,9 @@ void uartIOTransmit(UartIO* uartIO, UInt8 value);
 int  uartIOGetStatus(UartIO* uartIO);
 
 void uartIoSetType(UartType type, const char* fileName);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

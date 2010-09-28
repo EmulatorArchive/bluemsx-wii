@@ -34,7 +34,6 @@
 #include "AY8910.h"
 #include <stdio.h>
 
-
 typedef enum { 
     BOARD_UNKNOWN       = -1, 
     BOARD_MSX           = 0x0100 + 0x00, 
@@ -96,6 +95,9 @@ typedef struct {
     SlotInfo slotInfo[32];
 } Machine;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 Machine* machineCreate(const char* machineName);
 void machineDestroy(Machine* machine);
@@ -112,6 +114,10 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
 
 void machineLoadState(Machine* machine);
 void machineSaveState(Machine* machine);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

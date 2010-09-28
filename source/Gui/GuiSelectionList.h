@@ -22,13 +22,13 @@ public:
 
     virtual void ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay);
     virtual void ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay);
-    virtual wsp::Layer* ElmGetTopLayer(void);
-    virtual wsp::Layer* ElmGetBottomLayer(void);
+    virtual Layer* ElmGetTopLayer(void);
+    virtual Layer* ElmGetBottomLayer(void);
 
     virtual bool ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite);
     virtual void ElmSetSelected(GuiRunner *runner, bool sel, int x, int y);
     virtual bool ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph);
-    virtual bool ElmHandleKey(GuiRunner *runner, KEY key, bool pressed);
+    virtual bool ElmHandleKey(GuiRunner *runner, BTN key, bool pressed);
 
     void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
                        int posx, int posy, int xspace, int width, bool centr = false);

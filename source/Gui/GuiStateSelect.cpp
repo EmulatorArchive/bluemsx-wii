@@ -9,11 +9,9 @@
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
 
-extern "C" {
 #include "ArchGlob.h"
 #include "FileHistory.h"
 #include "ZipHelper.h"
-}
 
 // Resources
 #include "GuiImages.h"
@@ -134,11 +132,21 @@ void GuiStateSelect::UpdateScreenShot(char *file)
     }
 }
 
-void GuiStateSelect::OnSetSelected(int index, int selected)
+void GuiStateSelect::SetSelected(int index, int selected)
 {
     // Update screenshot
     if( selected >= 0 ) {
         UpdateScreenShot(filenames[index+selected]);
+    }
+    last_index = index;
+    last_selected = selected;
+}
+
+void GuiStateSelect::OnUpdateScreen(GuiRunner *runner)
+{
+    int sel = list->GetSelected();
+    if( sel >= 0 && sel != last_selected ) {
+        SetSelected(last_index, sel);
     }
 }
 
@@ -190,7 +198,7 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
             strcat(str, timestrings[sel]);
             strcat(str, "\"");
             GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == BTN_YES;
+            bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == MSGBTN_YES;
             msgbox->Remove();
             delete msgbox;
             if( ok ) {
@@ -222,6 +230,8 @@ GuiStateSelect::GuiStateSelect(GuiManager *man)
     manager = man;
     num_states = 0;
     sprScreenShot = NULL;
+    last_selected = -1;
+    last_index = 0;
 }
 
 GuiStateSelect::~GuiStateSelect()

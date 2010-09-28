@@ -40,6 +40,10 @@ typedef struct {
     char            fileName[8];
 } TapeContent;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void   tapeSetDirectory(char* baseDir, char* prefix);
 int    tapeInsert(char *name, const char *fileInZipFile);
 int    tapeIsInserted();
@@ -58,5 +62,9 @@ UInt8 tapeWrite(UInt8 value);
 UInt8 tapeRead(UInt8* value);
 UInt8 tapeReadHeader();
 UInt8 tapeWriteHeader();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

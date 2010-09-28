@@ -31,6 +31,10 @@
 #include "Properties.h"
 #include "MediaDb.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int archCreateDirectory(const char* pathname);
 const char* archGetCurrentDirectory();
 void archSetCurrentDirectory(const char* pathname);
@@ -63,5 +67,8 @@ char* archFilenameGetOpenCasZip(Properties* properties, const char* fname, const
 
 char* archFilenameGetOpenAnyZip(Properties* properties, const char* fname, const char* fileList, int count, int* autostart, int* romType);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

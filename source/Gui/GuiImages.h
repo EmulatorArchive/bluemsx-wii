@@ -1,10 +1,7 @@
 #ifndef _GUI_IMAGES_H
 #define _GUI_IMAGES_H
 
-#include <gccore.h>
-#include <wiisprite.h>
-
-using namespace wsp;
+#include "../wiisprite/wiisprite.h"
 
 extern Image *g_imgArrow;
 extern Image *g_imgBackground;

@@ -30,10 +30,18 @@
 
 #include "MsxTypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archPrinterWrite(UInt8 value);
 int archPrinterCreate(void);
 void archPrinterDestroy(void);
 
 void archForceFormFeed(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

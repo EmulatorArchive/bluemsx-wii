@@ -1,8 +1,6 @@
 
 #include "GuiConsole.h"
 
-using namespace wsp;
-
 // Do not use the instrumented malloc to ignore the memory leak created here.
 // Unfortunately we can't solve it because libogc does support a 'deinit' of the console
 #undef malloc
@@ -27,13 +25,13 @@ GuiConsole::GuiConsole(GuiManager *manager, int posx, int posy, int width, int h
     _sprite->SetPosition(posx+12, posy+12);
     SetVisible(false);
 
-	_console_buffer = (u16*)malloc(_imgwidth*_imgheight*VI_DISPLAY_PIX_SZ);
-	if( _console_buffer != NULL ) {
+    _console_buffer = (u16*)malloc(_imgwidth*_imgheight*VI_DISPLAY_PIX_SZ);
+    if( _console_buffer != NULL ) {
         console_init(_console_buffer, 0, 0, _imgwidth, _imgheight,
                      _imgwidth * VI_DISPLAY_PIX_SZ);
-	}
+    }
 
-	Render();
+    Render();
     Add();
     _manager->AddRenderCallback(RenderWrapper, (void*)this);
 }
@@ -78,10 +76,11 @@ bool GuiConsole::IsVisible(void)
     return _visible;
 }
 
-void GuiConsole::RenderWrapper(void *arg)
+bool GuiConsole::RenderWrapper(void *arg)
 {
     GuiConsole *me = (GuiConsole*)arg;
     me->Render();
+    return false;
 }
 
 void GuiConsole::Render(void)

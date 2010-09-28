@@ -30,8 +30,16 @@
 
 #include "MsxTypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archUartTransmit(UInt8 value);
 int archUartCreate(void (*archUartReceiveCallback) (UInt8));
 void archUartDestroy(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

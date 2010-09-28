@@ -31,10 +31,18 @@
 #include "MediaDb.h"
 #include "Properties.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int tryLaunchUnknownFile(Properties* properties, const char* fileName, int forceAutostart);
 int insertCartridge(Properties* properties, int drive, const char* fname, const char* inZipFile, RomType romType, int forceAutostart);
 int insertDiskette(Properties* properties, int drive, const char* fname, const char* inZipFile, int forceAutostart);
 int insertCassette(Properties* properties, int drive, const char* fname, const char* inZipFile, int forceAutostart);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

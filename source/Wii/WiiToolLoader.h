@@ -30,6 +30,10 @@
 
 typedef struct ToolInfo ToolInfo;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef NO_TOOL_SUPPORT
 
 void toolLoadAll(int languageId, void /*GuiManager*/ *manager);
@@ -62,6 +66,10 @@ static void toolInfoShowTool(ToolInfo* toolInfo) {}
 static void toolInfoSetLanguage(ToolInfo* toolInfo, int langId) {}
 static void toolInfoAddArgument(ToolInfo* toolinfo, const char* str, void* arg) {}
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

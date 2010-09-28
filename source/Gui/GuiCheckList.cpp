@@ -8,7 +8,6 @@
 #include <fat.h>
 #include <wiiuse/wpad.h>
 
-#include "kbdlib.h"
 #include "GuiCheckList.h"
 #include "GuiContainer.h"
 
@@ -241,11 +240,10 @@ int GuiCheckList::DoSelection(void)
 {
     // Menu loop
     u64 scroll_time = 0;
-    (void)KBD_GetPadButtons(); // flush first
     current = selected;
     for(;;) {
         WPAD_ScanPads();
-        u32 buttons = KBD_GetPadButtons();
+        u32 buttons = manager->gwd.input.GetPadButtons();
 
         // Exit on 'home' or 'B'
         if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
@@ -259,7 +257,7 @@ int GuiCheckList::DoSelection(void)
 
         // Infrared
         int x, y, angle;
-        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
+        if( manager->gwd.input.GetWiiMoteIR(&x, &y, &angle) ) {
             sprCursor->SetPosition(x, y);
             sprCursor->SetRotation(angle/2);
             sprCursor->SetVisible(true);

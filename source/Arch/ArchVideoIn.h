@@ -30,6 +30,10 @@
 
 #include "MsxTypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int archVideoInIsVideoConnected();
 
 // Returns a video in buffer. The buffer is owned by the arch video and
@@ -39,5 +43,9 @@ UInt16* archVideoInBufferGet(int width, int height);
 
 // Saves video capture to file (really not video in :/)
 void archVideoCaptureSave();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

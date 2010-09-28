@@ -1,15 +1,15 @@
 #ifndef _GUI_MANAGER_H
 #define _GUI_MANAGER_H
 
-#include <gccore.h>
-#include <wiisprite.h>
+#include "../wiisprite/wiisprite.h"
 
-#define GUI_MAX_LAYERS 128
+#define GUI_MAX_LAYERS 1000
 
-using namespace wsp;
+class GuiManager;
+typedef void (*GUIFUNC_MAIN)(GuiManager *);
 
 typedef struct _GuiManagerCallback {
-    void (*callback)(void*);
+    bool (*callback)(void*);
     void *context;
     _GuiManagerCallback *next;
 } GuiManagerCallback;
@@ -37,14 +37,19 @@ class GuiManager {
 public:
     GuiManager();
     virtual ~GuiManager();
+
+    GameWindow gwd;
+
+    void Run(GUIFUNC_MAIN func_main);
+    GameWindow *GetGameWindow(void) { return &gwd; };
     void SetMode(GW_VIDEO_MODE mode);
     GW_VIDEO_MODE GetMode(void);
     u32 GetWidth(void);
     u32 GetHeight(void);
-    void AddRenderCallback(void (*callback)(void*), void *context);
-    void RemoveRenderCallback(void (*callback)(void*), void *context);
-    static void *DisplayThreadWrapper(void *arg);
-    void DisplayThread(void);
+    void AddRenderCallback(bool (*callback)(void*), void *context);
+    void RemoveRenderCallback(bool (*callback)(void*), void *context);
+    void AddFrameCallback(bool (*callback)(void*), void *context);
+    void RemoveFrameCallback(bool (*callback)(void*), void *context);
     void Lock(void);
     void Unlock(void);
     int GetIndex(Layer *layer);
@@ -57,20 +62,23 @@ public:
     void AddBottom(Layer *layer, int fade = 0, int delay = 0);
     void Remove(Layer *layer, int fade = 0, int delay = 0);
     void RemoveAndDelete(Layer *layer, Image *image = NULL, int fade = 0, int delay = 0);
-    bool GetWiiMoteIR(int *x, int *y, int *angle);
     int WriteScreenshot(const char *fname) { return gwd.WriteScreenshot(fname); };
+protected:
+    static void RunMainFunc(void *context);
+    static bool DrawFuncWrapper(void *context);
+    bool DrawFunc();
 
 private:
     void RegisterRemove(Layer *layer, bool needdelete, int fade, int delay, Image *image);
 
-    GameWindow gwd;
+    static GuiManager *pThis;
     LayerManager *manager;
-    mutex_t mutex;
-    lwp_t thread;
-    void *thread_stack;
-    bool quit_thread;
+    CMutex mutex;
+    bool stop_requested;
     int fixed_layers;
-    GuiManagerCallback *render;
+    GuiManagerCallback *render_callback;
+    GuiManagerCallback *frame_callback;
+    GUIFUNC_MAIN gui_main_func;
     FrameRemove remove_list[GUI_MAX_LAYERS];
     FrameAdd add_list[GUI_MAX_LAYERS];
 };

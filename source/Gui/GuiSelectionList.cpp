@@ -4,12 +4,7 @@
 #include <unistd.h>
 
 #include <gccore.h>
-#include <ogc/lwp_watchdog.h>
 
-#include <fat.h>
-#include <wiiuse/wpad.h>
-
-#include "kbdlib.h"
 #include "GuiRunner.h"
 #include "GuiSelectionList.h"
 #include "GuiContainer.h"
@@ -72,12 +67,12 @@ void GuiSelectionList::ElmRemoveLayers(GuiManager *manager, bool del, int fade, 
     }
 }
 
-wsp::Layer* GuiSelectionList::ElmGetTopLayer(void)
+Layer* GuiSelectionList::ElmGetTopLayer(void)
 {
     return titleTxtSprite[0];
 }
 
-wsp::Layer* GuiSelectionList::ElmGetBottomLayer(void)
+Layer* GuiSelectionList::ElmGetBottomLayer(void)
 {
     return sprArrowDown;
 }
@@ -132,7 +127,7 @@ bool GuiSelectionList::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw
     }
 }
 
-bool GuiSelectionList::ElmHandleKey(GuiRunner *runner, KEY key, bool pressed)
+bool GuiSelectionList::ElmHandleKey(GuiRunner *runner, BTN key, bool pressed)
 {
     if (runner->GetSelected(false) == NULL && selected >= 0) { /* When nothing selected, we're in charge */
         runner->SetSelected(this, 0, titleTxtSprite[selected]->GetY() + titleTxtSprite[selected]->GetHeight() / 2);
@@ -141,14 +136,14 @@ bool GuiSelectionList::ElmHandleKey(GuiRunner *runner, KEY key, bool pressed)
         runner->GetSelected(false) == this )
     {
         switch( key ) {
-            case KEY_UP:
-            case KEY_JOY1_UP:
-            case KEY_JOY2_UP:
+            case BTN_UP:
+            case BTN_JOY1_UP:
+            case BTN_JOY2_UP:
                 DoKeyUp();
                 return true;
-            case KEY_DOWN:
-            case KEY_JOY1_DOWN:
-            case KEY_JOY2_DOWN:
+            case BTN_DOWN:
+            case BTN_JOY1_DOWN:
+            case BTN_JOY2_DOWN:
                 DoKeyDown();
                 return true;
             default:
@@ -195,7 +190,8 @@ void GuiSelectionList::InitTitleList(TextRender *fontArial,
         DrawableImage *img = new DrawableImage;
         img->CreateImage((width + 3) & ~3, ((fontsize * 3) / 2) & ~3);
         img->SetFont(fontArial);
-        img->SetColor((GXColor){255,255,255,255});
+        GXColor white = {255,255,255,255};
+        img->SetColor(white);
         img->SetSize(fontsize);
         titleTxtImgPtr[i] = img;
         titleTxtSprite[i] = new Sprite;
@@ -218,7 +214,7 @@ void GuiSelectionList::InitTitleList(TextRender *fontArial,
     sprArrowDown = new Sprite;
     sprArrowDown->SetImage(g_imgArrow);
     sprArrowDown->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
+    sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
     sprArrowDown->SetPosition(x + xspacing + width/2, y+(num_item_rows-1)*ypitch+ypitch/2+fontsize/5);
     sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
     sprArrowDown->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);

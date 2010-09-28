@@ -36,6 +36,10 @@ typedef enum { MIDI_NONE, MIDI_FILE, MIDI_HOST } MidiType;
 
 typedef void (*MidiIOCb)(void*, UInt8*, UInt32);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MidiIO* midiIoCreate(MidiIOCb cb, void* ref);
 void midiIoDestroy(MidiIO* midiIo);
 
@@ -52,5 +56,8 @@ int ykIoGetKeyState(MidiIO* midiIo, int key);
 
 void ykIoSetMidiInType(MidiType type, const char* fileName);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -34,6 +34,10 @@ typedef struct ArchMidi ArchMidi;
 
 typedef void (*ArchMidiInCb)(void*, UInt8*, UInt32);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archMidiEnable(int enable);
 int  archMidiGetNoteOn();
 void archMidiUpdateVolume(int left, int right);
@@ -48,5 +52,9 @@ int archMidiInGetNoteOn(ArchMidi* archMidi, int note);
 ArchMidi* archMidiOutCreate(int device);
 void archMidiOutDestroy(ArchMidi* archMidi);
 void archMidiOutTransmit(ArchMidi* archMidi, UInt8 value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

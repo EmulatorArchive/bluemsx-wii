@@ -17,12 +17,12 @@ typedef enum {
 } MSGT;
 
 typedef enum {
-  BTN_NONE,
-  BTN_OK,
-  BTN_CANCEL,
-  BTN_YES,
-  BTN_NO
-} BTN;
+  MSGBTN_NONE,
+  MSGBTN_OK,
+  MSGBTN_CANCEL,
+  MSGBTN_YES,
+  MSGBTN_NO
+} MSGBTN;
 
 class GuiMessageBox : public GuiDialog {
 public:
@@ -30,7 +30,7 @@ public:
     virtual ~GuiMessageBox();
 
     void ShowPopup(const char *txt, Image *image = NULL, int alpha = 128);
-    BTN Show(const char *txt, Image *image = NULL, MSGT type = MSGT_TEXT, int alpha = 128);
+    MSGBTN Show(const char *txt, Image *image = NULL, MSGT type = MSGT_TEXT, int alpha = 128);
     void Remove(void);
     void SetText(const char *fmt, ...);
 

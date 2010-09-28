@@ -4,11 +4,10 @@
 
 #include <time.h>
 #include "GuiDialog.h"
-extern "C" {
-#include "Properties.h"
-}
 
 #define NUM_STATE_ITEMS   5
+
+struct Properties;
 
 class GuiSelectionList;
 
@@ -18,12 +17,16 @@ public:
     GuiStateSelect(GuiManager *man);
     virtual ~GuiStateSelect();
 
-    void OnSetSelected(int index, int selected);
+    // GuiDialog interface
+    virtual void OnUpdateScreen(GuiRunner *runner);
+
     char *DoModal(Properties *properties, char *directory);
 private:
     GuiManager *manager;
     GuiRunner *runner;
     GuiSelectionList *list;
+    int last_selected;
+    int last_index;
     int num_states;
     int posx;
     int posy;
@@ -36,6 +39,7 @@ private:
     Sprite *sprScreenShot;
 
     void CreateStateFileList(Properties *properties, char *directory);
+    void SetSelected(int index, int selected);
     void FreeStateFileList(void);
     void UpdateScreenShot(char *file);
 };

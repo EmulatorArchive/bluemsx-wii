@@ -30,10 +30,18 @@
 
 #include "Properties.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int emuCheckResetArgument(char* szLine);
 char* emuCheckThemeArgument(char* szLine);
 void emuCheckFullscreenArgument(Properties* properties, char* szLine);
 int emuTryStartWithArguments(Properties* properties, char* cmdLine, char *gamedir);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

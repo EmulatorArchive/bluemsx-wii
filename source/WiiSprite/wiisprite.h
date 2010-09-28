@@ -9,9 +9,12 @@
 #include "layermanager.h"
 #include "layer.h"
 #include "image.h"
+#include "drawableimage.h"
 #include "sprite.h"
 #include "tiledlayer.h"
 #include "quad.h"
+#include "inputdevices.h"
+#include "mutex.h"
 
 //!Corrects the X coordinate for the pointer
 #define WSP_POINTER_CORRECTION_X 200

@@ -1,7 +1,7 @@
 #ifndef _H_GAMELIST
 #define _H_GAMELIST
 
-#include "expat.h"
+#include "../expat/expat.h"
 #include "GameElement.h"
 
 typedef enum {

@@ -30,6 +30,10 @@
 
 #include "AudioMixer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 channels);
 void archSoundDestroy(void);
 void archSoundResume(void); 
@@ -37,6 +41,10 @@ void archSoundSuspend(void);
 #ifdef WII
 void soundCallibrate(void);
 void soundRestart(int time);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
