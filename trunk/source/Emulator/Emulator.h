@@ -34,6 +34,10 @@
 
 typedef enum { EMU_RUNNING, EMU_PAUSED, EMU_STOPPED, EMU_SUSPENDED, EMU_STEP } EmuState;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void emulatorInit(Properties* properties, Mixer* mixer);
 void emulatorExit();
 
@@ -57,6 +61,10 @@ UInt32 emulatorGetCpuSpeed();
 UInt32 emulatorGetCpuUsage();
 void emulatorResetMixer();
 int emulatorGetCurrentScreenMode();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

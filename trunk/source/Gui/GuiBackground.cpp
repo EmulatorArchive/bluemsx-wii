@@ -3,6 +3,7 @@
 #include "GuiFonts.h"
 #include "GuiImages.h"
 #include "version.h"
+#include "../arch/archThread.h"
 
 GuiBackground::GuiBackground(GuiManager *man)
 {
@@ -13,7 +14,7 @@ GuiBackground::GuiBackground(GuiManager *man)
 
 GuiBackground::~GuiBackground()
 {
-    Hide();
+    Hide(10, 0);
 }
 
 void GuiBackground::Show(int fade)
@@ -53,6 +54,7 @@ void GuiBackground::Hide(int fade, int delay)
 
 void GuiBackground::ShowVersion(int fade)
 {
+    GXColor white = {255,255,255,255};
     if( sprBackground != NULL && sprTxt == NULL ) {
         int txtwidth;
         int txtheight;
@@ -64,7 +66,7 @@ void GuiBackground::ShowVersion(int fade)
         imgTxt->SetFont(g_fontArial);
         imgTxt->SetSize(16);
         imgTxt->SetYSpacing(2);
-        imgTxt->SetColor((GXColor){255,255,255,255});
+        imgTxt->SetColor(white);
         imgTxt->GetTextSize(&txtwidth, &txtheight, VERSION_AS_STRING);
         txtwidth = (txtwidth + 3) & ~3;
         txtheight = (txtheight + 3) & ~3;

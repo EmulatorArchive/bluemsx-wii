@@ -28,6 +28,10 @@
 #ifndef ARCH_MENU_H
 #define ARCH_MENU_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archUpdateMenu(int show);
 
 void archShowMenuSpecialCart1(int x, int y);
@@ -48,5 +52,9 @@ void archShowMenuOptions(int x, int y);
 void archShowMenuTools(int x, int y);
 void archShowMenuJoyPort1(int x, int y);
 void archShowMenuJoyPort2(int x, int y);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -83,6 +83,10 @@ typedef struct {
     void   (*changeCartridge)(void*, int, int);
 } BoardInfo;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void boardInit(UInt32* systemTime);
 
 int boardRun(Machine* machine, 
@@ -198,6 +202,10 @@ void boardSetVideoAutodetect(int value);
 int  boardGetVideoAutodetect();
 
 void boardSetPeriodicCallback(BoardTimerCb cb, void* reference, UInt32 frequency);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BOARD_H */
 

@@ -47,6 +47,10 @@ typedef enum {
 
 typedef void (*JoystickPortUpdateHandler)(void*, int, JoystickPortType);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Machine dependent config methods that probably belongs somewhere else...
 void joystickPortUpdateBoardInfo();
 int  joystickPortKeyboardEnabled();
@@ -63,5 +67,9 @@ char* joystickPortTypeToName(int port, int translate);
 
 void joystickPortUpdateHandlerRegister(JoystickPortUpdateHandler fn, void* ref);
 void joystickPortUpdateHandlerUnregister();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // JOYSTICK_PORT_H

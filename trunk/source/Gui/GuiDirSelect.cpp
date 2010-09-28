@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifndef WII
+#include <direct.h>
+#endif
 
 #include "GuiRunner.h"
 #include "GuiSelectionList.h"
@@ -43,7 +46,11 @@ char *GuiDirSelect::DoModal(void)
         DirElement *selected_dir = NULL;
 
         // Load dirs database
+#ifdef WII
         chdir(current_dir);
+#else
+        _chdir(current_dir);
+#endif
         dirs.Load(xmlfile);
         num_dirs = dirs.GetNumberOfDirs();
         if( num_dirs == 0 ) {
@@ -89,7 +96,7 @@ char *GuiDirSelect::DoModal(void)
                 if( dir_level == 0 ) {
                     // on root level, leave after confirmation
                     GuiMessageBox msgbox(manager);
-                    bool ok = msgbox.Show("Do you want to quit?", NULL, MSGT_YESNO, 192) == BTN_YES;
+                    bool ok = msgbox.Show("Do you want to quit?", NULL, MSGT_YESNO, 192) == MSGBTN_YES;
                     msgbox.Remove();
                     if( ok ) {
                         runner->Remove(list, DIRSEL_FADE_FRAMES);

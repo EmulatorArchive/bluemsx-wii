@@ -62,6 +62,10 @@ typedef enum {
 typedef Int32* (*MixerUpdateCallback)(void*, UInt32);
 typedef Int32 (*MixerWriteCallback)(void*, Int16*, UInt32);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Constructor and destructor */
 Mixer* mixerCreate();
 void mixerDestroy(Mixer* mixer);
@@ -98,6 +102,10 @@ void mixerUnregisterChannel(Mixer* mixer, Int32 handle);
 
 void mixerSetBoardFrequency(int CPUFrequency);
 void mixerSetBoardFrequencyFixed(int CPUFrequency);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

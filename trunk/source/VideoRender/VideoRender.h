@@ -47,7 +47,7 @@ typedef enum {
     VIDEO_PAL_SHARP_NOISE,  
     VIDEO_PAL_BLUR, 
     VIDEO_PAL_BLUR_NOISE,
-	VIDEO_PAL_SCALE2X,
+    VIDEO_PAL_SCALE2X,
     VIDEO_PAL_HQ2X,
 } VideoPalMode;
 
@@ -69,6 +69,10 @@ struct Video {
     int invertRGB;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 Video* videoCreate();
 
 void videoDestroy(Video* video);
@@ -89,5 +93,9 @@ void videoSetScanLines(Video* video, int enable, int scanLinesPct);
 void videoSetColorSaturation(Video* video, int enable, int width);
 
 void videoUpdateAll(Video* video, struct Properties* properties); 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

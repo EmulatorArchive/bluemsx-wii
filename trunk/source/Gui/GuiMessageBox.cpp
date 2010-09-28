@@ -10,9 +10,7 @@
 #include "GuiImages.h"
 #include "GuiFonts.h"
 
-extern "C" {
 #include "ArchThread.h"
-}
 
 #define MESSAGE_BOX_FADE_FRAMES       10
 
@@ -47,7 +45,7 @@ void GuiMessageBox::SetText(const char *fmt, ...)
     manager->Unlock();
 }
 
-BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
+MSGBTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
 {
     manager->Lock();
 
@@ -62,7 +60,8 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
     txt_image->SetFont(g_fontArial);
     txt_image->SetSize(32);
     txt_image->SetYSpacing(2);
-    txt_image->SetColor((GXColor){255,255,255,255});
+    GXColor white={255,255,255,255};
+    txt_image->SetColor(white);
     txt_image->GetTextSize(&txtwidth, &textheight, txt);
     txtwidth = (txtwidth + 3) & ~3;
     textheight = (textheight + 3) & ~3;
@@ -100,27 +99,27 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
     // yes/no/ok/cancel buttons (optional)
     char const *btntxt[3];
     Image *btnimg[3];
-    BTN btnret[3];
+    MSGBTN btnret[3];
     switch( type ) {
         case MSGT_OK:
             no_buttons = 1; default_button = 0;
-            btntxt[0] = "Ok";     btnret[0] = BTN_OK;     btnimg[0] = g_imgButtonBlue;
+            btntxt[0] = "Ok";     btnret[0] = MSGBTN_OK;     btnimg[0] = g_imgButtonBlue;
             break;
         case MSGT_OKCANCEL:
             no_buttons = 2; default_button = 0;
-            btntxt[0] = "Ok";     btnret[0] = BTN_OK;     btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "Cancel"; btnret[1] = BTN_CANCEL; btnimg[1] = g_imgButtonRed;
+            btntxt[0] = "Ok";     btnret[0] = MSGBTN_OK;     btnimg[0] = g_imgButtonGreen;
+            btntxt[1] = "Cancel"; btnret[1] = MSGBTN_CANCEL; btnimg[1] = g_imgButtonRed;
             break;
         case MSGT_YESNO:
             no_buttons = 2; default_button = 0;
-            btntxt[0] = "Yes";    btnret[0] = BTN_YES;    btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "No";     btnret[1] = BTN_NO;     btnimg[1] = g_imgButtonRed;
+            btntxt[0] = "Yes";    btnret[0] = MSGBTN_YES;    btnimg[0] = g_imgButtonGreen;
+            btntxt[1] = "No";     btnret[1] = MSGBTN_NO;     btnimg[1] = g_imgButtonRed;
             break;
         case MSGT_YESNOCANCEL:
             no_buttons = 3; default_button = 0;
-            btntxt[0] = "Yes";    btnret[0] = BTN_YES;    btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "No";     btnret[1] = BTN_NO;     btnimg[1] = g_imgButtonRed;
-            btntxt[2] = "Cancel"; btnret[2] = BTN_CANCEL; btnimg[2] = g_imgButtonYellow;
+            btntxt[0] = "Yes";    btnret[0] = MSGBTN_YES;    btnimg[0] = g_imgButtonGreen;
+            btntxt[1] = "No";     btnret[1] = MSGBTN_NO;     btnimg[1] = g_imgButtonRed;
+            btntxt[2] = "Cancel"; btnret[2] = MSGBTN_CANCEL; btnimg[2] = g_imgButtonYellow;
             break;
         case MSGT_TEXT:
         default:
@@ -153,9 +152,9 @@ BTN GuiMessageBox::Show(const char *txt, Image *image, MSGT type, int alpha)
     // selection
     if( type != MSGT_TEXT ) {
         int i = DoSelection();
-        return ( i >= 0 )? btnret[i] : BTN_NONE;
+        return ( i >= 0 )? btnret[i] : MSGBTN_NONE;
     }else{
-        return BTN_NONE;
+        return MSGBTN_NONE;
     }
 }
 
@@ -219,7 +218,7 @@ void GuiMessageBox::ShowPopup(const char *txt, Image *image, int alpha)
     // Start thread
     myself = this;
     quit_thread = false;
-    thread_popup = archThreadCreateEx(MessageBoxPopupThreadWrapper, THREAD_PRIO_NORMAL, 16*1024);
+    thread_popup = archThreadCreate(MessageBoxPopupThreadWrapper, THREAD_PRIO_NORMAL);
     // done
     manager->Unlock();
 }

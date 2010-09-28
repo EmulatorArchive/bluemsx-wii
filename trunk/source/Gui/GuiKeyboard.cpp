@@ -2,24 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gccore.h>
-#include <ogc/lwp_watchdog.h>
-#include <wiiuse/wpad.h>
 
-extern "C" {
+#ifdef WII
 #include "../iodevice/led.h"
-}
-
-#include "InputEvent.h"
-#include "GuiKeyboard.h"
 #include "WiiInput.h"
+#endif
+#include "../input/InputEvent.h"
+#include "GuiKeyboard.h"
 
 // Resources
 #include "GuiImages.h"
 #include "GuiFonts.h"
 
-// Colors                 R            G          B
-#define COLOR_HOVER   ((0x08 << 11)+(0x08 << 6)+(0x08))
-#define COLOR_PRESSED ((0x00 << 11)+(0x00 << 6)+(0x1f))
+// Colors               R     G     B     A
+#define COLOR_HOVER   0x40, 0x40, 0x40, 0xff
+#define COLOR_PRESSED 0x00, 0x00, 0xff, 0xff
 
 #define KEYBOARD_FADE_FRAMES 30
 
@@ -114,12 +111,14 @@ static KEY_RECT key_rects[] = {
     { EC_DOWN,    669, 272,  51,  29, false, NULL },
     { EC_RIGHT,   722, 272,  52,  29, false, NULL }
 };
+
 #define NUM_KEYS (sizeof(key_rects) / sizeof(key_rects[0]))
 
-void GuiKeyboard::RenderWrapper(void *arg)
+bool GuiKeyboard::RenderWrapper(void *arg)
 {
     GuiKeyboard *me = (GuiKeyboard*)arg;
     me->Render();
+    return false;
 }
 
 // Function is called every frame
@@ -127,13 +126,9 @@ void GuiKeyboard::Render(void)
 {
     static KEY_RECT *key_pressed = NULL;
 
-    // Buttons
-    WPAD_ScanPads();
-    u32 buttons = WPAD_ButtonsHeld(WPAD_CHAN_0) | WPAD_ButtonsHeld(WPAD_CHAN_1);
-
     // Infrared
     int x, y, angle;
-    bool validpos = manager->GetWiiMoteIR(&x, &y, &angle);
+    bool validpos = manager->gwd.input.GetWiiMoteIR(&x, &y, &angle);
     if( validpos && is_enabled && !is_hidden ) {
         spr_cursor->SetPosition(x, y);
         spr_cursor->SetRotation(angle/2);
@@ -186,20 +181,27 @@ void GuiKeyboard::Render(void)
             spr_hover->SetVisible(true);
             // unset previous pressed key
             if( key_pressed && key != key_pressed && !key_pressed->toggle ) {
+#ifdef WII
                 inputEventUnset(key_pressed->key);
+#endif
             }
             // set/unset/toggle current key
-            if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A) ) {
+            if( manager->gwd.input.GetButtonStatus(BTN_JOY1_WIIMOTE_A) ||
+                manager->gwd.input.GetButtonStatus(BTN_JOY2_WIIMOTE_A) ) {
                 if( key->toggle ) {
                     if( key != key_pressed ) {
+#ifdef WII
                         if( inputEventGetState(key->key) ) {
                             inputEventUnset(key->key);
                         }else{
                             inputEventSet(key->key);
                         }
+#endif
                     }
                 }else{
+#ifdef WII
                     inputEventSet(key->key);
+#endif
                 }
                 if( spr == NULL ) {
                     spr = spr_pressed;
@@ -207,7 +209,9 @@ void GuiKeyboard::Render(void)
                 key_pressed = key;
             }else{
                 if( key_pressed && !key_pressed->toggle ) {
+#ifdef WII
                     inputEventUnset(key_pressed->key);
+#endif
                 }
                 key_pressed = NULL;
             }
@@ -220,11 +224,13 @@ void GuiKeyboard::Render(void)
             spr->SetRefPixelPosition(0,0);
             spr->SetPosition(xscale * key->x + xpos, yscale * key->y + ypos);
             spr->SetTransparency(128);
+#ifdef WII
             if( key->key == EC_CAPS ) {
                 spr->SetVisible(ledGetCapslock());
             }else{
                 spr->SetVisible(inputEventGetState(key->key));
             }
+#endif
         }
     }
 }
@@ -247,14 +253,10 @@ void GuiKeyboard::Show(void)
 
     img_hover = new DrawableImage;
     img_hover->CreateImage(4, 4, GX_TF_RGB565);
-    u16 *p1 = (u16*)img_hover->GetTextureBuffer();
+    img_hover->FillSolidColor(COLOR_HOVER);
     img_pressed = new DrawableImage;
     img_pressed->CreateImage(4, 4, GX_TF_RGB565);
-    u16 *p2 = (u16*)img_pressed->GetTextureBuffer();
-    for(int i = 0; i < 4*4; i++) {
-        *p1++ = COLOR_HOVER;
-        *p2++ = COLOR_PRESSED;
-    }
+    img_pressed->FillSolidColor(COLOR_PRESSED);
     img_hover->FlushBuffer();
     img_pressed->FlushBuffer();
     spr_hover = new Sprite;
@@ -274,10 +276,12 @@ void GuiKeyboard::Show(void)
     spr_code = new Sprite;
     spr_code->SetImage(img_pressed->GetImage());
 
-    keymap1 = keyboardGetMapping(KEY_JOY1_WIIMOTE_A);
-    keymap2 = keyboardGetMapping(KEY_JOY2_WIIMOTE_A);
-    keyboardRemapKey(KEY_JOY1_WIIMOTE_A, EC_NONE);
-    keyboardRemapKey(KEY_JOY2_WIIMOTE_A, EC_NONE);
+ #ifdef WII
+    keymap1 = keyboardGetMapping(BTN_JOY1_WIIMOTE_A);
+    keymap2 = keyboardGetMapping(BTN_JOY2_WIIMOTE_A);
+    keyboardRemapKey(BTN_JOY1_WIIMOTE_A, EC_NONE);
+    keyboardRemapKey(BTN_JOY2_WIIMOTE_A, EC_NONE);
+#endif
 
     manager->Lock();
 
@@ -330,8 +334,10 @@ void GuiKeyboard::Remove(void)
     is_showing = false;
     manager->Unlock();
 
-    keyboardRemapKey(KEY_JOY1_WIIMOTE_A, keymap1);
-    keyboardRemapKey(KEY_JOY2_WIIMOTE_A, keymap2);
+#ifdef WII
+    keyboardRemapKey(BTN_JOY1_WIIMOTE_A, keymap1);
+    keyboardRemapKey(BTN_JOY2_WIIMOTE_A, keymap2);
+#endif
 }
 
 bool GuiKeyboard::IsShowing(void)

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="TTF font"
+	Version="8,00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="TTF"
+			DisplayName="TTF font"
+			CommandLine="$(SolutionDir)..\util\raw2c $(InputDir)$(InputName).ttf $(TargetDir)$(InputName).inc $(InputName)"
+			Outputs="$(TargetDir)$(InputName).inc"
+			FileExtensions="*.ttf"
+			ExecutionDescription="Convert binary to include file"
+			>
+			<Properties>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>

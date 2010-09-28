@@ -49,6 +49,10 @@ typedef enum {
     EMU_LANG_UNKNOWN     = -1 
 } EmuLanguageType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void langInit();
 
 int langSetLanguage(EmuLanguageType languageType);
@@ -870,6 +874,10 @@ char* langDbgDevScc();
 //----------------------
 char* langAboutScrollThanksTo();
 char* langAboutScrollAndYou();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

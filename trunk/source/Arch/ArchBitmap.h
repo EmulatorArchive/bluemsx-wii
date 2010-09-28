@@ -28,6 +28,10 @@
 #ifndef ARCH_BITMAP_H
 #define ARCH_BITMAP_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct ArchBitmap ArchBitmap;
 
 ArchBitmap* archBitmapCreate(int width, int height);
@@ -42,5 +46,9 @@ void archBitmapCopy(ArchBitmap* dst, int xDest, int yDest,
                     ArchBitmap* src, int xSrc, int ySrc, int width, int height);
 
 int archRGB(int r, int g, int b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

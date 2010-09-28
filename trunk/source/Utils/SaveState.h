@@ -33,6 +33,10 @@
 
 typedef struct SaveState SaveState;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void saveStateCreateForRead(ZipFile *zip);
 void saveStateCreateForWrite(void);
 
@@ -45,6 +49,10 @@ void saveStateSet(SaveState* state, const char* tagName, UInt32 value);
 
 void saveStateGetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length);
 void saveStateSetBuffer(SaveState* state, const char* tagName, void* buffer, UInt32 length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SAVE_STATE_H */
 

@@ -1,13 +1,16 @@
 
+#include "../arch/archThread.h"
 #include "GuiRunner.h"
 #include "GuiDialog.h"
 #include "GuiImages.h"
-#include <wiiuse/wpad.h>
 
 typedef struct _gritem {
   GuiElement *element;
   struct _gritem *next;
 } GRITEM;
+
+int GuiRunner::running_count = 0;
+Sprite* GuiRunner::cursor = NULL;
 
 GuiRunner::GuiRunner(GuiManager *man, GuiDialog *dia)
 {
@@ -271,7 +274,7 @@ bool GuiRunner::SelectNearestElement(GuiElement *elm, GRDIR dir)
     return false;
 }
 
-void GuiRunner::GetKeysCallback(KEY code, int pressed)
+void GuiRunner::GetKeysCallback(BTN code, int pressed)
 {
     GRITEM *item = first_item;
     while( item != NULL ) {
@@ -284,30 +287,30 @@ void GuiRunner::GetKeysCallback(KEY code, int pressed)
     if( pressed &&
         last_selected != NULL ) {
         switch( code ) {
-            case KEY_UP:
-            case KEY_JOY1_UP:
-            case KEY_JOY2_UP:
+            case BTN_UP:
+            case BTN_JOY1_UP:
+            case BTN_JOY2_UP:
                 if( SelectNearestElement(last_selected, GRDIR_UP) ) {
                     use_keyboard = true;
                 }
                 break;
-            case KEY_DOWN:
-            case KEY_JOY1_DOWN:
-            case KEY_JOY2_DOWN:
+            case BTN_DOWN:
+            case BTN_JOY1_DOWN:
+            case BTN_JOY2_DOWN:
                 if( SelectNearestElement(last_selected, GRDIR_DOWN) ) {
                     use_keyboard = true;
                 }
                 break;
-            case KEY_LEFT:
-            case KEY_JOY1_LEFT:
-            case KEY_JOY2_LEFT:
+            case BTN_LEFT:
+            case BTN_JOY1_LEFT:
+            case BTN_JOY2_LEFT:
                 if( SelectNearestElement(last_selected, GRDIR_LEFT) ) {
                     use_keyboard = true;
                 }
                 break;
-            case KEY_RIGHT:
-            case KEY_JOY1_RIGHT:
-            case KEY_JOY2_RIGHT:
+            case BTN_RIGHT:
+            case BTN_JOY1_RIGHT:
+            case BTN_JOY2_RIGHT:
                 if( SelectNearestElement(last_selected, GRDIR_RIGHT) ) {
                     use_keyboard = true;
                 }
@@ -319,7 +322,7 @@ void GuiRunner::GetKeysCallback(KEY code, int pressed)
     dialog->OnKey(this, code, pressed);
 }
 
-void GuiRunner::GetKeysCallbackWrapper(void *context, KEY code, int pressed)
+void GuiRunner::GetKeysCallbackWrapper(void *context, BTN code, int pressed)
 {
     GuiRunner *me = (GuiRunner *)context;
     me->GetKeysCallback(code, pressed);
@@ -331,68 +334,84 @@ void GuiRunner::Leave(void *retval)
     quit = true;
 }
 
-void* GuiRunner::Run(void)
+bool GuiRunner::FrameCallbackWrapper(void *context)
 {
-    quit = false;
-    return_value = NULL;
+    return ((GuiRunner *)context)->FrameCallback();
+}
 
+bool GuiRunner::FrameCallback(void)
+{
     manager->Lock();
-
-    // Cursor
-    Sprite *cursor = new Sprite;
-    cursor->SetImage(g_imgMousecursor);
-    cursor->SetPosition(0, 0);
     cursor->SetVisible(false);
-    manager->AddTopFixed(cursor);
-
+    
+    // Infrared
+    int x, y, angle;
+    if( manager->gwd.input.GetWiiMoteIR(&x, &y, &angle) ) {
+        cursor->SetPosition((f32)x, (f32)y);
+        cursor->SetRotation((f32)angle/2);
+        cursor->SetVisible(true);
+    }else{
+        cursor->SetVisible(false);
+        cursor->SetPosition(0, 0);
+    }
+    
+    // Check mouse cursor colisions
+    is_above = CheckCollision(cursor);
+    
+    // Check arrow keys
+    if( is_above != NULL || !use_keyboard ) {
+        SetSelected(is_above, x, y);
+        if( is_above != NULL ) {
+            use_keyboard = false;
+        }
+    }
+    
     manager->Unlock();
 
-    for(;;) {
+    dialog->OnUpdateScreen(this);
+
+    return is_modal;
+}
+
+void* GuiRunner::Run(bool modal)
+{
+    quit = false;
+    is_modal = modal;
+    return_value = NULL;
+
+    // Cursor
+    if( running_count == 0 ) {
         manager->Lock();
+        cursor = new Sprite;
+        cursor->SetImage(g_imgMousecursor);
+        cursor->SetPosition(0, 0);
         cursor->SetVisible(false);
+        manager->AddTopFixed(cursor);
         manager->Unlock();
+    }
 
+    running_count++;
+    manager->AddFrameCallback(FrameCallbackWrapper, this);
+
+    for(;;) {
         // Check keys
-        KBD_GetKeys(GetKeysCallbackWrapper, this);
-
-        manager->Lock();
-
-        // Infrared
-        int x, y, angle;
-        if( manager->GetWiiMoteIR(&x, &y, &angle) ) {
-            cursor->SetPosition(x, y);
-            cursor->SetRotation(angle/2);
-            cursor->SetVisible(true);
-        }else{
-            cursor->SetVisible(false);
-            cursor->SetPosition(0, 0);
-        }
-
-        // Check mouse cursor colisions
-        is_above = CheckCollision(cursor);
-
-        // Check arrow keys
-        if( is_above != NULL || !use_keyboard ) {
-            SetSelected(is_above, x, y);
-            if( is_above != NULL ) {
-                use_keyboard = false;
-            }
-        }
-
-        manager->Unlock();
+        manager->gwd.input.GetButtonEvents(GetKeysCallbackWrapper, this);
 
         // Leave when requested
         if( quit ) {
             break;
         }
-
-        dialog->OnUpdateScreen(this);
-        VIDEO_WaitVSync();
+        archThreadSleep(20);
     }
 
+    manager->RemoveFrameCallback(FrameCallbackWrapper, this);
+    running_count--;
+
     // Cleanup
-    manager->Remove(cursor);
-    delete cursor;
+    if( running_count == 0 ) {
+        manager->RemoveAndDelete(cursor);
+        cursor = NULL;
+    }
 
     return return_value;
 }

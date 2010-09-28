@@ -1,110 +1,78 @@
 
 #include <stdlib.h>
-#include <wiiuse/wpad.h>
+#include <string.h>
+#include <assert.h>
+
 #include "GuiManager.h"
 
-#define GUI_DISP_STACK_SIZE 64*1024
 
-void *GuiManager::DisplayThreadWrapper(void *arg)
-{
-    GuiManager *my = (GuiManager *)arg;
-    my->DisplayThread();
-    return NULL;
-}
+GuiManager *GuiManager::pThis;
 
-void GuiManager::DisplayThread(void)
-{
-    do {
-        LWP_MutexLock(mutex);
-
-        // Call registered callbacks
-        GuiManagerCallback *p = render;
-        while( p ) {
-            p->callback(p->context);
-            p = p->next;
-        }
-
-        // Handle fade-out
-        for(int i = 0; i < GUI_MAX_LAYERS; i++) {
-            FrameRemove *remove = &remove_list[i];
-            if( remove->layer ) {
-                if( remove->delay ) {
-                    remove->delay--;
-                }else
-                if( remove->count ) {
-                    remove->count--;
-                    remove->layer->SetTransparency((remove->count * remove->alpha) / remove->fade);
-                }else{
-                    if( remove->needdelete ) {
-                        RemoveAndDelete(remove->layer, remove->image);
-                    }else{
-                        Remove(remove->layer);
-                        remove->layer->SetTransparency(remove->alpha);
-                    }
-                    remove->layer = NULL;
-                }
-
-            }
-        }
-        // Handle fade-in
-        for(int i = 0; i < GUI_MAX_LAYERS; i++) {
-            FrameAdd *add = &add_list[i];
-            if( add->layer ) {
-                if( add->delay ) {
-                    add->delay--;
-                }else
-                if( add->count ) {
-                    add->count--;
-                    if( add->layer->GetTransparency() != add->curalpha ) {
-                        // someone has changed the transparency, change as new setpoint for fade
-                        add->alpha = add->layer->GetTransparency();
-                    }
-                    add->curalpha = ((add->fade - add->count) * add->alpha) / add->fade;
-                    add->layer->SetTransparency(add->curalpha);
-                }else{
-                    add->layer = NULL;
-                }
-
-            }
-        }
-
-        manager->Draw();
-        LWP_MutexUnlock(mutex);
-        gwd.Flush();
-    }while( !quit_thread );
-}
-
-void GuiManager::AddRenderCallback(void (*callback)(void*), void *context)
+void GuiManager::AddRenderCallback(bool (*callback)(void*), void *context)
 {
     GuiManagerCallback *p, *newrender = new GuiManagerCallback;
     newrender->callback = callback;
     newrender->context = context;
     newrender->next = NULL;
-    if( render ) {
-        p = render;
+    Lock();
+    if( render_callback ) {
+        p = render_callback;
         while( p->next ) {
             p = p->next;
         }
         p->next = newrender;
     }else{
-        render = newrender;
+        render_callback = newrender;
     }
+    Unlock();
 }
 
-void GuiManager::RemoveRenderCallback(void (*callback)(void*), void *context)
+void GuiManager::RemoveRenderCallback(bool (*callback)(void*), void *context)
 {
-    GuiManagerCallback *cur = render;
+    GuiManagerCallback *cur = render_callback;
     GuiManagerCallback *prev = NULL;
     while( cur ) {
         if( cur->callback == callback && cur->context == context ) {
-            LWP_MutexLock(mutex);
+            Lock();
             if( prev ) {
                 prev->next = cur->next;
             }else{
-                render = cur->next;
+                render_callback = cur->next;
             }
             delete cur;
-            LWP_MutexUnlock(mutex);
+            Unlock();
+            return;
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+}
+
+void GuiManager::AddFrameCallback(bool (*callback)(void*), void *context)
+{
+    GuiManagerCallback *newrender = new GuiManagerCallback;
+    newrender->callback = callback;
+    newrender->context = context;
+    Lock();
+    newrender->next = frame_callback;
+    frame_callback = newrender;
+    Unlock();
+}
+
+void GuiManager::RemoveFrameCallback(bool (*callback)(void*), void *context)
+{
+    GuiManagerCallback *cur = frame_callback;
+    GuiManagerCallback *prev = NULL;
+    while( cur ) {
+        if( cur->callback == callback && cur->context == context ) {
+            Lock();
+            if( prev ) {
+                prev->next = cur->next;
+            }else{
+                frame_callback = cur->next;
+            }
+            delete cur;
+            Unlock();
             return;
         }
         prev = cur;
@@ -114,12 +82,12 @@ void GuiManager::RemoveRenderCallback(void (*callback)(void*), void *context)
 
 void GuiManager::Lock(void)
 {
-    LWP_MutexLock(mutex);
+    mutex.Lock();
 }
 
 void GuiManager::Unlock(void)
 {
-    LWP_MutexUnlock(mutex);
+    mutex.Unlock();
 }
 
 int GuiManager::GetIndex(Layer *layer)
@@ -261,25 +229,6 @@ void GuiManager::RemoveAndDelete(Layer *layer, Image *image, int fade, int delay
     }
 }
 
-bool GuiManager::GetWiiMoteIR(int *x, int *y, int *angle)
-{
-    ir_t ir;
-    WPAD_IR(WPAD_CHAN_0, &ir);
-    if( !ir.state || !ir.smooth_valid ) {
-        WPAD_IR(WPAD_CHAN_1, &ir);
-    }
-    if( !ir.state || !ir.smooth_valid ) {
-        return false;
-    }
-    int sx = (int)(((ir.sx - (500-200)) * gwd.GetWidth()) / 400);
-    int sy = (int)(((ir.sy - (500-150)) * gwd.GetHeight()) / 300);
-    if( x ) *x = sx;
-    if( y ) *y = sy;
-    if( angle ) *angle = ir.angle;
-
-    return true;
-}
-
 GW_VIDEO_MODE GuiManager::GetMode(void)
 {
     return gwd.GetMode();
@@ -300,47 +249,135 @@ void GuiManager::SetMode(GW_VIDEO_MODE mode)
     gwd.SetMode(mode);
 }
 
-GuiManager::GuiManager()
+bool GuiManager::DrawFuncWrapper(void *context)
 {
-    fixed_layers = 0;
-    memset(remove_list, 0, sizeof(remove_list));
-    memset(add_list, 0, sizeof(add_list));
+    return ((GuiManager*)context)->DrawFunc();
+}
+
+bool GuiManager::DrawFunc()
+{
+    // Call ALL registered render callbacks
+    GuiManagerCallback *p = render_callback;
+    while( p ) {
+        if( p->callback(p->context) ) {
+          stop_requested = true;
+        }
+        p = p->next;
+    }
+    // Call registered frame callback top-to-bottom
+    // stop on first modal frame (return value = true)
+    p = frame_callback;
+    while( p ) {
+        if( p->callback(p->context) ) {
+            break;
+        }
+        p = p->next;
+    }
+
+    Lock();
+
+    // Handle fade-out
+    for(int i = 0; i < GUI_MAX_LAYERS; i++) {
+        FrameRemove *remove = &remove_list[i];
+        if( remove->layer ) {
+            if( remove->delay ) {
+                remove->delay--;
+            }else
+            if( remove->count ) {
+                remove->count--;
+                remove->layer->SetTransparency((remove->count * remove->alpha) / remove->fade);
+            }else{
+                if( remove->needdelete ) {
+                    RemoveAndDelete(remove->layer, remove->image);
+                }else{
+                    Remove(remove->layer);
+                    remove->layer->SetTransparency(remove->alpha);
+                }
+                remove->layer = NULL;
+            }
+    
+        }
+    }
+    // Handle fade-in
+    for(int i = 0; i < GUI_MAX_LAYERS; i++) {
+        FrameAdd *add = &add_list[i];
+        if( add->layer ) {
+            if( add->delay ) {
+                add->delay--;
+            }else
+            if( add->count ) {
+                add->count--;
+                if( add->layer->GetTransparency() != add->curalpha ) {
+                    // someone has changed the transparency, change as new setpoint for fade
+                    add->alpha = add->layer->GetTransparency();
+                }
+                add->curalpha = ((add->fade - add->count) * add->alpha) / add->fade;
+                add->layer->SetTransparency(add->curalpha);
+            }else{
+                add->layer = NULL;
+            }
+    
+        }
+    }
+
+    // Draw layers
+    manager->Draw();
+
+    Unlock();
+    return stop_requested;
+}
+
+void GuiManager::RunMainFunc(void *context)
+{
+    ((GuiManager*)context)->gui_main_func((GuiManager*)context);
+}
+
+void GuiManager::Run(GUIFUNC_MAIN func_main)
+{
+    gui_main_func = func_main;
 
     // Initialize GameWindow
     gwd.InitVideo();
-    gwd.SetBackground((GXColor){ 0, 0, 0, 255 });
+    gwd.SetBackground(0, 0, 0, 255);
 
     // Initialize manager
     manager = new LayerManager(GUI_MAX_LAYERS);
-    render = NULL;
+    render_callback = NULL;
+    frame_callback = NULL;
 
-    // Start displaying
-    quit_thread = false;
-    LWP_MutexInit(&mutex, 1);
-    thread_stack = malloc(GUI_DISP_STACK_SIZE);
-    LWP_CreateThread(&thread, DisplayThreadWrapper, this,
-                     thread_stack, GUI_DISP_STACK_SIZE, 90);
+    gwd.Run(RunMainFunc, DrawFuncWrapper, this);
+}
+
+GuiManager::GuiManager()
+{
+    assert( pThis == NULL );
+    pThis = this;
+    stop_requested = false;
+    fixed_layers = 0;
+    memset(remove_list, 0, sizeof(remove_list));
+    memset(add_list, 0, sizeof(add_list));
 }
 
 GuiManager::~GuiManager()
 {
     // Handle pending delete requests
-    LWP_MutexLock(mutex);
+    Lock();
     for(int i = 0; i < GUI_MAX_LAYERS; i++) {
         if( remove_list[i].layer != NULL &&
             remove_list[i].needdelete ) {
             RemoveAndDelete(remove_list[i].layer, remove_list[i].image);
         }
     }
-
-    // Stop display thread
-    quit_thread = true;
-    LWP_JoinThread(thread, NULL);
-    LWP_MutexDestroy(mutex);
-    free(thread_stack);
+    Unlock();
 
     // Clean-up
-    GuiManagerCallback *p = render;
+    GuiManagerCallback *p = render_callback;
+    while( p ) {
+        GuiManagerCallback *cb = p;
+        p = p->next;
+        delete cb;
+    }
+    p = frame_callback;
     while( p ) {
         GuiManagerCallback *cb = p;
         p = p->next;
@@ -348,5 +385,6 @@ GuiManager::~GuiManager()
     }
 
     delete manager;
+    pThis = NULL;
 }
 

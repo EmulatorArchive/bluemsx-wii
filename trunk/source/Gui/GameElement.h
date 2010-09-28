@@ -2,10 +2,7 @@
 #define _H_GAMEELEMENT
 
 #include <wiisprite.h>
-#include "expat.h"
-#include "kbdlib.h"
-
-using namespace wsp;
+#include "../expat/expat.h"
 
 typedef enum {
   GEP_KEYBOARD_JOYSTICK,
@@ -22,7 +19,7 @@ public:
     void SetName(const char *str);
     void SetCommandLine(const char *str);
     void SetScreenShot(int number, const char *str);
-    void SetKeyMapping(KEY key, int event);
+    void SetKeyMapping(BTN key, int event);
     void SetCheatFile(const char *str);
     void SetProperty(GEP prop, bool value);
     char *GetName(void);
@@ -30,7 +27,7 @@ public:
     char *GetScreenShot(int number);
     char *GetCheatFile(void);
     bool GetProperty(GEP prop);
-    int GetKeyMapping(KEY key);
+    int GetKeyMapping(BTN key);
     void FreeImage(int number);
     Image* GetImage(int number);
     void DeleteImage(int number);
@@ -42,7 +39,7 @@ private:
     char *cheatfile;
     Image *image[2];
     unsigned properties;
-    int key_map[KEY_LAST];
+    int key_map[BTN_LAST];
 };
 
 #endif

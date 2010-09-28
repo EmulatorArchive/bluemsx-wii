@@ -309,7 +309,7 @@ typedef struct {
 } SoundProperties;
 
 typedef struct {
-	int POV0isAxes;
+    int POV0isAxes;
 } JoystickGeneric;
 
 typedef struct {
@@ -438,6 +438,10 @@ typedef struct Properties {
     NoWindProperties    nowind;
 } Properties;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 Properties* propCreate(int useDefault, 
                        int langType, 
                        PropKeyboardLanguage kbdLang, 
@@ -450,5 +454,9 @@ void propDestroy(Properties* pProperties);
 void propertiesSetDirectory(const char* defDir, const char* altDir);
 
 Properties* propGetGlobalProperties();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

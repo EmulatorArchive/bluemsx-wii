@@ -67,6 +67,10 @@ typedef enum {
     MIXMODE_NONE     = 8
 } FrameBufferMixMode;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void frameBufferSetFrameCount(int frameCount);
 
 FrameBuffer* frameBufferGetViewFrame();
@@ -122,6 +126,10 @@ int    frameBufferGetMaxWidth(FrameBuffer* frameBuffer);
 #define frameBufferSetLineCount(frameBuffer, val)       frameBuffer->lines     = val
 #define frameBufferGetLineCount(frameBuffer)            frameBuffer->lines
 #define frameBufferGetMaxWidth(frameBuffer)             frameBuffer->maxWidth
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

@@ -30,7 +30,7 @@ class TextRender
 		void SetSize(int s);
         void SetYSpacing(int s);
 
-		void SetBuffer(uint8_t *buf, int width, int height);
+		void SetBuffer(uint8_t *buf, int width, int height, int bufwidth);
 		void RenderSimple(const char *out, bool center = false, int *sx = NULL, int *sy = NULL);
 		void Render(const char *fmt, ...);
         void GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...);
@@ -43,6 +43,7 @@ class TextRender
 		uint8_t *_buf;
 		int _width;
 		int _height;
+    int _bufwidth;
 		int _fontheight;
         int _yspacing;
 		GXColor _color;

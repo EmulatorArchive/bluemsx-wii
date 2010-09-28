@@ -23,7 +23,7 @@ bool GuiElement::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int 
     return false;
 }
 
-bool GuiElement::ElmHandleKey(GuiRunner *runner, KEY key, bool pressed)
+bool GuiElement::ElmHandleKey(GuiRunner *runner, BTN key, bool pressed)
 {
     return false;
 }

@@ -31,7 +31,7 @@ public:
     virtual ~GuiGameSelect();
 
     // GuiDialog interface
-    virtual void OnKey(GuiRunner *runner, KEY key, bool pressed);
+    virtual void OnKey(GuiRunner *runner, BTN key, bool pressed);
     virtual void OnUpdateScreen(GuiRunner *runner);
 
     bool Load(const char *dir, const char *filename);

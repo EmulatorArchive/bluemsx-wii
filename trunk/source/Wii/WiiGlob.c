@@ -196,7 +196,7 @@ ArchGlob* archGlob(const char* pattern, int flags)
             continue;
         }
         //fprintf(stderr, "found '%s' ... ", wfd.cFileName);
-		fa = GetFileAttributesWfd(&wfd);
+        fa = GetFileAttributesWfd(&wfd);
         if (((flags & ARCH_GLOB_DIRS) && (fa & FILE_ATTRIBUTE_DIRECTORY) != 0) ||
             ((flags & ARCH_GLOB_FILES) && (fa & FILE_ATTRIBUTE_DIRECTORY) == 0))
         {
@@ -212,7 +212,6 @@ ArchGlob* archGlob(const char* pattern, int flags)
         }else{
             //fprintf(stderr, "bad attr (%d, %d)\n", flags, fa);
         }
-        //archThreadSleep(1000);
     } while (FindNextFile(handle, &wfd));
 
     FindClose(handle);

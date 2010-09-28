@@ -57,12 +57,12 @@ void GuiButton::ElmRemoveLayers(GuiManager *manager, bool del, int fade, int del
     }
 }
 
-wsp::Layer* GuiButton::ElmGetTopLayer(void)
+Layer* GuiButton::ElmGetTopLayer(void)
 {
     return sprImage;
 }
 
-wsp::Layer* GuiButton::ElmGetBottomLayer(void)
+Layer* GuiButton::ElmGetBottomLayer(void)
 {
     return sprText? sprText : sprImage;
 }
@@ -191,7 +191,8 @@ void GuiButton::CreateImageTextHighlightButton(Image *image, const char *txt, in
     imgText = new DrawableImage;
     imgText->SetFont(g_fontImpact);
     imgText->SetSize(36);
-    imgText->SetColor((GXColor){255,255,255,255});
+    GXColor white = {255,255,255,255};
+    imgText->SetColor(white);
     imgText->GetTextSize(&txtwidth, &txtheight, txt);
     txtwidth = (txtwidth + 3) & ~3;
     txtheight = (txtheight + 3) & ~3;

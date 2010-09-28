@@ -1,10 +1,10 @@
-#include <fat.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <wiisprite.h>
 #include "GameElement.h"
 #include "GuiImages.h"
+#include "../unzip/zlib.h" /* for crc32 */
 
 /*************************************************
   Game Element
@@ -94,7 +94,7 @@ void GameElement::SetScreenShot(int number, const char *str)
     }
 }
 
-void GameElement::SetKeyMapping(KEY key, int event)
+void GameElement::SetKeyMapping(BTN key, int event)
 {
     key_map[key] = event;
 }
@@ -147,7 +147,7 @@ char* GameElement::GetCheatFile(void)
     return cheatfile;
 }
 
-int GameElement::GetKeyMapping(KEY key)
+int GameElement::GetKeyMapping(BTN key)
 {
     return key_map[key];
 }

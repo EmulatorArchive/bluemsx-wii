@@ -9,57 +9,53 @@
 #include <gccore.h>
 #include "layer.h"
 
-//!libwiisprite namespace
-namespace wsp{
-	//!Groups layers into one block in which they can be managed.
-	class LayerManager{
-		public:
-			//!Constructor.
-			//!\param boundary Specifies how many layers can be grouped into this manager.
-			LayerManager(u32 boundary);
-			//!Destructor.
-			virtual ~LayerManager();
+//!Groups layers into one block in which they can be managed.
+class LayerManager{
+public:
+    //!Constructor.
+    //!\param boundary Specifies how many layers can be grouped into this manager.
+    LayerManager(u32 boundary);
+    //!Destructor.
+    virtual ~LayerManager();
 
-			//!Appends a layer at the end, thus drawing it at last.
-			//!\param layer The layer to append. If it is already in the list, it gets removed first.
-			//!\sa \ref layermanager_append_page
-			void Append(Layer* layer);
-			//!Inserts a layer into the manager.
-			//!\param layer The layer to insert. If it is already in the list, it gets removed first.
-			//!\param index The new index of the layer. Can't be bigger than GetSize().
-			//!\sa \ref layermanager_append_page
-			void Insert(Layer* layer, u32 index);
-			//!Gets the index of the layer in the list.
-            int GetIndex(Layer* layer);
-			//!Removes a layer from the list.
-			//!\param layer A layer that is in the list.
-			//!\sa \ref layermanager_append_page
-			void Remove(Layer* layer);
-			//!Clears the whole LayerManager from all Layers.
-			//!\sa \ref layermanager_append_page
-			void RemoveAll();
+    //!Appends a layer at the end, thus drawing it at last.
+    //!\param layer The layer to append. If it is already in the list, it gets removed first.
+    //!\sa \ref layermanager_append_page
+    void Append(Layer* layer);
+    //!Inserts a layer into the manager.
+    //!\param layer The layer to insert. If it is already in the list, it gets removed first.
+    //!\param index The new index of the layer. Can't be bigger than GetSize().
+    //!\sa \ref layermanager_append_page
+    void Insert(Layer* layer, u32 index);
+    //!Gets the index of the layer in the list.
+          int GetIndex(Layer* layer);
+    //!Removes a layer from the list.
+    //!\param layer A layer that is in the list.
+    //!\sa \ref layermanager_append_page
+    void Remove(Layer* layer);
+    //!Clears the whole LayerManager from all Layers.
+    //!\sa \ref layermanager_append_page
+    void RemoveAll();
 
-			//!Returns a layer at a specified index.
-			//!\param index The index from where to poll the layer. Can't be bigger than GetSize().
-			//!\return A pointer to the layer at the index. NULL if index is out of bounds.
-			//!\sa \ref layermanager_append_page
-			Layer* GetLayerAt(u32 index) const;
-			//!Returns the size of the list of layers.
-			//!\return The size of the current layerlist.
-			//!\sa \ref layermanager_append_page
-			u32 GetSize() const;
+    //!Returns a layer at a specified index.
+    //!\param index The index from where to poll the layer. Can't be bigger than GetSize().
+    //!\return A pointer to the layer at the index. NULL if index is out of bounds.
+    //!\sa \ref layermanager_append_page
+    Layer* GetLayerAt(u32 index) const;
+    //!Returns the size of the list of layers.
+    //!\return The size of the current layerlist.
+    //!\sa \ref layermanager_append_page
+    u32 GetSize() const;
 
-			//!Draws all the layers in this LayerManager.
-			//!\param x The X offset for drawing.
-			//!\param y The Y offset for drawing.
-			//!\sa \ref layermanager_viewwindows_page
-			void Draw(void) const;
-		protected:
-		private:
-			Layer** _layers;
-			u32 _size,
-				_boundary;
-	};
+    //!Draws all the layers in this LayerManager.
+    //!\param x The X offset for drawing.
+    //!\param y The Y offset for drawing.
+    //!\sa \ref layermanager_viewwindows_page
+    void Draw(void) const;
+protected:
+private:
+    Layer** _layers;
+    u32 _size, _boundary;
 };
 
 /*! \page layermanager_viewwindows_page LayerManager - ViewWindows

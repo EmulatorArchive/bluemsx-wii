@@ -30,6 +30,10 @@
 
 #include "MsxTypes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void archEthGetMacAddress(UInt8* macAddress);
 
 void archEthCreate();
@@ -37,5 +41,9 @@ void archEthDestroy();
 
 int archEthSendPacket(UInt8* buffer, UInt32 length);
 int archEthRecvPacket(UInt8** buffer, UInt32* length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // ARCH_ETH_H

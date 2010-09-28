@@ -32,6 +32,10 @@
 #include "VideoRender.h"
 #include "AudioMixer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void actionInit(Video* video, Properties* properties, Mixer* mixer);
 void actionSetAudioCaptureSetDirectory(char* dir, char* prefix);
 void actionSetVideoCaptureSetDirectory(char* dir, char* prefix);
@@ -228,6 +232,10 @@ void actionRenshaSetLevel(int value);
 void actionEmuSpeedSet(int value);
 
 void actionKeyPress(int keyCode, int pressed);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

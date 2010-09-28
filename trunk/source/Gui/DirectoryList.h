@@ -1,7 +1,7 @@
 #ifndef _H_DIRLIST
 #define _H_DIRLIST
 
-#include "expat.h"
+#include "../expat/expat.h"
 
 typedef enum {
   DIR_CONTAINER_ROOT,

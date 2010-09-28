@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="PNG file"
+	Version="8,00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="PNG"
+			DisplayName="PNG file"
+			CommandLine="$(SolutionDir)..\util\raw2c $(InputDir)$(InputName).png $(TargetDir)$(InputName).inc $(InputName)"
+			Outputs="$(TargetDir)$(InputName).inc"
+			FileExtensions="*.png"
+			ExecutionDescription="Convert binary to include file"
+			>
+			<Properties>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>

@@ -3,7 +3,6 @@
 #define _GUI_KEYBOARD_H
 
 #include "GuiManager.h"
-#include "DrawableImage.h"
 
 class GuiKeyboard {
 public:
@@ -17,7 +16,7 @@ public:
     void Render(void);
 
 private:
-    static void RenderWrapper(void *arg);
+    static bool RenderWrapper(void *arg);
 
     bool is_showing;
     bool is_enabled;

@@ -25,28 +25,26 @@
 **
 ******************************************************************************
 */
-extern "C" {
 #include "GameReader.h"
-};
 
 #ifdef _WIN32
 #include "msxgr.h"
 #else
 class CMSXGr
 {
-	public:
-		CMSXGr() {};
-		~CMSXGr() {};
+public:
+    CMSXGr() {};
+    ~CMSXGr() {};
 
-        int  Init() { return 0; }
+    int  Init() { return 0; }
 
-        bool IsSlotEnable(int) { return false; }
-		bool IsCartridgeInserted(int) { return false; }
+    bool IsSlotEnable(int) { return false; }
+    bool IsCartridgeInserted(int) { return false; }
 
-		int  ReadMemory(int,char*,int,int) { return 0; }
-		int  WriteMemory(int,char*,int,int) { return 0; }
-		int  WriteIO(int,char*,int,int) { return 0; }
-		int  ReadIO(int,char*,int,int) { return 0; }
+    int  ReadMemory(int,char*,int,int) { return 0; }
+    int  WriteMemory(int,char*,int,int) { return 0; }
+    int  WriteIO(int,char*,int,int) { return 0; }
+    int  ReadIO(int,char*,int,int) { return 0; }
 };
 #endif
 
@@ -224,39 +222,39 @@ static void DeinitializeGameReaders()
 //
 // Public C interface
 
-extern "C" GrHandle* gameReaderCreate(int slot)
+GrHandle* gameReaderCreate(int slot)
 {
     InitializeGameReaders();
 
     return (GrHandle*)GameReaders[slot];
 }
 
-extern "C" void gameReaderDestroy(GrHandle* grHandle)
+void gameReaderDestroy(GrHandle* grHandle)
 {
     DeinitializeGameReaders();
 }
 
-extern "C" int gameReaderRead(GrHandle* grHandle, UInt16 address, void* buffer, int length)
+int gameReaderRead(GrHandle* grHandle, UInt16 address, void* buffer, int length)
 {
     return ((GameReader*)grHandle)->readMemory(address, buffer, length) ? 1 : 0;
 }
 
-extern "C" int gameReaderWrite(GrHandle* grHandle, UInt16 address, void* buffer, int length)
+int gameReaderWrite(GrHandle* grHandle, UInt16 address, void* buffer, int length)
 {
     return ((GameReader*)grHandle)->writeMemory(address, buffer, length) ? 1 : 0;
 }
 
-extern "C" int gameReaderReadIo(GrHandle* grHandle, UInt16 port, UInt8* value)
+int gameReaderReadIo(GrHandle* grHandle, UInt16 port, UInt8* value)
 {
     return ((GameReader*)grHandle)->readIo(port, value) ? 1 : 0;
 }
 
-extern "C" int gameReaderWriteIo(GrHandle* grHandle, UInt16 port, UInt8 value)
+int gameReaderWriteIo(GrHandle* grHandle, UInt16 port, UInt8 value)
 {
     return ((GameReader*)grHandle)->writeIo(port, value) ? 1 : 0;
 }
 
-extern "C" int gameReaderSupported()
+int gameReaderSupported()
 {
 #ifdef WII
     return 0;

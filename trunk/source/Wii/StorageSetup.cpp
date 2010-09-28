@@ -64,7 +64,7 @@ bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
     // Prepare messagebox
     msgboxSdSetup = new GuiMessageBox(manager);
 
-    bool ok = msgboxSdSetup->Show(message, NULL, MSGT_YESNO, 192) == BTN_YES;
+    bool ok = msgboxSdSetup->Show(message, NULL, MSGT_YESNO, 192) == MSGBTN_YES;
     if( ok ) {
         bool failed = false;
         msgboxSdSetup->Show("Installing (0%%) ...    ");
