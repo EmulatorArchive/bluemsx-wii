@@ -28,7 +28,7 @@
 #ifndef AMD_FLASH_H
 #define AMD_FLASH_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct AmdFlash AmdFlash;
 

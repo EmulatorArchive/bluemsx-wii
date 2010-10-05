@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_NMS8280_VIDEO_DA_H
 #define ROMMAPPER_NMS8280_VIDEO_DA_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperNms8280VideoDaCreate();
 

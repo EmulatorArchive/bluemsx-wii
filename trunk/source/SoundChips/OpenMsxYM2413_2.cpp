@@ -6,7 +6,7 @@
 #include "OpenMsxYM2413_2.h"
 
 extern "C" {
-#include "SaveState.h"
+#include "../Utils/SaveState.h"
 }
 
 #ifdef assert

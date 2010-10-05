@@ -43,37 +43,37 @@
 #include "GuiMessageBox.h"
 #include "GuiKeyboard.h"
 
-#include "CommandLine.h"
-#include "Properties.h"
-#include "ArchFile.h"
-#include "VideoRender.h"
-#include "AudioMixer.h"
-#include "Casette.h"
-#include "PrinterIO.h"
-#include "UartIO.h"
-#include "MidiIO.h"
-#include "Machine.h"
-#include "Board.h"
-#include "Emulator.h"
-#include "FileHistory.h"
-#include "Actions.h"
-#include "Language.h"
-#include "LaunchFile.h"
-#include "ArchEvent.h"
-#include "ArchSound.h"
-#include "ArchNotifications.h"
-#include "JoystickPort.h"
-#include "WiiShortcuts.h"
-#include "ArchThread.h"
-#include "WiiToolLoader.h"
-#include "InputEvent.h"
-#include "WiiInput.h"
+#include "../Emulator/CommandLine.h"
+#include "../Emulator/Properties.h"
+#include "../Arch/ArchFile.h"
+#include "../VideoRender/VideoRender.h"
+#include "../SoundChips/AudioMixer.h"
+#include "../IoDevice/Casette.h"
+#include "../IoDevice/PrinterIO.h"
+#include "../IoDevice/UartIO.h"
+#include "../IoDevice/MidiIO.h"
+#include "../Board/Machine.h"
+#include "../Board/Board.h"
+#include "../Emulator/Emulator.h"
+#include "../Emulator/FileHistory.h"
+#include "../Emulator/Actions.h"
+#include "../Language/Language.h"
+#include "../Emulator/LaunchFile.h"
+#include "../Arch/ArchEvent.h"
+#include "../Arch/ArchSound.h"
+#include "../Arch/ArchNotifications.h"
+#include "../Input/JoystickPort.h"
+#include "../Wii/WiiShortcuts.h"
+#include "../Arch/ArchThread.h"
+#include "../Wii/WiiToolLoader.h"
+#include "../Input/InputEvent.h"
+#include "../Wii/WiiInput.h"
 
 #include "GuiConsole.h"
 #include "GuiContainer.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
-#include "StorageSetup.h"
+#include "../Wii/StorageSetup.h"
 
 #define CONSOLE_DEBUG 0
 #define FORCE_50HZ    0
@@ -287,7 +287,9 @@ static bool RenderEmuImage(void *dpyData)
 
 #else
 
-#include "archThread.h"
+#include "../Arch/archThread.h"
+#include "../Arch/archNotifications.h"
+#include "../Common/MsxTypes.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
 #include "GuiManager.h"
@@ -300,6 +302,23 @@ static bool RenderEmuImage(void *dpyData)
 
 static GuiManager *manager = NULL;
 static GuiBackground *background = NULL;
+
+extern "C" void archTrap(UInt8 value)
+{
+}
+
+int  archUpdateEmuDisplay(int syncMode)
+{
+    return 1;
+}
+
+void archUpdateWindow()
+{
+}
+
+void archDiskQuickChangeNotify()
+{
+}
 
 #endif
 
@@ -692,7 +711,7 @@ void GuiMain(GuiManager *man)
         char root_dir[256];
         char *game_dir = NULL;
         GetCurrentDirectoryA(sizeof(root_dir), root_dir);
-        strcat(root_dir, "/MSX/Games");
+        strcat(root_dir, "\\..\\MSX\\Games");
         GuiDirSelect *dirs = new GuiDirSelect(manager, root_dir, "dirlist.xml");
 #endif
 

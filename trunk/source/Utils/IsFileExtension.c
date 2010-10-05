@@ -25,7 +25,7 @@
 **
 ******************************************************************************
 */
-#include "IsFileExtension.h"
+#include "../Utils/IsFileExtension.h"
 #include "StrcmpNoCase.h"
 #include <string.h>
 #include <stdlib.h>

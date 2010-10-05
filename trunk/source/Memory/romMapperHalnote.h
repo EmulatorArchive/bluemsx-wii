@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_HALNOTE_H
 #define ROMMAPPER_HALNOTE_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperHalnoteCreate(char* filename, UInt8* romData, 
                           int size, int slot, int sslot, int startPage);

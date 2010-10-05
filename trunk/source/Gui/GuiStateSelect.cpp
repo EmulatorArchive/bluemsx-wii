@@ -9,9 +9,9 @@
 #include "GuiContainer.h"
 #include "GuiMessageBox.h"
 
-#include "ArchGlob.h"
-#include "FileHistory.h"
-#include "ZipHelper.h"
+#include "../Arch/ArchGlob.h"
+#include "../Emulator/FileHistory.h"
+#include "../Utils/ZipHelper.h"
 
 // Resources
 #include "GuiImages.h"

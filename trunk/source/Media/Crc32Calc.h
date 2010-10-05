@@ -28,7 +28,7 @@
 #ifndef CRC32_H
 #define CRC32_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 UInt32 calcCrc32(const void* buffer, int size);
 UInt32 calcAddCrc32(const void* buffer, int size, UInt32 crc);

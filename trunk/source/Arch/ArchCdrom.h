@@ -28,7 +28,7 @@
 #ifndef ARCH_CDROM_H
 #define ARCH_CDROM_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 #include <stddef.h>
 
 #ifdef __cplusplus

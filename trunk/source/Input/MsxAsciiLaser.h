@@ -28,7 +28,7 @@
 #ifndef MSX_ASCII_LASER_H
 #define MSX_ASCII_LASER_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 #include "MsxJoystickDevice.h"
 
 typedef struct MsxAsciiLaser MsxAsciiLaser;

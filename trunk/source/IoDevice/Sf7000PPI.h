@@ -28,7 +28,7 @@
 #ifndef SF7000_PPI_H
 #define SF7000_PPI_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 void sf7000PPICreate();
 

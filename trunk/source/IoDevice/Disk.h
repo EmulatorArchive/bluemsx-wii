@@ -28,7 +28,7 @@
 #ifndef DISK_H
 #define DISK_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #define MAX_FDC_COUNT            2
 

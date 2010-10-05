@@ -25,9 +25,9 @@
 **
 ******************************************************************************
 */
-#include "sl811hs.h"
-#include "Board.h"
-#include "SaveState.h"
+#include "../IoDevice/sl811hs.h"
+#include "../Board/Board.h"
+#include "../Utils/SaveState.h"
 #include <stdlib.h>
 #include <string.h>
 

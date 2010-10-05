@@ -28,7 +28,7 @@
 #ifndef SAVE_STATE_H
 #define SAVE_STATE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 #include "ZipHelper.h"
 
 typedef struct SaveState SaveState;

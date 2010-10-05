@@ -5,8 +5,6 @@
 #include "GuiDialog.h"
 #include "GuiSelectionList.h"
 
-class GuiSelectionList;
-
 class GuiMenu : public GuiDialog
 {
 public:

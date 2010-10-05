@@ -26,25 +26,25 @@
 ******************************************************************************
 */
 #include "LaunchFile.h"
-#include "IsFileExtension.h"
-#include "ziphelper.h"
-#include "RomLoader.h"
-#include "FileHistory.h"
-#include "Emulator.h"
-#include "Board.h"
-#include "ArchFile.h"
-#include "Disk.h"
-#include "Casette.h"
-#include "ArchDialog.h"
+#include "../Utils/IsFileExtension.h"
+#include "../Utils/ziphelper.h"
+#include "../Memory/RomLoader.h"
+#include "../Emulator/FileHistory.h"
+#include "../Emulator/Emulator.h"
+#include "../Board/Board.h"
+#include "../Arch/ArchFile.h"
+#include "../IoDevice/Disk.h"
+#include "../IoDevice/Casette.h"
+#include "../Arch/ArchDialog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "ArchDialog.h"
+#include "../Arch/ArchDialog.h"
 
 
 // PacketFileSystem.h Need to be included after all other includes
-#include "PacketFileSystem.h"
+#include "../Utils/PacketFileSystem.h"
 
 
 void archUpdateMenu(int show);

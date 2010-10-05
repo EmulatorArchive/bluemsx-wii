@@ -28,7 +28,7 @@
 #ifndef COLECO_H
 #define COLECO_H
  
-#include "Board.h"
+#include "../Board/Board.h"
 
 int colecoCreate(Machine* machine, 
                  VdpSyncMode vdpSyncMode,

@@ -3,7 +3,7 @@
 #ifndef __Y8950ADPCM_HH__
 #define __Y8950ADPCM_HH__
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 #include <string>
 
 using namespace std;

@@ -25,8 +25,8 @@
 **
 ******************************************************************************
 */
-#include "DAC.h"
-#include "Board.h"
+#include "../SoundChips/DAC.h"
+#include "../Board/Board.h"
 #include <stdlib.h>
 #include <string.h>
 

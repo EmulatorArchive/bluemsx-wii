@@ -29,7 +29,7 @@
 #ifndef MSX_MIDI_H
 #define MSX_MIDI_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int MSXMidiCreate();
 

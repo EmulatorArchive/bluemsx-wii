@@ -28,7 +28,7 @@
 #ifndef GAMER_READER_H
 #define GAMER_READER_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #ifdef __cplusplus
 extern "C" {

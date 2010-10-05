@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_OPCODE_PSG_H
 #define ROMMAPPER_OPCODE_PSG_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperOpcodePsgCreate();
 

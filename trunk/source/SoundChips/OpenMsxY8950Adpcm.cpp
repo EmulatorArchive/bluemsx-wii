@@ -5,7 +5,7 @@
 #include "OpenMsxY8950.h"
 
 extern "C" {
-#include "SaveState.h"
+#include "../Utils/SaveState.h"
 }
 
 // Relative volume between ADPCM part and FM part, 

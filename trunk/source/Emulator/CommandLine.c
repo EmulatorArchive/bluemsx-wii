@@ -26,18 +26,18 @@
 ******************************************************************************
 */
 #include "CommandLine.h"
-#include "TokenExtract.h"
-#include "IsFileExtension.h"
-#include "MediaDb.h"
-#include "ziphelper.h"
-#include "Machine.h"
-#include "Casette.h"
-#include "Disk.h"
-#include "FileHistory.h"
-#include "LaunchFile.h"
-#include "Emulator.h"
-#include "StrcmpNoCase.h"
-#include "AppConfig.h"
+#include "../Utils/TokenExtract.h"
+#include "../Utils/IsFileExtension.h"
+#include "../Media/MediaDb.h"
+#include "../Utils/ziphelper.h"
+#include "../Board/Machine.h"
+#include "../IoDevice/Casette.h"
+#include "../IoDevice/Disk.h"
+#include "../Emulator/FileHistory.h"
+#include "../Emulator/LaunchFile.h"
+#include "../Emulator/Emulator.h"
+#include "../Utils/StrcmpNoCase.h"
+#include "../Emulator/AppConfig.h"
 #include <stdlib.h>
 #include <string.h>
 

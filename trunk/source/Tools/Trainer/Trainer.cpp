@@ -4,16 +4,16 @@
 #include <sstream>
 #include <iomanip>
 
-#include "ArchThread.h"
+#include "../../Arch/ArchThread.h"
 
 #include "Language.h"
 #include "ToolInterface.h"
 #include "Trainer.h"
 
 // gui stuff
-#include "GuiCheckList.h"
-#include "GuiManager.h"
-#include "GuiMessageBox.h"
+#include "../../Gui/GuiCheckList.h"
+#include "../../Gui/GuiManager.h"
+#include "../../Gui/GuiMessageBox.h"
 
 enum CompareType
 {
@@ -364,23 +364,13 @@ void OnDestroyTool() {
         archThreadDestroy(cheatsThread);
     }
 }
-#if 0
-int GuiMenu::DoModal(const char **items, int num, int width)
+
+void OnShowTool()
 {
-
-
-    return sel;
-}
-#endif
-
-void OnShowTool() {
-    int num_item_rows = 10;
     int num_items = cheatList.size();
     canAddCheat = false;
 
     Language::SetLanguage(langId);
-
-    GuiCheckList *check_list = new GuiCheckList(manager, 9);
 
     const char **title_list = (const char**)malloc(num_items * sizeof(const char*));
     bool *enabled_list = (bool *)malloc(num_items * sizeof(bool));
@@ -390,43 +380,24 @@ void OnShowTool() {
         enabled_list[idx++] = (*i).enabled;
     }
 
-    #define CHEAT_YPITCH 40
-    #define CHEAT_FADE_FRAMES 10
-    // Claim UI
-    manager->Lock();
-
-    // Add container
-    int width = 484+12;
-    int height = num_item_rows*CHEAT_YPITCH+(CHEAT_YPITCH/2);
-    int posx = manager->GetWidth()/2-width/2;
-    int posy = manager->GetHeight()/2-height/2;
-    GuiContainer *container = new GuiContainer(posx, posy, width, height, 192);
-    manager->AddTop(container, CHEAT_FADE_FRAMES);
-    width = container->GetWidth();
-    height = container->GetHeight();
-
-    // Start displaying
-    manager->Unlock();
-
-    // Menu list
-    int sel = 0;
-    check_list->ShowSelection(title_list, enabled_list, num_items, sel, 26, CHEAT_YPITCH,
-                  posx+16, posy+24, 24, width-32, false, CHEAT_FADE_FRAMES);
-
+    GuiCheckList *check_list = new GuiCheckList(manager, 9);
+    bool leave = false;
     do {
-        sel = check_list->DoSelection();
-        if( sel >= 0 ) {
-            toggleEnableCheat(sel);
+        int selection;
+        SELRET action = check_list->DoModal(&selection, title_list, enabled_list, num_items, 484+12);
+        switch( action ) {
+            case SELRET_SELECTED:
+                toggleEnableCheat(selection);
+                break;
+            case SELRET_KEY_B:
+            case SELRET_KEY_HOME:
+                leave = true;
+                break;
+            default:
+                break;
         }
-    }while(sel >= 0);
-
-    check_list->RemoveSelection();
-    // Claim UI
-    manager->Lock();
-    // Remove container
-    manager->RemoveAndDelete(container, NULL, CHEAT_FADE_FRAMES);
-    // Release UI
-    manager->Unlock();
+    }while( !leave );
+    delete check_list;
 
     free(title_list);
     free(enabled_list);

@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_SCCPLUS_H
 #define ROMMAPPER_SCCPLUS_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef enum {
     SCC_MIRRORED = 0,

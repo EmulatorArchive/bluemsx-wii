@@ -28,7 +28,7 @@
 #ifndef JOYSTICK_PORT_H
 #define JOYSTICK_PORT_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #define JOYSTICK_MAX_PORTS 2
 

@@ -26,10 +26,10 @@
 **
 ******************************************************************************
 */
-#include "VideoRender.h"
-#include "FrameBuffer.h"
-#include "ArchTimer.h"
-#include "Emulator.h"
+#include "../VideoRender/VideoRender.h"
+#include "../VideoChips/FrameBuffer.h"
+#include "../Arch/ArchTimer.h"
+#include "../Emulator/Emulator.h"
 #include "Scalebit.h"
 #include "hq2x.h"
 #include "hq3x.h"

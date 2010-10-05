@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_SUNRISE_IDE_H
 #define ROMMAPPER_SUNRISE_IDE_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperSunriseIdeCreate(int hdId, char* filename, UInt8* romData, 
                               int size, int slot, int sslot, int startPage);

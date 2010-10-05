@@ -1,7 +1,7 @@
 #ifndef _GUI_CONTAINER_H
 #define _GUI_CONTAINER_H
 
-#include <wiisprite.h>
+#include "../wiisprite/wiisprite.h"
 
 class GuiContainer : public TiledLayer
 {

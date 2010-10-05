@@ -25,9 +25,9 @@
 **
 ******************************************************************************
 */
-#include "romMapper.h"
-#include "msxTypes.h"
-#include "TokenExtract.h"
+#include "../Memory/romMapper.h"
+#include "../Common/msxTypes.h"
+#include "../Utils/TokenExtract.h"
 #include <stdio.h>
 #include <string.h>
 

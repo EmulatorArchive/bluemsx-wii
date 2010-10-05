@@ -29,8 +29,8 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-#include "zip.h"
-#include "unzip.h"
+#include "../Unzip/zip.h"
+#include "../Unzip/unzip.h"
 
 typedef enum {
   MZMODE_READ_ONLY,

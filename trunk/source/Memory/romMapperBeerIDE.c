@@ -26,16 +26,16 @@
 ******************************************************************************
 */
 #include "romMapperBeerIDE.h"
-#include "HarddiskIDE.h"
-#include "MediaDb.h"
-#include "SlotManager.h"
-#include "DeviceManager.h"
-#include "DebugDeviceManager.h"
-#include "SaveState.h"
-#include "IoPort.h"
-#include "I8255.h"
-#include "Disk.h"
-#include "Language.h"
+#include "../IoDevice/HarddiskIDE.h"
+#include "../Media/MediaDb.h"
+#include "../Memory/SlotManager.h"
+#include "../Memory/DeviceManager.h"
+#include "../Debugger/DebugDeviceManager.h"
+#include "../Utils/SaveState.h"
+#include "../Memory/IoPort.h"
+#include "../IoDevice/I8255.h"
+#include "../IoDevice/Disk.h"
+#include "../Language/Language.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

@@ -25,16 +25,16 @@
 **
 ******************************************************************************
 */
-#include "YM2413.h"
+#include "../SoundChips/YM2413.h"
 #include "OpenMsxYM2413.h"
 #include "OpenMsxYM2413_2.h"
 #include <cstring>
-#include "Board.h"
-#include "SaveState.h"
-#include "IoPort.h"
-#include "MediaDb.h"
-#include "DeviceManager.h"
-#include "Language.h"
+#include "../Board/Board.h"
+#include "../Utils/SaveState.h"
+#include "../Memory/IoPort.h"
+#include "../Media/MediaDb.h"
+#include "../Memory/DeviceManager.h"
+#include "../Language/Language.h"
 
 #define FREQUENCY        3579545
  

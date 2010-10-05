@@ -28,7 +28,7 @@
 #ifndef SUNRISE_IDE_H
 #define SUNRISE_IDE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct SunriseIde SunriseIde;
 

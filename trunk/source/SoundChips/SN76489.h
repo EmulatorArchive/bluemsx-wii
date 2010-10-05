@@ -28,8 +28,8 @@
 #ifndef SN76489_H
 #define SN76489_H
 
-#include "MsxTypes.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../SoundChips/AudioMixer.h"
 
 /* Type definitions */
 typedef struct SN76489 SN76489;

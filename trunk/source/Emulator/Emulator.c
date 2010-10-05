@@ -25,26 +25,26 @@
 **
 ******************************************************************************
 */
-#include "Emulator.h"
-#include "MsxTypes.h"
-#include "Debugger.h"
-#include "Board.h"
-#include "FileHistory.h"
-#include "Switches.h"
-#include "Led.h"
-#include "Machine.h"
-#include "InputEvent.h"
+#include "../Emulator/Emulator.h"
+#include "../Common/MsxTypes.h"
+#include "../Debugger/Debugger.h"
+#include "../Board/Board.h"
+#include "../Emulator/FileHistory.h"
+#include "../IoDevice/Switches.h"
+#include "../IoDevice/Led.h"
+#include "../Board/Machine.h"
+#include "../Input/InputEvent.h"
 
-#include "ArchThread.h"
-#include "ArchEvent.h"
-#include "ArchTimer.h"
-#include "ArchSound.h"
-#include "ArchMidi.h"
+#include "../Arch/ArchThread.h"
+#include "../Arch/ArchEvent.h"
+#include "../Arch/ArchTimer.h"
+#include "../Arch/ArchSound.h"
+#include "../Arch/ArchMidi.h"
 
-#include "JoystickPort.h"
-#include "ArchInput.h"
-#include "ArchDialog.h"
-#include "ArchNotifications.h"
+#include "../Input/JoystickPort.h"
+#include "../Arch/ArchInput.h"
+#include "../Arch/ArchDialog.h"
+#include "../Arch/ArchNotifications.h"
 #include <math.h>
 #include <string.h>
 

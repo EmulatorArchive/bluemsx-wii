@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_F4DEVICE_H
 #define ROMMAPPER_F4DEVICE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperF4deviceCreate(int inverted);
 

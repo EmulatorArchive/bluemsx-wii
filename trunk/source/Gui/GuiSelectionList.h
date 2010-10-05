@@ -4,8 +4,8 @@
 
 #include "GuiManager.h"
 #include "GuiElement.h"
-#include "DrawableImage.h"
-#include "Sprite.h"
+#include "../WiiSprite/DrawableImage.h"
+#include "../WiiSprite/Sprite.h"
 
 typedef enum {
   SELRET_SELECTED,

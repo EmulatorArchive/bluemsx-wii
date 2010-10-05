@@ -28,7 +28,7 @@
 #ifndef SG1000_JOY_IO_H
 #define SG1000_JOY_IO_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct Sg1000JoyIo Sg1000JoyIo;
 

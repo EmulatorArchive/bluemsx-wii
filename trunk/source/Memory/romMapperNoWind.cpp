@@ -30,20 +30,20 @@ extern "C" {
 
 #include "romMapperNoWind.h"
 #include "AmdFlash.h"
-#include "MediaDb.h"
-#include "SlotManager.h"
-#include "DeviceManager.h"
-#include "Board.h"
-#include "SaveState.h"
-#include "sramLoader.h"
-#include "Properties.h"
+#include "../Media/MediaDb.h"
+#include "../Memory/SlotManager.h"
+#include "../Memory/DeviceManager.h"
+#include "../Board/Board.h"
+#include "../Utils/SaveState.h"
+#include "../Memory/sramLoader.h"
+#include "../Emulator/Properties.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #ifdef USE_NOWIND_DLL
-#include "Disk.h"
-#include "Properties.h"
+#include "../IoDevice/Disk.h"
+#include "../Emulator/Properties.h"
 #include <windows.h>
 
 static int DeviceIds[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };

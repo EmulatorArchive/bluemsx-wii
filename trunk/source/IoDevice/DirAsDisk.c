@@ -44,7 +44,7 @@
 #include <time.h>
 #include <ctype.h>
 #ifdef USE_ARCH_GLOB
-#include "ArchGlob.h"
+#include "../Arch/ArchGlob.h"
 #else
 #include <windows.h>
 #endif

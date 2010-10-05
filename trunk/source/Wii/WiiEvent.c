@@ -27,7 +27,7 @@
 **
 ******************************************************************************
 */
-#include "ArchEvent.h"
+#include "../Arch/ArchEvent.h"
 #include <stdlib.h>
 #include <semaphore.h>
 #include <stdio.h>

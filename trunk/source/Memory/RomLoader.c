@@ -25,14 +25,14 @@
 **
 ******************************************************************************
 */
-#include "RomLoader.h"
-#include "ziphelper.h"
+#include "../Memory/RomLoader.h"
+#include "../Utils/ziphelper.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 // PacketFileSystem.h Need to be included after all other includes
-#include "PacketFileSystem.h"
+#include "../Utils/PacketFileSystem.h"
 
 
 UInt8* romLoad(const char *fileName, const char *fileInZipFile, int* size)

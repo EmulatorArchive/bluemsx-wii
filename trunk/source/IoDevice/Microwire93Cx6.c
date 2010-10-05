@@ -25,10 +25,10 @@
 **
 ******************************************************************************
 */
-#include "Microwire93Cx6.h"
-#include "Board.h"
-#include "SaveState.h"
-#include "sramLoader.h"
+#include "../IoDevice/Microwire93Cx6.h"
+#include "../Board/Board.h"
+#include "../Utils/SaveState.h"
+#include "../Memory/sramLoader.h"
 #include <stdlib.h>
 #include <string.h>
 

@@ -21,7 +21,7 @@
 int CMSXGr::Init()
 {
 	// Load DLL.
-	hLib = LoadLibrary("MSXGr.dll");
+	hLib = LoadLibrary(TEXT("MSXGr.dll"));
 
 	if (!hLib)	{
 		// DLL could not be found.

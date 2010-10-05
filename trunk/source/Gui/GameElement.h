@@ -1,7 +1,7 @@
 #ifndef _H_GAMEELEMENT
 #define _H_GAMEELEMENT
 
-#include <wiisprite.h>
+#include "../wiisprite/wiisprite.h"
 #include "../expat/expat.h"
 
 typedef enum {

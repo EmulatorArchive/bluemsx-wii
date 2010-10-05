@@ -28,7 +28,7 @@
 #ifndef RTC_H
 #define RTC_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 /* Type definitions */
 typedef struct RTC RTC;

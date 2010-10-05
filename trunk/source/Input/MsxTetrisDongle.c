@@ -27,7 +27,7 @@
 */
 #include "MsxTetrisDongle.h"
 #include <stdlib.h>
-#include "SaveState.h"
+#include "../Utils/SaveState.h"
 
 struct MsxTetrisDongle {
     MsxJoystickDevice joyDevice;

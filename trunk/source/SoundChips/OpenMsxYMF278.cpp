@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 extern "C" {
-#include "SaveState.h"
+#include "../Utils/SaveState.h"
 }
 
 const int EG_SH = 16;	// 16.16 fixed point (EG timing)

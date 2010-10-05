@@ -28,7 +28,7 @@
 #ifndef DEVICE_MANAGER_H
 #define DEVICE_MANAGER_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct {
     void  (*destroy)(void*);

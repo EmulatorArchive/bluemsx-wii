@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_MSXAUDIO_H
 #define ROMMAPPER_MSXAUDIO_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperMsxAudioCreate(char* filename, UInt8* romData, 
                             int size, int slot, int sslot, int startPage);

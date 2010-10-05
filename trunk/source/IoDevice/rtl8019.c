@@ -26,9 +26,9 @@
 ******************************************************************************
 */
 #include "rtl8019.h"
-#include "Board.h"
-#include "SaveState.h"
-#include "ArchEth.h"
+#include "../Board/Board.h"
+#include "../Utils/SaveState.h"
+#include "../Arch/ArchEth.h"
 #include <stdlib.h>
 #include <string.h>
 

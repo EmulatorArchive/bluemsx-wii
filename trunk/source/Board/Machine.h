@@ -28,10 +28,10 @@
 #ifndef MACHINE_H
 #define MACHINE_H
  
-#include "MsxTypes.h"
-#include "MediaDb.h"
-#include "VDP.h"
-#include "AY8910.h"
+#include "../Common/MsxTypes.h"
+#include "../Media/MediaDb.h"
+#include "../VideoChips/VDP.h"
+#include "../SoundChips/AY8910.h"
 #include <stdio.h>
 
 typedef enum { 

@@ -28,7 +28,7 @@
 #ifndef ARCH_ETH_H
 #define ARCH_ETH_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -59,30 +59,7 @@ SOURCES		:=	source/Bios \
               source/Z80
 
 DATA		:=	data
-INCLUDES	:=	include/libpng \
-              source/Arch \
-              source/Board \
-              source/Common \
-              source/Debugger \
-              source/Emulator \
-              source/Expat \
-              source/Gui \
-              source/Input \
-              source/IoDevice \
-              source/Language \
-              source/Media \
-              source/Memory \
-              source/Resource \
-              source/SoundChips \
-              source/TinyXML \
-              source/Unzip \
-              source/Utils \
-              source/VideoChips \
-              source/VideoRender \
-              source/Wii \
-              source/WiiSprite \
-              source/WiiUsbKeyboard \
-              source/Z80
+INCLUDES	:=	include/wii
 
 #---------------------------------------------------------------------------------
 # options for code generation

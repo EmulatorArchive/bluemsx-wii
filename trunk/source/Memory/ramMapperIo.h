@@ -28,7 +28,7 @@
 #ifndef RAM_MAPPER_IO_H
 #define RAM_MAPPER_IO_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef void  (*MemIoWrite)(void*, UInt16, UInt8);
 

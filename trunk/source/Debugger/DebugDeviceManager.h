@@ -28,8 +28,8 @@
 #ifndef DEBUG_DEVICE_MANAGER_H
 #define DEBUG_DEVICE_MANAGER_H
 
-#include "MsxTypes.h"
-#include "Debugger.h"
+#include "../Common/MsxTypes.h"
+#include "../Debugger/Debugger.h"
 
 typedef struct {
     void (*getDebugInfo)(void* ref, DbgDevice* dbgDevice);
