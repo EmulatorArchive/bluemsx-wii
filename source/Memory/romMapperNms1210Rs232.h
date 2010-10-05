@@ -28,7 +28,7 @@
 #ifndef NMS1210_RS232_H
 #define NMS1210_RS232_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperNms1210Rs232Create(int slot, int sslot, int startPage);
 

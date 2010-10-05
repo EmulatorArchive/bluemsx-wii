@@ -28,9 +28,9 @@
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
-#include "Properties.h"
-#include "VideoRender.h"
-#include "AudioMixer.h"
+#include "../Emulator/Properties.h"
+#include "../VideoRender/VideoRender.h"
+#include "../SoundChips/AudioMixer.h"
 
 #ifdef __cplusplus
 extern "C" {

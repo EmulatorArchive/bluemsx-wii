@@ -28,8 +28,8 @@
 #ifndef LAUNCH_FILE_H
 #define LAUNCH_FILE_H
 
-#include "MediaDb.h"
-#include "Properties.h"
+#include "../Media/MediaDb.h"
+#include "../Emulator/Properties.h"
 
 #ifdef __cplusplus
 extern "C" {

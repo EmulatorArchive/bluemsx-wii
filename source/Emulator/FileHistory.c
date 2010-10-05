@@ -26,17 +26,17 @@
 ******************************************************************************
 */
 #define USE_ARCH_GLOB
-#include "FileHistory.h"
-#include "Properties.h"
-#include "ziphelper.h"
-#include "RomLoader.h"
-#include "MsxTypes.h"
-#include "ArchNotifications.h"
-#include "Disk.h"
-#include "AppConfig.h"
+#include "../Emulator/FileHistory.h"
+#include "../Emulator/Properties.h"
+#include "../Utils/ziphelper.h"
+#include "../Memory/RomLoader.h"
+#include "../Common/MsxTypes.h"
+#include "../Arch/ArchNotifications.h"
+#include "../IoDevice/Disk.h"
+#include "../Emulator/AppConfig.h"
 #ifdef USE_ARCH_GLOB
-#include "ArchGlob.h"
-#include "ArchFile.h"
+#include "../Arch/ArchGlob.h"
+#include "../Arch/ArchFile.h"
 #endif
 #include <stdio.h>
 #include <sys/stat.h>

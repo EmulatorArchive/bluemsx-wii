@@ -6,7 +6,7 @@
 #include "GuiDialog.h"
 #include "GuiButton.h"
 #include "GuiContainer.h"
-#include "DrawableImage.h"
+#include "../WiiSprite/DrawableImage.h"
 
 typedef enum {
   MSGT_TEXT,

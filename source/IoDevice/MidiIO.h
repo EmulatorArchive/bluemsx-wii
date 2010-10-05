@@ -28,7 +28,7 @@
 #ifndef MIDI_IO_H
 #define MIDI_IO_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct MidiIO MidiIO;
 

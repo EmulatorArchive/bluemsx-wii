@@ -28,7 +28,7 @@
 #ifndef MSX_TETRIS_DONGLE_H
 #define MSX_TETRIS_DONGLE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 #include "MsxJoystickDevice.h"
 
 typedef struct MsxTetrisDongle MsxTetrisDongle;

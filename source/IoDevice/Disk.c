@@ -25,9 +25,9 @@
 **
 ******************************************************************************
 */
-#include "Disk.h"
+#include "../IoDevice/Disk.h"
 #include "DirAsDisk.h"
-#include "ziphelper.h"
+#include "../Utils/ziphelper.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -35,7 +35,7 @@
 
 
 // PacketFileSystem.h Need to be included after all other includes
-#include "PacketFileSystem.h"
+#include "../Utils/PacketFileSystem.h"
 
 #define MAXSECTOR (2 * 9 * 81)
 

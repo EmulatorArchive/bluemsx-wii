@@ -28,10 +28,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "MidiIO.h"
-#include "ArchUart.h"
-#include "DAC.h"
-#include "Board.h"
-#include "ArchMidi.h"
+#include "../Arch/ArchUart.h"
+#include "../SoundChips/DAC.h"
+#include "../Board/Board.h"
+#include "../Arch/ArchMidi.h"
 
 typedef struct MidiIO {
     MidiType inType;

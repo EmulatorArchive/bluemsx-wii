@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_PANASONIC_H
 #define ROMMAPPER_PANASONIC_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperPanasonicCreate(char* filename, UInt8* romData, 
                              int size, int slot, int sslot, int startPage, 

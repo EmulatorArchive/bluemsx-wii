@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_GOUDASCSI_H
 #define ROMMAPPER_GOUDASCSI_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperGoudaSCSICreate(int hdId, char* filename, UInt8* romData, 
                           int size, int slot, int sslot, int startPage);

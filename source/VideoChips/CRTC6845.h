@@ -28,9 +28,9 @@
 #ifndef CRTC_H
 #define CRTC_H
 
-#include "MsxTypes.h"
-#include "Board.h"
-#include "VideoManager.h"
+#include "../Common/MsxTypes.h"
+#include "../Board/Board.h"
+#include "../VideoChips/VideoManager.h"
 
 typedef struct
 {

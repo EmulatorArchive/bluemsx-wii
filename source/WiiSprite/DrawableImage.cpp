@@ -5,7 +5,7 @@
 #include <string.h>
 #include "DrawableImage.h"
 #include <malloc.h>
-#include <wiisprite.h>
+#include "wiisprite.h"
 
 DrawableImage::DrawableImage()
 {

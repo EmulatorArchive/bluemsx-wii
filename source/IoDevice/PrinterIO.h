@@ -28,7 +28,7 @@
 #ifndef PRINTER_IO_H
 #define PRINTER_IO_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct PrinterIO PrinterIO;
 

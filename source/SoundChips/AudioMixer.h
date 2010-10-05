@@ -28,7 +28,7 @@
 #ifndef AUDIO_MIXER_H
 #define AUDIO_MIXER_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 /* Type definitions */
 typedef struct Mixer Mixer;

@@ -27,12 +27,12 @@
 **
 ******************************************************************************
 */
-#include "ArchInput.h"
+#include "../Arch/ArchInput.h"
 #include "../Gui/GuiManager.h"
 
-#include "Language.h"
-#include "InputEvent.h"
-#include "IniFileParser.h"
+#include "../Language/Language.h"
+#include "../Input/InputEvent.h"
+#include "../Utils/IniFileParser.h"
 #include "WiiShortcuts.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -28,8 +28,8 @@
 #ifndef KEY_CLICK_H
 #define KEY_CLICK_H
 
-#include "MsxTypes.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../SoundChips/AudioMixer.h"
 
 /* Type definitions */
 typedef struct AudioKeyClick AudioKeyClick;

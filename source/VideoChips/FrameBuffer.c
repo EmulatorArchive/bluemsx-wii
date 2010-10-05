@@ -25,12 +25,12 @@
 **
 ******************************************************************************
 */
-#include "FrameBuffer.h"
-#include "ArchEvent.h"
-#include "ArchVideoIn.h"
+#include "../VideoChips/FrameBuffer.h"
+#include "../Arch/ArchEvent.h"
+#include "../Arch/ArchVideoIn.h"
 #ifdef WII
-#include "ArchSound.h"
-#include "ArchThread.h"
+#include "../Arch/ArchSound.h"
+#include "../Arch/ArchThread.h"
 #endif
 #include <stdlib.h>
 #include <string.h>

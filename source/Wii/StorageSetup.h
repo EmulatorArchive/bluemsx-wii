@@ -20,7 +20,7 @@
 ******************************************************************************
 */
 
-#include "GuiManager.h"
+#include "../Gui/GuiManager.h"
 
 #define SD_ROOT_DIR  "sd:/"
 #define USB_ROOT_DIR "usb:/"

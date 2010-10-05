@@ -28,9 +28,9 @@
 #ifndef Y8950_H
 #define Y8950_H
 
-#include "MsxTypes.h"
-#include "AudioMixer.h"
-#include "DebugDeviceManager.h"
+#include "../Common/MsxTypes.h"
+#include "../SoundChips/AudioMixer.h"
+#include "../Debugger/DebugDeviceManager.h"
 
 /* Type definitions */
 typedef struct Y8950 Y8950;

@@ -28,7 +28,7 @@
 #ifndef COLECO_JOYSTICK_DEVICE_H
 #define COLECO_JOYSTICK_DEVICE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 // Base class for Coleco Joystick devices. 
 

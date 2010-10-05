@@ -28,8 +28,8 @@
 #ifndef ROMMAPPER_TC8566AF_H
 #define ROMMAPPER_TC8566AF_H
 
-#include "MsxTypes.h"
-#include "MediaDb.h"
+#include "../Common/MsxTypes.h"
+#include "../Media/MediaDb.h"
 
 int romMapperTC8566AFCreate(char* filename, UInt8* romData, 
                             int size, int slot, int sslot, int startPage,

@@ -29,18 +29,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "IniFileParser.h"
-#include "StrcmpNoCase.h"
-#include "Properties.h"
-#include "Machine.h"
-#include "Language.h"
-#include "JoystickPort.h"
-#include "Board.h"
-#include "AppConfig.h"
+#include "../Utils/IniFileParser.h"
+#include "../Utils/StrcmpNoCase.h"
+#include "../Emulator/Properties.h"
+#include "../Board/Machine.h"
+#include "../Language/Language.h"
+#include "../Input/JoystickPort.h"
+#include "../Board/Board.h"
+#include "../Emulator/AppConfig.h"
 
 
 // PacketFileSystem.h Need to be included after all other includes
-#include "PacketFileSystem.h"
+#include "../Utils/PacketFileSystem.h"
 
 static char settFilename[512];
 static char histFilename[512];

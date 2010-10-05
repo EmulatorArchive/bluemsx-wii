@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_FMPAK_H
 #define ROMMAPPER_FMPAK_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperFMPAKCreate(char* filename, UInt8* romData, 
                          int size, int slot, int sslot, int startPage);

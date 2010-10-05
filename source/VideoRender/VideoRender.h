@@ -28,8 +28,8 @@
 #ifndef VIDEO_RENDER_H
 #define VIDEO_RENDER_H
 
-#include "MsxTypes.h"
-#include "FrameBuffer.h"
+#include "../Common/MsxTypes.h"
+#include "../VideoChips/FrameBuffer.h"
 
 struct Properties;
 

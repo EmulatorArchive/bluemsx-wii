@@ -28,7 +28,7 @@
 #ifndef UART_IO_H
 #define UART_IO_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct UartIO UartIO;
 

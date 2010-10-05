@@ -28,8 +28,8 @@
 #ifndef FILE_HISTORY_H
 #define FILE_HISTORY_H
 
-#include "MediaDb.h"
-#include "Properties.h"
+#include "../Media/MediaDb.h"
+#include "../Emulator/Properties.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -28,9 +28,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "UartIO.h"
-#include "ArchUart.h"
-#include "DAC.h"
-#include "Board.h"
+#include "../Arch/ArchUart.h"
+#include "../SoundChips/DAC.h"
+#include "../Board/Board.h"
 
 typedef struct UartIO {
     UartType type;

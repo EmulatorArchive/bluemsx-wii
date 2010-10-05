@@ -3,7 +3,7 @@
 
 #include "GuiManager.h"
 #include "GuiContainer.h"
-#include "DrawableImage.h"
+#include "../WiiSprite/DrawableImage.h"
 
 class GuiConsole {
     public:

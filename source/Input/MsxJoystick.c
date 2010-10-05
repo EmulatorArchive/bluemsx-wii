@@ -26,7 +26,7 @@
 ******************************************************************************
 */
 #include "MsxJoystick.h"
-#include "InputEvent.h"
+#include "../Input/InputEvent.h"
 
 #include <stdlib.h>
 

@@ -32,14 +32,14 @@
 #include "sdcard.inc"
 #include "gamepack.inc"
 #endif
-#include "ZipFromMem.h"
-#include "ZipHelper.h"
+#include "../Utils/ZipFromMem.h"
+#include "../Utils/ZipHelper.h"
 
 extern "C" {
-#include "ArchThread.h"
+#include "../Arch/ArchThread.h"
 }
-#include "GuiMenu.h"
-#include "GuiMessageBox.h"
+#include "../Gui/GuiMenu.h"
+#include "../Gui/GuiMessageBox.h"
 
 
 static GuiMessageBox *msgboxSdSetup = NULL;

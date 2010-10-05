@@ -10,7 +10,7 @@
 #include "OpenMsxY8950.h"
 
 extern "C" {
-#include "SaveState.h"
+#include "../Utils/SaveState.h"
 }
 
 #ifdef _MSC_VER

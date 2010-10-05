@@ -30,8 +30,8 @@
 
 #include <stdio.h>
 
-#include "MsxTypes.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../SoundChips/AudioMixer.h"
 
 /* Type definitions */
 typedef struct SamplePlayer SamplePlayer;

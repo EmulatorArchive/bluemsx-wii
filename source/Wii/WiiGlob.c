@@ -29,7 +29,7 @@
 */
 #if 1
 
-#include "ArchGlob.h"
+#include "../Arch/ArchGlob.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -239,7 +239,7 @@ void archGlobFree(ArchGlob* globHandle)
 #else
 #ifdef WINDOWS_HOST
 
-#include "ArchGlob.h"
+#include "../Arch/ArchGlob.h"
 #include <windows.h>
 #include <stdlib.h>
 
@@ -320,7 +320,7 @@ void archGlobFree(ArchGlob* globHandle)
 
 #else
 
-#include "ArchGlob.h"
+#include "../Arch/ArchGlob.h"
 #include "glob.h"
 #include <stdlib.h>
 #include <string.h>

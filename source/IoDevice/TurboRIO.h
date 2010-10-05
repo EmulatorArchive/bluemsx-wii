@@ -28,7 +28,7 @@
 #ifndef TURBO_R_IO_H
 #define TURBO_R_IO_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 /* Constructor and destructor */
 int romMapperTurboRIOCreate();

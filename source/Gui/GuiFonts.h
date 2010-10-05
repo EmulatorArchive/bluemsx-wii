@@ -1,7 +1,7 @@
 #ifndef _GUI_FONTS_H
 #define _GUI_FONTS_H
 
-#include "TextRender.h"
+#include "../WiiSprite/TextRender.h"
 
 extern TextRender *g_fontArial;
 extern TextRender *g_fontImpact;

@@ -10,7 +10,7 @@
 #include "GuiImages.h"
 #include "GuiFonts.h"
 
-#include "ArchThread.h"
+#include "../Arch/ArchThread.h"
 
 #define MESSAGE_BOX_FADE_FRAMES       10
 

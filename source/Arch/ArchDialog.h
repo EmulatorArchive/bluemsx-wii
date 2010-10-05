@@ -28,7 +28,7 @@
 #ifndef ARCH_DIALOG_H
 #define ARCH_DIALOG_H
 
-#include "Properties.h"
+#include "../Emulator/Properties.h"
 
 #ifdef __cplusplus
 extern "C" {

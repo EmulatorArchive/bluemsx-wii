@@ -31,9 +31,9 @@
 #include <stdlib.h>
 
 #include "../Tools/BlueMSXToolInterface.h"
-#include "Debugger.h"
-#include "Actions.h"
-#include "AppConfig.h"
+#include "../Debugger/Debugger.h"
+#include "../Emulator/Actions.h"
+#include "../Emulator/AppConfig.h"
 #include "version.h"
 
 /* include each tool (instead of dynamic interface) */

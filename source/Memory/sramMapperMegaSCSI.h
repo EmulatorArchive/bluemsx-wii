@@ -28,7 +28,7 @@
 #ifndef SRAMMAPPER_MEGASCSI_H
 #define SRAMMAPPER_MEGASCSI_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int sramMapperMegaSCSICreate(char* filename, UInt8* buf, int size,
                 int pSlot, int sSlot, int startPage, int hdId, int flag);

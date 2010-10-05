@@ -25,10 +25,10 @@
 **
 ******************************************************************************
 */
-#include "AudioMixer.h"
-#include "Board.h"
-#include "ArchTimer.h"
-#include "ArchMidi.h"
+#include "../SoundChips/AudioMixer.h"
+#include "../Board/Board.h"
+#include "../Arch/ArchTimer.h"
+#include "../Arch/ArchMidi.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

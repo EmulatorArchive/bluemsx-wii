@@ -26,7 +26,7 @@
 ******************************************************************************
 */
 #include "InputEvent.h"
-#include "ArchInput.h"
+#include "../Arch/ArchInput.h"
 #include <stdlib.h>
 #include <string.h>
 

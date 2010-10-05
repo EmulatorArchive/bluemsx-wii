@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_NET_H
 #define ROMMAPPER_NET_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperNetCreate(char* filename, UInt8* romData, 
                        int size, int slot, int sslot, int startPage);

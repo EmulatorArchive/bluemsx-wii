@@ -28,9 +28,9 @@
 #ifndef EMULATOR_H
 #define EMULATOR_H
 
-#include "MsxTypes.h"
-#include "Properties.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../Emulator/Properties.h"
+#include "../SoundChips/AudioMixer.h"
 
 typedef enum { EMU_RUNNING, EMU_PAUSED, EMU_STOPPED, EMU_SUSPENDED, EMU_STEP } EmuState;
 

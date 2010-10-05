@@ -25,7 +25,7 @@
 **
 ******************************************************************************
 */
-#include "ArchThread.h"
+#include "../Arch/ArchThread.h"
 #include <windows.h>
 
 void* archThreadCreate(void (*entryPoint)(), int priority)

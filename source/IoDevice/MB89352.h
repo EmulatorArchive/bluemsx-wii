@@ -28,7 +28,7 @@
 #ifndef MB89352_H
 #define MB89352_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct MB89352 MB89352;
 

@@ -4,8 +4,8 @@
 #include <gccore.h>
 
 #ifdef WII
-#include "../iodevice/led.h"
-#include "WiiInput.h"
+#include "../IoDevice/led.h"
+#include "../Wii/WiiInput.h"
 #endif
 #include "../input/InputEvent.h"
 #include "GuiKeyboard.h"

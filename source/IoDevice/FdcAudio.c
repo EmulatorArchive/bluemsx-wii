@@ -26,8 +26,8 @@
 ******************************************************************************
 */
 #include "FdcAudio.h"
-#include "Board.h"
-#include "SamplePlayer.h"
+#include "../Board/Board.h"
+#include "../SoundChips/SamplePlayer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

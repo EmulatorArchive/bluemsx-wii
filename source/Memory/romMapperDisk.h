@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_DISK_H
 #define ROMMAPPER_DISK_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperDiskCreate(char* filename, UInt8* romData, 
                         int size, int slot, int sslot, int startPage);

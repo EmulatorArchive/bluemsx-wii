@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_GAME_READER_H
 #define ROMMAPPER_GAME_READER_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperGameReaderCreate(int cartSlot, int slot, int sslot);
 

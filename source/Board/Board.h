@@ -28,11 +28,11 @@
 #ifndef BOARD_H
 #define BOARD_H
  
-#include "MsxTypes.h"
-#include "MediaDb.h"
-#include "Machine.h"
-#include "VDP.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../Media/MediaDb.h"
+#include "../Board/Machine.h"
+#include "../VideoChips/VDP.h"
+#include "../SoundChips/AudioMixer.h"
 #include <stdio.h>
 
 typedef struct {

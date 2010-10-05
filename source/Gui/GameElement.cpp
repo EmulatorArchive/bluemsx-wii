@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <wiisprite.h>
+#include "../wiisprite/wiisprite.h"
 #include "GameElement.h"
 #include "GuiImages.h"
 #include "../unzip/zlib.h" /* for crc32 */

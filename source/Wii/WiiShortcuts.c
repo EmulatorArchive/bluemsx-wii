@@ -29,8 +29,8 @@
 */
 #include <stdlib.h>
 #include "WiiShortcuts.h"
-#include "Actions.h"
-#include "InputEvent.h"
+#include "../Emulator/Actions.h"
+#include "../Input/InputEvent.h"
 
 struct _Shortcuts {
     int dummy;

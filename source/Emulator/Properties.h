@@ -28,9 +28,9 @@
 #ifndef PROPERTIES_H
 #define PROPERTIES_H
 
-#include "AudioMixer.h"
-#include "VideoRender.h"
-#include "MediaDb.h"
+#include "../SoundChips/AudioMixer.h"
+#include "../VideoRender/VideoRender.h"
+#include "../Media/MediaDb.h"
 
 #define PROP_MAX_DISKS  34
 #define PROP_MAX_CARTS  2

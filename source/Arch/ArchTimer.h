@@ -28,7 +28,7 @@
 #ifndef ARCH_TIMER_H
 #define ARCH_TIMER_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #ifdef __cplusplus
 extern "C" {

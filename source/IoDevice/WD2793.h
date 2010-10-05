@@ -28,7 +28,7 @@
 #ifndef WD2793_H
 #define WD2793_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef enum
 {

@@ -28,7 +28,7 @@
 #ifndef ARCH_UART_H
 #define ARCH_UART_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #ifdef __cplusplus
 extern "C" {

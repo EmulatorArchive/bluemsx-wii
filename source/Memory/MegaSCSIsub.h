@@ -11,7 +11,7 @@
 #ifndef MEGASCSISUB_H
 #define MEGASCSISUB_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #define REG_DREG 10
 

@@ -28,8 +28,8 @@
 #ifndef ARCH_FILE_H
 #define ARCH_FILE_H
 
-#include "Properties.h"
-#include "MediaDb.h"
+#include "../Emulator/Properties.h"
+#include "../Media/MediaDb.h"
 
 #ifdef __cplusplus
 extern "C" {

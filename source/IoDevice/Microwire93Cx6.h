@@ -28,7 +28,7 @@
 #ifndef MICROWIRE_93Cx6_H
 #define MICROWIRE_93Cx6_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct Microwire93Cx6 Microwire93Cx6;
 

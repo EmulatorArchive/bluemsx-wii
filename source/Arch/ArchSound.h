@@ -28,7 +28,7 @@
 #ifndef ARCH_SOUND_H
 #define ARCH_SOUND_H
 
-#include "AudioMixer.h"
+#include "../SoundChips/AudioMixer.h"
 
 #ifdef __cplusplus
 extern "C" {

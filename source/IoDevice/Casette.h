@@ -28,7 +28,7 @@
 #ifndef CASSETTE_H
 #define CASSETTE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef enum { TAPE_ASCII = 0, TAPE_BINARY, TAPE_BASIC, TAPE_CUSTOM } TapeContentType;
 

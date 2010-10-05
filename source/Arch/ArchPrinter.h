@@ -28,7 +28,7 @@
 #ifndef ARCH_PRINTER_H
 #define ARCH_PRINTER_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 #ifdef __cplusplus
 extern "C" {

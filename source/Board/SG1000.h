@@ -29,7 +29,7 @@
 #ifndef SG1000_H
 #define SG1000_H
  
-#include "Board.h"
+#include "../Board/Board.h"
 #include <stdio.h>
 
 int sg1000Create(Machine* machine, 

@@ -29,7 +29,7 @@
 */
 #include <stdio.h>
 
-#include "ArchDialog.h"
+#include "../Arch/ArchDialog.h"
 #include "WiiToolLoader.h"
 
 void archShowPropertiesDialog(PropPage page) {}

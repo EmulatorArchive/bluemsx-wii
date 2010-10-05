@@ -28,7 +28,7 @@
 #ifndef SG1000_JOYSTICK_DEVICE_H
 #define SG1000_JOYSTICK_DEVICE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 // Base class for SG-1000 Joystick devices. 
 

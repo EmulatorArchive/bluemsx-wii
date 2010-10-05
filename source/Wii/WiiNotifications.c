@@ -27,11 +27,11 @@
 **
 ******************************************************************************
 */
-#include "ArchNotifications.h"
-#include "FrameBuffer.h"
+#include "../Arch/ArchNotifications.h"
+#include "../VideoChips/FrameBuffer.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <png.h>
+#include "../libpng/png.h"
 
 static png_bytep  png_data = NULL;
 static png_size_t png_data_allocated = 0;

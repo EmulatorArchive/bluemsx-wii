@@ -28,7 +28,7 @@
 #ifndef RAM_NORMAL_H
 #define RAM_NORMAL_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int ramNormalCreate(int size, int slot, int sslot, int startPage, UInt8** ramPtr, UInt32* ramSize);
 

@@ -28,7 +28,7 @@
 #ifndef MSX_JOYSTICK_DEVICE_H
 #define MSX_JOYSTICK_DEVICE_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 // Base class for MSX Joystick devices. 
 

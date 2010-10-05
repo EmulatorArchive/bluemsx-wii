@@ -27,8 +27,8 @@
 #include <stdlib.h>
 
 #include "Language.h"
-#include "LanguageChineseSimplified.h"
-#include "LanguageChineseTraditional.h"
+#include "../../language/LanguageChineseSimplified.h"
+#include "../../language/LanguageChineseTraditional.h"
 #include "LanguageEnglish.h"
 #include "LanguageJapanese.h"
 #include "LanguageKorean.h"
@@ -36,9 +36,9 @@
 #include "LanguageItalian.h"
 #include "LanguageFrench.h"
 #include "LanguagePortuguese.h"
-#include "LanguageRussian.h"
+#include "../../language/LanguageRussian.h"
 #include "LanguageSpanish.h"
-#include "LanguageCatalan.h"
+#include "../../language/LanguageCatalan.h"
 
 namespace {
     Language* ls = new LanguageEnglish;

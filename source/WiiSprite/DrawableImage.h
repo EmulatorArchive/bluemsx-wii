@@ -4,8 +4,7 @@
 #ifndef __DRAWABLE_H
 #define __DRAWABLE_H
 
-#include <image.h>
-
+#include "Image.h"
 #include "TextRender.h"
 
 class DrawableImage : public Image

@@ -28,7 +28,7 @@
 #ifndef COMMAND_LINE_H
 #define COMMAND_LINE_H
 
-#include "Properties.h"
+#include "../Emulator/Properties.h"
 
 #ifdef __cplusplus
 extern "C" {

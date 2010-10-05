@@ -25,10 +25,10 @@
 **
 ******************************************************************************
 */
-#include "JoystickPort.h"
-#include "ArchInput.h"
-#include "Language.h"
-#include "Board.h"
+#include "../Input/JoystickPort.h"
+#include "../Arch/ArchInput.h"
+#include "../Language/Language.h"
+#include "../Board/Board.h"
 #include <stdlib.h>
 #include <string.h>
 

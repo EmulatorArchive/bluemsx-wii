@@ -28,7 +28,7 @@
 #ifndef SL811HS_H
 #define SL811HS_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct SL811HS SL811HS;
 

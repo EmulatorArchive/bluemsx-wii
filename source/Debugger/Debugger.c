@@ -26,11 +26,11 @@
 ******************************************************************************
 */
 
-#include "Debugger.h"
-#include "DebugDeviceManager.h"
-#include "Emulator.h"
-#include "Actions.h"
-#include "Board.h"
+#include "../Debugger/Debugger.h"
+#include "../Debugger/DebugDeviceManager.h"
+#include "../Emulator/Emulator.h"
+#include "../Emulator/Actions.h"
+#include "../Board/Board.h"
 #include <stdlib.h>
 
 struct BlueDebugger {

@@ -27,7 +27,7 @@
 **
 ******************************************************************************
 */
-#include "ArchThread.h"
+#include "../Arch/ArchThread.h"
 #include <lwp.h>
 #include <stdlib.h>
 #include <system.h>

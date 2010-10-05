@@ -28,8 +28,8 @@
 #include "ziphelper.h"
 #include "ZipFromMem.h"
 
-#include "zip.h"
-#include "unzip.h"
+#include "../Unzip/zip.h"
+#include "../Unzip/unzip.h"
 #include "ctype.h"
 #include <stdio.h>
 #include <stdlib.h>

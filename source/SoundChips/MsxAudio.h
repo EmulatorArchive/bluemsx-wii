@@ -32,8 +32,8 @@
 extern "C" {
 #endif
 
-#include "MsxTypes.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../SoundChips/AudioMixer.h"
 
 /* Constructor and destructor */
 int msxaudioCreate(Mixer* mixer);

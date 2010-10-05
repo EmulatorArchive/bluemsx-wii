@@ -25,10 +25,10 @@
 **
 ******************************************************************************
 */
-#include "MegaromCartridge.h"
-#include "MediaDb.h"
-#include "RomLoader.h"
-#include "SlotManager.h"
+#include "../Memory/MegaromCartridge.h"
+#include "../Media/MediaDb.h"
+#include "../Memory/RomLoader.h"
+#include "../Memory/SlotManager.h"
 
 #include "ramMapper.h"
 #include "romMapperStandard.h"

@@ -2,7 +2,7 @@
 #include "GuiButton.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
-#include "DrawableImage.h"
+#include "../WiiSprite/DrawableImage.h"
 
 #define BUTTON_TRANSPARENCY_NORMAL    160
 #define BUTTON_TRANSPARENCY_HIGHLIGHT 255

@@ -28,7 +28,7 @@
 #ifndef ROMMAPPER_GIDE_H
 #define ROMMAPPER_GIDE_H
  
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 int romMapperGIdeCreate(int hdId);
 

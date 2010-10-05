@@ -28,8 +28,8 @@
 #ifndef AY8910_H
 #define AY8910_H
 
-#include "MsxTypes.h"
-#include "AudioMixer.h"
+#include "../Common/MsxTypes.h"
+#include "../SoundChips/AudioMixer.h"
 
 /* Type definitions */
 typedef struct AY8910 AY8910;

@@ -28,7 +28,7 @@
 #ifndef ARCH_MIDI_H
 #define ARCH_MIDI_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct ArchMidi ArchMidi;
 

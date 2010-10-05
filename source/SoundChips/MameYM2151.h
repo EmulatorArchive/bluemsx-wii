@@ -32,7 +32,7 @@
 #ifndef _H_YM2151_
 #define _H_YM2151_
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 
 typedef struct MameYm2151 MameYm2151;
 

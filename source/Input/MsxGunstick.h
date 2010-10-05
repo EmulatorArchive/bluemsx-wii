@@ -28,7 +28,7 @@
 #ifndef MSX_GUNSTICK_H
 #define MSX_GUNSTICK_H
 
-#include "MsxTypes.h"
+#include "../Common/MsxTypes.h"
 #include "MsxJoystickDevice.h"
 
 typedef struct MsxGunstick MsxGunstick;

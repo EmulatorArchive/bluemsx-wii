@@ -18,7 +18,7 @@ typedef unsigned short word;
 #define OPENMSX_SOUNDDEVICE
 
 extern "C" {
-#include "AudioMixer.h"
+#include "../SoundChips/AudioMixer.h"
 }
 
 class SoundDevice

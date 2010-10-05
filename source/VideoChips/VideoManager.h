@@ -28,8 +28,8 @@
 #ifndef VIDEO_MANAGER_H
 #define VIDEO_MANAGER_H
 
-#include "MsxTypes.h"
-#include "FrameBuffer.h"
+#include "../Common/MsxTypes.h"
+#include "../VideoChips/FrameBuffer.h"
 
 typedef struct {
     void (*enable)(void*);

@@ -25,19 +25,19 @@
 **
 ******************************************************************************
 */
-#include "Casette.h"
-#include "Led.h"
+#include "../IoDevice/Casette.h"
+#include "../IoDevice/Led.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include "Properties.h"
-#include "SaveState.h"
-#include "ziphelper.h"
+#include "../Emulator/Properties.h"
+#include "../Utils/SaveState.h"
+#include "../Utils/ziphelper.h"
 
 
 // PacketFileSystem.h Need to be included after all other includes
-#include "PacketFileSystem.h"
+#include "../Utils/PacketFileSystem.h"
 
 static UInt8 hdrSVICAS[17] = { 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x7F};
 static UInt8 hdrFMSX98[17] = { 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x5f };
