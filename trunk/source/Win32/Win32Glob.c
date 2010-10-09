@@ -39,10 +39,10 @@ ArchGlob* archGlob(const char* pattern, int flags)
     char oldPath[MAX_PATH];
     const char* filePattern;
     ArchGlob* glob;
-    WIN32_FIND_DATA wfd;
+    WIN32_FIND_DATAA wfd;
     HANDLE handle;
 
-    GetCurrentDirectory(MAX_PATH, oldPath);
+    GetCurrentDirectoryA(MAX_PATH, oldPath);
 
     filePattern = strrchr(pattern, '/');
     if (filePattern == NULL) {
@@ -53,12 +53,12 @@ ArchGlob* archGlob(const char* pattern, int flags)
         strcpy(relPath, pattern);
         relPath[filePattern - pattern] = '\0';
         pattern = filePattern + 1;
-        SetCurrentDirectory(relPath);
+        SetCurrentDirectoryA(relPath);
     }
 
-    handle = FindFirstFile(pattern, &wfd);
+    handle = FindFirstFileA(pattern, &wfd);
     if (handle == INVALID_HANDLE_VALUE) {
-        SetCurrentDirectory(oldPath);
+        SetCurrentDirectoryA(oldPath);
         return NULL;
     }
 
@@ -69,12 +69,12 @@ ArchGlob* archGlob(const char* pattern, int flags)
         if (0 == strcmp(wfd.cFileName, ".") || 0 == strcmp(wfd.cFileName, "..")) {
             continue;
         }
-		fa = GetFileAttributes(wfd.cFileName);
+        fa = GetFileAttributesA(wfd.cFileName);
         if (((flags & ARCH_GLOB_DIRS) && (fa & FILE_ATTRIBUTE_DIRECTORY) != 0) ||
             ((flags & ARCH_GLOB_FILES) && (fa & FILE_ATTRIBUTE_DIRECTORY) == 0))
         {
             char* path = (char*)malloc(MAX_PATH);
-            GetCurrentDirectory(MAX_PATH, path);
+            GetCurrentDirectoryA(MAX_PATH, path);
             strcat(path, "\\");
             strcat(path, wfd.cFileName);
 
@@ -82,11 +82,11 @@ ArchGlob* archGlob(const char* pattern, int flags)
             glob->pathVector = realloc(glob->pathVector, sizeof(char*) * glob->count);
             glob->pathVector[glob->count - 1] = path;
         }
-    } while (FindNextFile(handle, &wfd));
+    } while (FindNextFileA(handle, &wfd));
 
     FindClose(handle);
 
-    SetCurrentDirectory(oldPath);
+    SetCurrentDirectoryA(oldPath);
 
     return glob;
 }

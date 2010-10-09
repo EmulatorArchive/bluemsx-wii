@@ -77,10 +77,10 @@ int main(int argc, char **argv)
     // Let's rock now!
     manager->Run(GuiMain);
 
+    keyboardClose();
+
     // Cleanup
     delete manager;
-
-    keyboardClose();
 
     fatUnmount("sd");
     fatUnmount("usb");

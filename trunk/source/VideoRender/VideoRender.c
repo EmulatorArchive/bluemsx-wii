@@ -37,7 +37,7 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef WII
+#ifdef BLUEMSXWII
 static UInt16 empty_line_buffer[FB_MAX_LINE_WIDTH];
 
 static int videoRender240(Video* pVideo, FrameBuffer* frame, int bitDepth, int zoom,

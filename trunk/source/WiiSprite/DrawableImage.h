@@ -28,7 +28,7 @@ class DrawableImage : public Image
     void SetColor(GXColor c);
     void SetSize(int s);
     void SetYSpacing(int s);
-    void FillSolidColor(u8 r, u8 g, u8 b, u8 a);
+    void FillSolidColor(u8 r, u8 g, u8 b);
     void RenderText(const char *fmt, ...);
     void RenderText(bool center, const char *fmt, ...);
     void RenderTextVA(bool center, const char *fmt, va_list list);
@@ -36,9 +36,7 @@ class DrawableImage : public Image
     u8 *GetTextureBuffer(void);
     void FlushBuffer(void);
   private:
-#ifdef WII
     u8* _pixels;
-#endif
     int _format;
     int _font_size;
     int _font_yspacing;

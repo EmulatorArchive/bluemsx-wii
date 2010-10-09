@@ -34,6 +34,7 @@
 #include "../Input/InputEvent.h"
 #include "../Utils/IniFileParser.h"
 #include "Win32Shortcuts.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -260,6 +261,7 @@ void keyboardClose(void)
         shortcutsDestroy(shortcuts);
         shortcuts = NULL;
     }
+    winp_gui_manager = NULL;
 }
 
 void keyboardReset(void)
@@ -313,6 +315,8 @@ static void keyboardResetKbd()
 
 void keyboardUpdate(void)
 {
+    assert( winp_gui_manager );
+
     if (!hasFocus) {
         keyboardResetKbd();
         return;

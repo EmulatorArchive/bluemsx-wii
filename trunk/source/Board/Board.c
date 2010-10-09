@@ -1158,7 +1158,7 @@ int boardRun(Machine* machine,
              int frequency,
              int (*syncCallback)(int, int))
 {
-    ZipFile *zip;
+    ZipFile *zip = NULL;
     int loadState = 0;
     int success = 0;
 
@@ -1496,7 +1496,7 @@ void boardSaveState(const char* stateFile)
 
     bitmap = archScreenCapture(SC_SMALL, &size, 1);
     if( bitmap != NULL && size > 0 ) {
-#ifdef WII
+#ifdef BLUEMSXWII
         zipAppendFile("screenshot.png", bitmap, size);
 #else
         zipAppendFile("screenshot.bmp", bitmap, size);

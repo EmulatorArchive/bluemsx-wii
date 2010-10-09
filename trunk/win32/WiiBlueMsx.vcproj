@@ -141,7 +141,7 @@
 				AdditionalOptions="/QIfist "
 				Optimization="0"
 				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\Arch;..\source\WiiSprite;..\build"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="BLUEMSXWII;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -463,6 +463,14 @@
 				</File>
 				<File
 					RelativePath="..\source\Gui\GuiSelectionList.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiStateSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiStateSelect.h"
 					>
 				</File>
 			</Filter>

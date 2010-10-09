@@ -304,7 +304,7 @@ void updateExtendedDiskName(int drive, char* filename, char* zipFile) {
 
     extendedDiskName[drive][0] = 0;
 
-#ifndef WII
+#ifndef BLUEMSXWII
     if (drive < MAX_FDC_COUNT) {
         buf = romLoad(filename, zipFile[0] ? zipFile : NULL, &size);
         if (buf != NULL) {
@@ -454,7 +454,8 @@ int createSaveFileBaseName(char* fileBase,Properties* properties, int useExtende
                 strcpy(fileBase, extendedDiskName[i]);
             }
             else if (*properties->media.disks[i].fileNameInZip) {
-#ifdef WII      // Use the same name for state files for every disk image within one zip file
+#ifdef BLUEMSXWII
+                // Use the same name for state files for every disk image within one zip file
                 strcpy(fileBase, stripPathExt(properties->media.disks[i].fileName));
 #else
                 strcpy(fileBase, stripPathExt(properties->media.disks[i].fileNameInZip));

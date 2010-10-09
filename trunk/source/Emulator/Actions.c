@@ -45,7 +45,7 @@
 #include "../Arch/ArchFile.h"
 #include "../Arch/ArchNotifications.h"
 #include "../Arch/ArchPrinter.h"
-#ifdef WII
+#ifdef BLUEMSXWII
 #include "../Arch/ArchSound.h"
 #endif
 #include "../Arch/ArchMidi.h"
@@ -520,7 +520,7 @@ void actionDiskQuickChange() {
     if (*state.properties->media.disks[0].fileName) {
         if (*state.properties->media.disks[0].fileNameInZip) {
             strcpy(state.properties->media.disks[0].fileNameInZip, fileGetNext(state.properties->media.disks[0].fileNameInZip, state.properties->media.disks[0].fileName));
-#ifdef WII
+#ifdef BLUEMSXWII
             archDiskQuickChangeNotify(0, state.properties->media.disks[0].fileName, state.properties->media.disks[0].fileNameInZip);
 #endif
             boardChangeDiskette(0, state.properties->media.disks[0].fileName, state.properties->media.disks[0].fileNameInZip);
@@ -528,13 +528,13 @@ void actionDiskQuickChange() {
         }
         else {
             strcpy(state.properties->media.disks[0].fileName, fileGetNext(state.properties->media.disks[0].fileName, NULL));
-#ifdef WII
+#ifdef BLUEMSXWII
             archDiskQuickChangeNotify(0, state.properties->media.disks[0].fileName, state.properties->media.disks[0].fileNameInZip);
 #endif
             boardChangeDiskette(0, state.properties->media.disks[0].fileName, NULL);
             updateExtendedDiskName(0, state.properties->media.disks[0].fileName, state.properties->media.disks[0].fileNameInZip);
         }
-#ifndef WII
+#ifndef BLUEMSXWII
         archDiskQuickChangeNotify();
 #endif
     }

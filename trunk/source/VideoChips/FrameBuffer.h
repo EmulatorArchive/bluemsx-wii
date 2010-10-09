@@ -30,7 +30,7 @@
 
 #include "../Common/MsxTypes.h"
 
-#ifdef WII
+#ifdef BLUEMSXWII
 #define FB_MAX_LINE_WIDTH 544
 #else
 #define FB_MAX_LINE_WIDTH 640
@@ -95,7 +95,7 @@ FrameBufferData* frameBufferGetActive();
 
 void frameBufferSetBlendFrames(int blendFrames);
 
-#ifdef WII
+#ifdef BLUEMSXWII
 #define BKMODE_TRANSPARENT 0x0020
 #define videoGetColor(R, G, B) \
           ((((int)(R) >> 3) << 11) | (((int)(G) >> 3) << 6) | ((int)(B) >> 3))

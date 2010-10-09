@@ -360,24 +360,31 @@ GuiManager::GuiManager()
 
 GuiManager::~GuiManager()
 {
+    gwd.StopVideo();
+
     // Handle pending delete requests
     Lock();
     for(int i = 0; i < GUI_MAX_LAYERS; i++) {
-        if( remove_list[i].layer != NULL &&
-            remove_list[i].needdelete ) {
-            RemoveAndDelete(remove_list[i].layer, remove_list[i].image);
+        if( remove_list[i].layer != NULL ) {
+            if( remove_list[i].needdelete ) {
+                RemoveAndDelete(remove_list[i].layer, remove_list[i].image);
+            }else{
+                Remove(remove_list[i].layer);
+            }
         }
     }
     Unlock();
 
     // Clean-up
     GuiManagerCallback *p = render_callback;
+    render_callback = NULL;
     while( p ) {
         GuiManagerCallback *cb = p;
         p = p->next;
         delete cb;
     }
     p = frame_callback;
+    frame_callback = NULL;
     while( p ) {
         GuiManagerCallback *cb = p;
         p = p->next;

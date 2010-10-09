@@ -742,7 +742,7 @@ void InputDevices::ScanButtons(void)
 
     // Process key events
     hgeInputEvent event;
-    if( g_hge->Input_GetEvent(&event) ) {
+    while( g_hge->Input_GetEvent(&event) ) {
       switch( event.type ) {
         case INPUT_KEYDOWN:
         case INPUT_MBUTTONDOWN:

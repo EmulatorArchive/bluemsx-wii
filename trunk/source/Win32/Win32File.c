@@ -29,15 +29,12 @@
 */
 #include "../Arch/ArchFile.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <windows.h>
 #include <sys/stat.h>
-#include <unistd.h>
-
 
 int archCreateDirectory(const char* pathname)
 {
-    return mkdir(pathname, 0777);
+    return CreateDirectoryA(pathname, NULL);
 }
 
 const char* archGetCurrentDirectory()
@@ -52,7 +49,7 @@ const char* archGetCurrentDirectory()
 
 void archSetCurrentDirectory(const char* pathname)
 {
-    chdir(pathname);
+    _chdir(pathname);
 }
 
 int archFileExists(const char* fileName)
