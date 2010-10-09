@@ -3,9 +3,7 @@
 #include "../unzip/zlib.h" /* for crc32 */
 #include "../Utils/xmlwriter.h"
 #include "GameList.h"
-#ifdef WII
 #include "../Input/InputEvent.h"
-#endif
 
 /*************************************************
   Game List
@@ -45,7 +43,6 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                 const char *key = atts[i];
                 const char *val = atts[i+1];
                 if( val != NULL ) {
-#ifdef WII
                     int event = inputEventStringToCode(val);
                     if( event ) {
                         for(int k = 1; k < BTN_LAST; k++) {
@@ -54,7 +51,6 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                             }
                         }
                     }
-#endif
                 }
             }
         }
@@ -238,12 +234,10 @@ void GameList::Save(const char *filename)
         bool keymaps = false;
         for(int k = 1; k < BTN_LAST; k++) {
             int event = p->GetKeyMapping((BTN)k);
-#ifdef WII
             if( event != EC_NONE ) {
                 MyXml.AddAtributes(InputDevices::GetButtonName((BTN)k), inputEventCodeToString(event));
                 keymaps = true;
             }
-#endif
         }
         if( keymaps ) {
             MyXml.CreateTag("KeyMap", true);

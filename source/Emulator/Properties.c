@@ -354,7 +354,7 @@ void propInitDefaults(Properties* properties, int langType, PropKeyboardLanguage
     
     properties->joystick.POV0isAxes    = 0;
     
-#ifdef WII
+#ifdef BLUEMSXWII
     // Use joystick by default
     strcpy(properties->joy1.type, "joystick");
     properties->joy1.typeId            = JOYSTICK_PORT_JOYSTICK;
@@ -1017,7 +1017,7 @@ Properties* propCreate(int useDefault, int langType, PropKeyboardLanguage kbdLan
     if (!useDefault) {
         propLoad(properties);
     }
-#ifndef WII
+#ifndef BLUEMSXWII
     // Verify machine name
     {
         char** machineNames = machineGetAvailable(1);

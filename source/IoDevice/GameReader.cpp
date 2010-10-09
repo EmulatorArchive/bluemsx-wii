@@ -256,7 +256,7 @@ int gameReaderWriteIo(GrHandle* grHandle, UInt16 port, UInt8 value)
 
 int gameReaderSupported()
 {
-#ifdef WII
+#ifdef BLUEMSXWII
     return 0;
 #else
     return 1;

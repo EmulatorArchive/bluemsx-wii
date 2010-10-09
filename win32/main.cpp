@@ -17,14 +17,20 @@
 #include <windows.h>
 #include "../source/Gui/GuiMain.h"
 #include "../source/Gui/GuiManager.h"
+#include "../source/Win32/Win32Input.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
   // GUI init
   GuiManager *manager = new GuiManager();
 
+  // Init keyboard
+  keyboardInit(manager);
+
   // Let's rock now!
   manager->Run(GuiMain);
+
+  keyboardClose();
 
   delete manager;
 

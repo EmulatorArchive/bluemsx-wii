@@ -23,13 +23,8 @@ HGE *g_hge = NULL;
 
 // Initializes the static members
 GW_VIDEO_MODE GameWindow::_mode = GW_VIDEO_MODE_INVALID;
-#ifdef WII
 u32 GameWindow::_width = 0;
 u32 GameWindow::_height = 0;
-#else
-u32 GameWindow::_width = 640;
-u32 GameWindow::_height = 440;
-#endif
 bool GameWindow::_initialized = false;
 #ifdef WII
 Image* GameWindow::_lastimage = NULL;
@@ -262,6 +257,22 @@ void GameWindow::SetMode(GW_VIDEO_MODE mode)
     // The final scissor box
     GX_SetScissorBoxOffset(0, -yoffset);
     GX_SetScissor(0, 0, _width, _height);
+#else
+    _mode = mode;
+    switch( mode ) {
+        case GW_VIDEO_MODE_PAL50_528:
+            _width = 640;
+            _height = 528;
+            break;
+        case GW_VIDEO_MODE_PAL50_440:
+        case GW_VIDEO_MODE_PAL60_440:
+        case GW_VIDEO_MODE_NTSC_440:
+            _width = 640;
+            _height = 440;
+            break;
+        default:
+            return;
+    }
 #endif
 }
 
@@ -306,6 +317,7 @@ void GameWindow::InitVideo()
             break;
      }
 #else
+    SetMode(GW_VIDEO_MODE_PAL50_440);
     // HGE
     g_hge = hgeCreate(HGE_VERSION);
     g_hge->System_SetState(HGE_LOGFILE, "test.log");

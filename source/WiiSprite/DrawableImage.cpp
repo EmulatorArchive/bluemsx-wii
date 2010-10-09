@@ -13,9 +13,8 @@ DrawableImage::DrawableImage()
     _initialized = false;
 
     // Ensure proper null pointer
-#ifdef WII
     _pixels = NULL;
-#else
+#ifndef WII
     _texObj = NULL;
 #endif
 
@@ -36,7 +35,7 @@ void DrawableImage::CreateImage(int width, int height, int format)
     _format = format;
     _width = width;
     _height = height;
-#ifdef WII
+
     int bytespp = (format == GX_TF_RGB565)? 2 : 4;
 
     // Allocate room
@@ -44,11 +43,16 @@ void DrawableImage::CreateImage(int width, int height, int format)
     {
         free(_pixels);
     }
+#ifdef WII
     _pixels = (u8 *)memalign(32, _width * _height * bytespp);
+#else
+    _pixels = (u8 *)malloc(_width * _height * bytespp);
+#endif
 
     // Set to zero's for now
     memset(_pixels, 0, _width * _height * bytespp);
 
+#ifdef WII
     // Move flush cached memory
     DCFlushRange (_pixels, _width * _height * bytespp);
 #else
@@ -70,38 +74,24 @@ void DrawableImage::CreateImage(int width, int height, int format)
     _initialized = true;
 }
 
-void DrawableImage::FillSolidColor(u8 r, u8 g, u8 b, u8 a)
+void DrawableImage::FillSolidColor(u8 r, u8 g, u8 b)
 {
-#ifdef WII
     assert(_format == GX_TF_RGB565); // Only GX_TF_RGB565 supported
-    assert(a == 0xff); // Transparency not supported
     u16 *p = (u16*)_pixels;
     u16 c = ((u16)(r >> 3) << 11) | ((u16)(g >> 3) << 6) | (b >> 3);
     for(u32 i = 0; i < _width*_height; i++) {
         *p++ = c;
     }
-#else
-    GameWindow::Lock();
-    u32 *blitbuf = (u32 *)g_hge->Texture_Lock(_texObj, false);
-    int tex_width = g_hge->Texture_GetWidth(_texObj);
-    int tex_height = g_hge->Texture_GetHeight(_texObj);
-    for(int i = 0; i < (tex_height*tex_width); i++) {
-        *blitbuf++ = ((u32)a << 24) | ((u32)r << 16) | ((u32)g << 8) | b;
-    }
-    g_hge->Texture_Unlock(_texObj);
-    GameWindow::Unlock();
-#endif
 }
 
 void DrawableImage::DestroyImage(void)
 {
-#ifdef WII
     if(_pixels)
     {
         free(_pixels);
         _pixels = NULL;
     }
-#else
+#ifndef WII
     if(_texObj)
     {
         GameWindow::Lock();
@@ -202,11 +192,7 @@ Image *DrawableImage::GetImage()
 
 u8 *DrawableImage::GetTextureBuffer(void)
 {
-#ifdef WII
     return _pixels;
-#else
-    return NULL;
-#endif
 }
 
 void DrawableImage::FlushBuffer(void)
@@ -214,6 +200,34 @@ void DrawableImage::FlushBuffer(void)
 #ifdef WII
     int bytespp = (_format == GX_TF_RGB565)? 2 : 4;
     DCFlushRange (_pixels, _width * _height * bytespp);
+#else
+    if( _format == GX_TF_RGB565 ) {
+        GameWindow::Lock();
+        u32 *blitbuf = (u32 *)g_hge->Texture_Lock(_texObj, false);
+        int tex_width = g_hge->Texture_GetWidth(_texObj);
+        u16 *p = (u16*)_pixels;
+        for(int y = 0; y < _height; y += 4) {
+            u32 *pd[4];
+            pd[0] = blitbuf + y * tex_width;
+            pd[1] = pd[0] + tex_width;
+            pd[2] = pd[1] + tex_width;
+            pd[3] = pd[2] + tex_width;
+            for(int x = 0; x < _width; x += 4) {
+                for(int i = 0; i < 4; i++) {
+                    *pd[i]++ = ((u32)0xff << 24) | ((u32)((u8)(*p >> 11) << 3) << 16) | ((u32)((u8)(*p >> 6) << 3) << 8) | ((u8)(*p) << 3);
+                    p++;
+                    *pd[i]++ = ((u32)0xff << 24) | ((u32)((u8)(*p >> 11) << 3) << 16) | ((u32)((u8)(*p >> 6) << 3) << 8) | ((u8)(*p) << 3);
+                    p++;
+                    *pd[i]++ = ((u32)0xff << 24) | ((u32)((u8)(*p >> 11) << 3) << 16) | ((u32)((u8)(*p >> 6) << 3) << 8) | ((u8)(*p) << 3);
+                    p++;
+                    *pd[i]++ = ((u32)0xff << 24) | ((u32)((u8)(*p >> 11) << 3) << 16) | ((u32)((u8)(*p >> 6) << 3) << 8) | ((u8)(*p) << 3);
+                    p++;
+                }
+            }
+        }
+        g_hge->Texture_Unlock(_texObj);
+        GameWindow::Unlock();
+    }
 #endif
 }
 

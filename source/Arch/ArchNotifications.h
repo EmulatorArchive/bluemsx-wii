@@ -34,14 +34,14 @@ extern "C" {
 
 typedef enum { SC_NORMAL, SC_SMALL, SC_LARGE } ScreenCaptureType;
 void* archScreenCapture(ScreenCaptureType type, int* bitmapSize, int onlyBmp);
-#ifdef WII
+#ifdef BLUEMSXWII
 int archScreenCaptureToFile(ScreenCaptureType type, const char *fname);
 #endif
 
 void archUpdateEmuDisplayConfig();
 int  archUpdateEmuDisplay(int synchronous);
 
-#ifdef WII
+#ifdef BLUEMSXWII
 void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZipFile);
 #else
 void archDiskQuickChangeNotify();

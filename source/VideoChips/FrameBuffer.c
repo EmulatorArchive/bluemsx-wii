@@ -28,14 +28,14 @@
 #include "../VideoChips/FrameBuffer.h"
 #include "../Arch/ArchEvent.h"
 #include "../Arch/ArchVideoIn.h"
-#ifdef WII
+#ifdef BLUEMSXWII
 #include "../Arch/ArchSound.h"
 #include "../Arch/ArchThread.h"
 #endif
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef WII
+#ifdef BLUEMSXWII
 #define MAX_FRAMES_PER_FRAMEBUFFER 3
 #else
 #define MAX_FRAMES_PER_FRAMEBUFFER 4
@@ -45,11 +45,11 @@ struct FrameBufferData {
     int viewFrame;
     int drawFrame;
     int currentAge;
-#ifndef WII
+#ifndef BLUEMSXWII
     int currentBlendFrame;
 #endif
     FrameBuffer frame[MAX_FRAMES_PER_FRAMEBUFFER];
-#ifndef WII
+#ifndef BLUEMSXWII
     FrameBuffer blendFrame[2];
 #endif
 };
@@ -57,7 +57,7 @@ struct FrameBufferData {
 static int curScanline = 0;
 static void* semaphore = NULL;
 static FrameBuffer* deintBuffer = NULL;
-#ifndef WII
+#ifndef BLUEMSXWII
 static int confBlendFrames = 0;
 #endif
 
@@ -260,8 +260,7 @@ FrameBuffer* frameBufferGetDrawFrame()
     if (currentBuffer == NULL) {
         return NULL;
     }
-#ifdef WII
-
+#ifdef BLUEMSXWII
     frameBuffer = currentBuffer->frame + currentBuffer->drawFrame;
 #else
     if (confBlendFrames) {
@@ -320,14 +319,19 @@ FrameBuffer* frameBufferFlipDrawFrame()
 {
     FrameBuffer* frameBuffer;
 
+#ifdef BLUEMSXWII
 #ifdef WII
     archThreadSleep(0); // wait one frame
     soundCallibrate();
+#else
+    // TODO: Frame sync
+    archThreadSleep(20); // wait one frame
+#endif
 #endif
     if (currentBuffer == NULL) {
         return NULL;
     }
-#ifndef WII
+#ifndef BLUEMSXWII
     if (confBlendFrames) {
         mixFrame(currentBuffer->frame + currentBuffer->drawFrame,
                  &currentBuffer->blendFrame[0], &currentBuffer->blendFrame[1], 50);
@@ -359,7 +363,7 @@ FrameBuffer* frameBufferFlipDrawFrame()
         frameBuffer = frameBufferFlipDrawFrame1();
         break;
     }
-#ifndef WII
+#ifndef BLUEMSXWII
     if (confBlendFrames) {
         currentBuffer->currentBlendFrame ^= 1;
         frameBuffer = currentBuffer->blendFrame + currentBuffer->currentBlendFrame;
@@ -370,7 +374,7 @@ FrameBuffer* frameBufferFlipDrawFrame()
 
 void frameBufferSetBlendFrames(int blendFrames)
 {
-#ifdef WII
+#ifdef BLUEMSXWII
     (void)blendFrames;
 #else
     confBlendFrames = blendFrames;
@@ -392,7 +396,7 @@ FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultH
             frameData->frame[i].line[j].doubleWidth = defaultHorizZoom - 1;
         }
     }
-#ifndef WII
+#ifndef BLUEMSXWII
     for (i = 0; i < 2; i++) {
         int j;
 
@@ -534,7 +538,7 @@ static FrameBuffer* mixFrame(FrameBuffer* d, FrameBuffer* a, FrameBuffer* b, int
 
         d->line[y].doubleWidth = a->line[y].doubleWidth;
         for (x = 0; x < width; x ++) {
-#ifdef WII
+#ifdef BLUEMSXWII
             UInt32 av = ((ap[x] >> 1) & 0xffe0ffe0) | (ap[x] & 0x001f001f);
             UInt32 bv = ((bp[x] >> 1) & 0xffe0ffe0) | (bp[x] & 0x001f001f);
             UInt32 dd = ((((av & M1) * p + (bv & M1) * n) >> 5) & M1) |
@@ -612,7 +616,7 @@ static FrameBuffer* mixFrameInterlace(FrameBuffer* d, FrameBuffer* a, FrameBuffe
         d->line[y].doubleWidth = a->line[y / 2].doubleWidth;
 
         for (x = 0; x < width; x++) {
-#ifdef WII
+#ifdef BLUEMSXWII
             UInt32 av = ((ap[x] >> 1) & 0xffe0ffe0) | (ap[x] & 0x001f001f);
             UInt32 bv = ((bp[x] >> 1) & 0xffe0ffe0) | (bp[x] & 0x001f001f);
             UInt32 dd = ((((av & M1) * p + (bv & M1) * n) >> 5) & M1) |
