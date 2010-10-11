@@ -290,6 +290,17 @@ void frameBufferSetFrameCount(int frameCount)
     signalSem();
 }
 
+#ifdef BLUEMSXWII
+static void *sync_event = NULL;
+
+void frameBufferSync(void)
+{
+    if( sync_event ) {
+        archEventSet(sync_event);
+    }
+}
+#endif
+
 FrameBuffer* frameBufferFlipViewFrame(int mixFrames)
 {
     FrameBuffer* frameBuffer;
@@ -312,21 +323,19 @@ FrameBuffer* frameBufferFlipViewFrame(int mixFrames)
         frameBuffer = frameBufferFlipViewFrame1(mixFrames);
         break;
     }
+
     return frameBuffer;
 }
+
 
 FrameBuffer* frameBufferFlipDrawFrame()
 {
     FrameBuffer* frameBuffer;
 
 #ifdef BLUEMSXWII
-#ifdef WII
-    archThreadSleep(0); // wait one frame
-    soundCallibrate();
-#else
-    // TODO: Frame sync
-    archThreadSleep(20); // wait one frame
-#endif
+    if( sync_event ) {
+        archEventWait(sync_event, -1);
+    }
 #endif
     if (currentBuffer == NULL) {
         return NULL;
@@ -396,7 +405,9 @@ FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultH
             frameData->frame[i].line[j].doubleWidth = defaultHorizZoom - 1;
         }
     }
-#ifndef BLUEMSXWII
+#ifdef BLUEMSXWII
+    sync_event = archEventCreate(0);
+#else
     for (i = 0; i < 2; i++) {
         int j;
 
@@ -420,6 +431,10 @@ void frameBufferDataDestroy(FrameBufferData* frameData)
         archSemaphoreDestroy(semaphore);
         semaphore = NULL;
     }
+#ifdef BLUEMSXWII
+    archEventDestroy(sync_event);
+    sync_event = NULL;
+#endif
 }
 
 void frameBufferSetActive(FrameBufferData* frameData)

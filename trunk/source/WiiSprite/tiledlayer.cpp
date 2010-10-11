@@ -190,7 +190,7 @@ void TiledLayer::Draw(f32 offsetX, f32 offsetY) const
             // Draw the texture on the quad
             spr->SetTextureRect(frameX, frameY, _tileWidth, _tileHeight);
             spr->RenderEx(GetX()+offsetX+x*_tileWidth,
-                          GetY()+offsetY+y*_tileHeight,
+                          GetY()+offsetY+y*_tileHeight+20,
                           0, 1.0f, 1.0f);
 #endif
         }

@@ -96,6 +96,8 @@ FrameBufferData* frameBufferGetActive();
 void frameBufferSetBlendFrames(int blendFrames);
 
 #ifdef BLUEMSXWII
+void frameBufferSync(void);
+
 #define BKMODE_TRANSPARENT 0x0020
 #define videoGetColor(R, G, B) \
           ((((int)(R) >> 3) << 11) | (((int)(G) >> 3) << 6) | ((int)(B) >> 3))

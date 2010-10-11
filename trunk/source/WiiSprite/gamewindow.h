@@ -14,9 +14,6 @@
 #ifndef WII
 class HGE;
 extern HGE *g_hge;
-
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 440
 #endif
 
 typedef void (*GUI_FUNC)(void *);
@@ -41,6 +38,7 @@ class GameWindow{
 
         void SetMode(GW_VIDEO_MODE mode);
         GW_VIDEO_MODE GetMode(void);
+        static void ToggleFullScreen(void);
 
         //!Initializes the whole video subsystem.
         //!Should be the first command called with the library.
@@ -91,6 +89,7 @@ class GameWindow{
         lwp_t _gui_thread;
         void *_gui_thread_stack;
 #else
+        static bool _screen_toggle;
         HANDLE _gui_thread;
 #endif
         bool _stop_requested;

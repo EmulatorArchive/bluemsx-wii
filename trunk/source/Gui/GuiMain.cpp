@@ -274,10 +274,10 @@ void blueMsxInit(int resetProperties)
 
 static bool RenderEmuImage(void *context)
 {
-    DrawableImage *img = (DrawableImage *)context;
-    void *dpyData = img->GetTextureBuffer();
-
     if( emulatorGetState() == EMU_RUNNING ) {
+        DrawableImage *img = (DrawableImage *)context;
+        void *dpyData = img->GetTextureBuffer();
+
         FrameBuffer* frameBuffer;
         frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
         if (frameBuffer == NULL) {
@@ -286,8 +286,11 @@ static bool RenderEmuImage(void *context)
 
         videoRender(video, frameBuffer, bitDepth, zoom,
                     dpyData, 0, displayPitch, -1);
+
         img->FlushBuffer();
     }
+    frameBufferSync();
+
     return false;
 }
 
@@ -377,19 +380,7 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
         }
     }
 
-    // Start emulator
-    i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
-    if (i < 0) {
-        printf("Failed to parse command line\n");
-        msgbox->Remove();
-        return;
-    }
-    if (i == 0) {
-        printf("Starting emulation\n");
-        emulatorStart(NULL);
-    }
-    printf("Waiting for quit event...\n");
-
+    // Start displaying emlator
     msgbox->Remove();
     manager->Lock();
     DrawableImage *emuImg = new DrawableImage;
@@ -404,6 +395,18 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
     emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
     manager->AddTop(emuSpr, 90);
     manager->Unlock();
+
+    // Start emulator
+    i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
+    if (i < 0) {
+        printf("Failed to parse command line\n");
+        msgbox->Remove();
+        return;
+    }
+    if (i == 0) {
+        printf("Starting emulation\n");
+        emulatorStart(NULL);
+    }
 
     archThreadSleep(2000);
     background->Hide();

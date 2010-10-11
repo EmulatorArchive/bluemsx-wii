@@ -15,6 +15,7 @@ public:
   void Lock(void);
   void Unlock(void);
 private:
+  int iLockCount;
 #ifdef WII
   mutex_t g_mutex;
 #else

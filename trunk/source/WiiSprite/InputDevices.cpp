@@ -745,6 +745,10 @@ void InputDevices::ScanButtons(void)
     while( g_hge->Input_GetEvent(&event) ) {
       switch( event.type ) {
         case INPUT_KEYDOWN:
+          if( event.key == HGEK_F9 ) {
+            GameWindow::ToggleFullScreen();
+            break;
+          }
         case INPUT_MBUTTONDOWN:
           for(int i = 0; syms[i].key != BTN_NONE; i++)  {
             if( syms[i].code_a == event.key ) {
