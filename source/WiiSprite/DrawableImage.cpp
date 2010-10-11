@@ -273,6 +273,7 @@ void DrawableImage::RenderTextVA(bool center, const char *fmt, va_list list)
     u8 *blitbuf = (u8 *)memalign(32, _width * _height * 4);
     memset(blitbuf, 0, _width * _height * 4);
 #else
+    GameWindow::Lock();
     u8 *blitbuf = (u8 *)g_hge->Texture_Lock(_texObj, false);
     int tex_width = g_hge->Texture_GetWidth(_texObj);
     int tex_height = g_hge->Texture_GetHeight(_texObj);

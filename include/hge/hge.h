@@ -1,6 +1,6 @@
 /*
-** Haaf's Game Engine 1.54
-** Copyright (C) 2003-2004, Relish Games
+** Haaf's Game Engine 1.8
+** Copyright (C) 2003-2007, Relish Games
 ** hge.relishgames.com
 **
 ** System layer API
@@ -13,7 +13,7 @@
 
 #include <windows.h>
 
-#define HGE_VERSION 0x160
+#define HGE_VERSION 0x180
 
 #ifdef HGEDLL
 #define EXPORT  __declspec(dllexport)
@@ -32,6 +32,9 @@
  #define sinf (float)sin
  #define powf (float)pow
  #define fabsf (float)fabs
+
+ #define min(x,y) ((x) < (y)) ? (x) : (y)
+ #define max(x,y) ((x) > (y)) ? (x) : (y)
 #endif
 
 
@@ -101,59 +104,65 @@ typedef DWORD HCHANNEL;
 */
 enum hgeBoolState
 {
-	HGE_WINDOWED		= 11,   // bool		run in window?		(default: false)
-	HGE_ZBUFFER			= 12,   // bool		use z-buffer?		(default: false)
-	HGE_TEXTUREFILTER	= 13,   // bool		texture filtering?	(default: true)
+	HGE_WINDOWED		= 1,    // bool		run in window?		(default: false)
+	HGE_ZBUFFER			= 2,    // bool		use z-buffer?		(default: false)
+	HGE_TEXTUREFILTER	= 3,    // bool		texture filtering?	(default: true)
 	
-	HGE_USESOUND		= 18,   // bool		use BASS for sound?	(default: true)
+	HGE_USESOUND		= 4,    // bool		use BASS for sound?	(default: true)
 	
-	HGE_DONTSUSPEND		= 24,	// bool		focus lost:suspend?	(default: false)
-	HGE_HIDEMOUSE		= 25,	// bool		hide system cursor?	(default: true)
-	
+	HGE_DONTSUSPEND		= 5,	// bool		focus lost:suspend?	(default: false)
+	HGE_HIDEMOUSE		= 6,	// bool		hide system cursor?	(default: true)
+
+	HGE_SHOWSPLASH		= 7,	// bool		hide system cursor?	(default: true)
+
 	HGEBOOLSTATE_FORCE_DWORD = 0x7FFFFFFF
 };
 
 enum hgeFuncState
 {
-	HGE_FRAMEFUNC		= 1,    // bool*()	frame function		(default: NULL) (you MUST set this)
-	HGE_RENDERFUNC		= 2,    // bool*()	render function		(default: NULL)
-	HGE_FOCUSLOSTFUNC	= 3,    // bool*()	focus lost function	(default: NULL)
-	HGE_FOCUSGAINFUNC	= 4,    // bool*()	focus gain function	(default: NULL)
-	HGE_EXITFUNC		= 5,    // bool*()	exit function		(default: NULL)
+	HGE_FRAMEFUNC		= 8,    // bool*()	frame function		(default: NULL) (you MUST set this)
+	HGE_RENDERFUNC		= 9,    // bool*()	render function		(default: NULL)
+	HGE_FOCUSLOSTFUNC	= 10,   // bool*()	focus lost function	(default: NULL)
+	HGE_FOCUSGAINFUNC	= 11,   // bool*()	focus gain function	(default: NULL)
+	HGE_GFXRESTOREFUNC	= 12,   // bool*()	exit function		(default: NULL)
+	HGE_EXITFUNC		= 13,   // bool*()	exit function		(default: NULL)
 	
 	HGEFUNCSTATE_FORCE_DWORD = 0x7FFFFFFF
 };
 
 enum hgeHwndState
 {
-	HGE_HWND			= 26,	// int		window handle: read only
-	HGE_HWNDPARENT		= 27,	// int		parent win handle	(default: 0)
+	HGE_HWND			= 15,	// int		window handle: read only
+	HGE_HWNDPARENT		= 16,	// int		parent win handle	(default: 0)
 	
 	HGEHWNDSTATE_FORCE_DWORD = 0x7FFFFFFF
 };
 
 enum hgeIntState
 {
-	HGE_SCREENWIDTH		= 8,    // int		screen width		(default: 800)
-	HGE_SCREENHEIGHT	= 9,    // int		screen height		(default: 600)
-	HGE_SCREENBPP		= 10,   // int		screen bitdepth		(default: 32) (desktop bpp in windowed mode)
+	HGE_SCREENWIDTH		= 17,   // int		screen width		(default: 800)
+	HGE_SCREENHEIGHT	= 18,   // int		screen height		(default: 600)
+	HGE_SCREENBPP		= 19,   // int		screen bitdepth		(default: 32) (desktop bpp in windowed mode)
 	
-	HGE_SAMPLERATE		= 19,   // int		sample rate			(default: 44100)
-	HGE_FXVOLUME		= 20,   // int		global fx volume	(default: 100)
-	HGE_MUSVOLUME		= 21,   // int		global music volume	(default: 100)
+	HGE_SAMPLERATE		= 20,   // int		sample rate			(default: 44100)
+	HGE_FXVOLUME		= 21,   // int		global fx volume	(default: 100)
+	HGE_MUSVOLUME		= 22,   // int		global music volume	(default: 100)
+	HGE_STREAMVOLUME	= 23,   // int		global music volume	(default: 100)
 	
-	HGE_FPS				= 23,	// int		fixed fps			(default: HGEFPS_UNLIMITED)
+	HGE_FPS				= 24,	// int		fixed fps			(default: HGEFPS_UNLIMITED)
+
+	HGE_POWERSTATUS		= 25,   // int		battery life percent + status
 	
 	HGEINTSTATE_FORCE_DWORD = 0x7FFFFFF
 };
 
 enum hgeStringState
 {
-	HGE_ICON			= 6,    // char*	icon resource		(default: NULL)
-	HGE_TITLE			= 7,    // char*	window title		(default: "HGE")
+	HGE_ICON			= 26,   // char*	icon resource		(default: NULL)
+	HGE_TITLE			= 27,   // char*	window title		(default: "HGE")
 	
-	HGE_INIFILE			= 15,   // char*	ini file			(default: NULL) (meaning no file)
-	HGE_LOGFILE			= 16,   // char*	log file			(default: NULL) (meaning no file)
+	HGE_INIFILE			= 28,   // char*	ini file			(default: NULL) (meaning no file)
+	HGE_LOGFILE			= 29,   // char*	log file			(default: NULL) (meaning no file)
 
 	HGESTRINGSTATE_FORCE_DWORD = 0x7FFFFFFF
 };
@@ -169,6 +178,13 @@ typedef bool (*hgeCallback)();
 */
 #define HGEFPS_UNLIMITED	0
 #define HGEFPS_VSYNC		-1
+
+
+/*
+** HGE_POWERSTATUS system state special constants
+*/
+#define HGEPWR_AC			-1
+#define HGEPWR_UNSUPPORTED	-2
 
 
 /*
@@ -278,6 +294,7 @@ private:
 	virtual HWND		CALL	System_GetStateHwnd  (hgeHwndState   state) = 0;
 	virtual int			CALL	System_GetStateInt   (hgeIntState    state) = 0;
 	virtual const char*	CALL	System_GetStateString(hgeStringState state) = 0;
+
 public:
 	inline void					System_SetState(hgeBoolState   state, bool        value) { System_SetStateBool  (state, value); }
 	inline void					System_SetState(hgeFuncState   state, hgeCallback value) { System_SetStateFunc  (state, value); }
@@ -295,7 +312,7 @@ public:
 	virtual bool		CALL	Resource_AttachPack(const char *filename, const char *password=0) = 0;
 	virtual void		CALL	Resource_RemovePack(const char *filename) = 0;
 	virtual void		CALL	Resource_RemoveAllPacks() = 0;
-	virtual char*		CALL	Resource_MakePath(const char *filename) = 0;
+	virtual char*		CALL	Resource_MakePath(const char *filename=0) = 0;
 	virtual char*		CALL	Resource_EnumFiles(const char *wildcard=0) = 0;
 	virtual char*		CALL	Resource_EnumFolders(const char *wildcard=0) = 0;
 
@@ -321,7 +338,16 @@ public:
 
 	virtual HMUSIC		CALL	Music_Load(const char *filename, DWORD size=0) = 0;
 	virtual void		CALL	Music_Free(HMUSIC mus) = 0;
-	virtual HCHANNEL	CALL	Music_Play(HMUSIC mus, bool loop) = 0;
+	virtual HCHANNEL	CALL	Music_Play(HMUSIC mus, bool loop, int volume = 100, int order = -1, int row = -1) = 0;
+	virtual void		CALL	Music_SetAmplification(HMUSIC music, int ampl) = 0;
+	virtual int			CALL	Music_GetAmplification(HMUSIC music) = 0;
+	virtual int			CALL	Music_GetLength(HMUSIC music) = 0;
+	virtual void		CALL	Music_SetPos(HMUSIC music, int order, int row) = 0;
+	virtual bool		CALL	Music_GetPos(HMUSIC music, int *order, int *row) = 0;
+	virtual void		CALL	Music_SetInstrVolume(HMUSIC music, int instr, int volume) = 0;
+	virtual int			CALL	Music_GetInstrVolume(HMUSIC music, int instr) = 0;
+	virtual void		CALL	Music_SetChannelVolume(HMUSIC music, int channel, int volume) = 0;
+	virtual int			CALL	Music_GetChannelVolume(HMUSIC music, int channel) = 0;
 
 	virtual HSTREAM		CALL	Stream_Load(const char *filename, DWORD size=0) = 0;
 	virtual void		CALL	Stream_Free(HSTREAM stream) = 0;
@@ -333,16 +359,22 @@ public:
 	virtual void		CALL 	Channel_Pause(HCHANNEL chn) = 0;
 	virtual void		CALL 	Channel_Resume(HCHANNEL chn) = 0;
 	virtual void		CALL 	Channel_Stop(HCHANNEL chn) = 0;
+	virtual void		CALL 	Channel_PauseAll() = 0;
+	virtual void		CALL 	Channel_ResumeAll() = 0;
 	virtual void		CALL 	Channel_StopAll() = 0;
 	virtual bool		CALL	Channel_IsPlaying(HCHANNEL chn) = 0;
 	virtual float		CALL	Channel_GetLength(HCHANNEL chn) = 0;
 	virtual float		CALL	Channel_GetPos(HCHANNEL chn) = 0;
 	virtual void		CALL	Channel_SetPos(HCHANNEL chn, float fSeconds) = 0;
+	virtual void		CALL	Channel_SlideTo(HCHANNEL channel, float time, int volume, int pan = -101, float pitch = -1) = 0;
+	virtual bool		CALL	Channel_IsSliding(HCHANNEL channel) = 0;
 
 	virtual void		CALL	Input_GetMousePos(float *x, float *y) = 0;
 	virtual void		CALL	Input_SetMousePos(float x, float y) = 0;
 	virtual int			CALL	Input_GetMouseWheel() = 0;
 	virtual bool		CALL	Input_IsMouseOver() = 0;
+	virtual bool		CALL	Input_KeyDown(int key) = 0;
+	virtual bool		CALL	Input_KeyUp(int key) = 0;
 	virtual bool		CALL	Input_GetKeyState(int key) = 0;
 	virtual char*		CALL	Input_GetKeyName(int key) = 0;
 	virtual int			CALL	Input_GetKey() = 0;

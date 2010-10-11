@@ -19,6 +19,7 @@
 #ifndef WII
 #include <hge/hge.h>
 HGE *g_hge = NULL;
+bool GameWindow::_screen_toggle = false;
 #endif
 
 // Initializes the static members
@@ -63,6 +64,20 @@ bool GameWindow::FrameFunc()
     //--------------------------------------------
     input.ScanButtons();
 
+    //--------------------------------------------
+    // Switch fullscreen
+    //--------------------------------------------
+    if( _screen_toggle ) {
+        Lock();
+        if( g_hge->System_GetState(HGE_WINDOWED) ) {
+            g_hge->System_SetState(HGE_WINDOWED, false);
+        }else{
+            g_hge->System_SetState(HGE_WINDOWED, true);
+        }
+        _screen_toggle = false;
+        Unlock();
+    }
+
     return _stop_requested;
 }
 
@@ -82,6 +97,7 @@ bool GameWindow::RenderFunc()
 #ifndef WII
     Lock();
     g_hge->Gfx_BeginScene();
+    g_hge->Gfx_SetClipping(0, 20, 640, 440);
     Unlock();
 #endif
     if( _gui_render(_gui_context) ) {
@@ -327,8 +343,8 @@ void GameWindow::InitVideo()
     g_hge->System_SetState(HGE_TITLE, "HGE Test");
     g_hge->System_SetState(HGE_USESOUND, false);
     g_hge->System_SetState(HGE_WINDOWED, true);
-    g_hge->System_SetState(HGE_SCREENWIDTH, SCREEN_WIDTH);
-    g_hge->System_SetState(HGE_SCREENHEIGHT, SCREEN_HEIGHT);
+    g_hge->System_SetState(HGE_SCREENWIDTH, 640);
+    g_hge->System_SetState(HGE_SCREENHEIGHT, 480);
     g_hge->System_SetState(HGE_SCREENBPP, 32);
     g_hge->System_SetState(HGE_FPS, HGEFPS_VSYNC);
     bool bHgeOk = g_hge->System_Initiate();
@@ -368,23 +384,27 @@ void GameWindow::StopVideo(){
 #ifdef WII
 void *GameWindow::DisplayThreadWrapper(void *arg)
 {
-GameWindow *my = (GameWindow *)arg;
-my->DisplayThread();
-return NULL;
+    GameWindow *my = (GameWindow *)arg;
+    my->DisplayThread();
+    return NULL;
 }
 
 void GameWindow::DisplayThread(void)
 {
-while( !_stop_requested ) {
-    Lock();
-    FrameFunc();
-    _gui_render(_gui_context);
-    Unlock();
-    Flush();
-}
-
+    while( !_stop_requested ) {
+        FrameFunc();
+        RenderFunc();
+        Flush();
+    }
 }
 #endif
+
+void GameWindow::ToggleFullScreen(void)
+{
+#ifndef WII
+    _screen_toggle = true;
+#endif
+}
 
 void GameWindow::Run(GUI_FUNC cbGui, RENDER_FUNC cbRender, void *context)
 {
@@ -409,7 +429,7 @@ void GameWindow::Run(GUI_FUNC cbGui, RENDER_FUNC cbRender, void *context)
     // Let's rock now!
     g_hge->System_Start();
     // Close thread
-    WaitForSingleObject(_gui_thread, INFINITE);
+    (void)WaitForSingleObject(_gui_thread, INFINITE);
     CloseHandle(_gui_thread);
 #endif
 }

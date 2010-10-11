@@ -45,8 +45,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include;source\WiiSprite"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\WiiSprite;..\build"
+				PreprocessorDefinitions="BLUEMSXWII;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -56,6 +56,7 @@
 				ProgramDataBaseFileName="..\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -70,10 +71,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\lib\vc\hge.lib ..\..\lib\vc\hgehelp.lib"
+				AdditionalDependencies="..\lib\win32\hge.lib ..\lib\win32\hgehelp.lib ..\lib\win32\freetype242MT.lib"
 				OutputFile="..\Release/WiiBlueMsx.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				IgnoreDefaultLibraryNames="libc.lib"
 				ProgramDatabaseFile="..\Release/WiiBlueMsx.pdb"
 				SubSystem="2"
 				TargetMachine="1"
@@ -140,7 +142,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/QIfist "
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\Arch;..\source\WiiSprite;..\build"
+				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\WiiSprite;..\build"
 				PreprocessorDefinitions="BLUEMSXWII;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

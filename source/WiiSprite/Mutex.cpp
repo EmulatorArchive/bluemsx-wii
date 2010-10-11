@@ -1,11 +1,10 @@
-#include "Mutex.h"
 
-#ifndef WII
 #include <assert.h>
-#endif
+#include "Mutex.h"
 
 CMutex::CMutex()
 {
+  iLockCount = 0;
 #ifdef WII
   LWP_MutexInit(&g_mutex, true);
 #else
@@ -30,10 +29,13 @@ void CMutex::Lock(void)
 #else
   EnterCriticalSection(&m_cs);
 #endif
+  iLockCount++;
 }
 
 void CMutex::Unlock(void)
 {
+  assert( iLockCount > 0 );
+  iLockCount--;
 #ifdef WII
   LWP_MutexUnlock(g_mutex);
 #else

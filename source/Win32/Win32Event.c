@@ -27,29 +27,37 @@
 **
 ******************************************************************************
 */
-#include "../Arch/ArchEvent.h"
+#include <assert.h>
 #include <windows.h>
+#include "../Arch/ArchEvent.h"
 
-void* archEventCreate(int initState) {
+void* archEventCreate(int initState)
+{
     return CreateEvent(NULL, 0, initState, NULL);
 }
 
 void archEventDestroy(void* event)
 {
+    assert(event);
     CloseHandle(event);
 }
 
 void archEventSet(void* event)
 {
+    assert(event);
     SetEvent(event);
 }
 
 void archEventWait(void* event, int timeout)
 {
+    assert(event);
+#ifdef WIIBLUEMSX
+    timeout = INFINITE; // Don't depend on timeout since the real WII doesn't support it (libogc)
+#else
     if (timeout < 0) {
         timeout = INFINITE;
     }
-
+#endif
     WaitForSingleObject(event, timeout);
 }
 
@@ -61,16 +69,19 @@ void* archSemaphoreCreate(int initCount)
 
 void archSemaphoreDestroy(void* semaphore)
 {
+    assert(semaphore);
     CloseHandle(semaphore);
 }
 
 void archSemaphoreSignal(void* semaphore)
 {
+    assert(semaphore);
     ReleaseSemaphore(semaphore, 1, NULL);
 }
 
 void archSemaphoreWait(void* semaphore, int timeout)
 {
+    assert(semaphore);
     archEventWait(semaphore, timeout);
 }
 

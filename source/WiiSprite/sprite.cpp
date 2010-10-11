@@ -461,10 +461,10 @@ void Sprite::Draw(f32 offsetX, f32 offsetY) const{
         x -= _refPixelX * _stretchWidth;
         y -= _refPixelY * _stretchHeight;
     }else{
-        x -= (_refPixelX - (f32)_width/2) * _stretchWidth;
-        y -= (_refPixelY - (f32)_height/2) * _stretchHeight;
+        x *= _stretchWidth;
+        y *= _stretchHeight;
     }
-    spr->RenderEx(x, y, _rotation, _stretchWidth, _stretchHeight);
+    spr->RenderEx(x, y+20, _rotation, _stretchWidth, _stretchHeight);
 #endif
 }
 

@@ -1,6 +1,6 @@
 /*
-** Haaf's Game Engine 1.5
-** Copyright (C) 2003-2004, Relish Games
+** Haaf's Game Engine 1.7
+** Copyright (C) 2003-2007, Relish Games
 ** hge.relishgames.com
 **
 ** hgeParticleSystem helper class header
@@ -87,8 +87,8 @@ class hgeParticleSystem
 public:
 	hgeParticleSystemInfo info;
 	
-	hgeParticleSystem(const char *filename, hgeSprite *sprite, float fps=0.0f);
-	hgeParticleSystem(hgeParticleSystemInfo *psi, float fps=0.0f);
+	hgeParticleSystem(const char *filename, hgeSprite *sprite);
+	hgeParticleSystem(hgeParticleSystemInfo *psi);
 	hgeParticleSystem(const hgeParticleSystem &ps);
 	~hgeParticleSystem() { hge->Release(); }
 
@@ -102,22 +102,20 @@ public:
 	void				Update(float fDeltaTime);
 	void				MoveTo(float x, float y, bool bMoveParticles=false);
 	void				Transpose(float x, float y) { fTx=x; fTy=y; }
+	void				SetScale(float scale) { fScale = scale; }
 	void				TrackBoundingBox(bool bTrack) { bUpdateBoundingBox=bTrack; }
 
 	int					GetParticlesAlive() const { return nParticlesAlive; }
 	float				GetAge() const { return fAge; }
 	void				GetPosition(float *x, float *y) const { *x=vecLocation.x; *y=vecLocation.y; }
 	void				GetTransposition(float *x, float *y) const { *x=fTx; *y=fTy; }
-	hgeRect*			GetBoundingBox(hgeRect *rect) const { memcpy(rect, &rectBoundingBox, sizeof(hgeRect)); return rect; }
+	float				GetScale() { return fScale; }
+	hgeRect*			GetBoundingBox(hgeRect *rect) const;
 
 private:
 	hgeParticleSystem();
-	void				_update(float fDeltaTime);
 
 	static HGE			*hge;
-
-	float				fUpdSpeed;
-	float				fResidue;
 
 	float				fAge;
 	float				fEmissionResidue;
@@ -125,6 +123,7 @@ private:
 	hgeVector			vecPrevLocation;
 	hgeVector			vecLocation;
 	float				fTx, fTy;
+	float				fScale;
 
 	int					nParticlesAlive;
 	hgeRect				rectBoundingBox;
@@ -136,7 +135,7 @@ private:
 class hgeParticleManager
 {
 public:
-	hgeParticleManager(float fps=0.0f);
+	hgeParticleManager();
 	~hgeParticleManager();
 
 	void				Update(float dt);
@@ -153,7 +152,6 @@ private:
 	hgeParticleManager(const hgeParticleManager &);
 	hgeParticleManager&	operator= (const hgeParticleManager &);
 
-	float				fFPS;
 	int					nPS;
 	float				tX;
 	float				tY;
