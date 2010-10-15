@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "DirectoryList.h"
-#include "../unzip/zlib.h" /* for crc32 */
 
 /*************************************************
   Directory Element

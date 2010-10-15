@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "zlib.h"
+#include <zlib/zlib.h>
 #include "../Unzip/zip.h"
 
 #ifdef STDC

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include "../unzip/zlib.h" /* for crc32 */
 #include "../Utils/xmlwriter.h"
 #include "GameList.h"
 #include "../Input/InputEvent.h"
