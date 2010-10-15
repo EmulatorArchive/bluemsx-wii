@@ -4,7 +4,7 @@
 #include "../wiisprite/wiisprite.h"
 #include "GameElement.h"
 #include "GuiImages.h"
-#include "../unzip/zlib.h" /* for crc32 */
+#include <zlib/zlib.h> /* for crc32 */
 
 /*************************************************
   Game Element

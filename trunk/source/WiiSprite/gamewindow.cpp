@@ -67,6 +67,7 @@ bool GameWindow::FrameFunc()
     //--------------------------------------------
     // Switch fullscreen
     //--------------------------------------------
+#ifndef WII
     if( _screen_toggle ) {
         Lock();
         if( g_hge->System_GetState(HGE_WINDOWED) ) {
@@ -77,7 +78,7 @@ bool GameWindow::FrameFunc()
         _screen_toggle = false;
         Unlock();
     }
-
+#endif
     return _stop_requested;
 }
 
