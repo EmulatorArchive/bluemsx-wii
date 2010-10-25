@@ -29,3 +29,11 @@
 extern bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted);
 extern char *GetMSXRootPath(void);
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+extern char *GetStorageRootPath(void);
+#ifdef __cplusplus
+}
+#endif
+
