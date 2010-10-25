@@ -178,3 +178,16 @@ char * GetMSXRootPath(void)
     return sMSXRootPath;
 }
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
+char * GetStorageRootPath(void)
+{
+    return sStorageRoot;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
