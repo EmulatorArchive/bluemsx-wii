@@ -2,11 +2,11 @@
 #ifndef _GUI_MESSAGEBOX_H
 #define _GUI_MESSAGEBOX_H
 
-#include "GuiManager.h"
+#include "GuiContainer.h"
 #include "GuiDialog.h"
 #include "GuiButton.h"
-#include "GuiContainer.h"
-#include "../WiiSprite/DrawableImage.h"
+#include "GuiFrame.h"
+#include "../WiiSprite/Sprite.h"
 
 typedef enum {
   MSGT_TEXT,
@@ -26,26 +26,27 @@ typedef enum {
 
 class GuiMessageBox : public GuiDialog {
 public:
-    GuiMessageBox(GuiManager *man);
+    GuiMessageBox(GuiContainer *cntr);
     virtual ~GuiMessageBox();
 
-    void ShowPopup(const char *txt, Image *image = NULL, int alpha = 128);
-    MSGBTN Show(const char *txt, Image *image = NULL, MSGT type = MSGT_TEXT, int alpha = 128);
-    void Remove(void);
-    void SetText(const char *fmt, ...);
+    static void ShowPopup(GuiContainer *cntr, Image *image, int alpha, int delay,
+                          GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
+    static MSGBTN ShowModal(GuiContainer *cntr, MSGT type, Image *image, int alpha,
+                            GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
 
-    void MessageBoxPopupThread(void);
+    void Create(MSGT type, Image *image, int alpha, const char *txt, ...);
+    void CreateVA(MSGT type, Image *image, int alpha, const char *txt, va_list valist);
+
 private:
-    GuiRunner *runner;
-    bool is_showing;
-    GuiManager *manager;
+    void CleanUp(void);
+
+    MSGT btn_type;
+    MSGBTN buttons[3];
     GuiContainer *container;
+    GuiFrame *frame;
     Sprite *txt_sprite;
     Sprite *img_sprite;
     GuiButton *button[3];
-    DrawableImage *txt_image;
-    void *thread_popup;
-    bool quit_thread;
     int no_buttons;
     int default_button;
 

@@ -334,7 +334,7 @@ bool GameList::AddToList(int index, GameElement *element)
     return true;
 }
 
-void GameList::Delete(int index)
+void GameList::DeleteItem(int index)
 {
     GameElement *element = RemoveFromList(index);
     if( element != NULL ) {

@@ -2,66 +2,56 @@
 #include <stdlib.h>
 
 #include "GuiCheckList.h"
-#include "GuiRunner.h"
 #include "GuiSelectionList.h"
-#include "GuiContainer.h"
+#include "GuiFrame.h"
+#include "GuiEffectFade.h"
 
 #define CHECKLIST_YPITCH 40
-#define CHECKLIST_FADE_FRAMES 10
+#define CHECKLIST_EFFECT new GuiEffectFade(10)
 
 SELRET GuiCheckList::DoModal(int *selected, const char **items, bool *items_selected, int num, int width)
 {
-    GuiRunner *runner = new GuiRunner(manager, this);
-
     // TODO
     (void)items_selected;
 
-    // Claim UI
-    manager->Lock();
-
     // Add container
     int height = num_item_rows*CHECKLIST_YPITCH+(CHECKLIST_YPITCH/2);
-    int posx = manager->GetWidth()/2-width/2;
-    int posy = manager->GetHeight()/2-height/2;
-    GuiContainer *container = new GuiContainer(posx, posy, width, height, 192);
-    manager->AddTop(container, CHECKLIST_FADE_FRAMES);
+    int posx = container->GetWidth()/2-width/2;
+    int posy = container->GetHeight()/2-height/2;
+    GuiFrame *frame = new GuiFrame(posx, posy, width, height, 192);
+    AddTop(frame, CHECKLIST_EFFECT);
     width = container->GetWidth();
     height = container->GetHeight();
 
     // Menu list
     list->InitSelection(items, num, 0, 32, CHECKLIST_YPITCH,
                            posx+16, posy+24, 24, width-32, false);
-    runner->AddTop(list, CHECKLIST_FADE_FRAMES);
-    runner->SetSelected(list);
+    SetSelected(list);
+    AddTop(list, CHECKLIST_EFFECT);
 
-    // Start displaying
-    manager->Unlock();
+    container->AddTop(this, CHECKLIST_EFFECT);
 
     // Run GUI
     SELRET retval = SELRET_KEY_B;
-    if( runner->Run() ) {
+    if( Run() ) {
         retval = SELRET_SELECTED;
-        *selected = list->GetSelected();
+        *selected = list->GetSelectedItem();
     }
 
-    // Claim UI
-    manager->Lock();
-
     // Remove elements
-    runner->Remove(list, CHECKLIST_FADE_FRAMES);
-    manager->RemoveAndDelete(container, NULL, CHECKLIST_FADE_FRAMES);
+    Remove(list, CHECKLIST_EFFECT);
+    RemoveAndDelete(frame, CHECKLIST_EFFECT);
 
-    // Release UI
-    manager->Unlock();
+    container->Remove(this, CHECKLIST_EFFECT);
 
-    delete runner;
     return retval;
 }
 
-GuiCheckList::GuiCheckList(GuiManager *man, int rows)
+GuiCheckList::GuiCheckList(GuiContainer *cntr, int rows)
+             :GuiDialog(cntr)
 {
-    list = new GuiSelectionList(man, rows);
-    manager = man;
+    list = new GuiSelectionList(cntr, rows);
+    container = cntr;
     num_item_rows = rows;
 }
 

@@ -3,11 +3,11 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "GuiRunner.h"
 #include "GuiSelectionList.h"
 #include "GuiStateSelect.h"
-#include "GuiContainer.h"
+#include "GuiFrame.h"
 #include "GuiMessageBox.h"
+#include "GuiEffectFade.h"
 
 #include "../Arch/ArchGlob.h"
 #include "../Emulator/FileHistory.h"
@@ -104,35 +104,32 @@ void GuiStateSelect::FreeStateFileList(void)
 void GuiStateSelect::UpdateScreenShot(char *file)
 {
     if( sprScreenShot != NULL ) {
-        manager->RemoveAndDelete(sprScreenShot, imgScreenShot,
-                                 SSEL_FADE_FRAMES, file? SSEL_FADE_DELAY:0);
+        RemoveAndDelete(sprScreenShot, new GuiEffectFade(SSEL_FADE_FRAMES, file? SSEL_FADE_DELAY:0));
         sprScreenShot = NULL;
     }
     if( file != NULL ) {
         int size;
         void* buffer = zipLoadFile(file, "screenshot.png", &size);
-        if( buffer != NULL ) {
-            imgScreenShot = new Image;
-            if(imgScreenShot->LoadImage((const unsigned char*)buffer) != IMG_LOAD_ERROR_NONE) {
-                delete imgScreenShot;
-                imgScreenShot = new Image(g_imgNoise);
-            }
-            free(buffer);
-        }
 
         sprScreenShot = new Sprite;
+        RegisterForDelete(sprScreenShot);
+        if( buffer == NULL || !sprScreenShot->LoadImage((const unsigned char*)buffer) ) {
+            sprScreenShot->SetImage(g_imgNoise);
+        }
+        if( buffer != NULL ) {
+            free(buffer);
+        }
         sprScreenShot->SetPosition(posx+sizex-283-SSEL_X_SPACING-2*SSEL_MENU_SPACING,
                                    posy+sizey/2-106);
-        sprScreenShot->SetImage(imgScreenShot);
         sprScreenShot->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprScreenShot->SetRefPixelPosition(0, 0);
-        sprScreenShot->SetStretchWidth(283.0f/imgScreenShot->GetWidth());
-        sprScreenShot->SetStretchHeight(212.0f/imgScreenShot->GetHeight());
-        manager->AddTop(sprScreenShot, SSEL_FADE_FRAMES);
+        sprScreenShot->SetStretchWidth(283.0f/sprScreenShot->GetWidth());
+        sprScreenShot->SetStretchHeight(212.0f/sprScreenShot->GetHeight());
+        AddTop(sprScreenShot, new GuiEffectFade(SSEL_FADE_FRAMES));
     }
 }
 
-void GuiStateSelect::SetSelected(int index, int selected)
+void GuiStateSelect::SetSelectedState(int index, int selected)
 {
     // Update screenshot
     if( selected >= 0 ) {
@@ -142,65 +139,29 @@ void GuiStateSelect::SetSelected(int index, int selected)
     last_selected = selected;
 }
 
-void GuiStateSelect::OnUpdateScreen(GuiRunner *runner)
+void GuiStateSelect::OnUpdateScreen(void)
 {
-    int sel = list->GetSelected();
+    int sel = list->GetSelectedItem();
     if( sel >= 0 && sel != last_selected ) {
-        SetSelected(last_index, sel);
+        SetSelectedState(last_index, sel);
     }
 }
 
-char *GuiStateSelect::DoModal(Properties *properties, char *directory)
+char *GuiStateSelect::DoModal(void)
 {
     char *returnValue = NULL;
-
-    // Load states
-    CreateStateFileList(properties, directory);
-    if( num_states == 0 ) {
-        return NULL;
-    }
-
-    // Claim UI
-    manager->Lock();
-
-    // Container
-    posx = 14;
-    posy = manager->GetHeight()/2-(SSEL_HEIGHT/2)-16;
-    sizex = 640-28;
-    sizey = SSEL_HEIGHT+32;
-    GuiContainer *container = new GuiContainer(posx, posy, sizex, sizey, 160);
-    manager->AddTop(container, SSEL_FADE_FRAMES);
-    sizex = container->GetWidth();
-    sizey = container->GetHeight();
-
-    // Selection
-    list->InitSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
-                        posx+SSEL_X_SPACING,
-                        posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
-                        SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);
-    runner->AddTop(list, SSEL_FADE_FRAMES);
-    runner->SetSelected(list);
-
-    // Release UI
-    manager->Unlock();
 
     // Menu loop
     int sel;
     do {
         // Run GUI
         sel = -1;
-        if( runner->Run() ) {
-            sel = list->GetSelected();
+        if( Run() ) {
+            sel = list->GetSelectedItem();
             returnValue = filenames[sel];
             // confirmation
-            char str[256];
-            strcpy(str, "Do you want to load\n\"");
-            strcat(str, timestrings[sel]);
-            strcat(str, "\"");
-            GuiMessageBox *msgbox = new GuiMessageBox(manager);
-            bool ok = msgbox->Show(str, NULL, MSGT_YESNO, 192) == MSGBTN_YES;
-            msgbox->Remove();
-            delete msgbox;
+            bool ok = GuiMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192, new GuiEffectFade(10), new GuiEffectFade(10),
+                                               "Do you want to load\n\"%s\"", timestrings[sel]) == MSGBTN_YES;
             if( ok ) {
                 break;
             }
@@ -209,36 +170,52 @@ char *GuiStateSelect::DoModal(Properties *properties, char *directory)
         }
     }while(sel >= 0);
 
-    // Claim UI
-    manager->Lock();
-
-    // Remove UI elements
-    UpdateScreenShot(NULL);
-    runner->Remove(list, SSEL_FADE_FRAMES);
-    manager->RemoveAndDelete(container, NULL, SSEL_FADE_FRAMES);
-
-    // Release UI
-    manager->Unlock();
-
     return returnValue;
 }
 
-GuiStateSelect::GuiStateSelect(GuiManager *man)
+GuiStateSelect::GuiStateSelect(GuiContainer *cntr, Properties *properties, char *directory)
+               :GuiDialog(cntr)
 {
-    runner = new GuiRunner(man, this);
-    list = new GuiSelectionList(man, NUM_STATE_ITEMS);
-    manager = man;
+    list = new GuiSelectionList(cntr, NUM_STATE_ITEMS);
+    RegisterForDelete(list);
     num_states = 0;
     sprScreenShot = NULL;
     last_selected = -1;
     last_index = 0;
+
+    // Load states
+    CreateStateFileList(properties, directory);
+
+    // Frame
+    posx = 14;
+    posy = GetHeight()/2-(SSEL_HEIGHT/2)-16;
+    sizex = 640-28;
+    sizey = SSEL_HEIGHT+32;
+    frame = new GuiFrame(posx, posy, sizex, sizey, 160);
+    RegisterForDelete(frame);
+    AddTop(frame);
+
+    // Selection
+    list->InitSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
+                        posx+SSEL_X_SPACING,
+                        posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
+                        SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);
+    AddTop(list);
+    SetSelected(list);
 }
 
 GuiStateSelect::~GuiStateSelect()
 {
+    // Remove UI elements
+    if( sprScreenShot != NULL ) {
+        RemoveAndDelete(sprScreenShot);
+        sprScreenShot = NULL;
+    }
+
+    RemoveAndDelete(list);
+    RemoveAndDelete(frame);
+
     // Free stuff
     FreeStateFileList();
-    delete list;
-    delete runner;
 }
 

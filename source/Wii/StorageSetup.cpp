@@ -40,9 +40,8 @@ extern "C" {
 }
 #include "../Gui/GuiMenu.h"
 #include "../Gui/GuiMessageBox.h"
+#include "../Gui/GuiEffectFade.h"
 
-
-static GuiMessageBox *msgboxSdSetup = NULL;
 static char sMSXRootPath[10] = {0};
 static char sStorageRoot[10] = {0};
 
@@ -53,21 +52,23 @@ static void SetupStorageProgressCallback(int total, int current)
 
     percent = (current * 100 + (total / 2)) / total;
     if( percent != prev_percent ) {
-        msgboxSdSetup->SetText("Installing (%d%%) ...", percent);
+        //msgboxSdSetup->SetText("Installing (%d%%) ...", percent);
         prev_percent = percent;
     }
 }
 
-bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
+bool SetupInstallZip(GuiContainer *container, void *zipptr, unsigned int zipsize,
                      const char *directory, const char *message)
 {
     // Prepare messagebox
-    msgboxSdSetup = new GuiMessageBox(manager);
-
-    bool ok = msgboxSdSetup->Show(message, NULL, MSGT_YESNO, 192) == MSGBTN_YES;
+    bool ok = GuiMessageBox::ShowModal(container, MSGT_YESNO, NULL, 192, new GuiEffectFade(10),
+                                       new GuiEffectFade(10), message) == MSGBTN_YES;
+    GuiMessageBox *msgbox = new GuiMessageBox(container);
+    container->RegisterForDelete(msgbox);
+    container->AddTop(msgbox, new GuiEffectFade(10));
     if( ok ) {
         bool failed = false;
-        msgboxSdSetup->Show("Installing (0%%) ...    ");
+        msgbox->Create(MSGT_TEXT, NULL, 128, "Installing (0%%) ...    ");
 
         MemZip *zip = MemZipOpenResource(zipptr, zipsize);
         if( zip ) {
@@ -78,12 +79,12 @@ bool SetupInstallZip(GuiManager *manager, void *zipptr, unsigned int zipsize,
             }
             MemZipClose(zip);
         }else{
-            msgboxSdSetup->Show("Failed to install!");
+            msgbox->Create(MSGT_TEXT, NULL, 128, "Failed to install!");
             archThreadSleep(3000);
             ok = false; // leave
         }
     }
-    delete msgboxSdSetup;
+    container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
     return ok;
 }
 
@@ -99,7 +100,7 @@ static void SetStorageUSBDevice(void)
     sprintf(sStorageRoot, USB_ROOT_DIR);
 }
 
-bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted)
+bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
 {
     bool ok = true;
 
@@ -120,7 +121,9 @@ bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted)
     if( !bBlueMSXInstalled ) {
         if( bSDMounted && bUSBMounted ) {
             // Have the user decide which device to install to
-            GuiMenu *menu = new GuiMenu(manager, 2);
+            GuiMenu *menu = new GuiMenu(container, 2);
+            container->RegisterForDelete(menu)
+            container->AddTop(menu);
             const char *menu_items[] = {
               "Use USB Device",
               "Use SD-Card",
@@ -136,7 +139,7 @@ bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted)
                 default:
                     break;
             }
-            delete menu;
+            container->RemoveAndDelete(menu);
         } else if( bSDMounted ) {
             SetStorageSDCard();
         } else if( bUSBMounted ) {
@@ -153,7 +156,7 @@ bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted)
         stat(sMachinesPath, &s) != 0 ) {
 
         // Does not exist yet, install
-        ok = SetupInstallZip(manager, sdcard, sizeof(sdcard), sStorageRoot,
+        ok = SetupInstallZip(container, sdcard, sizeof(sdcard), sStorageRoot,
                              "Storage is not setup yet,\n"
                              "Do you want to do it now?");
     }
@@ -163,7 +166,7 @@ bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted)
         // Check if 'Games' directory exist
         if( stat(sGamesPath, &s) != 0 ) {
             // Does not exist yet, install
-            ok = SetupInstallZip(manager, gamepack, sizeof(gamepack), sMSXRootPath,
+            ok = SetupInstallZip(container, gamepack, sizeof(gamepack), sMSXRootPath,
                                  "No gamepack is installed yet,\n"
                                  "Install the basic pack now?");
         }

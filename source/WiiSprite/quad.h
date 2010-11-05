@@ -34,13 +34,6 @@ public:
     //!\param height The new height of the quad.
     void SetHeight(u32 height);
 
-    //!Sets the rotation angle of the quad.
-    //!\param rotation The new angle of the quad. It is measured in degrees/2, so if 90 degrees is wanted, 45 degrees should be the passed parameter.
-    void SetRotation(f32 rotation);
-    //!Gets the rotation angle of the quad.
-    //!\return The current angle of the quad.
-    f32 GetRotation() const;
-
     //!Sets the border width of the quad.
     //!\param width The new border width of the quad.
     void SetBorderWidth(u16 width);
@@ -63,11 +56,10 @@ public:
     void SetBorderColor(GXColor borderColor);
 
     //!Draws the quad.
-    void Draw(f32 offsetX = 0, f32 offsetY = 0) const;
+    void Draw(void);
 protected:
 private:
     Rect* _rect;
-    f32 _rotation;
     bool _border;
     u16 _borderWidth;
     GXColor _fillC, _borderC;

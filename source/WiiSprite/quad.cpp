@@ -1,7 +1,7 @@
 #include "quad.h"
 
 Quad::Quad() : Layer(),
-    _rect(NULL), _rotation(0), _border(false), _borderWidth(1)
+    _rect(NULL), _border(false), _borderWidth(1)
 {
     _rect = new Rect();
     _fillC.r = 0;
@@ -42,13 +42,6 @@ void Quad::SetHeight(u32 height){
     _height = height;
 }
 
-void Quad::SetRotation(f32 rotation){
-    _rotation = rotation;
-}
-f32 Quad::GetRotation() const{
-    return _rotation;
-}
-
 void Quad::SetBorderWidth(u16 width){
     _borderWidth = width;
 }
@@ -71,7 +64,8 @@ void Quad::SetBorderColor(GXColor borderColor){
     _borderC = borderColor;
 }
 
-void Quad::Draw(f32 offsetX, f32 offsetY) const{
+void Quad::Draw(void)
+{
     // Do some checks if the quad should be drawn at all
     if(!_border && _fillC.a == 0)
         return;
@@ -84,9 +78,9 @@ void Quad::Draw(f32 offsetX, f32 offsetY) const{
     // Use all the position data one can get
     Mtx model, tmp;
     guMtxIdentity(model);
-    guMtxRotDeg(tmp, 'z', _rotation);
+    guMtxRotDeg(tmp, 'z', _rotation/2);
     guMtxConcat(model, tmp, model);
-    guMtxTransApply(model, model, GetX()+width+offsetX,GetY()+height+offsetY, 0.0f);
+    guMtxTransApply(model, model, GetX()+width+_xoff,GetY()+height+_yoff, 0.0f);
     guMtxConcat(model, tmp, model);
     GX_LoadPosMtxImm(model, GX_PNMTX0);
 

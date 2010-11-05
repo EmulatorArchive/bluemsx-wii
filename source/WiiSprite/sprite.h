@@ -5,15 +5,18 @@
 #ifndef LIBWIISPRITE_SPRITE
 #define LIBWIISPRITE_SPRITE
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <gccore.h>
-#include "image.h"
 #include "layer.h"
-#include "tiledlayer.h"
 
 #ifndef WII
 class hgeSprite;
 #endif
+class TiledLayer;
+class Image;
+class DrawableImage;
+class TextRender;
 
 //!Basic data for a rectangle.
 typedef struct {
@@ -45,28 +48,40 @@ public:
     //!Destructor.
     virtual ~Sprite();
 
+    void CleanUp(void);
+
     //!Assigns this sprite to an image.
     //!If there is already an image with the same size, no data gets changed.
     //!\param image The image for this sprite.
     //!\param frameWidth The width of the frame. Should be a multiple of image->GetWidth() or 0 if it should get the same width as the image.
     //!\param frameHeight The height of the frame. Should be a multiple of image->GetHeight() or 0 if it should get the same height as the image.
     void SetImage(Image* image, u32 frameWidth = 0, u32 frameHeight = 0);
+    void SetImage(DrawableImage* drawimage, u32 frameWidth = 0, u32 frameHeight = 0);
+    void SetImage(Image* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight);
     //!Gets the assigned image.
     //!\return A pointer to the image. NULL if no image was assigned.
     Image* GetImage() const;
+
+    // Image
+    bool LoadImage(const unsigned char *buf);
+    bool LoadImage(const char *file);
+
+    // DrawableImage
+    void CreateDrawImage(int width, int height, int format = GX_TF_RGBA8);
+    void CreateTextImageVA(TextRender* font, int size, int minwidth, int yspace, bool center,
+                             GXColor color, const char *fmt, va_list valist);
+    void CreateTextImage(TextRender* font, int size, int minwidth, int yspace, bool center,
+                             GXColor color, const char *fmt, ...);
+    void FillSolidColor(u8 r, u8 g, u8 b);
+    u8 *GetTextureBuffer(void);
+    void FlushBuffer(void);
+
     //!Changes the transformation of the texture.
     //!\param transform The new transformation for the texture. Use the TRANSFORMATION enum members as flags, e.g. (TRANS_MIRROR | TRANS_BILINEAR_OFF)
     void SetTransform(u8 transform);
     //!Gets the texture transformation.
     //!\return The transformation of the texture as a flag.
     u8 GetTransform() const;
-
-    //!Sets the rotation angle of the sprite.
-    //!\param rotation The new angle of the sprite. It is measured in degrees/2, so if 90 degrees is wanted, 45 degrees should be the passed parameter.
-    void SetRotation(f32 rotation);
-    //!Gets the rotation angle of the sprite.
-    //!\return The current angle of the sprite.
-    f32 GetRotation() const;
 
     //!Sets the zooming of the sprite. It resets any defined stretch values.
     //!\param zoom The new zoom of the sprite. 1 is normal size, cannot be smaller than 0.
@@ -170,7 +185,7 @@ public:
     void SetFrameSequence(u32* sequence, u32 length);
 
     //!Draws the Sprite.
-    void Draw(f32 offsetX = 0, f32 offsetY = 0) const;
+    void Draw(void);
 protected:
 private:
     void _CalcFrame();
@@ -178,8 +193,10 @@ private:
 #ifndef WII
     hgeSprite *spr;
 #endif
-    f32 _rotation, _stretchWidth, _stretchHeight;
+    f32 _stretchWidth, _stretchHeight;
     Image* _image;
+    DrawableImage* _draw_image;
+    bool _image_owner;
     u8 _trans;
 
     Rect* _colRect;

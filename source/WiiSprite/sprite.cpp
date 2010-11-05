@@ -4,14 +4,19 @@
 #include <hge/hgeSprite.h>
 #endif
 
-#define FRAME_CORRECTION 0.375f //!< Displays frames a lot nicer, still needs a complete fix.
-
 #include "sprite.h"
 
+#include "Image.h"
+#include "DrawableImage.h"
+#include "TiledLayer.h"
+
+#define FRAME_CORRECTION 0.375f //!< Displays frames a lot nicer, still needs a complete fix.
+
+
 Sprite::Sprite(Image* image, int x, int y) : Layer(),
-    _rotation(0.0f), _stretchWidth(1.0f), _stretchHeight(1.0f), _image(NULL), _trans(TRANS_NONE), _colRect(NULL),
-    _frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0), _frameSeqPos(0),
-    _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0), _positioning(REFPIXEL_POS_TOPLEFT)
+    _stretchWidth(1.0f), _stretchHeight(1.0f), _image(NULL), _draw_image(NULL), _image_owner(false),
+    _trans(TRANS_NONE), _colRect(NULL), _frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0),
+    _frameSeqPos(0), _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0), _positioning(REFPIXEL_POS_TOPLEFT)
 {
 #ifndef WII
     spr = NULL;
@@ -29,14 +34,33 @@ Sprite::~Sprite(){
         delete _colRect; _colRect = NULL;
     if(_frameSeq)
         delete[] _frameSeq; _frameSeq = NULL;
+    CleanUp();
 #ifndef WII
     if(spr)
         delete spr;
 #endif
 }
 
-void Sprite::SetImage(Image* image, u32 frameWidth, u32 frameHeight)
+void Sprite::CleanUp(void)
 {
+    if( _image_owner ) {
+        if( _draw_image ) {
+            delete _draw_image;
+            _draw_image = NULL;
+            _image = NULL;
+        }else if( _image ) {
+            delete _image;
+            _image = NULL;
+        }
+        _image_owner = false;
+    }
+}
+
+void Sprite::SetImage(Image* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
+{
+    if(drawimage != NULL) {
+        image = drawimage;
+    }
     if(image == NULL || !image->IsInitialized())return;
 
 #ifndef WII
@@ -47,6 +71,8 @@ void Sprite::SetImage(Image* image, u32 frameWidth, u32 frameHeight)
     spr = new hgeSprite(image->GetTEX(), 0, 0, image->GetWidth(), image->GetHeight());
     spr->SetBlendMode(BLEND_COLORMUL | BLEND_ALPHABLEND | BLEND_NOZWRITE);
 #endif
+    // Free previous image if needed
+    CleanUp();
     // If Image has the same size and if frameWidth and frameHeight are not modified
     if(_image != NULL && _image->GetHeight() == image->GetHeight() &&
         _image->GetWidth() == image->GetWidth() &&
@@ -55,6 +81,7 @@ void Sprite::SetImage(Image* image, u32 frameWidth, u32 frameHeight)
         {
         // Just assign our image and it should be fine then
         _image = image;
+        _draw_image = drawimage;
         return;
     }
 
@@ -88,27 +115,122 @@ void Sprite::SetImage(Image* image, u32 frameWidth, u32 frameHeight)
     // Refpixel setting. This positions the refpixel at the center.
     _refPixelX = (f32)_width/2; _refPixelY = (f32)_height/2;
     _refWidth = _refPixelX; _refHeight = _refPixelY;
+    SetRefPixelPosition(0,0);
     // But draws based on topleft coordinate.
     _positioning = REFPIXEL_POS_TOPLEFT;
 
     _image = image;
+    _draw_image = drawimage;
     _CalcFrame();
 }
+void Sprite::SetImage(Image* image, u32 frameWidth, u32 frameHeight)
+{
+    SetImage(new Image(image), NULL, frameWidth, frameHeight);
+    _image_owner = true;
+}
+void Sprite::SetImage(DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
+{
+    SetImage(NULL, drawimage, frameWidth, frameHeight);
+}
+
 Image* Sprite::GetImage() const{
     return _image;
 }
+
+bool Sprite::LoadImage(const unsigned char *buf){
+    Image *image = new Image;
+    if(image->LoadImage(buf) == IMG_LOAD_ERROR_NONE) {
+        _image = image;
+        _image_owner = true;
+        return true;
+    }else{
+        delete image;
+        return false;
+    }
+}
+bool Sprite::LoadImage(const char *file){
+    Image *image = new Image;
+    if(image->LoadImage(file) == IMG_LOAD_ERROR_NONE) {
+        _image = image;
+        _image_owner = true;
+        return true;
+    }else{
+        delete image;
+        return false;
+    }
+}
+
+void Sprite::CreateTextImageVA(TextRender* font, int size, int minwidth, int yspace, bool center,
+                             GXColor color, const char *fmt, va_list valist )
+{
+    // Free previous image if needed
+    CleanUp();
+
+    // Create new DrawableImage
+    DrawableImage* drawimage = new DrawableImage();
+    drawimage->SetFont(font);
+    drawimage->SetSize(size);
+    drawimage->SetYSpacing(yspace);
+    drawimage->SetColor(color);
+    int txtwidth, txtheight;
+    drawimage->GetTextSizeVA(&txtwidth, &txtheight, fmt, valist);
+    if( minwidth > txtwidth ) {
+        txtwidth = minwidth;
+    }
+    txtwidth = (txtwidth + 3) & ~3;
+    txtheight = (txtheight + 3) & ~3;
+    drawimage->CreateImage(txtwidth, txtheight);
+    drawimage->RenderTextVA(center, fmt, valist);
+
+    SetImage(drawimage, txtwidth, txtheight);
+    _image_owner = true;
+}
+
+void Sprite::CreateTextImage(TextRender* font, int size, int minwidth, int yspace, bool center,
+                             GXColor color, const char *fmt, ... )
+{
+    va_list marker;
+    va_start(marker,fmt);
+    CreateTextImageVA(font, size, minwidth, yspace, center, color, fmt, marker);
+    va_end(marker);
+}
+
+void Sprite::CreateDrawImage(int width, int height, int format)
+{
+    // Free previous image if needed
+    CleanUp();
+
+    // Create new DrawableImage
+    DrawableImage* drawimage = new DrawableImage();
+    drawimage->CreateImage(width, height, format);
+
+    SetImage(drawimage, width, height);
+    _image_owner = true;
+}
+
+void Sprite::FillSolidColor(u8 r, u8 g, u8 b)
+{
+    assert( _draw_image );
+    _draw_image->FillSolidColor(r, g, b);
+}
+
+u8 *Sprite::GetTextureBuffer(void)
+{
+    assert( _draw_image );
+    return _draw_image->GetTextureBuffer();
+}
+
+void Sprite::FlushBuffer(void)
+{
+    assert( _draw_image );
+    _draw_image->FlushBuffer();
+}
+
 void Sprite::SetTransform(u8 transform){
     _trans = transform;
 }
 u8 Sprite::GetTransform() const{
     return _trans;
-}
-
-void Sprite::SetRotation(f32 rotation){
-    _rotation = rotation;
-}
-f32 Sprite::GetRotation() const{
-    return _rotation;
 }
 
 void Sprite::SetZoom(f32 zoom){
@@ -176,10 +298,10 @@ bool Sprite::CollidesWith(const Rect* rect, f32 x, f32 y) const{
     if(rect == NULL)return false;
 
     // Check if the rectangle is not in the other rectangle
-    if(_colRect->y+GetY()+_colRect->height <= rect->y+y ||
-        _colRect->y+GetY() >= rect->y+y+rect->height ||
-        _colRect->x+GetX()+_colRect->width <= rect->x+x ||
-        _colRect->x+GetX() >= rect->x+x+rect->width)
+    if(_colRect->y+GetYabs()+_colRect->height <= rect->y+y ||
+        _colRect->y+GetYabs() >= rect->y+y+rect->height ||
+        _colRect->x+GetXabs()+_colRect->width <= rect->x+x ||
+        _colRect->x+GetXabs() >= rect->x+x+rect->width)
             return false;
 
     return true;
@@ -189,7 +311,7 @@ bool Sprite::CollidesWith(const Sprite* sprite, bool complete) const{
     if(!complete){
         // Some simple collision detecting with the base collision rectangle.
         const Rect* collision = sprite->GetCollisionRectangle();
-        return CollidesWith(collision, sprite->GetX(), sprite->GetY());
+        return CollidesWith(collision, sprite->GetXabs(), sprite->GetYabs());
     }
 
     // Advanced rectangle collision detecting with zoom and rectangle.
@@ -208,10 +330,10 @@ bool Sprite::CollidesWith(const Sprite* sprite, bool complete) const{
         vertical1, vertical2; // Min/max vertical values
 
     // Init data
-    rect[0].x = (f32)(sprite->GetX()+(f32)(sprite->GetWidth()/2));
-    rect[0].y = (f32)(sprite->GetY()+(f32)(sprite->GetHeight()/2));
-    rect[1].x = (f32)(GetX()+(f32)((GetWidth()/2)));
-    rect[1].y = (f32)(GetY()+(f32)((GetHeight()/2)));
+    rect[0].x = (f32)(sprite->GetXabs()+(f32)(sprite->GetWidth()/2));
+    rect[0].y = (f32)(sprite->GetYabs()+(f32)(sprite->GetHeight()/2));
+    rect[1].x = (f32)(GetXabs()+(f32)((GetWidth()/2)));
+    rect[1].y = (f32)(GetYabs()+(f32)((GetHeight()/2)));
     if(_positioning == REFPIXEL_POS_PIXEL){
         rect[0].x -= sprite->GetRefPixelX();
         rect[0].y -= sprite->GetRefPixelY();
@@ -303,15 +425,15 @@ bool Sprite::CollidesWith(const Sprite* sprite, bool complete) const{
 
 bool Sprite::CollidesWith(const TiledLayer* tiledlayer) const{
     if(tiledlayer == NULL ||
-        _colRect->x+GetX() < 0 || _colRect->y+GetY() < 0 ||
+        _colRect->x+GetXabs() < 0 || _colRect->y+GetYabs() < 0 ||
         tiledlayer->GetCellWidth() == 0 || tiledlayer->GetCellHeight() == 0)return false;
 
     // Get on which tiles the sprite is drawn
     Rect rect;
-    rect.x = (s32)((_colRect->x+GetX())/tiledlayer->GetCellWidth());
-    rect.y = (s32)((_colRect->y+GetY())/tiledlayer->GetCellHeight());
-    rect.width = (u32)((_colRect->x+GetX()+_colRect->width)/tiledlayer->GetCellWidth());
-    rect.height = (u32)((_colRect->y+GetY()+_colRect->height)/tiledlayer->GetCellHeight());
+    rect.x = (s32)((_colRect->x+GetXabs())/tiledlayer->GetCellWidth());
+    rect.y = (s32)((_colRect->y+GetYabs())/tiledlayer->GetCellHeight());
+    rect.width = (u32)((_colRect->x+GetXabs()+_colRect->width)/tiledlayer->GetCellWidth());
+    rect.height = (u32)((_colRect->y+GetYabs()+_colRect->height)/tiledlayer->GetCellHeight());
 
     for(s32 y = rect.y; y < rect.height+1; y++){
         for(s32 x = rect.x; x < rect.width+1; x++){
@@ -384,9 +506,15 @@ void Sprite::SetFrameSequence(u32* sequence, u32 length){
     _CalcFrame();
 }
 
-void Sprite::Draw(f32 offsetX, f32 offsetY) const{
+void Sprite::Draw(void)
+{
+    f32 absX = GetXabs();
+    f32 absY = GetYabs();
+    f32 rotation = GetRotationAbs();
+    u8 alpha = GetTransparencyAbs();
+
     if(_image == NULL ||
-        IsVisible() == false || _alpha == 0x00 || _stretchWidth == 0 || _stretchHeight == 0 ||
+        IsVisible() == false || alpha == 0x00 || _stretchWidth == 0 || _stretchHeight == 0 ||
         _width == 0 || _height == 0)return;
 
 #ifdef WII
@@ -400,12 +528,12 @@ void Sprite::Draw(f32 offsetX, f32 offsetY) const{
     // Draw the Sprite Quad with transformations
     Mtx model, tmp;
     guMtxIdentity(model);
-    guMtxRotDeg(tmp, 'z', _rotation);
+    guMtxRotDeg(tmp, 'z', rotation/2);
     guMtxConcat(model, tmp, model);
     if(_positioning == REFPIXEL_POS_PIXEL){
-        guMtxTransApply(model, model, GetX()+offsetX, GetY()+offsetY, 0.0f);
+        guMtxTransApply(model, model, absX, absY, 0.0f);
     }else{ // REFPIXEL_POS_TOPLEFT
-        guMtxTransApply(model, model, GetX()+_refPixelX+offsetX,GetY()+_refPixelY+offsetY, 0.0f);
+        guMtxTransApply(model, model, absX+_refPixelX, absY+_refPixelY, 0.0f);
     }
     guMtxConcat(model, tmp, model);
     GX_LoadPosMtxImm(model, GX_PNMTX0);
@@ -420,16 +548,16 @@ void Sprite::Draw(f32 offsetX, f32 offsetY) const{
     if(_trans & TRANS_MIRROR){
         GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
             GX_Position2f32(-refPixelX, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[2], _txCoords[1]);
             GX_Position2f32(refWidth, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[0], _txCoords[1]);
             GX_Position2f32(refWidth, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[0], _txCoords[3]);
             GX_Position2f32(-refPixelX, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[2], _txCoords[3]);
         GX_End();
 
@@ -437,16 +565,16 @@ void Sprite::Draw(f32 offsetX, f32 offsetY) const{
     }else{
         GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
             GX_Position2f32(-refPixelX, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[0], _txCoords[1]);
             GX_Position2f32(refWidth, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[2], _txCoords[1]);
             GX_Position2f32(refWidth, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[2], _txCoords[3]);
             GX_Position2f32(-refPixelX, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, _alpha);
+            GX_Color4u8(0xff,0xff,0xff, alpha);
             GX_TexCoord2f32(_txCoords[0], _txCoords[3]);
         GX_End();
     }
@@ -455,16 +583,18 @@ void Sprite::Draw(f32 offsetX, f32 offsetY) const{
     if(_trans & TRANS_ADDITIVE_BLENDING)
         GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
 #else
-    spr->SetColor(((u32)GetTransparency() << 24) + 0xffffff);
-    float x = GetX(), y = GetY();
+    spr->SetColor(((u32)alpha << 24) + 0xffffff);
     if( _positioning == REFPIXEL_POS_PIXEL ) {
-        x -= _refPixelX * _stretchWidth;
-        y -= _refPixelY * _stretchHeight;
+        absX -= _refPixelX * _stretchWidth;
+        absY -= _refPixelY * _stretchHeight;
     }else{
-        x *= _stretchWidth;
-        y *= _stretchHeight;
+        absX *= _stretchWidth;
+        absY *= _stretchHeight;
     }
-    spr->RenderEx(x, y+20, _rotation, _stretchWidth, _stretchHeight);
+    spr->SetHotSpot(_refPixelX, _refPixelY);
+    absX += _refPixelX * _stretchWidth;
+    absY += _refPixelY * _stretchHeight;
+    spr->RenderEx(absX, absY+20, (rotation / 180.0f) * M_PI, _stretchWidth, _stretchHeight);
 #endif
 }
 

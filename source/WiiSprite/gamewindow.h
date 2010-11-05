@@ -61,6 +61,8 @@ class GameWindow{
         static void Lock();
         static void Unlock();
 
+        static void SetGetClipping(int *x, int *y, int *w, int *h);
+
         //!Gets the width of the screen.
         //!\return The width of the screen if intialized. 0 if the video subsystem is not initialized.
         static u32 GetWidth();
@@ -105,6 +107,7 @@ class GameWindow{
         static GW_VIDEO_MODE _mode;
         static u32 _width, _height;
         static bool _initialized;
+        static int _clipx, _clipy, _clipw, _cliph;
 
     friend class Image; // Lets image access the _lastimage and _lastimagebilinear member.
 };

@@ -33,6 +33,8 @@ bool GameWindow::_lastimagebilinear = false;
 #endif
 GameWindow* GameWindow::_this = NULL;
 CMutex GameWindow::_mutex;
+int GameWindow::_clipx = 0, GameWindow::_clipy = 0;
+int GameWindow::_clipw = 0, GameWindow::_cliph = 0;
 
 GameWindow::GameWindow()
 {
@@ -95,10 +97,14 @@ bool GameWindow::RenderFunc()
     // Handle graphics
     //--------------------------------------------
 
+    _clipx = 0;
+    _clipy = 0;
+    _clipw = 640;
+    _cliph = 440;
 #ifndef WII
     Lock();
     g_hge->Gfx_BeginScene();
-    g_hge->Gfx_SetClipping(0, 20, 640, 440);
+    g_hge->Gfx_SetClipping(_clipx, _clipy+20, _clipw, _cliph);
     Unlock();
 #endif
     if( _gui_render(_gui_context) ) {
@@ -147,6 +153,23 @@ void GameWindow::GuiFunc()
 {
     _gui_main(_gui_context);
     _stop_requested = true;
+}
+
+
+void GameWindow::SetGetClipping(int *x, int *y, int *w, int *h)
+{
+  int xx = *x, yy = *y, ww = *w, hh = *h;
+  *x = _clipx;
+  *y = _clipy;
+  *w = _clipw;
+  *h = _cliph;
+  _clipx = xx;
+  _clipy = yy;
+  _clipw = ww;
+  _cliph = hh;
+#ifndef WII
+  g_hge->Gfx_SetClipping(_clipx, _clipy+20, _clipw, _cliph);
+#endif
 }
 
 GW_VIDEO_MODE GameWindow::GetMode(void)

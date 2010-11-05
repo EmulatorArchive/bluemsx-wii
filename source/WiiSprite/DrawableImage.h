@@ -33,6 +33,7 @@ class DrawableImage : public Image
     void RenderText(bool center, const char *fmt, ...);
     void RenderTextVA(bool center, const char *fmt, va_list list);
     void GetTextSize(int *sx, int *sy, const char *fmt, ...);
+    void GetTextSizeVA(int *sx, int *sy, const char *fmt, va_list list);
     u8 *GetTextureBuffer(void);
     void FlushBuffer(void);
   private:

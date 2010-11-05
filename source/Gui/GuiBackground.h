@@ -1,23 +1,21 @@
 #ifndef _GUI_BACKGROUND_H
 #define _GUI_BACKGROUND_H
 
-#include "GuiManager.h"
+#include "GuiContainer.h"
 
-#define BACKGROUND_FADE_FRAMES 10
+class GuiEffect;
 
-class GuiBackground
+class GuiBackground : public GuiContainer
 {
-	public:
-		GuiBackground(GuiManager *man);
-		virtual ~GuiBackground();
-        void Show(int fade = BACKGROUND_FADE_FRAMES);
-        void Hide(int fade = BACKGROUND_FADE_FRAMES, int delay = 0);
-        void ShowVersion(int fade = BACKGROUND_FADE_FRAMES);
-        void HideVersion(int fade = BACKGROUND_FADE_FRAMES, int delay = 0);
+    public:
+        GuiBackground(GuiContainer *cntr);
+        virtual ~GuiBackground();
+        void Show(GuiEffect *effect = NULL);
+        void Hide(GuiEffect *effect = NULL);
+        void ShowVersion(GuiEffect *effect = NULL);
+        void HideVersion(GuiEffect *effect = NULL);
 
-	private:
-        GuiManager *manager;
-		DrawableImage *imgTxt;
+    private:
         Sprite *sprTxt;
         Sprite *sprBackground;
         bool is_shown;

@@ -6,7 +6,6 @@
 #define LIBWIISPRITE_WIISPRITE
 
 #include "gamewindow.h"
-#include "layermanager.h"
 #include "layer.h"
 #include "image.h"
 #include "drawableimage.h"

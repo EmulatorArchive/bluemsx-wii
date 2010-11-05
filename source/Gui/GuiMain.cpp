@@ -44,6 +44,7 @@
 #include "GuiMenu.h"
 #include "GuiMessageBox.h"
 #include "GuiKeyboard.h"
+#include "GuiEffectFade.h"
 
 #include "../Emulator/CommandLine.h"
 #include "../Emulator/Properties.h"
@@ -71,13 +72,11 @@
 #include "../Input/InputEvent.h"
 #include "../Wii/WiiInput.h"
 
-#include "GuiConsole.h"
-#include "GuiContainer.h"
+#include "GuiFrame.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
 #include "../Wii/StorageSetup.h"
 
-#define CONSOLE_DEBUG 0
 #define FORCE_50HZ    0
 
 #define TEX_WIDTH  (512+32)
@@ -91,12 +90,8 @@ static int   bitDepth = 16;
 static int   zoom = 1;
 static int   displayPitch = TEX_WIDTH * 2;
 
-static GuiManager *manager = NULL;
+static GuiRootContainer *container = NULL;
 static GuiBackground *background = NULL;
-#if CONSOLE_DEBUG
-static GuiConsole *console = NULL;
-#endif
-static GuiMessageBox *msgbox = NULL;
 static GuiKeyboard *osk = NULL;
 
 #define WIDTH  320
@@ -168,8 +163,8 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
         strcpy(currentDisk, fileName);
     }
     // Show popup
-    assert(msgbox);
-    msgbox->ShowPopup(currentDisk, g_imgFloppyDisk, 192);
+    GuiMessageBox::ShowPopup(container, g_imgFloppyDisk, 192, 500,
+                             new GuiEffectFade(10), new GuiEffectFade(50,10), currentDisk);
 }
 
 void blueMsxInit(int resetProperties)
@@ -187,7 +182,7 @@ void blueMsxInit(int resetProperties)
     }
 
     // Load tools
-    toolLoadAll(properties->language, manager);
+    toolLoadAll(properties->language, container);
 
     video = videoCreate();
 
@@ -275,8 +270,8 @@ void blueMsxInit(int resetProperties)
 static bool RenderEmuImage(void *context)
 {
     if( emulatorGetState() == EMU_RUNNING ) {
-        DrawableImage *img = (DrawableImage *)context;
-        void *dpyData = img->GetTextureBuffer();
+        Sprite *spr = (Sprite *)context;
+        void *dpyData = spr->GetTextureBuffer();
 
         FrameBuffer* frameBuffer;
         frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
@@ -287,7 +282,7 @@ static bool RenderEmuImage(void *context)
         videoRender(video, frameBuffer, bitDepth, zoom,
                     dpyData, 0, displayPitch, -1);
 
-        img->FlushBuffer();
+        spr->FlushBuffer();
     }
     frameBufferSync();
 
@@ -302,14 +297,15 @@ char * GetMSXRootPath(void)
 }
 #endif
 
-static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbox)
+static void blueMsxRun(GameElement *game, char * game_dir)
 {
     int i;
 
-    msgbox = _msgbox;
-
     // Loading message
-    msgbox->Show("Loading...");
+    GuiMessageBox *msgbox = new GuiMessageBox(container);
+    container->RegisterForDelete(msgbox);
+    msgbox->Create(MSGT_TEXT, NULL, 128, "Loading...");
+    container->AddTop(msgbox, new GuiEffectFade(10));
 
     // Set current directory to the MSX-root
     archSetCurrentDirectory(GetMSXRootPath());
@@ -321,7 +317,7 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
 #if FORCE_50HZ
     properties->emulation.vdpSyncMode = P_VDP_SYNC50HZ;
 #else
-    if( manager->GetMode() == GW_VIDEO_MODE_NTSC_440 ) {
+    if( container->GetMode() == GW_VIDEO_MODE_NTSC_440 ) {
         properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
     }else{
         properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
@@ -337,7 +333,7 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
 
     // Init keyboard and remap keys
     keyboardReset();
-    manager->gwd.input.SetWpadOrientation(WPADO_HORIZONTAL);
+    container->gwd.input.SetWpadOrientation(WPADO_HORIZONTAL);
     if( game->GetProperty(GEP_KEYBOARD_JOYSTICK) ) {
         /* Remap WiiMote 1 to keyboard */
         keyboardRemapKey(BTN_JOY1_WIIMOTE_A, EC_SPACE);
@@ -381,26 +377,22 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
     }
 
     // Start displaying emlator
-    msgbox->Remove();
-    manager->Lock();
-    DrawableImage *emuImg = new DrawableImage;
-    emuImg->CreateImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
-    manager->AddRenderCallback(RenderEmuImage, (void *)emuImg);
+    container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
     Sprite *emuSpr = new Sprite;
-    emuSpr->SetImage(emuImg->GetImage());
+    emuSpr->CreateDrawImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
     emuSpr->SetStretchWidth(640.0f / (float)TEX_WIDTH);
     emuSpr->SetStretchHeight(1.0f);
     emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     emuSpr->SetRefPixelPosition(0, 0);
-    emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
-    manager->AddTop(emuSpr, 90);
-    manager->Unlock();
+    emuSpr->SetPosition(0, ((int)container->GetHeight()-480)/2);
+    container->RegisterForDelete(emuSpr);
+    container->AddTop(emuSpr, new GuiEffectFade(90));
+    container->AddRenderCallback(RenderEmuImage, (void *)emuSpr);
 
     // Start emulator
     i = emuTryStartWithArguments(properties, game->GetCommandLine(), game_dir);
     if (i < 0) {
         printf("Failed to parse command line\n");
-        msgbox->Remove();
         return;
     }
     if (i == 0) {
@@ -413,10 +405,12 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
 
     // Create on-screen keyboard
     GuiKeyboard *osk = NULL;
-    osk = new GuiKeyboard(manager);
+    osk = new GuiKeyboard(container, container);
 
     // Loop while the user hasn't quit
-    GuiMenu *menu = new GuiMenu(manager, 5);
+    GuiMenu *menu = new GuiMenu(container, 5);
+    container->RegisterForDelete(menu);
+    container->AddTop(menu);
     const char *menu_items[] = {
       "Load state",
       "Save state",
@@ -426,30 +420,30 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
     };
     int refresh = 0;
     bool pressed = true;
-    GW_VIDEO_MODE prevVideo = manager->GetMode();
+    GW_VIDEO_MODE prevVideo = container->GetMode();
     bool doQuit = false;
     while(!doQuit) {
         if( prevVideo != GW_VIDEO_MODE_NTSC_440 ) {
             int newrfsh = boardGetRefreshRate();
             if( newrfsh != 0 && newrfsh != refresh ) {
                 if( newrfsh==50 ) {
-                    manager->SetMode(GW_VIDEO_MODE_PAL50_440);
+                    container->SetMode(GW_VIDEO_MODE_PAL50_440);
                 }else{
-                    manager->SetMode(GW_VIDEO_MODE_PAL60_440);
+                    container->SetMode(GW_VIDEO_MODE_PAL60_440);
                 }
-                emuSpr->SetPosition(0, ((int)manager->GetHeight()-480)/2);
+                emuSpr->SetPosition(0, ((int)container->GetHeight()-480)/2);
                 refresh = newrfsh;
             }
         }
-        if( manager->gwd.input.GetButtonStatus(BTN_JOY1_WIIMOTE_HOME) ||
-            manager->gwd.input.GetButtonStatus(BTN_JOY2_WIIMOTE_HOME) ||
-            manager->gwd.input.GetButtonStatus(BTN_JOY1_CLASSIC_HOME) ||
-            manager->gwd.input.GetButtonStatus(BTN_JOY2_CLASSIC_HOME) ||
-            manager->gwd.input.GetButtonStatus(BTN_F12) ) {
+        if( container->gwd.input.GetButtonStatus(BTN_JOY1_WIIMOTE_HOME) ||
+            container->gwd.input.GetButtonStatus(BTN_JOY2_WIIMOTE_HOME) ||
+            container->gwd.input.GetButtonStatus(BTN_JOY1_CLASSIC_HOME) ||
+            container->gwd.input.GetButtonStatus(BTN_JOY2_CLASSIC_HOME) ||
+            container->gwd.input.GetButtonStatus(BTN_F12) ) {
             if( !pressed ) {
                 emulatorSuspend();
                 osk->SetEnabled(false);
-                manager->gwd.input.SetWpadOrientation(WPADO_VERTICAL);
+                container->gwd.input.SetWpadOrientation(WPADO_VERTICAL);
                 bool leave_menu = false;
                 do {
                     int selection;
@@ -460,24 +454,32 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
                                 GuiStateSelect *statesel;
                                 char *statefile;
                                 case 0: /* Load state */
-                                    statesel = new GuiStateSelect(manager);
-                                    statefile = statesel->DoModal(properties, stateDir);
+                                    statesel = new GuiStateSelect(container, properties, stateDir);
+                                    container->RegisterForDelete(statesel);
+                                    container->AddTop(statesel, new GuiEffectFade(10));
+                                    statefile = statesel->DoModal();
+                                    container->RemoveAndDelete(statesel, new GuiEffectFade(10));
                                     if( statefile ) {
-                                        msgbox->Show("Loading state...", NULL, MSGT_TEXT, 160);
+                                        GuiMessageBox *msgbox = new GuiMessageBox(container);
+                                        container->RegisterForDelete(msgbox);
+                                        msgbox->Create(MSGT_TEXT, NULL, 160, "Loading state...");
+                                        container->AddTop(msgbox, new GuiEffectFade(10));
                                         emulatorStop();
                                         emulatorStart(statefile);
-                                        msgbox->Remove();
+                                        container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
                                         leave_menu = true;
                                     }
-                                    delete statesel;
                                     break;
                                 case 1: /* Save state */
-                                    msgbox->Show("Saving state...", NULL, MSGT_TEXT, 160);
+                                    msgbox = new GuiMessageBox(container);
+                                    container->RegisterForDelete(msgbox);
+                                    msgbox->Create(MSGT_TEXT, NULL, 160, "Saving state...");
+                                    container->AddTop(msgbox, new GuiEffectFade(10));
                                     actionQuickSaveState();
-                                    msgbox->Remove();
-                                    msgbox->Show("State saved", NULL, MSGT_TEXT, 160);
-                                    archThreadSleep(2000);
-                                    msgbox->Remove();
+                                    archThreadSleep(200);
+                                    container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
+                                    GuiMessageBox::ShowPopup(container, NULL, 160, 2000, new GuiEffectFade(10),
+                                                             new GuiEffectFade(10), "State saved");
                                     break;
                                 case 2: /* Screenshot */
                                     char *p, fname1[256], fname2[256];
@@ -507,12 +509,17 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
                                     }else{
                                         p = generateSaveFilename(properties, screenShotDir, "", ".png", 2);
                                     }
-                                    msgbox->Show("Saving screenshot...", NULL, MSGT_TEXT, 160);
+
+                                    msgbox = new GuiMessageBox(container);
+                                    container->RegisterForDelete(msgbox);
+                                    msgbox->Create(MSGT_TEXT, NULL, 160, "Saving screenshot...");
+                                    container->AddTop(msgbox, new GuiEffectFade(10));
                                     (void)archScreenCaptureToFile(SC_NORMAL, p);
-                                    msgbox->Remove();
-                                    msgbox->Show("Screenshot saved", NULL, MSGT_TEXT, 160);
-                                    archThreadSleep(2000);
-                                    msgbox->Remove();
+                                    container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
+
+                                    GuiMessageBox::ShowPopup(container, NULL, 160, 2000,
+                                                             new GuiEffectFade(10), new GuiEffectFade(10),
+                                                             "Screenshot saved");
                                     break;
                                 case 3: /* Cheats */
                                     actionToolsShowTrainer();
@@ -531,8 +538,8 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
                             break;
                     }
                 }while(!leave_menu);
-                manager->gwd.input.GetButtonEvents(NULL, NULL); // flush
-                manager->gwd.input.SetWpadOrientation(WPADO_HORIZONTAL);
+                container->gwd.input.GetButtonEvents(NULL, NULL); // flush
+                container->gwd.input.SetWpadOrientation(WPADO_HORIZONTAL);
                 emulatorResume();
                 osk->SetEnabled(!doQuit);
                 pressed = true;
@@ -548,17 +555,15 @@ static void blueMsxRun(GameElement *game, char * game_dir, GuiMessageBox *_msgbo
 #endif
     }
     emulatorStop();
-    manager->gwd.input.SetWpadOrientation(WPADO_VERTICAL);
-    delete menu;
+    container->gwd.input.SetWpadOrientation(WPADO_VERTICAL);
+    container->RemoveAndDelete(menu);
 
     // Remove emulator+keyboard from display
-    manager->Lock();
-    manager->RemoveRenderCallback(RenderEmuImage, (void *)emuImg);
-    manager->RemoveAndDelete(emuSpr, emuImg, 20);
+    container->RemoveRenderCallback(RenderEmuImage, (void *)emuSpr);
+    container->RemoveAndDelete(emuSpr, new GuiEffectFade(20));
     delete osk;
-    manager->Unlock();
 
-    manager->SetMode(prevVideo);
+    container->SetMode(prevVideo);
     background->Show();
 }
 
@@ -567,9 +572,9 @@ extern bool g_bSDMounted;
 extern bool g_bUSBMounted;
 #endif
 
-void GuiMain(GuiManager *man)
+void GuiMain(GuiRootContainer *man)
 {
-    manager = man;
+    container = man;
 
 #ifndef WII
     GetCurrentDirectoryA(sizeof(root_dir), root_dir);
@@ -580,27 +585,22 @@ void GuiMain(GuiManager *man)
     GuiFontInit();
     GuiImageInit();
 
-    // Init console
-#if CONSOLE_DEBUG
-    console = new GuiConsole(manager, 12, 12, 640-24, 448-24);
-    console->SetVisible(true);
-#endif
-
     // Background
-    background = new GuiBackground(manager);
-    background->Show();
+    background = new GuiBackground(container);
+    container->RegisterForDelete(background);
+    container->AddTop(background);
+    background->Show(new GuiEffectFade(10));
 
 #ifdef WII
     // Init storage access
     if( !g_bSDMounted && !g_bUSBMounted ) {
         // Prepare messagebox
-        GuiMessageBox *msgboxSdSetup = new GuiMessageBox(manager);
-        msgboxSdSetup->Show("No Storage (USB/SD-Card) found!");
-        archThreadSleep(3000);
-        delete msgboxSdSetup;
+        GuiMessageBox::ShowPopup(container, NULL, 128, 3000,
+                                 new GuiEffectFade(10), new GuiEffectFade(10),
+                                 "No Storage (USB/SD-Card) found!");
     } else
     // Init storage access
-    if( SetupStorage(manager, g_bSDMounted, g_bUSBMounted) ) {
+    if( SetupStorage(container, g_bSDMounted, g_bUSBMounted) ) {
 #else
     {
 #endif
@@ -608,56 +608,63 @@ void GuiMain(GuiManager *man)
         archSetCurrentDirectory(GetMSXRootPath());
 
         // Please wait...
-        GuiMessageBox *msgbox = NULL;
-        msgbox = new GuiMessageBox(manager);
-        msgbox->Show("Please wait...");
+        GuiMessageBox *msgbox = new GuiMessageBox(container);
+        container->RegisterForDelete(msgbox);
+        msgbox->Create(MSGT_TEXT, NULL, 128, "please wait...");
+        container->AddTop(msgbox, new GuiEffectFade(10));
         // Init blueMSX emulator
         blueMsxInit(1);
 
-        msgbox->Remove();
+        container->RemoveAndDelete(msgbox);
 
         char *game_dir = NULL;
         char sGamesPath[100];
         sprintf(sGamesPath, "%s/Games", GetMSXRootPath());
-        GuiDirSelect *dirs = new GuiDirSelect(manager, sGamesPath, "dirlist.xml");
+        GuiDirSelect *dirs = new GuiDirSelect(container, sGamesPath, "dirlist.xml");
+        container->RegisterForDelete(dirs);
 
         for(;;) {
             // Browse directory
+            container->AddTop(dirs, new GuiEffectFade(10));
             game_dir = dirs->DoModal();
             if( game_dir == NULL ) {
+                container->Remove(dirs, new GuiEffectFade(10));
                 break;
             }
             // Game menu
             GameElement *game = NULL;
             GameElement *prev;
             for(;;) {
-                GuiGameSelect *menu = new GuiGameSelect(manager, background);
+                // Show the game selector
+                GuiGameSelect *menu = new GuiGameSelect(container, background);
+                container->RegisterForDelete(menu);
                 prev = game;
-                if( menu->Load(game_dir, "gamelist.xml") ) {
-                    game = menu->DoModal(prev);
+                if( menu->Load(game_dir, "gamelist.xml", prev) ) {
+                    container->Remove(dirs, new GuiEffectFade(10));
+                    container->AddTop(menu, new GuiEffectFade(10));
+                    game = menu->DoModal();
+                    container->Remove(menu, new GuiEffectFade(10));
                     if( prev != NULL ) {
                         delete prev;
                     }
                 }else{
-                    msgbox->Show("gamelist.xml not found!");
-                    archThreadSleep(2000);
-                    msgbox->Remove();
+                    GuiMessageBox::ShowPopup(container, NULL, 128, 2000,
+                                             new GuiEffectFade(10), new GuiEffectFade(10),
+                                             "gamelist.xml not found!");
                 }
-                delete menu;
+                container->Delete(menu);
 
                 if( game == NULL ) {
                     break;
                 }else{
-                    blueMsxRun(game, game_dir, msgbox);
+                    blueMsxRun(game, game_dir);
                 }
             }
+
         }
-        delete dirs;
+        container->Delete(dirs);
 
-         printf("Clean-up\n");
-
-        // Destroy message box
-        delete msgbox;
+        printf("Clean-up\n");
 
         // Destroy emulator
         emulatorExit();
@@ -667,15 +674,12 @@ void GuiMain(GuiManager *man)
         archSoundDestroy();
         mixerDestroy(mixer);
     }
-    // Destroy background and layer manager
-    delete background;
-
-#if CONSOLE_DEBUG
-    // Destroy console
-    delete console;
-#endif
     // Make sure everything is faded out before destroying global resources
-    archThreadSleep(500);
+    while( container->IsBusy() ) {
+        archThreadSleep(20);
+    }
+    // Destroy background
+    container->RemoveAndDelete(background);
     // Free GUI resources
     GuiFontClose();
     GuiImageClose();

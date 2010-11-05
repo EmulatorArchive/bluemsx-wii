@@ -272,7 +272,7 @@ static Interface toolInterface = {
     toolEnableVramAccessCheck,
 };
 
-void toolLoadAll(int languageId, void /*GuiManager*/ *manager)
+void toolLoadAll(int languageId, void /*GuiRootContainer*/ *container)
 {
     ToolInfo* toolInfo;
 
@@ -321,7 +321,7 @@ void toolLoadAll(int languageId, void /*GuiManager*/ *manager)
     toolList[toolListCount++] = toolInfo;
 
     toolInfoSetLanguage(toolInfo, languageId);
-    toolInfoAddArgument(toolInfo, "GuiManager", manager);
+    toolInfoAddArgument(toolInfo, "GuiContainer", container);
 }
 
 void toolUnLoadAll()

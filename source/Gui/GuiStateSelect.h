@@ -9,21 +9,21 @@
 
 struct Properties;
 
+class GuiFrame;
 class GuiSelectionList;
 
 class GuiStateSelect : public GuiDialog
 {
 public:
-    GuiStateSelect(GuiManager *man);
+    GuiStateSelect(GuiContainer *cntr, Properties *properties, char *directory);
     virtual ~GuiStateSelect();
 
     // GuiDialog interface
-    virtual void OnUpdateScreen(GuiRunner *runner);
+    virtual void OnUpdateScreen(void);
 
-    char *DoModal(Properties *properties, char *directory);
+    char *DoModal(void);
 private:
-    GuiManager *manager;
-    GuiRunner *runner;
+    GuiFrame *frame;
     GuiSelectionList *list;
     int last_selected;
     int last_index;
@@ -35,11 +35,10 @@ private:
     char *filenames[256];
     char *timestrings[256];
     time_t filetimes[256];
-    Image *imgScreenShot;
     Sprite *sprScreenShot;
 
     void CreateStateFileList(Properties *properties, char *directory);
-    void SetSelected(int index, int selected);
+    void SetSelectedState(int index, int selected);
     void FreeStateFileList(void);
     void UpdateScreenShot(char *file);
 };
