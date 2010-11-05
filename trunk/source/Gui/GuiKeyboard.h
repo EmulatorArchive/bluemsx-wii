@@ -2,15 +2,16 @@
 #ifndef _GUI_KEYBOARD_H
 #define _GUI_KEYBOARD_H
 
-#include "GuiManager.h"
+class GuiContainer;
+class GuiRootContainer;
 
 class GuiKeyboard {
 public:
-    GuiKeyboard(GuiManager *man);
+    GuiKeyboard(GuiRootContainer *man, GuiContainer *cntr);
     virtual ~GuiKeyboard();
 
     void Show(void);
-    void Remove(void);
+    void Hide(void);
     bool IsShowing(void);
     void SetEnabled(bool enable);
     void Render(void);
@@ -30,9 +31,8 @@ private:
     int keymap1;
     int keymap2;
 
-    GuiManager *manager;
-    DrawableImage *img_hover;
-    DrawableImage *img_pressed;
+    GuiContainer *container;
+    GuiRootContainer *manager;
     Sprite *spr_image;
     Sprite *spr_cursor;
     Sprite *spr_hover;

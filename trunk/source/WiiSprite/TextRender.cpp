@@ -178,7 +178,7 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
 
         // Blit glyph to surface
         if( sx == NULL && sy == NULL ) {
-            Blit(&slot->bitmap, x + slot->bitmap_left, (y + _fontheight) - slot->bitmap_top);
+            Blit(&slot->bitmap, x + slot->bitmap_left, (y + _fontheight) - slot->bitmap_top - 4);
         }
 
         // Advance the position
@@ -186,7 +186,7 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
         if( x > maxx ) maxx = x;
     }
     if( sx ) *sx = maxx + 1;
-    if( sy ) *sy = y + _fontheight + _yspacing + 1;
+    if( sy ) *sy = y + _fontheight + 4;
 }
 
 void TextRender::GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...)

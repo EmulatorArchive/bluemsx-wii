@@ -2,68 +2,55 @@
 #include <stdlib.h>
 
 #include "GuiMenu.h"
-#include "GuiRunner.h"
 #include "GuiSelectionList.h"
-#include "GuiContainer.h"
+#include "GuiFrame.h"
+#include "GuiEffectFade.h"
 
 #define MENU_YPITCH      56
 #define MENU_FADE_FRAMES 10
 
 SELRET GuiMenu::DoModal(int *selected, const char **items, int num, int width)
 {
-    GuiRunner *runner = new GuiRunner(manager, this);
-
-    // Claim UI
-    manager->Lock();
-
     // Add container
     int height = num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
-    int posx = manager->GetWidth()/2-width/2;
-    int posy = manager->GetHeight()/2-height/2;
-    GuiContainer *container = new GuiContainer(posx, posy, width, height, 192);
-    manager->AddTop(container, MENU_FADE_FRAMES);
-    width = container->GetWidth();
-    height = container->GetHeight();
+    int posx = GetWidth()/2-width/2;
+    int posy = GetHeight()/2-height/2;
+    GuiFrame *frame = new GuiFrame(posx, posy, width, height, 192);
+    RegisterForDelete(frame);
+    AddTop(frame, new GuiEffectFade(MENU_FADE_FRAMES));
+    width = frame->GetWidth();
+    height = frame->GetHeight();
 
     // Menu list
     list->InitSelection(items, num, 0, 32, MENU_YPITCH,
                            posx+16, posy+24, 24, width-32, false);
-    runner->AddTop(list, MENU_FADE_FRAMES);
-    runner->SetSelected(list);
-
-    // Start displaying
-    manager->Unlock();
+    SetSelected(list);
+    AddTop(list, new GuiEffectFade(MENU_FADE_FRAMES));
 
     // Run GUI
     SELRET retval = SELRET_KEY_B;
-    if( runner->Run() ) {
+    if( Run() ) {
         retval = SELRET_SELECTED;
-        *selected = list->GetSelected();
+        *selected = list->GetSelectedItem();
     }
 
-    // Claim UI
-    manager->Lock();
-
     // Remove elements
-    runner->Remove(list, MENU_FADE_FRAMES);
-    manager->RemoveAndDelete(container, NULL, MENU_FADE_FRAMES);
+    Remove(list, new GuiEffectFade(MENU_FADE_FRAMES));
+    RemoveAndDelete(frame, new GuiEffectFade(MENU_FADE_FRAMES));
 
-    // Release UI
-    manager->Unlock();
-
-    delete runner;
     return retval;
 }
 
-GuiMenu::GuiMenu(GuiManager *man, int rows)
+GuiMenu::GuiMenu(GuiContainer *cntr, int rows)
+        :GuiDialog(cntr)
 {
-    list = new GuiSelectionList(man, rows);
-    manager = man;
+    list = new GuiSelectionList(this, rows);
+    RegisterForDelete(list);
     num_item_rows = rows;
 }
 
 GuiMenu::~GuiMenu()
 {
-    delete list;
+    Delete(list);
 }
 

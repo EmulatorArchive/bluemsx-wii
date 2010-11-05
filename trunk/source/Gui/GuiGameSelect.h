@@ -18,29 +18,27 @@ typedef enum {
   GLEDITSEL_SCRSHOT_2
 } GLEDITSEL;
 
-class GuiRunner;
 class GuiBackground;
 class GuiButton;
-class GuiContainer;
+class GuiFrame;
 class GuiSelectionList;
 
 class GuiGameSelect : public GuiDialog
 {
 public:
-    GuiGameSelect(GuiManager *man, GuiBackground *bgr);
+    GuiGameSelect(GuiContainer *cntr, GuiBackground *bgr);
     virtual ~GuiGameSelect();
 
     // GuiDialog interface
-    virtual void OnKey(GuiRunner *runner, BTN key, bool pressed);
-    virtual void OnUpdateScreen(GuiRunner *runner);
+    virtual void OnKey(BTN key, bool pressed);
+    virtual void OnUpdateScreen(void);
 
-    bool Load(const char *dir, const char *filename);
+    bool Load(const char *dir, const char *filename, GameElement *select = NULL);
     void Show(bool restart);
     void Hide(bool restart);
-    GameElement *DoModal(GameElement *select = NULL);
+    GameElement *DoModal(void);
 private:
-    GuiManager *manager;
-    GuiRunner *runner;
+    bool is_showing;
     GuiBackground *background;
     GuiSelectionList *list;
     GameList games;
@@ -58,10 +56,10 @@ private:
     GLEDITSEL selected_button;
     bool editMode;
 
-    GuiContainer *grWinList;
-    GuiContainer *grWinTitle;
-    GuiContainer *grWinPlay;
-    GuiContainer *grWinControls;
+    GuiFrame *grWinList;
+    GuiFrame *grWinTitle;
+    GuiFrame *grWinPlay;
+    GuiFrame *grWinControls;
 
     GuiButton *grButtonAdd;
     GuiButton *grButtonDel;
@@ -71,8 +69,7 @@ private:
     GuiButton *grButtonDelScr1;
     GuiButton *grButtonDelScr2;
 
-    void SetSelected(int index, int selected, bool restart);
-    void SetScreenShotImage(int index, Image *img);
+    void SetSelectedGame(int index, int selected, bool restart);
     void UpdateList(void);
 };
 

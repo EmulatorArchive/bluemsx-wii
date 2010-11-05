@@ -36,7 +36,7 @@ extern "C" {
 
 #ifndef NO_TOOL_SUPPORT
 
-void toolLoadAll(int languageId, void /*GuiManager*/ *manager);
+void toolLoadAll(int languageId, void /*GuiContainer*/ *container);
 void toolUnLoadAll();
 
 int toolGetCount();
@@ -52,7 +52,7 @@ void toolInfoAddArgument(ToolInfo* toolInfo, const char* str, void* arg);
 
 #else
 
-static void toolLoadAll(int languageId, void *manager) {}
+static void toolLoadAll(int languageId, void *container) {}
 static void toolUnLoadAll() {}
 
 static int toolGetCount() { return 0; }

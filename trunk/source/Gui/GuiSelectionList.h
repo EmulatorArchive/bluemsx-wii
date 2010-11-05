@@ -2,7 +2,7 @@
 #ifndef _GUI_SELECTION_LIST_H
 #define _GUI_SELECTION_LIST_H
 
-#include "GuiManager.h"
+#include "GuiContainer.h"
 #include "GuiElement.h"
 #include "../WiiSprite/DrawableImage.h"
 #include "../WiiSprite/Sprite.h"
@@ -17,34 +17,29 @@ typedef enum {
 
 class GuiSelectionList : public GuiElement {
 public:
-    GuiSelectionList(GuiManager *man, int rows);
+    GuiSelectionList(GuiContainer *man, int rows);
     virtual ~GuiSelectionList();
 
-    virtual void ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay);
-    virtual void ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay);
-    virtual Layer* ElmGetTopLayer(void);
-    virtual Layer* ElmGetBottomLayer(void);
-
-    virtual bool ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite);
-    virtual void ElmSetSelected(GuiRunner *runner, bool sel, int x, int y);
-    virtual bool ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph);
-    virtual bool ElmHandleKey(GuiRunner *runner, BTN key, bool pressed);
+    virtual bool ElmSetSelectedOnCollision(Sprite *sprite);
+    virtual void ElmSetSelected(bool sel, int x, int y);
+    virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
+    virtual bool ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed);
 
     void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
                        int posx, int posy, int xspace, int width, bool centr = false);
     void ClearTitleList(void);
-    void SetSelected(int fade = -1, int delay = -1);
+    void SetSelectedItem(int fade = -1, int delay = -1);
     void SetNumberOfItems(int num);
     SELRET DoSelection(int *selection);
     bool IsShowing(void);
     int IsActive(void);
-    int GetSelected(void);
+    int GetSelectedItem(void);
     void DoKeyUp(void);
     void DoKeyDown(void);
 
-protected:
-    GuiManager *manager;
 private:
+    void CleanUp(void);
+
     int xpos;
     int ypos;
     int xsize;
@@ -67,10 +62,7 @@ private:
     Sprite *sprSelector;
     Sprite *sprArrowUp;
     Sprite *sprArrowDown;
-    DrawableImage *titleTxtImg;
-    DrawableImage **titleTxtImgPtr;
 
-    void InitTitleList(TextRender *fontArial, int x, int y, int width, int ypitch, int fade = 0);
     void RemoveTitleList(int fade = 0, int delay = 0);
 };
 

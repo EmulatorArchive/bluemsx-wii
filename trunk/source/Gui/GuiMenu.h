@@ -8,12 +8,11 @@
 class GuiMenu : public GuiDialog
 {
 public:
-    GuiMenu(GuiManager *man, int rows);
+    GuiMenu(GuiContainer *cntr, int rows);
     virtual ~GuiMenu();
 
     SELRET DoModal(int *selected, const char **items, int num, int width);
 private:
-    GuiManager *manager;
     GuiSelectionList *list;
     int num_item_rows;
 };

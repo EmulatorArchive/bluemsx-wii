@@ -16,23 +16,23 @@
 #include <hge/hge.h>
 #include <windows.h>
 #include "../source/Gui/GuiMain.h"
-#include "../source/Gui/GuiManager.h"
+#include "../source/Gui/GuiRootContainer.h"
 #include "../source/Win32/Win32Input.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
   // GUI init
-  GuiManager *manager = new GuiManager();
+  GuiRootContainer *rootcontainer = new GuiRootContainer();
 
   // Init keyboard
-  keyboardInit(manager);
+  keyboardInit(rootcontainer);
 
   // Let's rock now!
-  manager->Run(GuiMain);
+  rootcontainer->Run(GuiMain);
 
   keyboardClose();
 
-  delete manager;
+  delete rootcontainer;
 
   return 0;
 }

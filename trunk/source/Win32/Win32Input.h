@@ -1,10 +1,10 @@
 #ifndef _WII_INPUT_H
 #define _WII_INPUT_H
 
-#include "../Gui/GuiManager.h"
+#include "../Gui/GuiRootContainer.h"
 
-class GuiManager;
-extern void keyboardInit(GuiManager *man);
+class GuiRootContainer;
+extern void keyboardInit(GuiRootContainer *man);
 
 extern void keyboardSetDirectory(char* directory);
 extern void keyboardClose(void);

@@ -5,9 +5,10 @@
 
 #include <gccore.h>
 
-#include "GuiRunner.h"
+#include "GuiDialog.h"
 #include "GuiSelectionList.h"
-#include "GuiContainer.h"
+#include "GuiFrame.h"
+#include "GuiEffectFade.h"
 
 // Resources
 #include "GuiImages.h"
@@ -19,84 +20,31 @@
 
 #define SELECTION_FADE_TIME  10
 #define SELECTION_FADE_DELAY 4
+#define SELECTION_EFFECT new GuiEffectFade(SELECTION_FADE_TIME, SELECTION_FADE_DELAY)
 
 //-----------------------
 
-void GuiSelectionList::ElmAddLayers(GuiManager *manager, int index, bool fix, int fade, int delay)
+bool GuiSelectionList::ElmSetSelectedOnCollision(Sprite *sprite)
 {
-    if( !is_showing ) {
-        // Title list
-        ClearTitleList();
-        InitTitleList(g_fontArial, xpos, ypos, xsize-2*xspacing, ypitch, fade);
-
-        // Titles
-        for(int i = 0; i < num_item_rows; i++) {
-            manager->AddIndex(index++, titleTxtSprite[i], false, fade, delay);
-        }
-
-        // Arrows
-        manager->AddIndex(index++, sprArrowUp, false, fade);
-        manager->AddIndex(index++, sprArrowDown, false, fade);
-
-        SetSelected(fade, delay);
-        is_showing = true;
-    }
-}
-
-void GuiSelectionList::ElmRemoveLayers(GuiManager *manager, bool del, int fade, int delay)
-{
-    if( is_showing ) {
-        // Titles
-        for(int i = 0; i < num_item_rows; i++) {
-            manager->RemoveAndDelete(titleTxtSprite[i], titleTxtSprite[i]->GetImage(), fade, delay);
-            titleTxtSprite[i] = NULL;
-        }
-
-        // Arrows
-        manager->RemoveAndDelete(sprArrowUp, NULL, fade, delay);
-        sprArrowUp = NULL;
-        manager->RemoveAndDelete(sprArrowDown, NULL, fade, delay);
-        sprArrowDown = NULL;
-
-        // Title list
-        RemoveTitleList(fade, delay);
-        manager->RemoveAndDelete(sprSelector, NULL, fade, delay);
-        sprSelector = NULL;
-
-        is_showing = false;
-    }
-}
-
-Layer* GuiSelectionList::ElmGetTopLayer(void)
-{
-    return titleTxtSprite[0];
-}
-
-Layer* GuiSelectionList::ElmGetBottomLayer(void)
-{
-    return sprArrowDown;
-}
-
-
-//-----------------------
-
-bool GuiSelectionList::ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite)
-{
+    Lock();
     for(int i = upper_index; i <= lower_index; i++) {
         if( strlen(visible_items[i]) &&
             sprite->CollidesWith(titleTxtSprite[i]) ) {
             if( i != selected ) {
                 selected = i;
-                SetSelected();
+                SetSelectedItem();
             }
+            Unlock();
             return true;
         }
     }
+    Unlock();
     return false;
 }
 
-void GuiSelectionList::ElmSetSelected(GuiRunner *runner, bool sel, int x, int y)
+void GuiSelectionList::ElmSetSelected(bool sel, int x, int y)
 {
+    Lock();
     if( sel ) {
         int s = upper_index;
         for(int i = upper_index; i <= lower_index; i++) {
@@ -107,14 +55,15 @@ void GuiSelectionList::ElmSetSelected(GuiRunner *runner, bool sel, int x, int y)
             s = i;
         }
         selected = s;
-        SetSelected();
+        SetSelectedItem();
     }else{
         // We're never deselected, just inactive
         is_active = false;
     }
+    Unlock();
 }
 
-bool GuiSelectionList::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph)
+bool GuiSelectionList::ElmGetRegion(int *px, int *py, int *pw, int *ph)
 {
     if( is_showing ) {
         *px = xpos;
@@ -127,13 +76,13 @@ bool GuiSelectionList::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw
     }
 }
 
-bool GuiSelectionList::ElmHandleKey(GuiRunner *runner, BTN key, bool pressed)
+bool GuiSelectionList::ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed)
 {
-    if (runner->GetSelected(false) == NULL && selected >= 0) { /* When nothing selected, we're in charge */
-        runner->SetSelected(this, 0, titleTxtSprite[selected]->GetY() + titleTxtSprite[selected]->GetHeight() / 2);
+    if (dlg->GetSelected(false) == NULL && selected >= 0) { /* When nothing selected, we're in charge */
+        dlg->SetSelected(this, 0, titleTxtSprite[selected]->GetY() + titleTxtSprite[selected]->GetHeight() / 2);
     }
     if( pressed &&
-        runner->GetSelected(false) == this )
+        dlg->GetSelected(false) == this )
     {
         switch( key ) {
             case BTN_UP:
@@ -159,11 +108,11 @@ void GuiSelectionList::DoKeyUp(void)
 {
     if( selected > upper_index ) {
         selected--;
-        SetSelected();
+        SetSelectedItem();
     }else{
         if( index > 0 ) {
             index--;
-            SetSelected();
+            SetSelectedItem();
         }
     }
 }
@@ -173,54 +122,39 @@ void GuiSelectionList::DoKeyDown(void)
     if( selected < lower_index &&
         strlen(visible_items[selected+1]) ) {
         selected++;
-        SetSelected();
+        SetSelectedItem();
     }else{
         if( index+selected < num_items-1 ) {
             index++;
-            SetSelected();
+            SetSelectedItem();
         }
     }
 }
 
-void GuiSelectionList::InitTitleList(TextRender *fontArial,
-                                     int x, int y, int width, int ypitch, int fade)
+void GuiSelectionList::CleanUp(void)
 {
-    // Fill titles
-    for(int i = 0, yy = y; i < num_item_rows; i++) {
-        DrawableImage *img = new DrawableImage;
-        img->CreateImage((width + 3) & ~3, ((fontsize * 3) / 2) & ~3);
-        img->SetFont(fontArial);
-        GXColor white = {255,255,255,255};
-        img->SetColor(white);
-        img->SetSize(fontsize);
-        titleTxtImgPtr[i] = img;
-        titleTxtSprite[i] = new Sprite;
-        titleTxtSprite[i]->SetImage(img);
-        titleTxtSprite[i]->SetPosition(x + xspacing, yy + fontsize/5);
-        yy += ypitch;
+    Lock();
+    if( is_showing ) {
+        // Titles
+        for(int i = 0; i < num_item_rows; i++) {
+            RemoveAndDelete(titleTxtSprite[i], SELECTION_EFFECT);
+            titleTxtSprite[i] = NULL;
+        }
+
+        // Arrows
+        RemoveAndDelete(sprArrowUp, SELECTION_EFFECT);
+        sprArrowUp = NULL;
+        RemoveAndDelete(sprArrowDown, SELECTION_EFFECT);
+        sprArrowDown = NULL;
+
+        // Title list
+        RemoveTitleList(0, 0);
+        RemoveAndDelete(sprSelector, SELECTION_EFFECT);
+        sprSelector = NULL;
+
+        is_showing = false;
     }
-
-    // Arrows
-    sprArrowUp = new Sprite;
-    sprArrowUp->SetImage(g_imgArrow);
-    sprArrowUp->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
-    sprArrowUp->SetPosition(x + xspacing + width/2, y+ypitch/2+fontsize/5);
-    sprArrowUp->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
-    sprArrowUp->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
-    sprArrowUp->SetRotation(180.0f/2);
-    sprArrowUp->SetVisible(false);
-
-    sprArrowDown = new Sprite;
-    sprArrowDown->SetImage(g_imgArrow);
-    sprArrowDown->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
-    sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
-    sprArrowDown->SetPosition(x + xspacing + width/2, y+(num_item_rows-1)*ypitch+ypitch/2+fontsize/5);
-    sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
-    sprArrowDown->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
-    sprArrowDown->SetVisible(false);
-
-    current_index = -1;
+    Unlock();
 }
 
 void GuiSelectionList::RemoveTitleList(int fade, int delay)
@@ -232,7 +166,7 @@ void GuiSelectionList::ClearTitleList(void)
     current_index = -1;
 }
 
-int GuiSelectionList::GetSelected(void)
+int GuiSelectionList::GetSelectedItem(void)
 {
     return selected;
 }
@@ -252,10 +186,10 @@ int GuiSelectionList::IsActive(void)
     return is_showing && is_active;
 }
 
-void GuiSelectionList::SetSelected(int fade, int delay)
+void GuiSelectionList::SetSelectedItem(int fade, int delay)
 {
-    // Claim UI
-    manager->Lock();
+    GXColor white = {255,255,255,255};
+    Lock();
     // Update dir info
     for(int i = 0; i < num_item_rows; i++) {
         if( i+index < num_items ) {
@@ -264,31 +198,61 @@ void GuiSelectionList::SetSelected(int fade, int delay)
             visible_items[i] = "";
         }
     }
-    // Render text (slow)
+    // Render text
     if( index == current_index+1 && current_index != -1 ) {
-        DrawableImage *p = titleTxtImgPtr[0];
-        for(int i = 0; i < num_item_rows-1; i++) {
-            titleTxtImgPtr[i] = titleTxtImgPtr[i+1];
+        // move list up
+        RemoveAndDelete(titleTxtSprite[0]);
+        for(int i = 0, yy = ypos; i < num_item_rows-1; i++, yy += ypitch) {
+            titleTxtSprite[i] = titleTxtSprite[i+1];
+            titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
+            titleTxtSprite[i]->SetVisible(true);
         }
-        titleTxtImgPtr[num_item_rows-1] = p;
-        titleTxtImgPtr[num_item_rows-1]->RenderText(center, visible_items[num_item_rows-1]);
+        Sprite* spr = new Sprite();
+        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[num_item_rows-1]);
+        spr->SetPosition(xpos + xspacing, ypos + (num_item_rows-1)*ypitch + fontsize/3);
+        RegisterForDelete(spr);
+        AddOnTopOf(titleTxtSprite[num_item_rows-1], spr);
+        titleTxtSprite[num_item_rows-1] = spr;
     }else
     if( index == current_index-1 ) {
-        DrawableImage *p = titleTxtImgPtr[num_item_rows-1];
-        for(int i = num_item_rows-1; i > 0; i--) {
-            titleTxtImgPtr[i] = titleTxtImgPtr[i-1];
+        // move list down
+        if( titleTxtSprite[num_item_rows-1] ) {
+            RemoveAndDelete(titleTxtSprite[num_item_rows-1]);
         }
-        titleTxtImgPtr[0] = p;
-        titleTxtImgPtr[0]->RenderText(center, visible_items[0]);
-    }else
-    for(int i = 0; i < num_item_rows; i++) {
-        titleTxtImgPtr[i]->RenderText(center, visible_items[i]);
+        for(int i = num_item_rows-1, yy = ypos+(num_item_rows-1)*ypitch; i > 0; i--, yy -= ypitch) {
+            titleTxtSprite[i] = titleTxtSprite[i-1];
+            titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
+            titleTxtSprite[i]->SetVisible(true);
+        }
+        Sprite* spr = new Sprite();
+        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[0]);
+        spr->SetPosition(xpos + xspacing, ypos + fontsize/3);
+        RegisterForDelete(spr);
+        AddOnTopOf(titleTxtSprite[0], spr);
+        titleTxtSprite[0] = spr;
+    }else{
+        // rebuild
+        for(int i = 0, yy = ypos; i < num_item_rows; i++, yy += ypitch) {
+            Sprite* spr = new Sprite();
+            spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[i]);
+            spr->SetPosition(xpos + xspacing, yy + fontsize/3);
+            spr->SetVisible(true);
+            RegisterForDelete(spr);
+            if( titleTxtSprite[i] ) {
+                AddOnTopOf(titleTxtSprite[i], spr);
+                RemoveAndDelete(titleTxtSprite[i]);
+            }else{
+                AddTop(spr, SELECTION_EFFECT);
+            }
+            titleTxtSprite[i] = spr;
+        }
     }
-    current_index = index;
-    // Update sprites
-    for(int i = 0; i < num_item_rows; i++) {
-        titleTxtSprite[i]->SetImage(titleTxtImgPtr[i]->GetImage());
-    }
+    // Update sprite positions
+//    for(int i = 0, yy = ypos; i < num_item_rows; i++) {
+//        titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
+//        img->CreateImage((xsize - 2*xspacing + 3) & ~3, ((fontsize * 3) / 2) & ~3);
+//        yy += ypitch;
+//    }
     // Up button
     if( index > 0  ) {
         titleTxtSprite[0]->SetVisible(false);
@@ -311,8 +275,9 @@ void GuiSelectionList::SetSelected(int fade, int delay)
     }
     // Update seletion
     if( sprSelector != NULL ) {
-        manager->RemoveAndDelete(sprSelector, NULL, (fade != -1)? fade : SELECTION_FADE_TIME,
-                                                    (delay != -1)? delay : SELECTION_FADE_DELAY);
+        RemoveAndDelete(sprSelector, new GuiEffectFade(
+                                     (fade > 0)? fade : SELECTION_FADE_TIME,
+                                     (delay > 0)? delay : SELECTION_FADE_DELAY));
         sprSelector = NULL;
     }
     if( selected >= 0 ) {
@@ -321,14 +286,15 @@ void GuiSelectionList::SetSelected(int fade, int delay)
         sprSelector->SetImage(g_imgSelector);
         sprSelector->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprSelector->SetRefPixelPosition(0, 0);
-        sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/5);
+        sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/3);
         sprSelector->SetStretchWidth((float)xsize / 4);
         sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
-        manager->AddBehind(selectedsprite, sprSelector, (fade != -1)? fade : SELECTION_FADE_TIME);
+        RegisterForDelete(sprSelector);
+        AddBehind(selectedsprite, sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
         is_active = true;
     }
-    // Release UI
-    manager->Unlock();
+    current_index = index;
+    Unlock();
 }
 
 
@@ -342,6 +308,8 @@ void GuiSelectionList::InitSelection(const char **items, int num, int select, in
     fontsize = fontsz;
     ypitch = pitchy;
     center = centr;
+
+    CleanUp();
 
     // Init items
     item_list = items;
@@ -364,25 +332,58 @@ void GuiSelectionList::InitSelection(const char **items, int num, int select, in
         selected = 0;
         index = 0;
     }
+
+    // Title list
+    ClearTitleList();
+
+    // Arrows
+    sprArrowUp = new Sprite;
+    sprArrowUp->SetImage(g_imgArrow);
+    sprArrowUp->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
+    sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2+fontsize/3);
+    sprArrowUp->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
+    sprArrowUp->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
+    sprArrowUp->SetRotation(180.0f);
+    sprArrowUp->SetVisible(false);
+    RegisterForDelete(sprArrowUp);
+
+    sprArrowDown = new Sprite;
+    sprArrowDown->SetImage(g_imgArrow);
+    sprArrowDown->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
+    sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
+    sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2+fontsize/3);
+    sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
+    sprArrowDown->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
+    sprArrowDown->SetVisible(false);
+    RegisterForDelete(sprArrowDown);
+
+    current_index = -1;
+    SetSelectedItem(0, 0);
+
+    // Arrows
+    AddTop(sprArrowUp, SELECTION_EFFECT);
+    AddTop(sprArrowDown, SELECTION_EFFECT);
+
+    is_showing = true;
 }
 
-GuiSelectionList::GuiSelectionList(GuiManager *man, int rows)
+GuiSelectionList::GuiSelectionList(GuiContainer *man, int rows)
 {
-    manager = man;
     num_item_rows = rows;
     is_showing = false;
     is_active = false;
     sprSelector = NULL;
     sprCursor = NULL;
     visible_items = new const char*[rows];
+    memset(visible_items, 0, rows * sizeof(const char*));
     titleTxtSprite = new Sprite*[rows];
-    titleTxtImgPtr = new DrawableImage*[rows];
+    memset(titleTxtSprite, 0, rows * sizeof(Sprite*));
 }
 
 GuiSelectionList::~GuiSelectionList()
 {
-    assert( !is_showing );
-    delete[] titleTxtImgPtr;
+    CleanUp();
     delete[] titleTxtSprite;
     delete[] visible_items;
 }

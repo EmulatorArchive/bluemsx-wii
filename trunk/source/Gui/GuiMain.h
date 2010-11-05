@@ -2,9 +2,9 @@
 #ifndef _GUI_MAIN_H
 #define _GUI_MAIN_H
 
-class GuiManager;
+class GuiRootContainer;
 
-extern void GuiMain(GuiManager *man);
+extern void GuiMain(GuiRootContainer *man);
 
 #endif
 

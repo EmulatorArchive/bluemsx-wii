@@ -143,7 +143,7 @@
 				AdditionalOptions="/QIfist "
 				Optimization="0"
 				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\WiiSprite;..\build"
-				PreprocessorDefinitions="BLUEMSXWII;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="BLUEMSXWII;WIN32;DEBUG;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -264,14 +264,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\layermanager.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\WiiSprite\layermanager.h"
-					>
-				</File>
-				<File
 					RelativePath="..\source\WiiSprite\Mutex.cpp"
 					>
 				</File>
@@ -384,6 +376,22 @@
 					>
 				</File>
 				<File
+					RelativePath="..\source\Gui\GuiEffect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiEffect.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiEffectFade.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiEffectFade.h"
+					>
+				</File>
+				<File
 					RelativePath="..\source\Gui\GuiElement.cpp"
 					>
 				</File>
@@ -397,6 +405,14 @@
 				</File>
 				<File
 					RelativePath="..\source\Gui\GuiFonts.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiFrame.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\Gui\GuiFrame.h"
 					>
 				</File>
 				<File
@@ -428,14 +444,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\Gui\GuiManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiManager.h"
-					>
-				</File>
-				<File
 					RelativePath="..\source\Gui\GuiMenu.cpp"
 					>
 				</File>
@@ -452,11 +460,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\Gui\GuiRunner.cpp"
+					RelativePath="..\source\Gui\GuiRootContainer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\Gui\GuiRunner.h"
+					RelativePath="..\source\Gui\GuiRootContainer.h"
 					>
 				</File>
 				<File

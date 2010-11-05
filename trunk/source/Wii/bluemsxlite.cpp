@@ -35,7 +35,7 @@
 #include <sdcard/wiisd_io.h>
 
 #include "../Gui/GuiMain.h"
-#include "../Gui/GuiManager.h"
+#include "../Gui/GuiRootContainer.h"
 #include "WiiInput.h"
 
 #define ENABLE_GECKO  1
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     g_bUSBMounted = fatMountSimple("usb", &__io_usbstorage);
 
     // GUI init
-    GuiManager *manager = new GuiManager();
+    GuiRootContainer *manager = new GuiRootContainer();
 
     // Init keyboard
     keyboardInit(manager);

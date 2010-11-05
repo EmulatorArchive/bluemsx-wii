@@ -1,7 +1,10 @@
 
 #include "GuiElement.h"
 
-GuiElement::GuiElement()
+class GuiEffect;
+
+GuiElement::GuiElement(GuiContainer *cntr)
+          : GuiContainer(cntr)
 {
 }
 
@@ -9,21 +12,21 @@ GuiElement::~GuiElement()
 {
 }
 
-bool GuiElement::ElmSetSelectedOnCollision(GuiRunner *runner, Sprite *sprite)
+bool GuiElement::ElmSetSelectedOnCollision(Sprite *sprite)
 {
     return false;
 }
 
-void GuiElement::ElmSetSelected(GuiRunner *runner, bool sel, int x, int y)
+void GuiElement::ElmSetSelected(bool sel, int x, int y)
 {
 }
 
-bool GuiElement::ElmGetRegion(GuiRunner *runner, int *px, int *py, int *pw, int *ph)
+bool GuiElement::ElmGetRegion(int *px, int *py, int *pw, int *ph)
 {
     return false;
 }
 
-bool GuiElement::ElmHandleKey(GuiRunner *runner, BTN key, bool pressed)
+bool GuiElement::ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed)
 {
     return false;
 }

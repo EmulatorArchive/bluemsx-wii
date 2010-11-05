@@ -12,7 +12,8 @@
 
 // gui stuff
 #include "../../Gui/GuiCheckList.h"
-#include "../../Gui/GuiManager.h"
+#include "../../Gui/GuiContainer.h"
+#include "../../Gui/GuiEffectFade.h"
 #include "../../Gui/GuiMessageBox.h"
 
 enum CompareType
@@ -67,7 +68,7 @@ static Int32 DataMask[]  = { 0xff, 0xffff };
 static char* DpyFormat[] = { "%d", "%X" };
 static char* DpySizeFormat[2][2]  = { { "%d", "%.2X" }, { "%d", "%.4X" } };
 
-static GuiManager *manager = NULL;
+static GuiContainer *container = NULL;
 static void* cheatsThread = NULL;
 
 #define CHEAT_TIMER_ID 29
@@ -304,10 +305,11 @@ static bool loadCheatFile(const char* filename)
 
     FILE* f = fopen(filename, "r");
     if (f == NULL) {
-        GuiMessageBox msgbox(manager);
-        msgbox.Show("Invalid cheat file!");
+        GuiMessageBox *msgbox = new GuiMessageBox(container);
+        msgbox->Create(MSGT_TEXT, NULL, 128, "Invalid cheat file!");
+        container->AddTop(msgbox, new GuiEffectFade(10));
         archThreadSleep(2000);
-        msgbox.Remove();
+        container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
         return false;
     }
 
@@ -380,7 +382,7 @@ void OnShowTool()
         enabled_list[idx++] = (*i).enabled;
     }
 
-    GuiCheckList *check_list = new GuiCheckList(manager, 9);
+    GuiCheckList *check_list = new GuiCheckList(container, 9);
     bool leave = false;
     do {
         int selection;
@@ -452,8 +454,8 @@ void OnAddArgument(const char *str, void* arg)
 {
     if (strcmp(str, "CheatFile") == 0) {
         loadCheatFile((const char *)arg);
-    } else if (strcmp(str, "GuiManager") == 0) {
-        manager = (GuiManager*)arg;
+    } else if (strcmp(str, "GuiContainer") == 0) {
+        container = (GuiContainer*)arg;
     } else {
         printf("Unknown argument: %s\n", str);
     }

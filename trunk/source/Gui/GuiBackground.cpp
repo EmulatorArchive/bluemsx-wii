@@ -1,98 +1,79 @@
 
 #include "GuiBackground.h"
+#include "GuiEffectFade.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
 #include "version.h"
 #include "../arch/archThread.h"
 
-GuiBackground::GuiBackground(GuiManager *man)
+GuiBackground::GuiBackground(GuiContainer *cntr)
+              :GuiContainer(cntr)
 {
-    manager = man;
     sprBackground = NULL;
     sprTxt = NULL;
+    is_shown = false;
 }
 
 GuiBackground::~GuiBackground()
 {
-    Hide(10, 0);
+    Hide();
 }
 
-void GuiBackground::Show(int fade)
+void GuiBackground::Show(GuiEffect *effect)
 {
-    if( sprBackground == NULL ) {
-        manager->Lock();
-
+    if( !is_shown ) {
         // Background picture
         sprBackground = new Sprite;
         sprBackground->SetImage(g_imgBackground);
-        sprBackground->SetStretchWidth((float)manager->GetWidth() /
+        sprBackground->SetStretchWidth((float)GetWidth() /
                                        (float)g_imgBackground->GetWidth());
-        sprBackground->SetStretchHeight((float)manager->GetHeight() /
+        sprBackground->SetStretchHeight((float)GetHeight() /
                                         (float)g_imgBackground->GetHeight());
         sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprBackground->SetRefPixelPosition(0, 0);
         sprBackground->SetPosition(0, 0);
+        RegisterForDelete(sprBackground);
+        AddTop(sprBackground, effect);
 
-        // Show it
-        manager->AddBottom(sprBackground, fade);
-        ShowVersion(fade);
+        // Show version
+        ShowVersion(new GuiEffectFade(10));
 
-        manager->Unlock();
+        is_shown = true;
     }
 }
 
-void GuiBackground::Hide(int fade, int delay)
+void GuiBackground::Hide(GuiEffect *effect)
 {
-    if( sprBackground != NULL ) {
-        manager->Lock();
-        HideVersion();
-        manager->RemoveAndDelete(sprBackground, NULL, fade, delay);
+    HideVersion();
+    if( is_shown ) {
+        RemoveAndDelete(sprBackground, effect);
         sprBackground = NULL;
-        manager->Unlock();
+
+        is_shown = false;
     }
 }
 
-void GuiBackground::ShowVersion(int fade)
+void GuiBackground::ShowVersion(GuiEffect *effect)
 {
     GXColor white = {255,255,255,255};
-    if( sprBackground != NULL && sprTxt == NULL ) {
-        int txtwidth;
-        int txtheight;
-
-        manager->Lock();
-
-        // Create image with version text
-        imgTxt = new DrawableImage;
-        imgTxt->SetFont(g_fontArial);
-        imgTxt->SetSize(16);
-        imgTxt->SetYSpacing(2);
-        imgTxt->SetColor(white);
-        imgTxt->GetTextSize(&txtwidth, &txtheight, VERSION_AS_STRING);
-        txtwidth = (txtwidth + 3) & ~3;
-        txtheight = (txtheight + 3) & ~3;
-        imgTxt->CreateImage(txtwidth, txtheight);
-        imgTxt->RenderText(true, VERSION_AS_STRING);
-
+    if( sprTxt == NULL ) {
         // Version text sprite
         sprTxt = new Sprite;
-        sprTxt->SetImage(imgTxt);
+        sprTxt->CreateTextImage(g_fontArial, 16, 0, 2, true, white, VERSION_AS_STRING);
         sprTxt->SetPosition(530, 384);
         sprTxt->SetTransparency(192);
+        RegisterForDelete(sprTxt);
 
         // Show it
-        manager->AddOnTopOf(sprBackground, sprTxt, fade);
-
-        manager->Unlock();
+        AddTop(sprTxt, effect);
     }
 }
 
-void GuiBackground::HideVersion(int fade, int delay)
+void GuiBackground::HideVersion(GuiEffect *effect)
 {
     if( sprTxt != NULL ) {
-        manager->Lock();
-        manager->RemoveAndDelete(sprTxt, imgTxt, fade, delay);
+        RemoveAndDelete(sprTxt, effect);
         sprTxt = NULL;
-        manager->Unlock();
     }
 }
 

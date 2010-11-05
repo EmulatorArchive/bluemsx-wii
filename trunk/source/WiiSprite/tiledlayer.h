@@ -77,7 +77,7 @@ public:
     const Image* GetImage() const;
 
     //!Draws the tiledlayer to the current viewport.
-    void Draw(f32 offsetX = 0, f32 offsetY = 0) const;
+    void Draw(void);
 protected:
 private:
     s32* _data; u32 _columns, _rows;

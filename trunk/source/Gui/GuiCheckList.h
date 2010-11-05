@@ -8,12 +8,12 @@
 class GuiCheckList : public GuiDialog
 {
 public:
-    GuiCheckList(GuiManager *man, int rows);
+    GuiCheckList(GuiContainer *cntr, int rows);
     virtual ~GuiCheckList();
 
     SELRET DoModal(int *selected, const char **items, bool *items_selected, int num, int width);
 private:
-    GuiManager *manager;
+    GuiContainer *container;
     GuiSelectionList *list;
     int num_item_rows;
 };

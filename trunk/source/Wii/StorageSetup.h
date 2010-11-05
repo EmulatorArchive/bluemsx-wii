@@ -20,12 +20,12 @@
 ******************************************************************************
 */
 
-#include "../Gui/GuiManager.h"
+#include "../Gui/GuiContainer.h"
 
 #define SD_ROOT_DIR  "sd:/"
 #define USB_ROOT_DIR "usb:/"
 #define MSX_DIR      "/MSX"
 
-extern bool SetupStorage(GuiManager *manager, bool bSDMounted, bool bUSBMounted);
+extern bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted);
 extern char *GetMSXRootPath(void);
 

@@ -28,7 +28,7 @@
 ******************************************************************************
 */
 #include "../Arch/ArchInput.h"
-#include "../Gui/GuiManager.h"
+#include "../Gui/GuiRootContainer.h"
 
 #include "../Language/Language.h"
 #include "../Input/InputEvent.h"
@@ -43,7 +43,7 @@
 
 #define KBD_TABLE_LEN 512
 
-static GuiManager *winp_gui_manager = NULL;
+static GuiRootContainer *winp_gui_manager = NULL;
 static Shortcuts* shortcuts = NULL;
 static int kbdTable[KBD_TABLE_LEN];
 static int keyStatus[KBD_TABLE_LEN];
@@ -242,7 +242,7 @@ void keyboardSetDirectory(char* directory)
     strcpy(keyboardConfigDir, directory);
 }
 
-void keyboardInit(GuiManager *man)
+void keyboardInit(GuiRootContainer *man)
 {
     winp_gui_manager = man;
 

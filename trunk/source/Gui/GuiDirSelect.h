@@ -8,18 +8,21 @@
 #define MAX_PATH        256
 #define NUM_DIR_ITEMS   7
 
+class GuiFrame;
 class GuiSelectionList;
 
 class GuiDirSelect : public GuiDialog
 {
 public:
-    GuiDirSelect(GuiManager *man, const char *startdir, const char *filename);
+    GuiDirSelect(GuiContainer *cntr, const char *startdir, const char *filename);
     virtual ~GuiDirSelect();
 
-    char *DoModal(void);
+    char* DoModal(void);
 private:
-    GuiManager *manager;
-    GuiRunner *runner;
+    char* InitialiseList(char *prevsel);
+
+    const char **title_list;
+    GuiFrame *frame;
     GuiSelectionList *list;
     DirList dirs;
     int num_dirs;

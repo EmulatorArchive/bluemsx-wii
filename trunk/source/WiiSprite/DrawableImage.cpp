@@ -82,6 +82,7 @@ void DrawableImage::FillSolidColor(u8 r, u8 g, u8 b)
     for(u32 i = 0; i < _width*_height; i++) {
         *p++ = c;
     }
+    FlushBuffer();
 }
 
 void DrawableImage::DestroyImage(void)
@@ -277,7 +278,7 @@ void DrawableImage::RenderTextVA(bool center, const char *fmt, va_list list)
     u8 *blitbuf = (u8 *)g_hge->Texture_Lock(_texObj, false);
     int tex_width = g_hge->Texture_GetWidth(_texObj);
     int tex_height = g_hge->Texture_GetHeight(_texObj);
-    memset(blitbuf, 0, tex_width * tex_height * 4);
+    memset(blitbuf, 0, tex_width * _height * 4);
 #endif
 
     // Build using sprintf
@@ -322,7 +323,7 @@ void DrawableImage::RenderText(bool center, const char *fmt, ...)
     va_end(marker);
 }
 
-void DrawableImage::GetTextSize(int *sx, int *sy, const char *fmt, ...)
+void DrawableImage::GetTextSizeVA(int *sx, int *sy, const char *fmt, va_list list)
 {
     // Need to make room for the sprintf'd text
 #ifdef WII
@@ -337,10 +338,7 @@ void DrawableImage::GetTextSize(int *sx, int *sy, const char *fmt, ...)
     font->SetYSpacing(_font_yspacing);
 
     // Build using sprintf
-    va_list marker;
-    va_start(marker,fmt);
-    vsprintf(out,fmt,marker);
-    va_end(marker);
+    vsprintf(out, fmt, list);
 
     // Call rendering engine
     font->SetBuffer(NULL, 0x7fffffff, 0x7fffffff, 0x7fffffff);
@@ -348,5 +346,13 @@ void DrawableImage::GetTextSize(int *sx, int *sy, const char *fmt, ...)
 
     // Free memory
     free(out);
+}
+
+void DrawableImage::GetTextSize(int *sx, int *sy, const char *fmt, ...)
+{
+    va_list marker;
+    va_start(marker,fmt);
+    GetTextSizeVA(sx, sy, fmt, marker);
+    va_end(marker);
 }
 

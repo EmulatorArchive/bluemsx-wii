@@ -7,6 +7,9 @@
 #include "../Wii/WiiInput.h"
 #include "../input/InputEvent.h"
 #include "GuiKeyboard.h"
+#include "GuiRootContainer.h"
+#include "GuiContainer.h"
+#include "GuiEffectFade.h"
 
 // Resources
 #include "GuiImages.h"
@@ -16,7 +19,7 @@
 #define COLOR_HOVER   0x40, 0x40, 0x40
 #define COLOR_PRESSED 0x00, 0x00, 0xff
 
-#define KEYBOARD_FADE_FRAMES 30
+#define KEYBOARD_EFFECT new GuiEffectFade(30)
 
 typedef struct {
   int key;
@@ -129,7 +132,7 @@ void GuiKeyboard::Render(void)
     bool validpos = manager->gwd.input.GetWiiMoteIR(&x, &y, &angle);
     if( validpos && is_enabled && !is_hidden ) {
         spr_cursor->SetPosition(x, y);
-        spr_cursor->SetRotation(angle/2);
+        spr_cursor->SetRotation(angle);
         spr_cursor->SetVisible(true);
     }else{
         spr_cursor->SetVisible(false);
@@ -148,7 +151,7 @@ void GuiKeyboard::Render(void)
     }else{
         is_hidden = false;
         if( is_showing ) {
-            Remove();
+            Hide();
         }
     }
     if( !validpos || !is_showing ) {
@@ -238,87 +241,84 @@ void GuiKeyboard::Show(void)
     spr_image->SetRefPixelPosition(0,0);
     spr_image->SetPosition(xpos, ypos);
     spr_image->SetTransparency(256-32);
+    container->RegisterForDelete(spr_image);
 
-    img_hover = new DrawableImage;
-    img_hover->CreateImage(4, 4, GX_TF_RGB565);
-    img_hover->FillSolidColor(COLOR_HOVER);
-    img_pressed = new DrawableImage;
-    img_pressed->CreateImage(4, 4, GX_TF_RGB565);
-    img_pressed->FillSolidColor(COLOR_PRESSED);
-    img_hover->FlushBuffer();
-    img_pressed->FlushBuffer();
-    spr_hover = new Sprite;
-    spr_hover->SetImage(img_hover->GetImage());
-    spr_pressed = new Sprite;
-    spr_pressed->SetImage(img_pressed->GetImage());
+    spr_hover = new Sprite();
+    spr_hover->CreateDrawImage(4, 4, GX_TF_RGB565);
+    spr_hover->FillSolidColor(COLOR_HOVER);
+    container->RegisterForDelete(spr_hover);
+    spr_pressed = new Sprite();
+    spr_pressed->CreateDrawImage(4, 4, GX_TF_RGB565);
+    spr_pressed->FillSolidColor(COLOR_PRESSED);
+    container->RegisterForDelete(spr_pressed);
     spr_caps = new Sprite;
-    spr_caps->SetImage(img_pressed->GetImage());
+    spr_caps->SetImage(spr_pressed->GetImage());
+    container->RegisterForDelete(spr_caps);
     spr_shift_l = new Sprite;
-    spr_shift_l->SetImage(img_pressed->GetImage());
+    spr_shift_l->SetImage(spr_pressed->GetImage());
+    container->RegisterForDelete(spr_shift_l);
     spr_shift_r = new Sprite;
-    spr_shift_r->SetImage(img_pressed->GetImage());
+    spr_shift_r->SetImage(spr_pressed->GetImage());
+    container->RegisterForDelete(spr_shift_r);
     spr_ctrl = new Sprite;
-    spr_ctrl->SetImage(img_pressed->GetImage());
+    spr_ctrl->SetImage(spr_pressed->GetImage());
+    container->RegisterForDelete(spr_ctrl);
     spr_graph = new Sprite;
-    spr_graph->SetImage(img_pressed->GetImage());
+    spr_graph->SetImage(spr_pressed->GetImage());
+    container->RegisterForDelete(spr_graph);
     spr_code = new Sprite;
-    spr_code->SetImage(img_pressed->GetImage());
+    spr_code->SetImage(spr_pressed->GetImage());
+    container->RegisterForDelete(spr_code);
 
     keymap1 = keyboardGetMapping(BTN_JOY1_WIIMOTE_A);
     keymap2 = keyboardGetMapping(BTN_JOY2_WIIMOTE_A);
     keyboardRemapKey(BTN_JOY1_WIIMOTE_A, EC_NONE);
     keyboardRemapKey(BTN_JOY2_WIIMOTE_A, EC_NONE);
 
-    manager->Lock();
-
     // Keyboard image
-    manager->AddTop(spr_image, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_image, KEYBOARD_EFFECT);
 
     // Selectors
-    manager->AddTop(spr_hover, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_hover, KEYBOARD_EFFECT);
     spr_hover->SetVisible(false);
-    manager->AddTop(spr_caps, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_caps, KEYBOARD_EFFECT);
     spr_caps->SetVisible(false);
-    manager->AddTop(spr_pressed, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_pressed, KEYBOARD_EFFECT);
     spr_pressed->SetVisible(false);
-    manager->AddTop(spr_shift_l, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_shift_l, KEYBOARD_EFFECT);
     spr_shift_l->SetVisible(false);
-    manager->AddTop(spr_shift_r, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_shift_r, KEYBOARD_EFFECT);
     spr_shift_r->SetVisible(false);
-    manager->AddTop(spr_ctrl, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_ctrl, KEYBOARD_EFFECT);
     spr_ctrl->SetVisible(false);
-    manager->AddTop(spr_graph, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_graph, KEYBOARD_EFFECT);
     spr_graph->SetVisible(false);
-    manager->AddTop(spr_code, KEYBOARD_FADE_FRAMES);
+    container->AddTop(spr_code, KEYBOARD_EFFECT);
     spr_code->SetVisible(false);
 
     // Cursor
     spr_cursor->SetVisible(false);
-    manager->AddTopFixed(spr_cursor);
+    container->AddTopFixed(spr_cursor);
 
     is_showing = true;
-    manager->Unlock();
 }
 
-void GuiKeyboard::Remove(void)
+void GuiKeyboard::Hide(void)
 {
     if( !is_showing ) {
         return;
     }
 
-    manager->Lock();
-
-    manager->RemoveAndDelete(spr_code, NULL, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_graph, NULL, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_ctrl, NULL, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_shift_l, NULL, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_shift_r, NULL, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_caps, NULL, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_pressed, img_pressed, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_hover, img_hover, KEYBOARD_FADE_FRAMES);
-    manager->RemoveAndDelete(spr_image, NULL, KEYBOARD_FADE_FRAMES);
+    container->RemoveAndDelete(spr_code, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_graph, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_ctrl, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_shift_l, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_shift_r, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_caps, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_pressed, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_hover, KEYBOARD_EFFECT);
+    container->RemoveAndDelete(spr_image, KEYBOARD_EFFECT);
     is_showing = false;
-    manager->Unlock();
 
     keyboardRemapKey(BTN_JOY1_WIIMOTE_A, keymap1);
     keyboardRemapKey(BTN_JOY2_WIIMOTE_A, keymap2);
@@ -334,9 +334,10 @@ void GuiKeyboard::SetEnabled(bool enable)
     is_enabled = is_hidden = enable;
 }
 
-GuiKeyboard::GuiKeyboard(GuiManager *man)
+GuiKeyboard::GuiKeyboard(GuiRootContainer *man, GuiContainer *cntr)
 {
     manager = man;
+    container = cntr;
     is_showing = false;
     is_enabled = true;
     is_hidden = true;
@@ -345,28 +346,25 @@ GuiKeyboard::GuiKeyboard(GuiManager *man)
     xsize = g_imgKeyboard->GetWidth();
     ysize = g_imgKeyboard->GetHeight();
     xpos = 10;
-    ypos = (manager->GetHeight()-ysize)/2;
+    ypos = (container->GetHeight()-ysize)/2;
 
     // Cursor
     spr_cursor = new Sprite;
+    container->RegisterForDelete(spr_cursor);
     spr_cursor->SetImage(g_imgMousecursor);
     spr_cursor->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     spr_cursor->SetRefPixelPosition(11, 4);
     spr_cursor->SetPosition(0, 0);
 
-    manager->Lock();
-    manager->AddRenderCallback(RenderWrapper, (void*)this);
-    manager->Unlock();
+    container->AddRenderCallback(RenderWrapper, (void*)this);
 }
 
 GuiKeyboard::~GuiKeyboard()
 {
-    manager->Lock();
-    manager->RemoveRenderCallback(RenderWrapper, (void*)this);
-    manager->RemoveAndDelete(spr_cursor);
-    manager->Unlock();
+    container->RemoveRenderCallback(RenderWrapper, (void*)this);
+    container->RemoveAndDelete(spr_cursor);
     if( is_showing ) {
-        Remove();
+        Hide();
     }
 }
 

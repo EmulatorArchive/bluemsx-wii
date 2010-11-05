@@ -5,33 +5,21 @@
 #include <direct.h>
 #endif
 
-#include "GuiRunner.h"
 #include "GuiSelectionList.h"
 #include "GuiDirSelect.h"
-#include "GuiContainer.h"
+#include "GuiFrame.h"
 #include "GuiMessageBox.h"
+#include "GuiEffectFade.h"
 
 #define DSEL_YPITCH 50
-
 #define DIRSEL_FADE_FRAMES 10
 
 char *GuiDirSelect::DoModal(void)
 {
-    const char **title_list = NULL;
+    char *prevsel = NULL;
     char *return_value = NULL;
 
-    // Claim UI
-    manager->Lock();
-
-    // Containers
-    GuiContainer *containerDirList = new GuiContainer(320-180, 28, 2*180, 440-48);
-    manager->AddTop(containerDirList, DIRSEL_FADE_FRAMES);
-
-    // Release UI
-    manager->Unlock();
-
     // On re-entry, go back one level if not on root level
-    char *prevsel = NULL;
     if( dir_level > 0 ) {
         char *p = current_dir + strlen(current_dir) - 1;
         while(*p != '/') p--;
@@ -45,46 +33,16 @@ char *GuiDirSelect::DoModal(void)
     do {
         DirElement *selected_dir = NULL;
 
-        // Load dirs database
-#ifdef WII
-        chdir(current_dir);
-#else
-        _chdir(current_dir);
-#endif
-        dirs.Load(xmlfile);
-        num_dirs = dirs.GetNumberOfDirs();
-        if( num_dirs == 0 ) {
-            return_value = current_dir;
+        // Load dirs database and init list
+        return_value = InitialiseList(prevsel);
+        if( return_value != NULL ) {
             break;
         }
-        title_list = (const char**)realloc(title_list, num_dirs * sizeof(const char*));
-        for(int i = 0; i < num_dirs; i++) {
-            title_list[i] = dirs.GetDir(i)->GetName();
-        }
-
-        // When just gone back one level, find entry comming from
-        int sel = 0;
-        if( prevsel ) {
-            for( int i = 0; i < num_dirs; i++ ) {
-                if( strcmp(prevsel, dirs.GetDir(i)->GetDirectory()) == 0 ) {
-                    sel = i;
-                }
-            }
-        }
-
-        // Selection
-        if( list->IsShowing() ) {
-            runner->Remove(list, DIRSEL_FADE_FRAMES);
-        }
-        list->InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
-                            320-180+8, 24+24, 24, 2*180-16, false);
-        runner->AddTop(list, DIRSEL_FADE_FRAMES);
-        runner->SetSelected(list);
 
         // Run GUI
         for(;;) {
-            if( runner->Run() ) {
-                sel = list->GetSelected();
+            if( Run() ) {
+                int sel = list->GetSelectedItem();
 
                 // enter selected directory
                 selected_dir = dirs.GetDir(sel);
@@ -95,11 +53,10 @@ char *GuiDirSelect::DoModal(void)
             }else{
                 if( dir_level == 0 ) {
                     // on root level, leave after confirmation
-                    GuiMessageBox msgbox(manager);
-                    bool ok = msgbox.Show("Do you want to quit?", NULL, MSGT_YESNO, 192) == MSGBTN_YES;
-                    msgbox.Remove();
+                    bool ok = GuiMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192, new GuiEffectFade(DIRSEL_FADE_FRAMES),
+                                                       new GuiEffectFade(DIRSEL_FADE_FRAMES),
+                                                       "Do you want to quit?") == MSGBTN_YES;
                     if( ok ) {
-                        runner->Remove(list, DIRSEL_FADE_FRAMES);
                         quit = true;
                         break;
                     }
@@ -115,37 +72,71 @@ char *GuiDirSelect::DoModal(void)
             }
         }
     }while( !quit );
-    runner->Remove(list, DIRSEL_FADE_FRAMES);
-    dirs.Clear();
-    if( title_list ) {
-        free(title_list);
-    }
-
-    // Claim UI
-    manager->Lock();
-
-    // Remove container
-    manager->RemoveAndDelete(containerDirList, NULL, DIRSEL_FADE_FRAMES);
-
-    // Release UI
-    manager->Unlock();
 
     return return_value;
 }
 
-GuiDirSelect::GuiDirSelect(GuiManager *man, const char *startdir, const char *filename)
+char* GuiDirSelect::InitialiseList(char *prevsel)
 {
-    runner = new GuiRunner(man, this);
-    list = new GuiSelectionList(man, NUM_DIR_ITEMS);
-    manager = man;
+#ifdef WII
+    chdir(current_dir);
+#else
+    _chdir(current_dir);
+#endif
+    dirs.Load(xmlfile);
+    num_dirs = dirs.GetNumberOfDirs();
+    if( num_dirs == 0 ) {
+        return current_dir;
+    }
+    title_list = (const char**)realloc(title_list, num_dirs * sizeof(const char*));
+    for(int i = 0; i < num_dirs; i++) {
+        title_list[i] = dirs.GetDir(i)->GetName();
+    }
+
+    // When just gone back one level, find entry comming from
+    int sel = 0;
+    if( prevsel ) {
+        for( int i = 0; i < num_dirs; i++ ) {
+            if( strcmp(prevsel, dirs.GetDir(i)->GetDirectory()) == 0 ) {
+                sel = i;
+            }
+        }
+        prevsel = NULL;
+    }
+    
+    // Selection
+    list->InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
+                        320-180+8, 24+24, 24, 2*180-16, false);
+    SetSelected(list);
+
+    return NULL;
+}
+
+GuiDirSelect::GuiDirSelect(GuiContainer *cntr, const char *startdir, const char *filename)
+             :GuiDialog(cntr)
+{
+    title_list = NULL;
+    frame = new GuiFrame(320-180, 28, 2*180, 440-48);
+    RegisterForDelete(frame);
+    list = new GuiSelectionList(this, NUM_DIR_ITEMS);
+    RegisterForDelete(list);
+
     strcpy(current_dir, startdir);
     strcpy(xmlfile, filename);
     dir_level = 0;
+
+    (void)InitialiseList(NULL);
+
+    AddTop(frame);
+    AddTop(list);
 }
 
 GuiDirSelect::~GuiDirSelect()
 {
-    delete list;
-    delete runner;
+    if( title_list ) {
+        free(title_list);
+    }
+    RemoveAndDelete(frame);
+    RemoveAndDelete(list);
 }
 
