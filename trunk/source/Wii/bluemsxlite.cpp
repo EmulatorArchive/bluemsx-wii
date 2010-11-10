@@ -28,6 +28,7 @@
 ******************************************************************************
 */
 
+#include <stdio.h>
 #include <debug.h>
 #include <fat.h>
 #include <ogc/system.h>      // for syswd_t (required in ogc/usbstorage.h)
@@ -35,7 +36,6 @@
 #include <sdcard/wiisd_io.h>
 
 #include "../Gui/GuiMain.h"
-#include "../Gui/GuiRootContainer.h"
 #include "WiiInput.h"
 
 #define ENABLE_GECKO  1
@@ -69,18 +69,18 @@ int main(int argc, char **argv)
     g_bUSBMounted = fatMountSimple("usb", &__io_usbstorage);
 
     // GUI init
-    GuiRootContainer *manager = new GuiRootContainer();
+    GuiMain *guimain = new GuiMain();
 
     // Init keyboard
-    keyboardInit(manager);
+    keyboardInit(guimain);
 
     // Let's rock now!
-    manager->Run(GuiMain);
+    guimain->Run();
 
     keyboardClose();
 
     // Cleanup
-    delete manager;
+    delete guimain;
 
     fatUnmount("sd");
     fatUnmount("usb");

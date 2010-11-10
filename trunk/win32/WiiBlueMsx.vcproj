@@ -217,86 +217,134 @@
 				>
 			</File>
 			<Filter
-				Name="WiiSprite"
+				Name="GuiBase"
 				>
 				<File
-					RelativePath="..\source\WiiSprite\DrawableImage.cpp"
+					RelativePath="..\source\GuiBase\DrawableImage.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\DrawableImage.h"
+					RelativePath="..\source\GuiBase\DrawableImage.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\gamewindow.cpp"
+					RelativePath="..\source\GuiBase\GameWindow.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\gamewindow.h"
+					RelativePath="..\source\GuiBase\GameWindow.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\gctypes.h"
+					RelativePath="..\source\GuiBase\GuiContainer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\image.cpp"
+					RelativePath="..\source\GuiBase\GuiContainer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\image.h"
+					RelativePath="..\source\GuiBase\GuiDialog.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\InputDevices.cpp"
+					RelativePath="..\source\GuiBase\GuiDialog.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\InputDevices.h"
+					RelativePath="..\source\GuiBase\GuiEffect.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\layer.cpp"
+					RelativePath="..\source\GuiBase\GuiEffect.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\layer.h"
+					RelativePath="..\source\GuiBase\GuiEffectFade.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\Mutex.cpp"
+					RelativePath="..\source\GuiBase\GuiEffectFade.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\Mutex.h"
+					RelativePath="..\source\GuiBase\GuiElement.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\sprite.cpp"
+					RelativePath="..\source\GuiBase\GuiElement.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\sprite.h"
+					RelativePath="..\source\GuiBase\GuiImage.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\TextRender.cpp"
+					RelativePath="..\source\GuiBase\GuiImage.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\TextRender.h"
+					RelativePath="..\source\GuiBase\GuiLayer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\tiledlayer.cpp"
+					RelativePath="..\source\GuiBase\GuiLayer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\tiledlayer.h"
+					RelativePath="..\source\GuiBase\GuiQuad.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\WiiSprite\wiisprite.h"
+					RelativePath="..\source\GuiBase\GuiQuad.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiRootContainer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiRootContainer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiSprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiSprite.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiTiles.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiTiles.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\InputDevices.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\InputDevices.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\Mutex.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\Mutex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\TextRender.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\TextRender.h"
 					>
 				</File>
 			</Filter>
@@ -328,99 +376,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\Gui\GuiBackground.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiBackground.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiButton.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiButton.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiCheckList.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiCheckList.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiContainer.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiContainer.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiDialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiDialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiDirSelect.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiDirSelect.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiEffect.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiEffect.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiEffectFade.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiEffectFade.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiElement.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiElement.h"
-					>
-				</File>
-				<File
 					RelativePath="..\source\Gui\GuiFonts.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\source\Gui\GuiFonts.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiFrame.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiFrame.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiGameSelect.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiGameSelect.h"
 					>
 				</File>
 				<File
@@ -444,43 +404,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\Gui\GuiMenu.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiMenu.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiMessageBox.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiMessageBox.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiRootContainer.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiRootContainer.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiSelectionList.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiSelectionList.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiStateSelect.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\Gui\GuiStateSelect.h"
+					RelativePath="..\source\Gui\GuiMain.h"
 					>
 				</File>
 			</Filter>
@@ -3049,6 +2973,98 @@
 				</File>
 				<File
 					RelativePath="..\source\Z80\R800SaveState.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GuiElements"
+				>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmBackground.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmBackground.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmButton.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmButton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmCheckList.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmCheckList.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmSelectionList.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmSelectionList.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GuiDialogs"
+				>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgDirSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgDirSelect.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgGameSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgGameSelect.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgMenu.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgMenu.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgMessageBox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgMessageBox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgStateSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgStateSelect.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GuiLayers"
+				>
+				<File
+					RelativePath="..\source\GuiLayers\GuiLayFrame.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiLayers\GuiLayFrame.h"
 					>
 				</File>
 			</Filter>

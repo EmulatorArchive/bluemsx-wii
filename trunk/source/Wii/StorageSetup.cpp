@@ -38,9 +38,9 @@
 extern "C" {
 #include "../Arch/ArchThread.h"
 }
-#include "../Gui/GuiMenu.h"
-#include "../Gui/GuiMessageBox.h"
-#include "../Gui/GuiEffectFade.h"
+#include "../GuiDialogs/GuiDlgMenu.h"
+#include "../GuiDialogs/GuiDlgMessageBox.h"
+#include "../GuiBase/GuiEffectFade.h"
 
 static char sMSXRootPath[10] = {0};
 static char sStorageRoot[10] = {0};
@@ -61,9 +61,9 @@ bool SetupInstallZip(GuiContainer *container, void *zipptr, unsigned int zipsize
                      const char *directory, const char *message)
 {
     // Prepare messagebox
-    bool ok = GuiMessageBox::ShowModal(container, MSGT_YESNO, NULL, 192, new GuiEffectFade(10),
+    bool ok = GuiDlgMessageBox::ShowModal(container, MSGT_YESNO, NULL, 192, new GuiEffectFade(10),
                                        new GuiEffectFade(10), message) == MSGBTN_YES;
-    GuiMessageBox *msgbox = new GuiMessageBox(container);
+    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container);
     container->RegisterForDelete(msgbox);
     container->AddTop(msgbox, new GuiEffectFade(10));
     if( ok ) {
@@ -121,7 +121,7 @@ bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
     if( !bBlueMSXInstalled ) {
         if( bSDMounted && bUSBMounted ) {
             // Have the user decide which device to install to
-            GuiMenu *menu = new GuiMenu(container, 2);
+            GuiDlgMenu *menu = new GuiDlgMenu(container, 2);
             container->RegisterForDelete(menu)
             container->AddTop(menu);
             const char *menu_items[] = {
