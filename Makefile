@@ -38,6 +38,10 @@ SOURCES		:=	source/Bios \
               source/Debugger \
               source/Emulator \
               source/Expat \
+              source/GuiBase \
+              source/GuiLayers \
+              source/GuiElements \
+              source/GuiDialogs \
               source/Gui \
               source/Input \
               source/IoDevice \
@@ -54,7 +58,6 @@ SOURCES		:=	source/Bios \
               source/VideoChips \
               source/VideoRender \
               source/Wii \
-              source/WiiSprite \
               source/WiiUsbKeyboard \
               source/Z80
 

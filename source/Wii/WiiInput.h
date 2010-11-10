@@ -1,7 +1,7 @@
 #ifndef _WII_INPUT_H
 #define _WII_INPUT_H
 
-#include "../Gui/GuiRootContainer.h"
+#include "../GuiBase/GuiRootContainer.h"
 
 class GuiRootContainer;
 extern void keyboardInit(GuiRootContainer *man);

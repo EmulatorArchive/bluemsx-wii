@@ -11,10 +11,10 @@
 #include "Trainer.h"
 
 // gui stuff
-#include "../../Gui/GuiCheckList.h"
-#include "../../Gui/GuiContainer.h"
-#include "../../Gui/GuiEffectFade.h"
-#include "../../Gui/GuiMessageBox.h"
+#include "../../GuiBase/GuiContainer.h"
+#include "../../GuiBase/GuiEffectFade.h"
+#include "../../GuiElements/GuiElmCheckList.h"
+#include "../../GuiDialogs/GuiDlgMessageBox.h"
 
 enum CompareType
 {
@@ -305,7 +305,7 @@ static bool loadCheatFile(const char* filename)
 
     FILE* f = fopen(filename, "r");
     if (f == NULL) {
-        GuiMessageBox *msgbox = new GuiMessageBox(container);
+        GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container);
         msgbox->Create(MSGT_TEXT, NULL, 128, "Invalid cheat file!");
         container->AddTop(msgbox, new GuiEffectFade(10));
         archThreadSleep(2000);
@@ -382,7 +382,7 @@ void OnShowTool()
         enabled_list[idx++] = (*i).enabled;
     }
 
-    GuiCheckList *check_list = new GuiCheckList(container, 9);
+    GuiElmCheckList *check_list = new GuiElmCheckList(container, 9);
     bool leave = false;
     do {
         int selection;
