@@ -39,13 +39,14 @@
 #endif
 
 #include "../GuiBase/GuiEffectFade.h"
+#include "../GuiBase/GuiEffectZoom.h"
+#include "../GuiLayers/GuiLayFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiDialogs/GuiDlgDirSelect.h"
 #include "../GuiDialogs/GuiDlgGameSelect.h"
 #include "../GuiDialogs/GuiDlgStateSelect.h"
 #include "../GuiDialogs/GuiDlgMenu.h"
 #include "../GuiDialogs/GuiDlgMessageBox.h"
-#include "../Gui/GuiKeyboard.h"
 
 #include "../Emulator/CommandLine.h"
 #include "../Emulator/Properties.h"
@@ -72,11 +73,11 @@
 #include "../Wii/WiiToolLoader.h"
 #include "../Input/InputEvent.h"
 #include "../Wii/WiiInput.h"
+#include "../Wii/StorageSetup.h"
 
-#include "../GuiLayers/GuiLayFrame.h"
+#include "GuiKeyboard.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
-#include "../Wii/StorageSetup.h"
 
 #define FORCE_50HZ    0
 
@@ -164,7 +165,7 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
     }
     // Show popup
     GuiDlgMessageBox::ShowPopup(GuiContainer::GetRootContainer(), g_imgFloppyDisk, 192, 500,
-                             new GuiEffectFade(10), new GuiEffectFade(50,10), currentDisk);
+                                new GuiEffectZoom(10), new GuiEffectZoom(50,10), currentDisk);
 }
 
 void GuiMain::blueMsxInit(int resetProperties)
@@ -305,7 +306,7 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
     GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(this);
     RegisterForDelete(msgbox);
     msgbox->Create(MSGT_TEXT, NULL, 128, "Loading...");
-    AddTop(msgbox, new GuiEffectFade(10));
+    AddTop(msgbox, new GuiEffectZoom(10));
 
     // Set current directory to the MSX-root
     archSetCurrentDirectory(GetMSXRootPath());
@@ -382,7 +383,6 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
     emuSpr->CreateDrawImage(TEX_WIDTH, TEX_HEIGHT, GX_TF_RGB565);
     emuSpr->SetStretchWidth(640.0f / (float)TEX_WIDTH);
     emuSpr->SetStretchHeight(1.0f);
-    emuSpr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     emuSpr->SetRefPixelPosition(0, 0);
     emuSpr->SetPosition(0, ((int)GetHeight()-480)/2);
     RegisterForDelete(emuSpr);
@@ -463,10 +463,10 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
                                         GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(this);
                                         RegisterForDelete(msgbox);
                                         msgbox->Create(MSGT_TEXT, NULL, 160, "Loading state...");
-                                        AddTop(msgbox, new GuiEffectFade(10));
+                                        AddTop(msgbox, new GuiEffectZoom(10));
                                         emulatorStop();
                                         emulatorStart(statefile);
-                                        RemoveAndDelete(msgbox, new GuiEffectFade(10));
+                                        RemoveAndDelete(msgbox, new GuiEffectZoom(10));
                                         leave_menu = true;
                                     }
                                     break;
@@ -474,12 +474,12 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
                                     msgbox = new GuiDlgMessageBox(this);
                                     RegisterForDelete(msgbox);
                                     msgbox->Create(MSGT_TEXT, NULL, 160, "Saving state...");
-                                    AddTop(msgbox, new GuiEffectFade(10));
+                                    AddTop(msgbox, new GuiEffectZoom(10));
                                     actionQuickSaveState();
                                     archThreadSleep(200);
-                                    RemoveAndDelete(msgbox, new GuiEffectFade(10));
-                                    GuiDlgMessageBox::ShowPopup(this, NULL, 160, 2000, new GuiEffectFade(10),
-                                                             new GuiEffectFade(10), "State saved");
+                                    RemoveAndDelete(msgbox, new GuiEffectZoom(10));
+                                    GuiDlgMessageBox::ShowPopup(this, NULL, 160, 2000, new GuiEffectZoom(10),
+                                                             new GuiEffectZoom(10), "State saved");
                                     break;
                                 case 2: /* Screenshot */
                                     char *p, fname1[256], fname2[256];
@@ -513,13 +513,13 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
                                     msgbox = new GuiDlgMessageBox(this);
                                     RegisterForDelete(msgbox);
                                     msgbox->Create(MSGT_TEXT, NULL, 160, "Saving screenshot...");
-                                    AddTop(msgbox, new GuiEffectFade(10));
+                                    AddTop(msgbox, new GuiEffectZoom(10));
                                     (void)archScreenCaptureToFile(SC_NORMAL, p);
-                                    RemoveAndDelete(msgbox, new GuiEffectFade(10));
+                                    RemoveAndDelete(msgbox, new GuiEffectZoom(10));
 
                                     GuiDlgMessageBox::ShowPopup(this, NULL, 160, 2000,
-                                                             new GuiEffectFade(10), new GuiEffectFade(10),
-                                                             "Screenshot saved");
+                                                                new GuiEffectZoom(10), new GuiEffectZoom(10),
+                                                                "Screenshot saved");
                                     break;
                                 case 3: /* Cheats */
                                     actionToolsShowTrainer();
@@ -582,6 +582,7 @@ void GuiMain::Main(void)
     // Resources
     GuiFontInit();
     GuiImageInit();
+    SetPointerImage(g_imgMousecursor);
 
     // Background
     background = new GuiElmBackground(this);
@@ -594,7 +595,7 @@ void GuiMain::Main(void)
     if( !g_bSDMounted && !g_bUSBMounted ) {
         // Prepare messagebox
         GuiDlgMessageBox::ShowPopup(this, NULL, 128, 3000,
-                                 new GuiEffectFade(10), new GuiEffectFade(10),
+                                 new GuiEffectZoom(10), new GuiEffectZoom(10),
                                  "No Storage (USB/SD-Card) found!");
     } else
     // Init storage access
@@ -609,7 +610,7 @@ void GuiMain::Main(void)
         GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(this);
         RegisterForDelete(msgbox);
         msgbox->Create(MSGT_TEXT, NULL, 128, "please wait...");
-        AddTop(msgbox, new GuiEffectFade(10));
+        AddTop(msgbox, new GuiEffectZoom(10));
         // Init blueMSX emulator
         blueMsxInit(1);
 
@@ -647,7 +648,7 @@ void GuiMain::Main(void)
                     }
                 }else{
                     GuiDlgMessageBox::ShowPopup(this, NULL, 128, 2000,
-                                             new GuiEffectFade(10), new GuiEffectFade(10),
+                                             new GuiEffectZoom(10), new GuiEffectZoom(10),
                                              "gamelist.xml not found!");
                 }
                 Delete(menu);

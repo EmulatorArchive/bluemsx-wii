@@ -12,12 +12,13 @@
 #include "../Gui/GameElement.h"
 #include "../Gui/GuiImages.h"
 #include "../GuiBase/GuiEffectFade.h"
+#include "../GuiBase/GuiEffectZoom.h"
 #include "../GuiLayers/GuiLayFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiElements/GuiElmButton.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 
-#define GAMESEL_EFFECT_DEFAULT     new GuiEffectFade(10)
+#define GAMESEL_EFFECT_DEFAULT     new GuiEffectZoom(10)
 #define GAMESEL_EFFECT_RESTART     new GuiEffectFade(30, 6)
 #define GAMESEL_EFFECT_SCREENSHOTS new GuiEffectFade(10, 8)
 
@@ -53,7 +54,6 @@ void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
                 img = g_imgNoise;
             }
             spr->SetImage(img);
-            spr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
             spr->SetRefPixelPosition(0, 0);
             spr->SetStretchWidth(screenshotWidth / img->GetWidth());
             spr->SetStretchHeight(screenshotHeigth / img->GetHeight());

@@ -121,10 +121,10 @@ void GuiTiles::Draw(void)
     // This problem is also present in Sprite, but due to how sprites are
     // made, this problem is not so noticable.
 
-    u8 alpha = GetTransparencyAbs();
+    LayerTransform transform = GetTransform();
 
     if(_image == NULL || !_image->IsInitialized() || _image->GetWidth() == 0 ||
-        IsVisible() == false || alpha == 0x00 ||
+        IsVisible() == false || transform.alpha == 0x00 ||
         _tileWidth == 0 || _tileHeight == 0)return;
 
     // Get width and height
@@ -138,7 +138,7 @@ void GuiTiles::Draw(void)
     // Create HGE sprite object
     hgeSprite *spr = new hgeSprite(_image->GetTEX(), GetX(), GetY(), _image->GetWidth(), _image->GetHeight());
     spr->SetBlendMode(BLEND_COLORMUL | BLEND_ALPHABLEND | BLEND_NOZWRITE);
-    spr->SetColor(((u32)alpha << 24) + 0xffffff);
+    spr->SetColor(((u32)transform.alpha << 24) + 0xffffff);
 #endif
 
     for(u32 y = 0; y < _rows; y++){
@@ -162,7 +162,8 @@ void GuiTiles::Draw(void)
             guMtxIdentity(model);
             guMtxRotDeg(tmp, 'z', 0.0f);
             guMtxConcat(model, tmp, model);
-            guMtxTransApply(model, model, GetXabs()+x*_tileWidth+width, GetYabs()+y*_tileHeight+height, 0.0f);
+            guMtxTransApply(model, model, transform.offsetX+x*_tileWidth*transform.stretchWidth,
+                                          transform.offsetY+y*_tileHeight*transform.stretchHeight, 0.0f);
             guMtxConcat(model, tmp, model);
             GX_LoadPosMtxImm(model, GX_PNMTX0);
 
@@ -176,25 +177,25 @@ void GuiTiles::Draw(void)
 
             // Draw the Quad
             GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-                GX_Position2f32(-width, -height);
-                GX_Color4u8(0xff,0xff,0xff, alpha);
+                GX_Position2f32(0, 0);
+                GX_Color4u8(0xff,0xff,0xff, transform.alpha);
                 GX_TexCoord2f32(txCoords[0], txCoords[1]);
-                GX_Position2f32(width, -height);
-                GX_Color4u8(0xff,0xff,0xff, alpha);
+                GX_Position2f32(width*transform.stretchWidth*2, 0);
+                GX_Color4u8(0xff,0xff,0xff, transform.alpha);
                 GX_TexCoord2f32(txCoords[2], txCoords[1]);
-                GX_Position2f32(width,height);
-                GX_Color4u8(0xff,0xff,0xff, alpha);
+                GX_Position2f32(width*transform.stretchWidth*2, height*transform.stretchHeight*2);
+                GX_Color4u8(0xff,0xff,0xff, transform.alpha);
                 GX_TexCoord2f32(txCoords[2], txCoords[3]);
-                GX_Position2f32(-width,height);
-                GX_Color4u8(0xff,0xff,0xff, alpha);
+                GX_Position2f32(0, height*transform.stretchHeight*2);
+                GX_Color4u8(0xff,0xff,0xff, transform.alpha);
                 GX_TexCoord2f32(txCoords[0], txCoords[3]);
             GX_End();
 #else
             // Draw the texture on the quad
             spr->SetTextureRect(frameX, frameY, _tileWidth, _tileHeight);
-            spr->RenderEx(GetXabs()+x*_tileWidth,
-                          GetYabs()+y*_tileHeight+20,
-                          0, 1.0f, 1.0f);
+            spr->RenderEx(transform.offsetX + ((f32)x * _tileWidth * transform.stretchWidth),
+                          transform.offsetY + ((f32)y * _tileHeight * transform.stretchHeight) + 20,
+                          0, transform.stretchWidth, transform.stretchHeight);
 #endif
         }
     }

@@ -409,6 +409,12 @@ bool GuiDialog::FrameCallbackWrapper(void *context)
 
 bool GuiDialog::FrameCallback(void)
 {
+    Lock();
+    if( cursor == NULL ) {
+        Unlock();
+        return is_modal;
+    }
+
     cursor->SetVisible(false);
     
     // Infrared
@@ -435,6 +441,7 @@ bool GuiDialog::FrameCallback(void)
     
     OnUpdateScreen();
 
+    Unlock();
     return is_modal;
 }
 
@@ -443,6 +450,8 @@ void* GuiDialog::Run(bool modal)
     quit = false;
     is_modal = modal;
     return_value = NULL;
+
+    Lock();
 
     // Cursor
     if( running_count == 0 ) {
@@ -455,6 +464,7 @@ void* GuiDialog::Run(bool modal)
     }
 
     running_count++;
+    Unlock();
     GetRootContainer()->AddFrameCallback(FrameCallbackWrapper, this);
 
     for(;;) {
@@ -469,6 +479,8 @@ void* GuiDialog::Run(bool modal)
     }
 
     GetRootContainer()->RemoveFrameCallback(FrameCallbackWrapper, this);
+
+    Lock();
     running_count--;
 
     // Cleanup
@@ -476,6 +488,8 @@ void* GuiDialog::Run(bool modal)
         GetRootContainer()->RemoveAndDelete(cursor);
         cursor = NULL;
     }
+
+    Unlock();
 
     return return_value;
 }

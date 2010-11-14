@@ -10,6 +10,15 @@
 
 #include "Mutex.h"
 
+typedef struct {
+  f32 offsetX;
+  f32 offsetY;
+  f32 stretchWidth;
+  f32 stretchHeight;
+  f32 rotation;
+  u8  alpha;
+} LayerTransform;
+
 //!Drawable objects should derive from this class. Layers can be managed by LayerManagers.
 class GuiLayer{
 public:
@@ -30,11 +39,9 @@ public:
     //!Gets the X position on the viewport.
     //!\return The X position.
     f32 GetX() const;
-    f32 GetXabs() const;
     //!Gets the Y position on the viewport.
     //!\return The Y position.
     f32 GetY() const;
-    f32 GetYabs() const;
 
     //!Checks if the layer is visible. Is visible by default.
     //!\return true if it is visible, false if not.
@@ -49,7 +56,44 @@ public:
     //!Gets the transparency of the tiledlayer.
     //!\return The current transparency of the tiledlayer. Has a range from 0x00 (invisible) to 0xFF (fully visible)
     u8 GetTransparency() const;
-    u8 GetTransparencyAbs() const;
+
+    //!Sets the zooming of the sprite. It resets any defined stretch values.
+    //!\param zoom The new zoom of the sprite. 1 is normal size, cannot be smaller than 0.
+    void SetZoom(f32 zoom);
+    //!Gets the zooming of the sprite. If StretchWidth is not the same as StretchHeight, it returns 0.
+    //!\return The current zoom of the sprite. 1 is normal size.
+    f32 GetZoom() const;
+    //!Sets the width stretch of the sprite.
+    //!\param stretchWidth Stretches the width of the sprite by this value. 1 is normal size, cannot be smaller than 0.
+    void SetStretchWidth(f32 stretchWidth);
+    //!Sets the height stretch of the sprite.
+    //!\param stretchHeight Stretches the height of the sprite by this value. 1 is normal size, cannot be smaller than 0.
+    void SetStretchHeight(f32 stretchHeight);
+    //!Gets the width stretch of the sprite. Is equal to zoom value if zoom was set.
+    //!\return The current width stretch of the sprite. 1 is normal size.
+    f32 GetStretchWidth() const;
+    //!Gets the height stretch of the sprite. Is equal to zoom vallue if zoom was set.
+    //!\return The current height stretch of the sprite. 1 is normal size.
+    f32 GetStretchHeight() const;
+
+    //!Sets a reference pixel. The sprite rotates and zooms around this specified point. When
+    //!a new image gets initialized, the refpixel is moved to the center and the positioning
+    //!is REFPIXEL_POS_TOPLEFT.
+    //!\param x The x position of the reference pixel.
+    //!\param y The y position of the reference pixel.
+    void SetRefPixelPosition(f32 x, f32 y);
+    //!Allows to set the x coordinate of the reference pixel as a standalone.
+    //!\param x The x position of the reference pixel.
+    void SetRefPixelX(f32 x);
+    //!Allows to set the y coordinate of the reference pixel as a standalone.
+    //!\param y The y position of the reference pixel.
+    void SetRefPixelY(f32 y);
+    //!Gets the current reference pixel x coordinate.
+    //!\return The x position of the reference pixel.
+    f32 GetRefPixelX() const;
+    //!Gets the current reference pixel y coordinate.
+    //!\return The y position of the reference pixel.
+    f32 GetRefPixelY() const;
 
     //!Sets the rotation angle of the quad.
     //!\param rotation The new angle of the quad. It is measured in degrees/2, so if 90 degrees is wanted, 45 degrees should be the passed parameter.
@@ -57,7 +101,6 @@ public:
     //!Gets the rotation angle of the quad.
     //!\return The current angle of the quad.
     f32 GetRotation() const;
-    f32 GetRotationAbs() const;
 
     //!Changes the absolute position of the layer on the viewport.
     //!\param x The new X position.
@@ -87,21 +130,28 @@ public:
     //!\param y The new Y position of this layer.
     void SetY(u32 y);
 
-    void SetTransform(f32 offsetX = 0, f32 offsetY = 0, f32 rot = 0, u8 alpha = 255);
-
     //!Overloadable method. Used by the parent to see if effects are in progress.
     virtual bool IsBusy(void);
 
     //!Overloadable method. Here should drawing code be.
     //!\param offsetX Additional offset for the X position where to draw the layer.
     //!\param offsetY Additional offset for the Y position where to draw the layer.
+    virtual void ResetTransform(LayerTransform transform);
+    virtual void DoTransform(LayerTransform transform);
+    virtual LayerTransform GetTransform(void);
     virtual void Draw(void);
 protected:
-    u32 _height, //!< Height of the GuiLayer.
-      _width; //!< Width of the GuiLayer.
+    // Transformation
+    LayerTransform _transform;
+    // Positioning
+    u32 _height, _width;
+    f32 _x, _y;
+    // Transparency
     u8 _alpha, _alphaoff;
-    f32 _rotation, _rotoff;
-    f32 _x, _y, _xoff, _yoff;
+    // Zoom + Rotation
+    f32 _stretchWidth, _stretchHeight;
+    f32 _refPixelX, _refPixelY, _refWidth, _refHeight;
+    f32 _rotation;
 private:
     static CMutex _mutex;
     static u32 _highest_id;

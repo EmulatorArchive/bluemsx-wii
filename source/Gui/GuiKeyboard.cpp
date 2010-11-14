@@ -177,7 +177,6 @@ void GuiKeyboard::Render(void)
             // update hover sprite
             spr_hover->SetStretchWidth(((float)key->sx / 4) * xscale);
             spr_hover->SetStretchHeight(((float)key->sy / 4) * yscale);
-            spr_hover->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
             spr_hover->SetRefPixelPosition(0,0);
             spr_hover->SetPosition(xscale * key->x + xpos, yscale * key->y + ypos);
             spr_hover->SetTransparency(128);
@@ -215,7 +214,6 @@ void GuiKeyboard::Render(void)
         if( spr ) {
             spr->SetStretchWidth(((float)key->sx / 4) * xscale);
             spr->SetStretchHeight(((float)key->sy / 4) * yscale);
-            spr->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
             spr->SetRefPixelPosition(0,0);
             spr->SetPosition(xscale * key->x + xpos, yscale * key->y + ypos);
             spr->SetTransparency(128);
@@ -239,7 +237,6 @@ void GuiKeyboard::Show(void)
     spr_image->SetImage(g_imgKeyboard);
     spr_image->SetStretchWidth(xscale);
     spr_image->SetStretchHeight(yscale);
-    spr_image->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     spr_image->SetRefPixelPosition(0,0);
     spr_image->SetPosition(xpos, ypos);
     spr_image->SetTransparency(256-32);
@@ -354,7 +351,6 @@ GuiKeyboard::GuiKeyboard(GuiRootContainer *man, GuiContainer *cntr)
     spr_cursor = new GuiSprite;
     container->RegisterForDelete(spr_cursor);
     spr_cursor->SetImage(g_imgMousecursor);
-    spr_cursor->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     spr_cursor->SetRefPixelPosition(11, 4);
     spr_cursor->SetPosition(0, 0);
 

@@ -32,7 +32,6 @@ void GuiElmBackground::Show(GuiEffect *effect)
                                        (float)g_imgBackground->GetWidth());
         sprBackground->SetStretchHeight((float)GetHeight() /
                                         (float)g_imgBackground->GetHeight());
-        sprBackground->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprBackground->SetRefPixelPosition(0, 0);
         sprBackground->SetPosition(0, 0);
         RegisterForDelete(sprBackground);

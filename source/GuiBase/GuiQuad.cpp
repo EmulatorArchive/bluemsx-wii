@@ -73,6 +73,8 @@ void GuiQuad::SetBorderColor(GXColor borderColor){
 
 void GuiQuad::Draw(void)
 {
+    LayerTransform transform = GetTransform();
+
     // Do some checks if the quad should be drawn at all
     if(!_border && _fillC.a == 0)
         return;
@@ -85,9 +87,9 @@ void GuiQuad::Draw(void)
     // Use all the position data one can get
     Mtx model, tmp;
     guMtxIdentity(model);
-    guMtxRotDeg(tmp, 'z', _rotation/2);
+    guMtxRotDeg(tmp, 'z', transform.rotation/2);
     guMtxConcat(model, tmp, model);
-    guMtxTransApply(model, model, GetX()+width+_xoff,GetY()+height+_yoff, 0.0f);
+    guMtxTransApply(model, model, transform.offsetX+width, transform.offsetY+height, 0.0f);
     guMtxConcat(model, tmp, model);
     GX_LoadPosMtxImm(model, GX_PNMTX0);
 

@@ -3,12 +3,14 @@
 
 #include "GameWindow.h"
 #include "GuiContainer.h"
+#include "Mutex.h"
 
 #define GUI_MAX_LAYERS 1000
 
 extern GameWindow *g_poGwd;
 
 class GuiRootContainer;
+
 typedef void (*GUIFUNC_MAIN)(GuiRootContainer *);
 
 class GuiRootContainer : public GuiContainer {
@@ -20,6 +22,8 @@ public:
 
     void Run(void);
     GameWindow *GetGameWindow(void) { return &gwd; };
+    void Lock(void);
+    void Unlock(void);
     void SetMode(GW_VIDEO_MODE mode);
     GW_VIDEO_MODE GetMode(void);
     u32 GetWidth(void);
@@ -31,6 +35,7 @@ protected:
     bool DrawFunc();
 
 private:
+    CMutex mutex;
     bool stop_requested;
 };
 

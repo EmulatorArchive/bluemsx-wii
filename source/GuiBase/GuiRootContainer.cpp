@@ -19,6 +19,7 @@ GuiRootContainer::GuiRootContainer()
 GuiRootContainer::~GuiRootContainer()
 {
     gwd.StopVideo();
+    _root = NULL;
 }
 
 /*---------------------*/
@@ -30,6 +31,12 @@ bool GuiRootContainer::DrawFuncWrapper(void *context)
 
 bool GuiRootContainer::DrawFunc()
 {
+    LayerTransform transform;
+    transform.offsetX = transform.offsetY = 0.0f;
+    transform.stretchWidth = transform.stretchHeight = 1.0f;
+    transform.rotation = 0.0f;
+    transform.alpha = 255;
+    ResetTransform(transform);
     // Draw layers
     Draw();
 
@@ -54,6 +61,16 @@ void GuiRootContainer::Run(void)
 }
 
 /*---------------------*/
+
+void GuiRootContainer::Lock(void)
+{
+    mutex.Lock();
+}
+
+void GuiRootContainer::Unlock(void)
+{
+    mutex.Unlock();
+}
 
 GW_VIDEO_MODE GuiRootContainer::GetMode(void)
 {
