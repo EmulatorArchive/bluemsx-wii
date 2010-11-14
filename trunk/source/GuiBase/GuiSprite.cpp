@@ -15,9 +15,9 @@
 
 
 GuiSprite::GuiSprite(GuiImage* image, int x, int y) : GuiLayer(),
-    _stretchWidth(1.0f), _stretchHeight(1.0f), _image(NULL), _draw_image(NULL), _image_owner(false),
-    _trans(TRANS_NONE), _colRect(NULL), _frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0),
-    _frameSeqPos(0), _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0), _positioning(REFPIXEL_POS_TOPLEFT)
+    _image(NULL), _draw_image(NULL), _image_owner(false),
+    _colRect(NULL), _frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0),
+    _frameSeqPos(0)
 {
 #ifndef WII
     spr = NULL;
@@ -117,8 +117,6 @@ void GuiSprite::SetImage(GuiImage* image, DrawableImage* drawimage, u32 frameWid
     _refPixelX = (f32)_width/2; _refPixelY = (f32)_height/2;
     _refWidth = _refPixelX; _refHeight = _refPixelY;
     SetRefPixelPosition(0,0);
-    // But draws based on topleft coordinate.
-    _positioning = REFPIXEL_POS_TOPLEFT;
 
     _image = image;
     _draw_image = drawimage;
@@ -227,64 +225,6 @@ void GuiSprite::FlushBuffer(void)
     _draw_image->FlushBuffer();
 }
 
-void GuiSprite::SetTransform(u8 transform){
-    _trans = transform;
-}
-u8 GuiSprite::GetTransform() const{
-    return _trans;
-}
-
-void GuiSprite::SetZoom(f32 zoom){
-    if(zoom < 0)return;
-    _stretchWidth = zoom;
-    _stretchHeight = zoom;
-}
-f32 GuiSprite::GetZoom() const{
-    if(_stretchWidth != _stretchHeight)return 0;
-    return _stretchWidth;
-}
-void GuiSprite::SetStretchWidth(f32 stretchWidth){
-    if(stretchWidth < 0)return;
-    _stretchWidth = stretchWidth;
-}
-void GuiSprite::SetStretchHeight(f32 stretchHeight){
-    if(stretchHeight < 0)return;
-    _stretchHeight = stretchHeight;
-}
-f32 GuiSprite::GetStretchWidth() const{
-    return _stretchWidth;
-}
-f32 GuiSprite::GetStretchHeight() const{
-    return _stretchHeight;
-}
-
-void GuiSprite::SetRefPixelPosition(f32 x, f32 y){
-    _refPixelX = x;
-    _refWidth = (f32)_width-x;
-    _refPixelY = y;
-    _refHeight = (f32)_height-y;
-}
-void GuiSprite::SetRefPixelX(f32 x){
-    _refPixelX = x;
-    _refWidth = (f32)_width-x;
-}
-void GuiSprite::SetRefPixelY(f32 y){
-    _refPixelY = y;
-    _refHeight = (f32)_height-y;
-}
-f32 GuiSprite::GetRefPixelX() const{
-    return _refPixelX;
-}
-f32 GuiSprite::GetRefPixelY() const{
-    return _refPixelY;
-}
-void GuiSprite::SetRefPixelPositioning(REFPIXEL_POSITIONING positioning){
-    _positioning = positioning;
-}
-REFPIXEL_POSITIONING GuiSprite::GetRefPixelPositioning() const{
-    return _positioning;
-}
-
 void GuiSprite::DefineCollisionRectangle(f32 x, f32 y, f32 width, f32 height){
     _colRect->x = x;
     _colRect->y = y;
@@ -295,24 +235,35 @@ const Rect* GuiSprite::GetCollisionRectangle() const{
     return _colRect;
 }
 
-bool GuiSprite::CollidesWith(const Rect* rect, f32 x, f32 y) const{
+bool GuiSprite::CollidesWith(const Rect* rect, f32 x, f32 y)
+{
+    LayerTransform transform = GetTransform();
+
     if(rect == NULL)return false;
 
     // Check if the rectangle is not in the other rectangle
-    if(_colRect->y+GetYabs()+_colRect->height <= rect->y+y ||
-        _colRect->y+GetYabs() >= rect->y+y+rect->height ||
-        _colRect->x+GetXabs()+_colRect->width <= rect->x+x ||
-        _colRect->x+GetXabs() >= rect->x+x+rect->width)
-            return false;
+    if(_colRect->y + transform.offsetY + _colRect->height <= rect->y + y ||
+        _colRect->y + transform.offsetY >= rect->y + y + rect->height ||
+        _colRect->x + transform.offsetX +_colRect->width <= rect->x + x ||
+        _colRect->x + transform.offsetX >= rect->x + x + rect->width)
+    {
+        return false;
+    }
 
     return true;
 }
-bool GuiSprite::CollidesWith(const GuiSprite* sprite, bool complete) const{
+
+bool GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
+{
     if(sprite == NULL)return false;
+
+    LayerTransform me = GetTransform();
+    LayerTransform spr = sprite->GetTransform();
+
     if(!complete){
         // Some simple collision detecting with the base collision rectangle.
         const Rect* collision = sprite->GetCollisionRectangle();
-        return CollidesWith(collision, sprite->GetXabs(), sprite->GetYabs());
+        return CollidesWith(collision, spr.offsetX, spr.offsetY);
     }
 
     // Advanced rectangle collision detecting with zoom and rectangle.
@@ -320,8 +271,8 @@ bool GuiSprite::CollidesWith(const GuiSprite* sprite, bool complete) const{
     // to get it working properly with libwiisprite.
 
     // Rotation is angle/2
-    f32 angle1 = (f32)GetRotation()*M_PI/90,
-        angle2 = (f32)sprite->GetRotation()*M_PI/90;
+    f32 angle1 = (f32)me.rotation*M_PI/90,
+        angle2 = (f32)spr.rotation*M_PI/90;
 
     Rect rect[4]; // Points which help calculate this stuff.
 
@@ -331,20 +282,18 @@ bool GuiSprite::CollidesWith(const GuiSprite* sprite, bool complete) const{
         vertical1, vertical2; // Min/max vertical values
 
     // Init data
-    rect[0].x = (f32)(sprite->GetXabs()+(f32)(sprite->GetWidth()/2));
-    rect[0].y = (f32)(sprite->GetYabs()+(f32)(sprite->GetHeight()/2));
-    rect[1].x = (f32)(GetXabs()+(f32)((GetWidth()/2)));
-    rect[1].y = (f32)(GetYabs()+(f32)((GetHeight()/2)));
-    if(_positioning == REFPIXEL_POS_PIXEL){
-        rect[0].x -= sprite->GetRefPixelX();
-        rect[0].y -= sprite->GetRefPixelY();
-        rect[1].x -= GetRefPixelX();
-        rect[1].x -= GetRefPixelY();
-    }
-    rect[0].width = (f32)(GetWidth()/2)*GetStretchWidth();
-    rect[0].height = (f32)(GetHeight()/2)*GetStretchHeight();
-    rect[1].width = (f32)(sprite->GetWidth()/2)*sprite->GetStretchWidth();
-    rect[1].height = (f32)(sprite->GetHeight()/2)*sprite->GetStretchHeight();
+    rect[0].x = (f32)(spr.offsetX+(f32)(sprite->GetWidth()/2));
+    rect[0].y = (f32)(spr.offsetY+(f32)(sprite->GetHeight()/2));
+    rect[1].x = (f32)(me.offsetX+(f32)((GetWidth()/2)));
+    rect[1].y = (f32)(me.offsetY+(f32)((GetHeight()/2)));
+    rect[0].x -= sprite->GetRefPixelX();
+    rect[0].y -= sprite->GetRefPixelY();
+    rect[1].x -= GetRefPixelX();
+    rect[1].x -= GetRefPixelY();
+    rect[0].width = (f32)(GetWidth()/2)*me.stretchWidth;
+    rect[0].height = (f32)(GetHeight()/2)*me.stretchHeight;
+    rect[1].width = (f32)(sprite->GetWidth()/2)*spr.stretchWidth;
+    rect[1].height = (f32)(sprite->GetHeight()/2)*spr.stretchHeight;
 
     // Move the sprite by the other sprites values
     rect[0].x -= rect[1].x; rect[0].y -= rect[1].y;
@@ -424,17 +373,20 @@ bool GuiSprite::CollidesWith(const GuiSprite* sprite, bool complete) const{
         (vertical1 > rect[2].y && vertical2 > rect[2].y));
 }
 
-bool GuiSprite::CollidesWith(const GuiTiles* tiledlayer) const{
+bool GuiSprite::CollidesWith(GuiTiles* tiledlayer)
+{
+    LayerTransform transform = GetTransform();
+
     if(tiledlayer == NULL ||
-        _colRect->x+GetXabs() < 0 || _colRect->y+GetYabs() < 0 ||
+        _colRect->x + transform.offsetX < 0 || _colRect->y + transform.offsetY < 0 ||
         tiledlayer->GetCellWidth() == 0 || tiledlayer->GetCellHeight() == 0)return false;
 
     // Get on which tiles the sprite is drawn
     Rect rect;
-    rect.x = (s32)((_colRect->x+GetXabs())/tiledlayer->GetCellWidth());
-    rect.y = (s32)((_colRect->y+GetYabs())/tiledlayer->GetCellHeight());
-    rect.width = (u32)((_colRect->x+GetXabs()+_colRect->width)/tiledlayer->GetCellWidth());
-    rect.height = (u32)((_colRect->y+GetYabs()+_colRect->height)/tiledlayer->GetCellHeight());
+    rect.x = (s32)((_colRect->x + transform.offsetX)/tiledlayer->GetCellWidth());
+    rect.y = (s32)((_colRect->y + transform.offsetY)/tiledlayer->GetCellHeight());
+    rect.width = (u32)((_colRect->x + transform.offsetX + _colRect->width)/tiledlayer->GetCellWidth());
+    rect.height = (u32)((_colRect->y + transform.offsetY + _colRect->height)/tiledlayer->GetCellHeight());
 
     for(s32 y = rect.y; y < rect.height+1; y++){
         for(s32 x = rect.x; x < rect.width+1; x++){
@@ -509,93 +461,53 @@ void GuiSprite::SetFrameSequence(u32* sequence, u32 length){
 
 void GuiSprite::Draw(void)
 {
-    f32 absX = GetXabs();
-    f32 absY = GetYabs();
-    f32 rotation = GetRotationAbs();
-    u8 alpha = GetTransparencyAbs();
+    LayerTransform transform = GetTransform();
 
     if(_image == NULL ||
-        IsVisible() == false || alpha == 0x00 || _stretchWidth == 0 || _stretchHeight == 0 ||
+        IsVisible() == false || transform.alpha == 0x00 ||
+        transform.stretchWidth == 0 || transform.stretchHeight == 0 ||
         _width == 0 || _height == 0)return;
 
 #ifdef WII
-    // Turn on additive blending.
-    if(_trans & TRANS_ADDITIVE_BLENDING)
-        GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);
-
     // Use the sprites texture
-    _image->BindTexture((_trans & TRANS_BILINEAR_OFF)?false:true);
+    _image->BindTexture(true);
 
     // Draw the GuiSprite Quad with transformations
     Mtx model, tmp;
     guMtxIdentity(model);
-    guMtxRotDeg(tmp, 'z', rotation/2);
+    guMtxRotDeg(tmp, 'z', transform.rotation/2);
     guMtxConcat(model, tmp, model);
-    if(_positioning == REFPIXEL_POS_PIXEL){
-        guMtxTransApply(model, model, absX, absY, 0.0f);
-    }else{ // REFPIXEL_POS_TOPLEFT
-        guMtxTransApply(model, model, absX+_refPixelX, absY+_refPixelY, 0.0f);
-    }
+    guMtxTransApply(model, model, transform.offsetX, transform.offsetY, 0.0f);
     guMtxConcat(model, tmp, model);
     GX_LoadPosMtxImm(model, GX_PNMTX0);
 
     // Now we apply zooming
-    f32 refPixelX = _refPixelX * _stretchWidth,
-        refPixelY = _refPixelY * _stretchHeight,
-        refWidth = _refWidth * _stretchWidth,
-        refHeight = _refHeight * _stretchHeight;
-
-    // Mirrored texture
-    if(_trans & TRANS_MIRROR){
-        GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-            GX_Position2f32(-refPixelX, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[2], _txCoords[1]);
-            GX_Position2f32(refWidth, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[0], _txCoords[1]);
-            GX_Position2f32(refWidth, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[0], _txCoords[3]);
-            GX_Position2f32(-refPixelX, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[2], _txCoords[3]);
-        GX_End();
+    f32 refPixelX = _refPixelX * transform.stretchWidth,
+        refPixelY = _refPixelY * transform.stretchHeight,
+        refWidth = _refWidth * transform.stretchWidth,
+        refHeight = _refHeight * transform.stretchHeight;
 
     // Normal texture
-    }else{
-        GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-            GX_Position2f32(-refPixelX, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[0], _txCoords[1]);
-            GX_Position2f32(refWidth, -refPixelY);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[2], _txCoords[1]);
-            GX_Position2f32(refWidth, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[2], _txCoords[3]);
-            GX_Position2f32(-refPixelX, refHeight);
-            GX_Color4u8(0xff,0xff,0xff, alpha);
-            GX_TexCoord2f32(_txCoords[0], _txCoords[3]);
-        GX_End();
-    }
+    GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
+        GX_Position2f32(-refPixelX, -refPixelY);
+        GX_Color4u8(0xff,0xff,0xff, transform.alpha);
+        GX_TexCoord2f32(_txCoords[0], _txCoords[1]);
+        GX_Position2f32(refWidth, -refPixelY);
+        GX_Color4u8(0xff,0xff,0xff, transform.alpha);
+        GX_TexCoord2f32(_txCoords[2], _txCoords[1]);
+        GX_Position2f32(refWidth, refHeight);
+        GX_Color4u8(0xff,0xff,0xff, transform.alpha);
+        GX_TexCoord2f32(_txCoords[2], _txCoords[3]);
+        GX_Position2f32(-refPixelX, refHeight);
+        GX_Color4u8(0xff,0xff,0xff, transform.alpha);
+        GX_TexCoord2f32(_txCoords[0], _txCoords[3]);
+    GX_End();
 
-    // Turn additive blending off again.
-    if(_trans & TRANS_ADDITIVE_BLENDING)
-        GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
 #else
-    spr->SetColor(((u32)alpha << 24) + 0xffffff);
-    if( _positioning == REFPIXEL_POS_PIXEL ) {
-        absX -= _refPixelX * _stretchWidth;
-        absY -= _refPixelY * _stretchHeight;
-    }else{
-        absX *= _stretchWidth;
-        absY *= _stretchHeight;
-    }
+    spr->SetColor(((u32)transform.alpha << 24) + 0xffffff);
     spr->SetHotSpot(_refPixelX, _refPixelY);
-    absX += _refPixelX * _stretchWidth;
-    absY += _refPixelY * _stretchHeight;
-    spr->RenderEx(absX, absY+20, (rotation / 180.0f) * M_PI, _stretchWidth, _stretchHeight);
+    spr->RenderEx(transform.offsetX, transform.offsetY+20, (transform.rotation / 180.0f) * M_PI,
+                  transform.stretchWidth, transform.stretchHeight);
 #endif
 }
 

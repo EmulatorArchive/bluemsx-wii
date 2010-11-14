@@ -121,7 +121,6 @@ void GuiDlgStateSelect::UpdateScreenShot(char *file)
         }
         sprScreenShot->SetPosition(posx+sizex-283-SSEL_X_SPACING-2*SSEL_MENU_SPACING,
                                    posy+sizey/2-106);
-        sprScreenShot->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprScreenShot->SetRefPixelPosition(0, 0);
         sprScreenShot->SetStretchWidth(283.0f/sprScreenShot->GetWidth());
         sprScreenShot->SetStretchHeight(212.0f/sprScreenShot->GetHeight());

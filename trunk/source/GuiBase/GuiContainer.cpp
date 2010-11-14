@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "GuiEffect.h"
 #include "GuiRootContainer.h"
@@ -95,12 +96,16 @@ GuiContainer::~GuiContainer()
 
 void GuiContainer::Lock(void)
 {
-    mutex.Lock();
+    if( _root != NULL ) {
+        _root->Lock();
+    }
 }
 
 void GuiContainer::Unlock(void)
 {
-    mutex.Unlock();
+    if( _root != NULL ) {
+        _root->Unlock();
+    }
 }
 
 GuiRootContainer* GuiContainer::GetRootContainer(void)
@@ -229,20 +234,6 @@ GuiLayer* GuiContainer::LayerGetLayerAt(u32 index) const
 u32 GuiContainer::LayerGetSize() const
 {
     return _size;
-}
-
-void GuiContainer::LayerDraw(f32 offsetX, f32 offsetY, f32 rot, u8 alpha)
-{
-    // Do the layers!
-    Lock();
-    for(u32 i = _size; i > 0; i--){
-        if(i == 0) break;
-        if(_layers[i-1]) {
-            _layers[i-1]->SetTransform(offsetX, offsetY, rot, alpha);
-            _layers[i-1]->Draw();
-        }
-    }
-    Unlock();
 }
 
 //--------------------------------------------------------------------------
@@ -658,10 +649,7 @@ bool GuiContainer::IsBusy(void)
 
 void GuiContainer::Draw(void)
 {
-    f32 absX = GetXabs();
-    f32 absY = GetYabs();
-    f32 rotation = GetRotationAbs();
-    u8 alpha = GetTransparencyAbs();
+    LayerTransform transform = GetTransform();
 
     // Call ALL registered render callbacks
     GuiContainerCallback *p = render_callback;
@@ -682,6 +670,17 @@ void GuiContainer::Draw(void)
     }
 
     Lock();
+
+    // Reset transformation of layers
+    for(u32 i = _size; i > 0; i--){
+        GuiLayer *lay = _layers[i-1];
+        if( lay != NULL ) {
+            LayerTransform t = transform;
+            t.offsetX += (lay->GetX() - _refPixelX) * transform.stretchWidth + _refPixelX - lay->GetX();
+            t.offsetY += (lay->GetY() - _refPixelY) * transform.stretchHeight + _refPixelY - lay->GetY();
+            lay->ResetTransform(t);
+        }
+    }
 
     // Handle effects
     for(int i = 0; i < MAX_LAYERS; i++) {
@@ -713,16 +712,13 @@ void GuiContainer::Draw(void)
         }
     }
 
-    // Clip drawing
-    int cx = (int)GetXabs(), cy = (int)GetYabs();
-    int cw = (int)GetWidth(), ch = (int)GetHeight();
-    GameWindow::SetGetClipping(&cx, &cy, &cw, &ch);
-
     // Draw layers
-    LayerDraw(absX, absY, rotation, alpha);
-
-    // Restore clipping
-    GameWindow::SetGetClipping(&cx, &cy, &cw, &ch);
+    for(u32 i = _size; i > 0; i--){
+        GuiLayer *lay = _layers[i-1];
+        if( lay != NULL ) {
+            lay->Draw();
+        }
+    }
 
     Unlock();
 }

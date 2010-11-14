@@ -52,7 +52,6 @@ public:
     int LayerGetIndex(GuiLayer* layer);
     GuiLayer* LayerGetLayerAt(u32 index) const;
     u32 LayerGetSize() const;
-    void LayerDraw(f32 offsetX, f32 offsetY, f32 rot, u8 alpha);
 
     // Render/Frame callbacks
     void AddRenderCallback(bool (*callback)(void*), void *context);
@@ -99,7 +98,6 @@ private:
     u32 _size, _boundary;
 
     GuiContainer *_parent;
-    CMutex mutex;
     GuiImage* pointer_image;
     bool stop_requested;
     u32 fixed_layers;

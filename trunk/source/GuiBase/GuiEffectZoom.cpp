@@ -1,34 +1,39 @@
 
 #include <assert.h>
-#include "GuiEffectFade.h"
+#include <math.h>
+#include "GuiEffectZoom.h"
 #include "GuiLayer.h"
 
-GuiEffectFade::GuiEffectFade(int fade_frames, int delay)
+GuiEffectZoom::GuiEffectZoom(int fade_frames, int delay)
 {
     m_iFrames = fade_frames;
     m_iDelay = delay;
 }
 
-GuiEffectFade::~GuiEffectFade()
+GuiEffectZoom::~GuiEffectZoom()
 {
 }
 
-void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to)
+void GuiEffectZoom::Initialize(GuiLayer *from, GuiLayer *to)
 {
     assert( from || to );
     if( from ) {
         m_poLayer = from;
+        m_fStartZoom = 1.0f;
+        m_fEndZoom = 0.0f;
         m_iStartAlpha = 255;
         m_iEndAlpha = 0;
     }else{
         m_poLayer = to;
+        m_fStartZoom = 0.0f;
+        m_fEndZoom = 1.0f;
         m_iStartAlpha = 0;
         m_iEndAlpha = 255;
     }
     m_oTransform.offsetX = m_oTransform.offsetY = 0;
-    m_oTransform.stretchWidth = m_oTransform.stretchHeight = 1.0f;
     m_oTransform.rotation = 0.0f;
-    m_oTransform.alpha = m_iStartAlpha;
+    m_oTransform.alpha = 255;
+    m_oTransform.stretchWidth = m_oTransform.stretchHeight = m_fStartZoom;
     m_iCount = 0;
     if( m_iFrames == 0 ) {
         m_iFrames++;
@@ -36,7 +41,7 @@ void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to)
     }
 }
 
-bool GuiEffectFade::Run(void)
+bool GuiEffectZoom::Run(void)
 {
     bool bDone = false;
     if( m_iDelay ) {
@@ -44,7 +49,9 @@ bool GuiEffectFade::Run(void)
         m_iDelay--;
     }else{
         // Do the effect
-        f32 factor = (f32)m_iCount / m_iFrames;
+        f32 factor = sin(((f32)m_iCount / m_iFrames) * GUI_PI_2);
+        m_oTransform.stretchHeight = ( (1.0f-factor) * m_fStartZoom + factor * m_fEndZoom );
+        m_oTransform.stretchWidth = m_oTransform.stretchHeight;
         m_oTransform.alpha = (u8)( (1.0f-factor) * m_iStartAlpha + factor * m_iEndAlpha );
         m_poLayer->DoTransform(m_oTransform);
         // Next step

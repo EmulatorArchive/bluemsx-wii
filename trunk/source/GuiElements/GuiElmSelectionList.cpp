@@ -285,7 +285,6 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         GuiSprite *selectedsprite = titleTxtSprite[selected];
         sprSelector = new GuiSprite;
         sprSelector->SetImage(g_imgSelector);
-        sprSelector->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
         sprSelector->SetRefPixelPosition(0, 0);
         sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/3);
         sprSelector->SetStretchWidth((float)xsize / 4);
@@ -340,7 +339,6 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     // Arrows
     sprArrowUp = new GuiSprite;
     sprArrowUp->SetImage(g_imgArrow);
-    sprArrowUp->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
     sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2+fontsize/3);
     sprArrowUp->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
@@ -351,7 +349,6 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
 
     sprArrowDown = new GuiSprite;
     sprArrowDown->SetImage(g_imgArrow);
-    sprArrowDown->SetRefPixelPositioning(REFPIXEL_POS_PIXEL);
     sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
     sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2+fontsize/3);
     sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());

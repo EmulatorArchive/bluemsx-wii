@@ -1,15 +1,18 @@
 
 #include "GuiLayer.h"
+#include <math.h>
 
 u32 GuiLayer::_highest_id = 0;
 CMutex GuiLayer::_mutex;
 
 GuiLayer::GuiLayer() :
-    _rotation(0.0f), _rotoff(0.0f),
+    _rotation(0.0f),
     _height(0), _width(0),
-    _alpha(0xff), _alphaoff(0xff),
-    _x(0), _y(0), _xoff(0), _yoff(0),
-    _visible(true)
+    _alpha(0xff),
+    _x(0), _y(0),
+    _visible(true),
+    _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0),
+    _stretchWidth(1.0f), _stretchHeight(1.0f)
 {
     _mutex.Lock();
     _id = ++_highest_id;
@@ -33,14 +36,8 @@ u32 GuiLayer::GetWidth() const{
 f32 GuiLayer::GetX() const{
     return _x;
 }
-f32 GuiLayer::GetXabs() const{
-    return _x+_xoff;
-}
 f32 GuiLayer::GetY() const{
     return _y;
-}
-f32 GuiLayer::GetYabs() const{
-    return _y+_yoff;
 }
 
 bool GuiLayer::IsVisible() const{
@@ -56,8 +53,50 @@ void GuiLayer::SetTransparency(u8 alpha){
 u8 GuiLayer::GetTransparency() const{
     return _alpha;
 }
-u8 GuiLayer::GetTransparencyAbs() const{
-    return (u8)(((u16)_alpha * _alphaoff) / 255);
+
+void GuiLayer::SetZoom(f32 zoom){
+    if(zoom < 0)return;
+    _stretchWidth = zoom;
+    _stretchHeight = zoom;
+}
+f32 GuiLayer::GetZoom() const{
+    if(_stretchWidth != _stretchHeight)return 0;
+    return _stretchWidth;
+}
+void GuiLayer::SetStretchWidth(f32 stretchWidth){
+    if(stretchWidth < 0)return;
+    _stretchWidth = stretchWidth;
+}
+void GuiLayer::SetStretchHeight(f32 stretchHeight){
+    if(stretchHeight < 0)return;
+    _stretchHeight = stretchHeight;
+}
+f32 GuiLayer::GetStretchWidth() const{
+    return _stretchWidth;
+}
+f32 GuiLayer::GetStretchHeight() const{
+    return _stretchHeight;
+}
+
+void GuiLayer::SetRefPixelPosition(f32 x, f32 y){
+    _refPixelX = x;
+    _refWidth = (f32)_width-x;
+    _refPixelY = y;
+    _refHeight = (f32)_height-y;
+}
+void GuiLayer::SetRefPixelX(f32 x){
+    _refPixelX = x;
+    _refWidth = (f32)_width-x;
+}
+void GuiLayer::SetRefPixelY(f32 y){
+    _refPixelY = y;
+    _refHeight = (f32)_height-y;
+}
+f32 GuiLayer::GetRefPixelX() const{
+    return _refPixelX;
+}
+f32 GuiLayer::GetRefPixelY() const{
+    return _refPixelY;
 }
 
 void GuiLayer::SetRotation(f32 rotation){
@@ -65,11 +104,6 @@ void GuiLayer::SetRotation(f32 rotation){
 }
 f32 GuiLayer::GetRotation() const{
     return _rotation;
-}
-f32 GuiLayer::GetRotationAbs() const{
-    f32 rotation = _rotation + _rotoff;
-    if( rotation > 360.0f ) rotation -= 360.0f;
-    return rotation;
 }
 
 void GuiLayer::SetPosition(f32 x, f32 y){
@@ -103,15 +137,34 @@ void GuiLayer::SetY(u32 y){
     SetY((f32)y);
 }
 
-void GuiLayer::SetTransform(f32 offsetX, f32 offsetY, f32 rot, u8 alpha){
-    _xoff = offsetX;
-    _yoff = offsetY;
-    _rotoff = rot;
-    _alphaoff = alpha;
-}
-
 bool GuiLayer::IsBusy(void){
     return false;
+}
+
+void GuiLayer::ResetTransform(LayerTransform transform)
+{
+    _transform.offsetX = _x;
+    _transform.offsetY = _y;
+    _transform.stretchWidth = _stretchWidth;
+    _transform.stretchHeight = _stretchHeight;
+    _transform.rotation = _rotation;
+    _transform.alpha = _alpha;
+    DoTransform(transform);
+}
+
+void GuiLayer::DoTransform(LayerTransform transform)
+{
+    _transform.offsetX += transform.offsetX;
+    _transform.offsetY += transform.offsetY;
+    _transform.stretchWidth *= transform.stretchWidth;
+    _transform.stretchHeight *= transform.stretchHeight;
+    _transform.rotation = fmod(_transform.rotation + transform.rotation, 360.0f);
+    _transform.alpha = (u8)((_transform.alpha * (u16)transform.alpha) / 255);
+}
+
+LayerTransform GuiLayer::GetTransform(void)
+{
+    return _transform;
 }
 
 void GuiLayer::Draw(void){
