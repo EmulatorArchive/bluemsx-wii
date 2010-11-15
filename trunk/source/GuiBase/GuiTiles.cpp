@@ -155,15 +155,23 @@ void GuiTiles::Draw(void)
             // Get frame position
             f32 frameX = (data%(_image->GetWidth()/_tileWidth))*_tileWidth,
                 frameY = (data/(_image->GetWidth()/_tileWidth))*_tileHeight;
-
+            // Calculate destination position
+            f32 posx = (f32)x * _tileWidth;
+            f32 posy = (f32)y * _tileHeight;
+            f32 dx = posx - _refPixelX;
+            f32 dy = posy - _refPixelY;
+            f32 r = sqrt(dx*dx+dy*dy);
+            f32 a = atan2(dy,dx);
+            a = fmod(a + (transform.rotation * GUI_2PI / 360.0f), GUI_2PI);
+            posx = transform.offsetX + transform.stretchWidth * (_refPixelX + r * cos(a));
+            posy = transform.offsetY + transform.stretchHeight * (_refPixelY + r * sin(a));
 #ifdef WII
             // Init position
             Mtx model, tmp;
             guMtxIdentity(model);
-            guMtxRotDeg(tmp, 'z', 0.0f);
+            guMtxRotDeg(tmp, 'z', transform.rotation/2);
             guMtxConcat(model, tmp, model);
-            guMtxTransApply(model, model, transform.offsetX+x*_tileWidth*transform.stretchWidth,
-                                          transform.offsetY+y*_tileHeight*transform.stretchHeight, 0.0f);
+            guMtxTransApply(model, model, posx, posy, 0.0f);
             guMtxConcat(model, tmp, model);
             GX_LoadPosMtxImm(model, GX_PNMTX0);
 
@@ -193,9 +201,8 @@ void GuiTiles::Draw(void)
 #else
             // Draw the texture on the quad
             spr->SetTextureRect(frameX, frameY, _tileWidth, _tileHeight);
-            spr->RenderEx(transform.offsetX + ((f32)x * _tileWidth * transform.stretchWidth),
-                          transform.offsetY + ((f32)y * _tileHeight * transform.stretchHeight) + 20,
-                          0, transform.stretchWidth, transform.stretchHeight);
+            spr->RenderEx(posx, posy + 20, (transform.rotation / 180.0f) * M_PI,
+                          transform.stretchWidth, transform.stretchHeight);
 #endif
         }
     }

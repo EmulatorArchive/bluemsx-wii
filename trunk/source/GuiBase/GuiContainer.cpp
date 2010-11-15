@@ -676,8 +676,24 @@ void GuiContainer::Draw(void)
         GuiLayer *lay = _layers[i-1];
         if( lay != NULL ) {
             LayerTransform t = transform;
-            t.offsetX += (lay->GetX() - _refPixelX) * transform.stretchWidth + _refPixelX - lay->GetX();
-            t.offsetY += (lay->GetY() - _refPixelY) * transform.stretchHeight + _refPixelY - lay->GetY();
+            f32 posx = lay->GetX();
+            f32 posy = lay->GetY();
+            // Rotation transformation
+            if( transform.rotation != 0.0f ) {
+                f32 dx = lay->GetX() + lay->GetRefPixelX() - _refPixelX;
+                f32 dy = lay->GetY() + lay->GetRefPixelY() - _refPixelY;
+                f32 r = sqrt(dx*dx+dy*dy);
+                f32 a = atan2(dy,dx);
+                a = fmod(a + (transform.rotation * GUI_2PI / 360.0f), GUI_2PI);
+                posx += cos(a) * r - dx;
+                posy += sin(a) * r - dy;
+            }
+            // Zoom transformation
+            posx = (posx - _refPixelX) * transform.stretchWidth + _refPixelX;
+            posy = (posy - _refPixelY) * transform.stretchHeight + _refPixelY;
+            // Apply
+            t.offsetX += posx - lay->GetX();
+            t.offsetY += posy - lay->GetY();
             lay->ResetTransform(t);
         }
     }
