@@ -40,6 +40,7 @@
 
 #include "../GuiBase/GuiEffectFade.h"
 #include "../GuiBase/GuiEffectZoom.h"
+#include "../GuiBase/GuiEffectRotate.h"
 #include "../GuiLayers/GuiLayFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiDialogs/GuiDlgDirSelect.h"
@@ -609,12 +610,12 @@ void GuiMain::Main(void)
         // Please wait...
         GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(this);
         RegisterForDelete(msgbox);
-        msgbox->Create(MSGT_TEXT, NULL, 128, "please wait...");
-        AddTop(msgbox, new GuiEffectZoom(10));
+        msgbox->Create(MSGT_TEXT, g_imgFloppyDisk, 128, "Please wait...");
+        AddTop(msgbox, new GuiEffectRotate(100, 0, 0.5f));
         // Init blueMSX emulator
         blueMsxInit(1);
 
-        RemoveAndDelete(msgbox);
+        RemoveAndDelete(msgbox, new GuiEffectRotate(50, 0, 1.0f));
 
         char *game_dir = NULL;
         char sGamesPath[100];
