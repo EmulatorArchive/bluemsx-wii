@@ -483,9 +483,8 @@ void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bo
                 ((pe->active_layer[0] && pe->active_layer[0]->GetID() == layer->GetID()) ||
                  (pe->active_layer[1] && pe->active_layer[1]->GetID() == layer->GetID())) )
             {
-                // Finish the old effect
+                // Clear the old effect
                 if( pe->effect != NULL ) {
-                    while( !pe->effect->Run() );
                     delete pe->effect;
                     pe->effect = NULL;
                 }

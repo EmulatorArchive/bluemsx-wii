@@ -62,8 +62,6 @@ private:
     GuiSprite *sprSelector;
     GuiSprite *sprArrowUp;
     GuiSprite *sprArrowDown;
-
-    void RemoveTitleList(int fade = 0, int delay = 0);
 };
 
 #endif

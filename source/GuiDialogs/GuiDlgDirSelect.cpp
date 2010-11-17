@@ -9,7 +9,6 @@
 #endif
 
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiBase/GuiEffectZoom.h"
 #include "../GuiLayers/GuiLayFrame.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 #include "../GuiDialogs/GuiDlgMessageBox.h"
@@ -56,9 +55,10 @@ char *GuiDlgDirSelect::DoModal(void)
             }else{
                 if( dir_level == 0 ) {
                     // on root level, leave after confirmation
-                    bool ok = GuiDlgMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192, new GuiEffectZoom(10),
-                                                       new GuiEffectZoom(DIRSEL_FADE_FRAMES),
-                                                       "Do you want to quit?") == MSGBTN_YES;
+                    bool ok = GuiDlgMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192,
+                                                          new GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
+                                                          new GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
+                                                          "Do you want to quit?") == MSGBTN_YES;
                     if( ok ) {
                         quit = true;
                         break;
