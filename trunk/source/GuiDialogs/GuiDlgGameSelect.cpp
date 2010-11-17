@@ -12,13 +12,12 @@
 #include "../Gui/GameElement.h"
 #include "../Gui/GuiImages.h"
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiBase/GuiEffectZoom.h"
 #include "../GuiLayers/GuiLayFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiElements/GuiElmButton.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 
-#define GAMESEL_EFFECT_DEFAULT     new GuiEffectZoom(10)
+#define GAMESEL_EFFECT_DEFAULT     new GuiEffectFade(10, 0, true)
 #define GAMESEL_EFFECT_RESTART     new GuiEffectFade(30, 6)
 #define GAMESEL_EFFECT_SCREENSHOTS new GuiEffectFade(10, 8)
 

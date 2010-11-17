@@ -268,22 +268,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\GuiBase\GuiEffectRotate.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\GuiBase\GuiEffectRotate.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\GuiBase\GuiEffectZoom.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\GuiBase\GuiEffectZoom.h"
-					>
-				</File>
-				<File
 					RelativePath="..\source\GuiBase\GuiElement.cpp"
 					>
 				</File>
