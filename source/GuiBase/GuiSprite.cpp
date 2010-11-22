@@ -235,11 +235,13 @@ const Rect* GuiSprite::GetCollisionRectangle() const{
     return _colRect;
 }
 
-bool GuiSprite::CollidesWith(const Rect* rect, f32 x, f32 y)
+COLL GuiSprite::CollidesWith(const Rect* rect, f32 x, f32 y)
 {
     LayerTransform transform = GetTransform();
 
-    if(rect == NULL)return false;
+    if(rect == NULL) return COLL_NO_COLLISION;
+
+    if( !transform.valid ) return COLL_UNKNOWN;
 
     // Check if the rectangle is not in the other rectangle
     if(_colRect->y + transform.offsetY + _colRect->height <= rect->y + y ||
@@ -247,18 +249,20 @@ bool GuiSprite::CollidesWith(const Rect* rect, f32 x, f32 y)
         _colRect->x + transform.offsetX +_colRect->width <= rect->x + x ||
         _colRect->x + transform.offsetX >= rect->x + x + rect->width)
     {
-        return false;
+        return COLL_NO_COLLISION;
     }
 
-    return true;
+    return COLL_COLLISION;
 }
 
-bool GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
+COLL GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
 {
-    if(sprite == NULL)return false;
+    if(sprite == NULL)return COLL_NO_COLLISION;
 
     LayerTransform me = GetTransform();
     LayerTransform spr = sprite->GetTransform();
+
+    if( !me.valid || !spr.valid ) return COLL_UNKNOWN;
 
     if(!complete){
         // Some simple collision detecting with the base collision rectangle.
@@ -329,7 +333,7 @@ bool GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
     }
 
     // Check B if it is in the range that needs to be checked
-    if(rect[3].width > rect[2].x || rect[3].width > -rect[2].width)return false;
+    if(rect[3].width > rect[2].x || rect[3].width > -rect[2].width) return COLL_NO_COLLISION;
 
     // Check if they are aligned to the axis, checking is easier then
     if(temp == 0){
@@ -369,17 +373,19 @@ bool GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
     }
 
     //Check if this sprite is in the vertical range of the other. Returns either true or false.
-    return !((vertical1 < rect[2].height && vertical2 < rect[2].height) ||
-        (vertical1 > rect[2].y && vertical2 > rect[2].y));
+    return ((vertical1 < rect[2].height && vertical2 < rect[2].height) ||
+            (vertical1 > rect[2].y && vertical2 > rect[2].y))? COLL_NO_COLLISION : COLL_COLLISION;
 }
 
-bool GuiSprite::CollidesWith(GuiTiles* tiledlayer)
+COLL GuiSprite::CollidesWith(GuiTiles* tiledlayer)
 {
     LayerTransform transform = GetTransform();
 
+    if( !transform.valid ) return COLL_UNKNOWN;
+
     if(tiledlayer == NULL ||
         _colRect->x + transform.offsetX < 0 || _colRect->y + transform.offsetY < 0 ||
-        tiledlayer->GetCellWidth() == 0 || tiledlayer->GetCellHeight() == 0)return false;
+        tiledlayer->GetCellWidth() == 0 || tiledlayer->GetCellHeight() == 0) return COLL_NO_COLLISION;
 
     // Get on which tiles the sprite is drawn
     Rect rect;
@@ -394,11 +400,11 @@ bool GuiSprite::CollidesWith(GuiTiles* tiledlayer)
             s32 data = tiledlayer->GetCell(x, y);
             if(data < 0)data = tiledlayer->GetAnimatedTile(data);
             if(data != 0){
-                return true;
+                return COLL_COLLISION;
             }
         }
     }
-    return false;
+    return COLL_NO_COLLISION;
 }
 
 u32 GuiSprite::GetFrame() const{

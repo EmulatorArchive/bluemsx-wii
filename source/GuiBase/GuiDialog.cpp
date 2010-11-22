@@ -239,10 +239,10 @@ void GuiDialog::SetSelected(GuiElement *elm, int x, int y)
 {
     if( selected_element != elm ) {
         if( selected_element != NULL ) {
-            selected_element->ElmSetSelected(false, x, y);
+            selected_element->ElmSetSelected(false, cursor, x, y);
         }
         if( elm != NULL ) {
-            elm->ElmSetSelected(true, x, y);
+            elm->ElmSetSelected(true, cursor, x, y);
             last_selected = elm;
         }
         selected_element = elm;
@@ -409,36 +409,41 @@ bool GuiDialog::FrameCallbackWrapper(void *context)
 
 bool GuiDialog::FrameCallback(void)
 {
+    bool bSkipColDet = false;
+
     Lock();
     if( cursor == NULL ) {
         Unlock();
         return is_modal;
     }
 
-    cursor->SetVisible(false);
-    
     // Infrared
     int x, y, angle;
     if( g_poGwd->input.GetWiiMoteIR(&x, &y, &angle) ) {
         cursor->SetPosition((f32)x, (f32)y);
         cursor->SetRotation((f32)angle);
-        cursor->SetVisible(true);
+        if( !cursor->IsVisible() ) {
+            cursor->SetVisible(true);
+            bSkipColDet = true;
+        }
     }else{
         cursor->SetVisible(false);
         cursor->SetPosition(0, 0);
     }
     
-    // Check mouse cursor colisions
-    is_above = CheckCollision(cursor);
+    if( !bSkipColDet ) {
+        // Check mouse cursor colisions
+        is_above = CheckCollision(cursor);
     
-    // Check arrow keys
-    if( is_above != NULL || !use_keyboard ) {
-        SetSelected(is_above, x, y);
-        if( is_above != NULL ) {
-            use_keyboard = false;
+        // Check arrow keys
+        if( is_above != NULL || !use_keyboard ) {
+            if( is_above != NULL ) {
+                SetSelected(is_above, x, y);
+                use_keyboard = false;
+            }
         }
     }
-    
+
     OnUpdateScreen();
 
     Unlock();

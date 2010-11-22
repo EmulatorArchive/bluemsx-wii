@@ -97,7 +97,7 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
     }
 
     // When just gone back one level, find entry comming from
-    int sel = 0;
+    int sel = -1;
     if( prevsel ) {
         for( int i = 0; i < num_dirs; i++ ) {
             if( strcmp(prevsel, dirs.GetDir(i)->GetDirectory()) == 0 ) {
@@ -110,7 +110,6 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
     // Selection
     list->InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
                         320-180+8, 24+24, 24, 2*180-16, false);
-    SetSelected(list);
 
     return NULL;
 }

@@ -15,7 +15,6 @@ public:
     virtual bool Run(void);
 private:
     GuiLayer *m_poLayer;
-    LayerTransform m_oTransform;
     bool m_bFadeIn;
     bool m_bZoom;
     bool m_bMove;

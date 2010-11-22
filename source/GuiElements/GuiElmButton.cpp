@@ -31,16 +31,16 @@ GuiElmButton::~GuiElmButton()
 bool GuiElmButton::ElmSetSelectedOnCollision(GuiSprite *sprite)
 {
     if( shown && sprite != NULL && sprImage != NULL &&
-        sprite->CollidesWith(sprImage, true) )
+        sprite->CollidesWith(sprImage, true) == COLL_COLLISION )
     {
-        ElmSetSelected(true, 0, 0);
+        ElmSetSelected(true, NULL, 0, 0);
         return true;
     }else{
         return false;
     }
 }
 
-void GuiElmButton::ElmSetSelected(bool sel, int x, int y)
+void GuiElmButton::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
 {
     if( !shown ) {
         return;

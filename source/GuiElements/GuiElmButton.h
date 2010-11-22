@@ -17,7 +17,7 @@ public:
     virtual ~GuiElmButton();
 
     virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);
-    virtual void ElmSetSelected(bool sel, int x, int y);
+    virtual void ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y);
     virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
 
     void CreateImageSelectorButton(GuiImage *image, int f_sel=0);

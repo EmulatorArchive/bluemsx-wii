@@ -27,36 +27,58 @@
 
 bool GuiElmSelectionList::ElmSetSelectedOnCollision(GuiSprite *sprite)
 {
+    bool return_value = false;
     Lock();
     for(int i = upper_index; i <= lower_index; i++) {
-        if( strlen(visible_items[i]) &&
-            sprite->CollidesWith(titleTxtSprite[i]) ) {
-            if( i != selected ) {
-                selected = i;
-                SetSelectedItem();
+        if( strlen(visible_items[i]) ) {
+            COLL coll = sprite->CollidesWith(titleTxtSprite[i]);
+            if( coll == COLL_UNKNOWN ) {
+                Unlock();
+                return false;
             }
-            Unlock();
-            return true;
+            if( coll == COLL_COLLISION ) {
+                if( i != selected ) {
+                    selected = i;
+                }
+                return_value = true;
+                break;
+            }else{
+                if( i == 2 ) {
+                    i=2;
+                }
+            }
         }
     }
+    SetSelectedItem();
     Unlock();
-    return false;
+    return return_value;;
 }
 
-void GuiElmSelectionList::ElmSetSelected(bool sel, int x, int y)
+void GuiElmSelectionList::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
 {
     Lock();
     if( sel ) {
-        int s = upper_index;
+        int s = -1;
         for(int i = upper_index; i <= lower_index; i++) {
+            if( strlen(visible_items[i]) && pointer &&
+                pointer->CollidesWith(titleTxtSprite[i]) == COLL_COLLISION ) {
+                s = i;
+                break;
+            }
+        }
+        for(int i = upper_index; s < 0 && i <= lower_index; i++) {
             int yy = titleTxtSprite[i]->GetY() + titleTxtSprite[i]->GetHeight() / 2;
             if( yy > y ) {
                 break;
             }
             s = i;
         }
-        selected = s;
-        SetSelectedItem();
+        if( s < 0 ) {
+            s = upper_index;
+        }
+        if( s != selected ) {
+            selected = s;
+        }
     }else{
         // We're never deselected, just inactive
         is_active = false;
@@ -79,9 +101,6 @@ bool GuiElmSelectionList::ElmGetRegion(int *px, int *py, int *pw, int *ph)
 
 bool GuiElmSelectionList::ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed)
 {
-    if (dlg->GetSelected(false) == NULL && selected >= 0) { /* When nothing selected, we're in charge */
-        dlg->SetSelected(this, 0, titleTxtSprite[selected]->GetY() + titleTxtSprite[selected]->GetHeight() / 2);
-    }
     if( pressed &&
         dlg->GetSelected(false) == this )
     {
@@ -109,11 +128,9 @@ void GuiElmSelectionList::DoKeyUp(void)
 {
     if( selected > upper_index ) {
         selected--;
-        SetSelectedItem();
     }else{
         if( index > 0 ) {
             index--;
-            SetSelectedItem();
         }
     }
 }
@@ -123,11 +140,9 @@ void GuiElmSelectionList::DoKeyDown(void)
     if( selected < lower_index &&
         strlen(visible_items[selected+1]) ) {
         selected++;
-        SetSelectedItem();
     }else{
         if( index+selected < num_items-1 ) {
             index++;
-            SetSelectedItem();
         }
     }
 }
@@ -201,7 +216,7 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         }
     }
     // Render text
-    if( index == current_index ) {
+    if( index == current_index && current_index != -1 ) {
         // Index not changed, nothing to update
     }else
     if( index == current_index+1 && current_index != -1 ) {
@@ -273,23 +288,26 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         lower_index = num_item_rows-1;
     }
     // Update seletion
-    if( sprSelector != NULL ) {
-        RemoveAndDelete(sprSelector, new GuiEffectFade(
-                                     (fade > 0)? fade : SELECTION_FADE_TIME,
-                                     (delay > 0)? delay : SELECTION_FADE_DELAY));
-        sprSelector = NULL;
-    }
-    if( selected >= 0 ) {
-        GuiSprite *selectedsprite = titleTxtSprite[selected];
-        sprSelector = new GuiSprite;
-        sprSelector->SetImage(g_imgSelector);
-        sprSelector->SetRefPixelPosition(0, 0);
-        sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/3);
-        sprSelector->SetStretchWidth((float)xsize / 4);
-        sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
-        RegisterForDelete(sprSelector);
-        AddBehind(selectedsprite, sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
-        is_active = true;
+    if( selected != prev_selected ) {
+        if( sprSelector != NULL ) {
+            RemoveAndDelete(sprSelector, new GuiEffectFade(
+                                         (fade > 0)? fade : SELECTION_FADE_TIME,
+                                         (delay > 0)? delay : SELECTION_FADE_DELAY));
+            sprSelector = NULL;
+        }
+        if( selected >= 0 ) {
+            GuiSprite *selectedsprite = titleTxtSprite[selected];
+            sprSelector = new GuiSprite;
+            sprSelector->SetImage(g_imgSelector);
+            sprSelector->SetRefPixelPosition(0, 0);
+            sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/3);
+            sprSelector->SetStretchWidth((float)xsize / 4);
+            sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
+            RegisterForDelete(sprSelector);
+            AddBehind(selectedsprite, sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
+            is_active = true;
+        }
+        prev_selected = selected;
     }
     current_index = index;
     Unlock();
@@ -297,7 +315,7 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
 
 
 void GuiElmSelectionList::InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
-                                     int posx, int posy, int xspace, int width, bool centr)
+                                        int posx, int posy, int xspace, int width, bool centr)
 {
     xpos = posx;
     ypos = posy;
@@ -315,20 +333,20 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     num_items = num;
 
     // Selected initial entry
-    if( select ) {
+    int new_selected = 0;
+    if( select >= 0 ) {
         if( select < num_item_rows-1 ) {
             index = 0;
-            selected = select;
+            new_selected = select;
         }else{
             index = select-1;
-            selected = 1;
+            new_selected = 1;
             if( index + num_item_rows - num_items > 0 ) {
-                selected += index + num_item_rows - num_items;
+                new_selected += index + num_item_rows - num_items;
                 index -= index + num_item_rows - num_items;
             }
         }
     }else{
-        selected = 0;
         index = 0;
     }
 
@@ -356,7 +374,10 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     RegisterForDelete(sprArrowDown);
 
     current_index = -1;
+    prev_selected = -1;
+    selected = -1;
     SetSelectedItem();
+    selected = new_selected;
 
     // Arrows
     AddTop(sprArrowUp, SELECTION_EFFECT);

@@ -27,6 +27,12 @@ typedef struct {
       height; //!<Height of rectangle.
 } Rect;
 
+typedef enum {
+  COLL_NO_COLLISION,
+  COLL_COLLISION,
+  COLL_UNKNOWN
+} COLL;
+  
 //!A basic drawable object with animation support.
 class GuiSprite : public GuiLayer {
 public:
@@ -77,16 +83,16 @@ public:
     //!\param x The position of the rectangle, since x in rectangle is only an offset.
     //!\param y The position of the rectangle, since y in rectangle is only an offset.
     //!\return true if it is colliding, false if not.
-    bool CollidesWith(const Rect* rect, f32 x = 0, f32 y = 0);
+    COLL CollidesWith(const Rect* rect, f32 x = 0, f32 y = 0);
     //!Checks if another sprite collides with this sprite.
     //!\param sprite The sprite to check.
     //!\param complete Set this to true, if you also want to use zoom and rotation with the collision detecting.
     //!\return true if it is colliding, false if not.
-    bool CollidesWith(GuiSprite* sprite, bool complete = false);
+    COLL CollidesWith(GuiSprite* sprite, bool complete = false);
     //!Checks if the sprite does cross a tile on the tiledlayer which number is not 0.
     //!\param tiledlayer the tiledlayer to check.
     //!\return true if it is colliding, false if not.
-    bool CollidesWith(GuiTiles* tiledlayer);
+    COLL CollidesWith(GuiTiles* tiledlayer);
 
     //!Gets the current frame of the sprite.
     //!\return The frame this sprite is at.
@@ -134,7 +140,6 @@ private:
     bool _image_owner;
 
     Rect* _colRect;
-    LayerTransform _transform;
 
     u32 _frame, _frameRawCount;
     u32* _frameSeq; u32 _frameSeqLength, _frameSeqPos;
