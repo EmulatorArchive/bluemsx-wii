@@ -34,7 +34,6 @@ GuiEffectFade::~GuiEffectFade()
 void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to)
 {
     assert( from || to );
-    LayerTransform t;
     if( from ) {
         m_poLayer = from;
         m_bFadeIn = false;

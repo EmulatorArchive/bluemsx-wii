@@ -14,6 +14,7 @@ GuiLayer::GuiLayer() :
     _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0),
     _stretchWidth(1.0f), _stretchHeight(1.0f)
 {
+    _transform.valid = false;
     _mutex.Lock();
     _id = ++_highest_id;
     _mutex.Unlock();
@@ -55,7 +56,7 @@ u8 GuiLayer::GetTransparency() const{
 }
 
 void GuiLayer::SetZoom(f32 zoom){
-    if(zoom < 0)return;
+    if( zoom < 0 )return;
     _stretchWidth = zoom;
     _stretchHeight = zoom;
 }
@@ -64,11 +65,11 @@ f32 GuiLayer::GetZoom() const{
     return _stretchWidth;
 }
 void GuiLayer::SetStretchWidth(f32 stretchWidth){
-    if(stretchWidth < 0)return;
+    if( stretchWidth < 0 ) return;
     _stretchWidth = stretchWidth;
 }
 void GuiLayer::SetStretchHeight(f32 stretchHeight){
-    if(stretchHeight < 0)return;
+    if( stretchHeight < 0 ) return;
     _stretchHeight = stretchHeight;
 }
 f32 GuiLayer::GetStretchWidth() const{
@@ -149,6 +150,7 @@ void GuiLayer::ResetTransform(LayerTransform transform)
     _transform.stretchHeight = _stretchHeight;
     _transform.rotation = _rotation;
     _transform.alpha = _alpha;
+    _transform.valid = true;
     DoTransform(transform);
 }
 
@@ -159,7 +161,7 @@ void GuiLayer::DoTransform(LayerTransform transform)
     _transform.stretchWidth *= transform.stretchWidth;
     _transform.stretchHeight *= transform.stretchHeight;
     _transform.rotation = fmod(_transform.rotation + transform.rotation, 360.0f);
-    _transform.alpha = (u8)((_transform.alpha * (u16)transform.alpha) / 255);
+    _transform.alpha = (u8)(((u16)_transform.alpha * transform.alpha) / 255);
 }
 
 LayerTransform GuiLayer::GetTransform(void)

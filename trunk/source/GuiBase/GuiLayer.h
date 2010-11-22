@@ -20,6 +20,7 @@
 #endif
 
 typedef struct {
+  bool valid;
   f32 offsetX;
   f32 offsetY;
   f32 stretchWidth;

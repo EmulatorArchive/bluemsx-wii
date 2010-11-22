@@ -17,7 +17,7 @@ bool GuiElement::ElmSetSelectedOnCollision(GuiSprite *sprite)
     return false;
 }
 
-void GuiElement::ElmSetSelected(bool sel, int x, int y)
+void GuiElement::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
 {
 }
 

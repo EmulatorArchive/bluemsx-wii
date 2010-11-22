@@ -21,7 +21,7 @@ public:
     virtual ~GuiElmSelectionList();
 
     virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);
-    virtual void ElmSetSelected(bool sel, int x, int y);
+    virtual void ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y);
     virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
     virtual bool ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed);
 
@@ -47,7 +47,8 @@ private:
     int ypitch;
     int fontsize;
     bool center;
-    int selected, index;
+    int selected, prev_selected;
+    int index;
     int num_items;
     int num_item_rows;
     int current_index;
