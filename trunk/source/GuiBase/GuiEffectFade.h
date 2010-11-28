@@ -11,10 +11,12 @@ public:
                   float posx=-1, float posy=-1);
     virtual ~GuiEffectFade();
 
-    virtual void Initialize(GuiLayer *from, GuiLayer *to);
+    virtual void Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfrom, LayerTransform tto);
+    virtual bool CancelLayer(GuiLayer *layer, LayerTransform *transform);
     virtual bool Run(void);
 private:
     GuiLayer *m_poLayer;
+    LayerTransform m_oTransform;
     bool m_bFadeIn;
     bool m_bZoom;
     bool m_bMove;
@@ -23,8 +25,10 @@ private:
     int m_iDelay;
     int m_iFrames;
     int m_iCount;
-    float m_fStartZoom;
-    float m_fEndZoom;
+    float m_fStartZoomX;
+    float m_fEndZoomX;
+    float m_fStartZoomY;
+    float m_fEndZoomY;
     float m_fStartRotation;
     float m_fEndRotation;
     int m_iStartAlpha;

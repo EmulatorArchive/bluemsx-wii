@@ -405,12 +405,13 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
 
     // Create on-screen keyboard
     GuiKeyboard *osk = NULL;
-    osk = new GuiKeyboard(this, this);
+    osk = new GuiKeyboard(this);
+    RegisterForDelete(osk);
+    AddTop(osk);
 
     // Loop while the user hasn't quit
     GuiDlgMenu *menu = new GuiDlgMenu(this, 5);
     this->RegisterForDelete(menu);
-    this->AddTop(menu);
     const char *menu_items[] = {
       "Load state",
       "Save state",
@@ -447,7 +448,10 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
                 bool leave_menu = false;
                 do {
                     int selection;
-                    SELRET action = menu->DoModal(&selection, menu_items, 5, 344);
+                    menu->Initialize(menu_items, 5, 344);
+                    AddTop(menu, new GuiEffectFade(10, 0, true));
+                    SELRET action = menu->DoModal(&selection);
+                    Remove(menu, new GuiEffectFade(10, 0, true));
                     switch( action ) {
                         case SELRET_SELECTED:
                             switch( selection ) {
@@ -562,7 +566,7 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
     // Remove emulator+keyboard from display
     RemoveRenderCallback(RenderEmuImage, (void *)emuSpr);
     RemoveAndDelete(emuSpr, new GuiEffectFade(20));
-    delete osk;
+    RemoveAndDelete(osk);
 
     SetMode(prevVideo);
     background->Show();

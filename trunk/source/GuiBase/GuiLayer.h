@@ -19,7 +19,21 @@
 #define GUI_2_PI    0.636619772367581343076f
 #endif
 
-typedef struct {
+class LayerTransform {
+public:
+  LayerTransform()
+  {
+    valid = false;
+    offsetX = 0.0f;
+    offsetY = 0.0f;
+    stretchWidth = 1.0f;
+    stretchHeight = 1.0f;
+    rotation = 0.0f;
+    alpha = 255;
+  };
+  ~LayerTransform()
+  {
+  };
   bool valid;
   f32 offsetX;
   f32 offsetY;
@@ -27,7 +41,7 @@ typedef struct {
   f32 stretchHeight;
   f32 rotation;
   u8  alpha;
-} LayerTransform;
+};
 
 //!Drawable objects should derive from this class. Layers can be managed by LayerManagers.
 class GuiLayer{

@@ -18,8 +18,8 @@
 #include "../GuiElements/GuiElmSelectionList.h"
 
 #define GAMESEL_EFFECT_DEFAULT     new GuiEffectFade(10, 0, true)
-#define GAMESEL_EFFECT_RESTART     new GuiEffectFade(30, 6)
-#define GAMESEL_EFFECT_SCREENSHOTS new GuiEffectFade(10, 8)
+#define GAMESEL_EFFECT_RESTART     new GuiEffectFade(30, 0)
+#define GAMESEL_EFFECT_SCREENSHOTS new GuiEffectFade(10, 0)
 
 void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
 {
@@ -209,7 +209,7 @@ void GuiDlgGameSelect::Show(bool restart)
     #define EFFECT restart? GAMESEL_EFFECT_RESTART : NULL
 
     // Remove version from background
-    background->HideVersion(EFFECT);
+    background->HideVersion(new GuiEffectFade(50));
     
     // Add selection list
     if( grWinList == NULL ) {
@@ -234,37 +234,37 @@ void GuiDlgGameSelect::Show(bool restart)
         // Icons
         grButtonAdd = new GuiElmButton();
         grButtonAdd->CreateImageSelectorButton(g_imgAdd);
-        grButtonAdd->SetPosition(344+14, 232-30+14*12+6+8);
+        grButtonAdd->SetPosition(344+8, 232-30+14*12+8);
         RegisterForDelete(grButtonAdd);
         AddTop(grButtonAdd, EFFECT);
         grButtonDel = new GuiElmButton();
         grButtonDel->CreateImageSelectorButton(g_imgDelete);
-        grButtonDel->SetPosition(344+14+50, 232-30+14*12+6+8);
+        grButtonDel->SetPosition(344+8+50, 232-30+14*12+8);
         RegisterForDelete(grButtonDel);
         AddTop(grButtonDel, EFFECT);
         grButtonUp = new GuiElmButton();
         grButtonUp->CreateImageSelectorButton(g_imgUp);
-        grButtonUp->SetPosition(344+14+2*50, 232-30+14*12+6+8);
+        grButtonUp->SetPosition(344+8+2*50, 232-30+14*12+8);
         RegisterForDelete(grButtonUp);
         AddTop(grButtonUp, EFFECT);
         grButtonDown = new GuiElmButton();
         grButtonDown->CreateImageSelectorButton(g_imgDown);
-        grButtonDown->SetPosition(344+14+3*50, 232-30+14*12+6+8);
+        grButtonDown->SetPosition(344+8+3*50, 232-30+14*12+8);
         RegisterForDelete(grButtonDown);
         AddTop(grButtonDown, EFFECT);
         grButtonSettings = new GuiElmButton();
         grButtonSettings->CreateImageSelectorButton(g_imgSettings);
-        grButtonSettings->SetPosition(344+14+4*50, 232-30+14*12+6+8);
+        grButtonSettings->SetPosition(344+8+4*50, 232-30+14*12+8);
         RegisterForDelete(grButtonSettings);
         AddTop(grButtonSettings, EFFECT);
         grButtonDelScr1 = new GuiElmButton();
         grButtonDelScr1->CreateImageSelectorButton(g_imgDelete2);
-        grButtonDelScr1->SetPosition(344+8+264+12-54, 28+16);
+        grButtonDelScr1->SetPosition(344+8+264+5-54, 28+12);
         RegisterForDelete(grButtonDelScr1);
         AddTop(grButtonDelScr1, EFFECT);
         grButtonDelScr2 = new GuiElmButton();
         grButtonDelScr2->CreateImageSelectorButton(g_imgDelete2);
-        grButtonDelScr2->SetPosition(344+8+264+12-54, 232-30+16);
+        grButtonDelScr2->SetPosition(344+8+264+5-54, 232-30+12);
         RegisterForDelete(grButtonDelScr2);
         AddTop(grButtonDelScr2, EFFECT);
         // Screenshot coordinates
@@ -335,7 +335,7 @@ void GuiDlgGameSelect::Hide(bool restart)
     
     // Show version on background again
     if( !restart ) {
-        background->ShowVersion(EFFECT);
+        background->ShowVersion(new GuiEffectFade(50));
     }
     is_showing = false;
 }

@@ -50,7 +50,6 @@ public:
     //!\param frameHeight The height of the frame. Should be a multiple of image->GetHeight() or 0 if it should get the same height as the image.
     void SetImage(GuiImage* image, u32 frameWidth = 0, u32 frameHeight = 0);
     void SetImage(DrawableImage* drawimage, u32 frameWidth = 0, u32 frameHeight = 0);
-    void SetImage(GuiImage* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight);
     //!Gets the assigned image.
     //!\return A pointer to the image. NULL if no image was assigned.
     GuiImage* GetImage() const;
@@ -130,6 +129,7 @@ public:
     void Draw(void);
 protected:
 private:
+    void SetImageIntern(GuiImage* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight);
     void _CalcFrame();
 
 #ifndef WII

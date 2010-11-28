@@ -2,13 +2,13 @@
 #ifndef _GUI_KEYBOARD_H
 #define _GUI_KEYBOARD_H
 
-class GuiContainer;
-class GuiRootContainer;
+#include "../GuiBase/GuiDialog.h"
+
 class GuiSprite;
 
-class GuiKeyboard {
+class GuiKeyboard  : public GuiDialog {
 public:
-    GuiKeyboard(GuiRootContainer *man, GuiContainer *cntr);
+    GuiKeyboard(GuiContainer *cntr);
     virtual ~GuiKeyboard();
 
     void Show(void);
@@ -32,8 +32,6 @@ private:
     int keymap1;
     int keymap2;
 
-    GuiContainer *container;
-    GuiRootContainer *manager;
     GuiSprite *spr_image;
     GuiSprite *spr_cursor;
     GuiSprite *spr_hover;
@@ -41,5 +39,4 @@ private:
 };
 
 #endif
-
 

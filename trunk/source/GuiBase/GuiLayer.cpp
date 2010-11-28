@@ -15,6 +15,13 @@ GuiLayer::GuiLayer() :
     _stretchWidth(1.0f), _stretchHeight(1.0f)
 {
     _transform.valid = false;
+    _transform.offsetX = 0.0f;
+    _transform.offsetY = 0.0f;
+    _transform.stretchWidth = 1.0f;
+    _transform.stretchHeight = 1.0f;
+    _transform.rotation = 0.0f;
+    _transform.alpha = 255;
+
     _mutex.Lock();
     _id = ++_highest_id;
     _mutex.Unlock();
