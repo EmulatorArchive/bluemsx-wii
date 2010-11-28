@@ -3,7 +3,9 @@
 
 #include "revision.inc"
 
-#if REVISION_NUMBER==148
+#if REVISION_NUMBER==169
+#define VERSION_AS_STRING "V1.0.3"
+#elif REVISION_NUMBER==148
 #define VERSION_AS_STRING "V1.0.2"
 #elif REVISION_NUMBER==138
 #define VERSION_AS_STRING "V1.0.1"
