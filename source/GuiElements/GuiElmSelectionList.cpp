@@ -300,11 +300,11 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
             sprSelector = new GuiSprite;
             sprSelector->SetImage(g_imgSelector);
             sprSelector->SetRefPixelPosition(0, 0);
-            sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-fontsize/3);
+            sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-(float)fontsize/2.8f);
             sprSelector->SetStretchWidth((float)xsize / 4);
             sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
             RegisterForDelete(sprSelector);
-            AddBehind(selectedsprite, sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
+            AddBottom(sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
             is_active = true;
         }
         prev_selected = selected;

@@ -11,6 +11,7 @@ GuiEffectFade::GuiEffectFade(int fade_frames, int delay, bool zoom,
                              float rotations, bool clockwise,
                              float posx, float posy)
 {
+    m_oTransform.valid = false;
     m_iFrames = fade_frames;
     m_iDelay = delay;
     m_bZoom = zoom;
@@ -31,26 +32,30 @@ GuiEffectFade::~GuiEffectFade()
 {
 }
 
-void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to)
+void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfrom, LayerTransform tto)
 {
     assert( from || to );
     if( from ) {
         m_poLayer = from;
         m_bFadeIn = false;
-        m_fStartRotation = 0;
+        m_fStartRotation = tfrom.rotation;
         m_fEndRotation = -360.0f * m_fRotations;
-        m_fStartZoom = 1.0f;
-        m_fEndZoom = m_bZoom? 0.0f : 1.0f;
-        m_iStartAlpha = 255;
+        m_fStartZoomX = tfrom.stretchWidth;
+        m_fEndZoomX = m_bZoom? 0.0f : 1.0f;
+        m_fStartZoomY = tfrom.stretchHeight;
+        m_fEndZoomY = m_bZoom? 0.0f : 1.0f;
+        m_iStartAlpha = tfrom.alpha;
         m_iEndAlpha = 0;
     }else{
-        m_bFadeIn = true;
         m_poLayer = to;
-        m_fStartRotation = 360.0f * m_fRotations;
+        m_bFadeIn = true;
+        m_fStartRotation = tto.valid? tto.rotation : (360.0f * m_fRotations);
         m_fEndRotation = 0;
-        m_fStartZoom = m_bZoom? 0.0f : 1.0f;
-        m_fEndZoom = 1.0f;
-        m_iStartAlpha = 0;
+        m_fStartZoomX = m_bZoom? (tto.valid? tto.stretchWidth : 0.0f) : 1.0f;
+        m_fEndZoomX = 1.0f;
+        m_fStartZoomY = m_bZoom? (tto.valid? tto.stretchHeight : 0.0f) : 1.0f;
+        m_fEndZoomY = 1.0f;
+        m_iStartAlpha = tto.valid? tto.alpha : 0;
         m_iEndAlpha = 255;
     }
     if( m_bClockwise ) {
@@ -63,23 +68,34 @@ void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to)
     }
 }
 
+bool GuiEffectFade::CancelLayer(GuiLayer *layer, LayerTransform *transform)
+{
+    if( m_poLayer->GetID() == layer->GetID() ) {
+        // Since we're dealing with just one layer canceling this layer
+        //   means the effect is done.
+        *transform = m_oTransform;
+        return true;
+    }else{
+        return false;
+    }
+}
+
 bool GuiEffectFade::Run(void)
 {
-    LayerTransform oTransform;
     bool bDone = false;
 
     // Do the effect
     f32 factor = sin(((f32)m_iCount / m_iFrames) * GUI_PI_2);
 
     // Fade
-    oTransform.alpha = (u8)( (1.0f-factor) * m_iStartAlpha + factor * m_iEndAlpha );
+    m_oTransform.alpha = (u8)( (1.0f-factor) * m_iStartAlpha + factor * m_iEndAlpha );
 
     // Zoom
-    oTransform.stretchHeight = ( (1.0f-factor) * m_fStartZoom + factor * m_fEndZoom );
-    oTransform.stretchWidth = oTransform.stretchHeight;
+    m_oTransform.stretchWidth = ( (1.0f-factor) * m_fStartZoomX + factor * m_fEndZoomX );
+    m_oTransform.stretchHeight = ( (1.0f-factor) * m_fStartZoomY + factor * m_fEndZoomY );
 
     // Rotation
-    oTransform.rotation = ( (1.0f-factor) * m_fStartRotation + factor * m_fEndRotation );
+    m_oTransform.rotation = ( (1.0f-factor) * m_fStartRotation + factor * m_fEndRotation );
 
     // Position movement
     LayerTransform tr = m_poLayer->GetTransform();
@@ -87,15 +103,16 @@ bool GuiEffectFade::Run(void)
     float refy = m_poLayer->GetRefPixelY() * m_poLayer->GetStretchHeight();
     if( m_bMove ) {
         float move_factor = m_bFadeIn? 1.0f - factor : factor;
-        oTransform.offsetX = ((float)m_iPosX - tr.offsetX - refx) * move_factor;
-        oTransform.offsetY = ((float)m_iPosY - tr.offsetY - refy) * move_factor;
+        m_oTransform.offsetX = ((float)m_iPosX - tr.offsetX - refx) * move_factor;
+        m_oTransform.offsetY = ((float)m_iPosY - tr.offsetY - refy) * move_factor;
     }else{
-        oTransform.offsetX = 0.0f;
-        oTransform.offsetY = 0.0f;
+        m_oTransform.offsetX = 0.0f;
+        m_oTransform.offsetY = 0.0f;
     }
+    m_oTransform.valid = true;
 
     // Apply
-    m_poLayer->DoTransform(oTransform);
+    m_poLayer->DoTransform(m_oTransform);
 
     // Next step
     if( m_iDelay ) {

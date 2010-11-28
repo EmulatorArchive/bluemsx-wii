@@ -57,7 +57,7 @@ void GuiSprite::CleanUp(void)
     }
 }
 
-void GuiSprite::SetImage(GuiImage* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
+void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
 {
     if(drawimage != NULL) {
         image = drawimage;
@@ -122,14 +122,15 @@ void GuiSprite::SetImage(GuiImage* image, DrawableImage* drawimage, u32 frameWid
     _draw_image = drawimage;
     _CalcFrame();
 }
+
 void GuiSprite::SetImage(GuiImage* image, u32 frameWidth, u32 frameHeight)
 {
-    SetImage(new GuiImage(image), NULL, frameWidth, frameHeight);
+    SetImageIntern(new GuiImage(image), NULL, frameWidth, frameHeight);
     _image_owner = true;
 }
 void GuiSprite::SetImage(DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
 {
-    SetImage(NULL, drawimage, frameWidth, frameHeight);
+    SetImageIntern(NULL, drawimage, frameWidth, frameHeight);
 }
 
 GuiImage* GuiSprite::GetImage() const{
@@ -139,7 +140,7 @@ GuiImage* GuiSprite::GetImage() const{
 bool GuiSprite::LoadImage(const unsigned char *buf){
     GuiImage *image = new GuiImage;
     if(image->LoadImage(buf) == IMG_LOAD_ERROR_NONE) {
-        _image = image;
+        SetImageIntern(image, NULL, 0, 0);
         _image_owner = true;
         return true;
     }else{
@@ -150,7 +151,7 @@ bool GuiSprite::LoadImage(const unsigned char *buf){
 bool GuiSprite::LoadImage(const char *file){
     GuiImage *image = new GuiImage;
     if(image->LoadImage(file) == IMG_LOAD_ERROR_NONE) {
-        _image = image;
+        SetImageIntern(image, NULL, 0, 0);
         _image_owner = true;
         return true;
     }else{

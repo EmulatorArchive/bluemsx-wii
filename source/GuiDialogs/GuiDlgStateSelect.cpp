@@ -150,6 +150,10 @@ char *GuiDlgStateSelect::DoModal(void)
 {
     char *returnValue = NULL;
 
+    if( num_states == 0 ) {
+        return NULL;
+    }
+
     // Menu loop
     int sel;
     do {

@@ -383,12 +383,46 @@ void GuiContainer::DeleteAll(void)
 
 void GuiContainer::AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *effect)
 {
-    if( effect ) {
-        // initialize the effect
-        effect->Initialize(NULL, layer);
-    }
-
     Lock();
+
+    if( effect != NULL ) {
+        LayerTransform old_transform;
+        // Check for pending actions with this layer in effect-list
+        for(int i = 0; i < MAX_LAYERS; i++) {
+            LayerEffect *pe = effect_list[i];
+            // check if currently active
+            if( pe != NULL &&
+                ((pe->active_layer[0] && pe->active_layer[0]->GetID() == layer->GetID()) ||
+                 (pe->active_layer[1] && pe->active_layer[1]->GetID() == layer->GetID())) )
+            {
+                // Cancel the old effect
+                if( pe->effect->CancelLayer(layer, &old_transform) ) {
+                    // When it is a remove effect, do the remove actions
+                    if( pe->remove_layer ) {
+                        LayerRemove(pe->remove_layer);
+                        assert( pe->delete_layer == NULL ||
+                                pe->delete_layer == pe->remove_layer );
+                        pe->remove_layer = NULL;
+                        if( pe->delete_layer ) {
+                            DeleteDirect(pe->delete_layer);
+                            pe->delete_layer = NULL;
+                        }
+                    }
+                    // Clear the old effect
+                    if( pe->effect != NULL ) {
+                        delete pe->effect;
+                        pe->effect = NULL;
+                    }
+                    // Free item from list
+                    delete effect_list[i];
+                    effect_list[i] = NULL;
+                }
+            }
+        }
+
+        // initialize the effect
+        effect->Initialize(NULL, layer, LayerTransform(), old_transform);
+    }
 
     // add layer
     if( (u32)index < fixed_layers ) {
@@ -475,6 +509,7 @@ void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bo
     Lock();
 
     if( effect != NULL ) {
+        LayerTransform old_transform;
         // Check for pending actions with this layer in effect-list
         for(int i = 0; i < MAX_LAYERS; i++) {
             LayerEffect *pe = effect_list[i];
@@ -483,21 +518,27 @@ void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bo
                 ((pe->active_layer[0] && pe->active_layer[0]->GetID() == layer->GetID()) ||
                  (pe->active_layer[1] && pe->active_layer[1]->GetID() == layer->GetID())) )
             {
-                // Clear the old effect
-                if( pe->effect != NULL ) {
-                    delete pe->effect;
-                    pe->effect = NULL;
+                // Cancel the old effect
+                if( pe->effect->CancelLayer(layer, &old_transform) ) {
+                    // Clear the old effect
+                    if( pe->effect != NULL ) {
+                        delete pe->effect;
+                        pe->effect = NULL;
+                    }
+                    // This should not be a remove effect
+                    assert( pe->remove_layer == NULL );
+                    assert( pe->delete_layer == NULL );
+                    // Free item from list
+                    delete effect_list[i];
+                    effect_list[i] = NULL;
                 }
-                // This should not be a remove effect
-                assert( pe->remove_layer == NULL );
-                assert( pe->delete_layer == NULL );
             }
         }
 
         // initialize the new effect
         Unlock();
         if( effect != NULL ) {
-            effect->Initialize(layer, NULL);
+            effect->Initialize(layer, NULL, old_transform);
         }
         Lock();
 

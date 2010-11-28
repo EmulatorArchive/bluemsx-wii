@@ -5,14 +5,20 @@
 #include "../GuiBase/GuiDialog.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 
+class GuiLayFrame;
+
 class GuiDlgMenu : public GuiDialog
 {
 public:
     GuiDlgMenu(GuiContainer *cntr, int rows);
     virtual ~GuiDlgMenu();
 
-    SELRET DoModal(int *selected, const char **items, int num, int width);
+    void Initialize(const char **items, int num, int width);
+    void CleanUp(void);
+    SELRET DoModal(int *selected);
 private:
+    bool initialized;
+    GuiLayFrame *frame; 
     GuiElmSelectionList *list;
     int num_item_rows;
 };
