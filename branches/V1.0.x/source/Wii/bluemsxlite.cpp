@@ -318,6 +318,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     // Init keyboard and remap keys
     keyboardReset();
+    KBD_SetWpadOrientation(WPADO_VERTICAL);
     for(i = 0; i < KEY_LAST; i++) {
         int event = game->GetKeyMapping((KEY)i);
         if( event != -1 ) {
@@ -389,6 +390,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
             KBD_GetKeyStatus(KEY_F12) ) {
             if( !pressed ) {
                 emulatorSuspend();
+                KBD_SetWpadOrientation(WPADO_VERTICAL);
                 osk->SetEnabled(false);
                 bool leave_menu = false;
                 do {
@@ -456,6 +458,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
                             break;
                     }
                 }while(!leave_menu);
+                KBD_SetWpadOrientation(WPADO_HORIZONTAL);
                 KBD_GetKeys(NULL); // flush
                 emulatorResume();
                 osk->SetEnabled(!doQuit);
@@ -470,6 +473,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
     delete menu;
 
     emulatorStop();
+    KBD_SetWpadOrientation(WPADO_VERTICAL);
 
     // Remove emulator+keyboard from display
     manager->Lock();
@@ -509,6 +513,7 @@ int main(int argc, char **argv)
 
     // Init keyboard
     keyboardInit();
+    KBD_SetWpadOrientation(WPADO_VERTICAL);
 
     // GUI init
     manager = new GuiManager();
