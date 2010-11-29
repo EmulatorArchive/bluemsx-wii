@@ -232,12 +232,10 @@ int GuiSelectionList::DoSelection(void)
     (void)KBD_GetPadButtons(); // flush first
     current = selected;
     for(;;) {
-        WPAD_ScanPads();
         u32 buttons = KBD_GetPadButtons();
 
         // Exit on 'home' or 'B'
-        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
-                       WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B | WPAD_BUTTON_1) ) {
+        if( buttons & (WPAD_BUTTON_HOME | WPAD_BUTTON_B) ) {
             sprCursor->SetVisible(false);
             return -1;
         }
@@ -283,9 +281,7 @@ int GuiSelectionList::DoSelection(void)
             }
 
             // WPAD keys
-            if( (buttons & WPAD_BUTTON_LEFT) ||
-                (buttons & WPAD_BUTTON_DOWN) ||
-                (buttons & WPAD_CLASSIC_BUTTON_DOWN) ) {
+            if( buttons & WPAD_BUTTON_DOWN ) {
                 if( current < lower_index &&
                     strlen(visible_items[current+1]) ) {
                     selected++;
@@ -296,9 +292,7 @@ int GuiSelectionList::DoSelection(void)
                     }
                 }
             }
-            if( (buttons & WPAD_BUTTON_RIGHT) ||
-                (buttons & WPAD_BUTTON_UP) ||
-                (buttons & WPAD_CLASSIC_BUTTON_UP) ) {
+            if( buttons & WPAD_BUTTON_UP ) {
                 if( current > upper_index ) {
                     selected--;
                 }else{
@@ -332,7 +326,7 @@ int GuiSelectionList::DoSelection(void)
         // Release UI
         manager->Unlock();
 
-        if( (buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A | WPAD_BUTTON_2)) &&
+        if( (buttons & WPAD_BUTTON_A) &&
             (selected >= upper_index && selected <= lower_index) ) {
             break;
         }

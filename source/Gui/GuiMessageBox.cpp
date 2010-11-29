@@ -48,7 +48,6 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
 
     for(;;) {
         // Buttons
-        WPAD_ScanPads();
         u32 buttons = KBD_GetPadButtons();
 
         manager->Lock();
@@ -70,7 +69,7 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
             no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
             selected = true;
             use_keyboard = false;
-            if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+            if( buttons & WPAD_BUTTON_A ) {
                 break;
             }
         }else
@@ -79,7 +78,7 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
             no->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
             selected = false;
             use_keyboard = false;
-            if( buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+            if( buttons & WPAD_BUTTON_A ) {
                 break;
             }
         }else
@@ -89,23 +88,22 @@ bool GuiMessageBox::DoSelection(Sprite *yes, Sprite *no)
         }
 
         // Check keys
-        if( buttons & (WPAD_BUTTON_LEFT | WPAD_CLASSIC_BUTTON_LEFT) ) {
+        if( buttons & WPAD_BUTTON_LEFT ) {
             yes->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
             no->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
             selected = true;
             use_keyboard = true;
         }
-        if( buttons & (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_RIGHT) ) {
+        if( buttons & WPAD_BUTTON_RIGHT ) {
             yes->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
             no->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
             selected = false;
             use_keyboard = true;
         }
-        if( use_keyboard && buttons & (WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A)) {
+        if( use_keyboard && (buttons & WPAD_BUTTON_A) != 0 ) {
             break;
         }
-        if( buttons & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME |
-                       WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B)) {
+        if( (buttons & (WPAD_BUTTON_HOME | WPAD_BUTTON_B)) != 0 ) {
             selected = false;
             break;
         }
@@ -126,10 +124,10 @@ void GuiMessageBox::SetText(const char *fmt, ...)
 {
     manager->Lock();
 
-	va_list marker;
-	va_start(marker,fmt);
-	txt_image->RenderTextVA(true, fmt, marker);
-	va_end(marker);
+    va_list marker;
+    va_start(marker,fmt);
+    txt_image->RenderTextVA(true, fmt, marker);
+    va_end(marker);
 
     manager->Unlock();
 }

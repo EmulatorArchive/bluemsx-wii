@@ -60,11 +60,6 @@ typedef struct {
 } PADCODE;
 
 typedef struct {
-    int pad;
-    int wpad;
-} PAD2WPAD;
-
-typedef struct {
     u32 message;
     u32 id; // in fact it is a direction
     u8 modifiers;
@@ -82,13 +77,32 @@ struct _kbd_data {
     int keyidx;
     int connected;
     int quiting;
-    u32 wpad[2];
 };
+
+static WPADO wpad_orientation = WPADO_HORIZONTAL;
 
 static KBDHANDLE kbdHandle = NULL;
 
 static const char *keynames[KEY_LAST];
 static const char *keynames2[KEY_LAST];
+
+static PADCODE pad_default[] =
+{
+    {KEY_JOY1_LEFT,          KEY_JOY2_LEFT,          PAD_BUTTON_LEFT   },
+    {KEY_JOY1_RIGHT,         KEY_JOY2_RIGHT,         PAD_BUTTON_RIGHT  },
+    {KEY_JOY1_DOWN,          KEY_JOY2_DOWN,          PAD_BUTTON_DOWN   },
+    {KEY_JOY1_UP,            KEY_JOY2_UP,            PAD_BUTTON_UP     },
+    {KEY_JOY1_CLASSIC_ZR,    KEY_JOY2_CLASSIC_ZR,    PAD_TRIGGER_Z     },
+    {KEY_JOY1_CLASSIC_R,     KEY_JOY2_CLASSIC_R,     PAD_TRIGGER_R     },
+    {KEY_JOY1_CLASSIC_L,     KEY_JOY2_CLASSIC_L,     PAD_TRIGGER_L     },
+    {KEY_JOY1_CLASSIC_A,     KEY_JOY2_CLASSIC_A,     PAD_BUTTON_A      },
+    {KEY_JOY1_CLASSIC_B,     KEY_JOY2_CLASSIC_B,     PAD_BUTTON_B      },
+    {KEY_JOY1_CLASSIC_X,     KEY_JOY2_CLASSIC_X,     PAD_BUTTON_X      },
+    {KEY_JOY1_CLASSIC_Y,     KEY_JOY2_CLASSIC_Y,     PAD_BUTTON_Y      },
+    {KEY_JOY1_CLASSIC_HOME,  KEY_JOY2_CLASSIC_HOME,  PAD_BUTTON_MENU   },
+    {KEY_JOY1_CLASSIC_PLUS,  KEY_JOY2_CLASSIC_PLUS,  PAD_BUTTON_START  },
+    {KEY_NONE, KEY_NONE, 0}
+};
 
 static PADCODE wpad_default[] =
 {
@@ -96,13 +110,27 @@ static PADCODE wpad_default[] =
     {KEY_JOY1_WIIMOTE_B,     KEY_JOY2_WIIMOTE_B,     WPAD_BUTTON_B      },
     {KEY_JOY1_WIIMOTE_1,     KEY_JOY2_WIIMOTE_1,     WPAD_BUTTON_1      },
     {KEY_JOY1_WIIMOTE_2,     KEY_JOY2_WIIMOTE_2,     WPAD_BUTTON_2      },
+    {KEY_JOY1_WIIMOTE_HOME,  KEY_JOY2_WIIMOTE_HOME,  WPAD_BUTTON_HOME   },
+    {KEY_JOY1_WIIMOTE_PLUS,  KEY_JOY2_WIIMOTE_PLUS,  WPAD_BUTTON_PLUS   },
+    {KEY_JOY1_WIIMOTE_MINUS, KEY_JOY2_WIIMOTE_MINUS, WPAD_BUTTON_MINUS  },
+    {KEY_NONE, KEY_NONE, 0}
+};
+
+static PADCODE wpad_horizontal[] =
+{
     {KEY_JOY1_UP,            KEY_JOY2_UP,            WPAD_BUTTON_RIGHT  },
     {KEY_JOY1_DOWN,          KEY_JOY2_DOWN,          WPAD_BUTTON_LEFT   },
     {KEY_JOY1_LEFT,          KEY_JOY2_LEFT,          WPAD_BUTTON_UP     },
     {KEY_JOY1_RIGHT,         KEY_JOY2_RIGHT,         WPAD_BUTTON_DOWN   },
-    {KEY_JOY1_WIIMOTE_HOME,  KEY_JOY2_WIIMOTE_HOME,  WPAD_BUTTON_HOME   },
-    {KEY_JOY1_WIIMOTE_PLUS,  KEY_JOY2_WIIMOTE_PLUS,  WPAD_BUTTON_PLUS   },
-    {KEY_JOY1_WIIMOTE_MINUS, KEY_JOY2_WIIMOTE_MINUS, WPAD_BUTTON_MINUS  },
+    {KEY_NONE, KEY_NONE, 0}
+};
+
+static PADCODE wpad_vertical[] =
+{
+    {KEY_JOY1_UP,            KEY_JOY2_UP,            WPAD_BUTTON_UP     },
+    {KEY_JOY1_DOWN,          KEY_JOY2_DOWN,          WPAD_BUTTON_DOWN   },
+    {KEY_JOY1_LEFT,          KEY_JOY2_LEFT,          WPAD_BUTTON_LEFT   },
+    {KEY_JOY1_RIGHT,         KEY_JOY2_RIGHT,         WPAD_BUTTON_RIGHT  },
     {KEY_NONE, KEY_NONE, 0}
 };
 
@@ -135,32 +163,28 @@ static PADCODE wpad_nunchuk[] =
 
 static PADCODE keypad[] =
 {
-    {KEY_UP,     KEY_NONE,  WPAD_BUTTON_UP    },
-    {KEY_DOWN,   KEY_NONE,  WPAD_BUTTON_DOWN  },
-    {KEY_LEFT,   KEY_NONE,  WPAD_BUTTON_LEFT  },
-    {KEY_RIGHT,  KEY_NONE,  WPAD_BUTTON_RIGHT },
-    {KEY_RETURN, KEY_SPACE, WPAD_BUTTON_A     },
-    {KEY_ESCAPE, KEY_NONE,  WPAD_BUTTON_B     },
-    {KEY_F12,    KEY_NONE,  WPAD_BUTTON_HOME  },
-    {KEY_NONE,   KEY_NONE,  0}
-};
-
-static PAD2WPAD pad2wpad[] =
-{
-    {PAD_BUTTON_LEFT , WPAD_CLASSIC_BUTTON_LEFT  },
-    {PAD_BUTTON_RIGHT, WPAD_CLASSIC_BUTTON_RIGHT },
-    {PAD_BUTTON_DOWN , WPAD_CLASSIC_BUTTON_DOWN  },
-    {PAD_BUTTON_UP   , WPAD_CLASSIC_BUTTON_UP    },
-    {PAD_TRIGGER_Z   , WPAD_CLASSIC_BUTTON_ZR    },
-    {PAD_TRIGGER_R   , WPAD_CLASSIC_BUTTON_FULL_R},
-    {PAD_TRIGGER_L   , WPAD_CLASSIC_BUTTON_FULL_L},
-    {PAD_BUTTON_A    , WPAD_CLASSIC_BUTTON_A     },
-    {PAD_BUTTON_B    , WPAD_CLASSIC_BUTTON_B     },
-    {PAD_BUTTON_X    , WPAD_CLASSIC_BUTTON_X     },
-    {PAD_BUTTON_Y    , WPAD_CLASSIC_BUTTON_Y     },
-    {PAD_BUTTON_MENU , WPAD_CLASSIC_BUTTON_HOME  },
-    {PAD_BUTTON_START, WPAD_CLASSIC_BUTTON_PLUS  },
-    {0               , 0                         }
+    {KEY_JOY1_UP,           KEY_JOY2_UP,           WPAD_BUTTON_UP    },
+    {KEY_JOY1_DOWN,         KEY_JOY2_DOWN,         WPAD_BUTTON_DOWN  },
+    {KEY_JOY1_LEFT,         KEY_JOY2_LEFT,         WPAD_BUTTON_LEFT  },
+    {KEY_JOY1_RIGHT,        KEY_JOY2_RIGHT,        WPAD_BUTTON_RIGHT },
+    {KEY_JOY1_WIIMOTE_A,    KEY_JOY1_CLASSIC_A,    WPAD_BUTTON_A     },
+    {KEY_JOY1_NUNCHUCK_Z,   KEY_NONE,              WPAD_BUTTON_A     },
+    {KEY_JOY2_WIIMOTE_A,    KEY_JOY2_CLASSIC_A,    WPAD_BUTTON_A     },
+    {KEY_JOY2_NUNCHUCK_Z,   KEY_NONE,              WPAD_BUTTON_A     },
+    {KEY_JOY1_WIIMOTE_B,    KEY_JOY1_CLASSIC_B,    WPAD_BUTTON_B     },
+    {KEY_JOY1_NUNCHUCK_C,   KEY_NONE,              WPAD_BUTTON_B     },
+    {KEY_JOY2_WIIMOTE_B,    KEY_JOY2_CLASSIC_B,    WPAD_BUTTON_B     },
+    {KEY_JOY2_NUNCHUCK_C,   KEY_NONE,              WPAD_BUTTON_B     },
+    {KEY_JOY1_WIIMOTE_HOME, KEY_JOY2_WIIMOTE_HOME, WPAD_BUTTON_HOME  },
+    {KEY_JOY1_CLASSIC_HOME, KEY_JOY2_CLASSIC_HOME, WPAD_BUTTON_HOME  },
+    {KEY_UP,                KEY_NONE,              WPAD_BUTTON_UP    },
+    {KEY_DOWN,              KEY_NONE,              WPAD_BUTTON_DOWN  },
+    {KEY_LEFT,              KEY_NONE,              WPAD_BUTTON_LEFT  },
+    {KEY_RIGHT,             KEY_NONE,              WPAD_BUTTON_RIGHT },
+    {KEY_RETURN,            KEY_SPACE,             WPAD_BUTTON_A     },
+    {KEY_ESCAPE,            KEY_NONE,              WPAD_BUTTON_B     },
+    {KEY_F12,               KEY_NONE,              WPAD_BUTTON_HOME  },
+    {KEY_NONE,              KEY_NONE,              0}
 };
 
 static KEYCODE syms[] =
@@ -514,9 +538,14 @@ int KBD_CheckKeyName(KEY key, const char *kname)
     return 0;
 }
 
-static u32 GetJoystickDirection(joystick_t *js)
+void KBD_SetWpadOrientation(WPADO orient)
 {
-    u32 buttons = 0;
+    wpad_orientation = orient;
+}
+
+static void ProcessJoystickDirection(KBDHANDLE kbdHandle, int channel, joystick_t *js)
+{
+    int idx_new  = kbdHandle->keyidx ^ 1;
 
     // do not calculate unused axes
     if( js->pos.x != 0 || js->pos.y != 0 ) {
@@ -541,68 +570,64 @@ static u32 GetJoystickDirection(joystick_t *js)
         float theta = atan2(y,x) * (180/PI);
 
         if (theta > 35 && theta < 145)
-          buttons |= WPAD_CLASSIC_BUTTON_UP;
+          kbdHandle->btnstatus[idx_new][(channel? KEY_JOY2_UP : KEY_JOY1_UP)-KEY_JOY_FIRST] = 1;
         if (theta > 125 || theta < -125)
-          buttons |= WPAD_CLASSIC_BUTTON_LEFT;
+          kbdHandle->btnstatus[idx_new][(channel? KEY_JOY2_LEFT: KEY_JOY1_LEFT)-KEY_JOY_FIRST] = 1;
         if (theta > -145 && theta < -35)
-          buttons |= WPAD_CLASSIC_BUTTON_DOWN;
+          kbdHandle->btnstatus[idx_new][(channel? KEY_JOY2_DOWN: KEY_JOY1_DOWN)-KEY_JOY_FIRST] = 1;
         if (theta > -55 && theta < 55)
-          buttons |= WPAD_CLASSIC_BUTTON_RIGHT;
+          kbdHandle->btnstatus[idx_new][(channel? KEY_JOY2_RIGHT: KEY_JOY1_RIGHT)-KEY_JOY_FIRST] = 1;
       }
     }
-
-    return buttons;
 }
 
-static void ProcessWPadButtons(KBDHANDLE kbdHandle, int channel, PADCODE *wpad)
+static void ProcessWPadButtons(KBDHANDLE kbdHandle, u32 buttons, PADCODE *wpad)
 {
     int i, idx_new  = kbdHandle->keyidx ^ 1;
     for(i = 0; wpad[i].key_a != KEY_NONE; i++)  {
-        if( (kbdHandle->wpad[channel] & wpad[i].code) != 0  ) {
+        if( (buttons & wpad[i].code) != 0  ) {
             kbdHandle->btnstatus[idx_new][wpad[i].key_a-KEY_JOY_FIRST] = 1;
         }
     }
 }
 
-u32 KBD_GetPadButtonStatus(int channel)
+void KBD_GetPadButtonStatus(int channel)
 {
     u32 extensions;
     WPADData data;
-    u32 buttons, gcbuttons;
-    PAD2WPAD *p2w;
+    u32 buttons;
     joystick_t padjoy;
 
-    // Check standard buttons
+    // Check GameCube buttons
+    buttons = PAD_ButtonsHeld(channel);
+    ProcessWPadButtons(kbdHandle, buttons, pad_default);
+
+    // Check WiiMote buttons
     buttons = WPAD_ButtonsHeld(channel);
 
-    // Add GameCube buttons
-    gcbuttons = PAD_ButtonsHeld(channel);
-    p2w = pad2wpad;
-    while( p2w->pad ) {
-        if( gcbuttons & p2w->pad ) {
-            buttons |= p2w->wpad;
-        }
-        p2w++;
-    }
-
     // Key translations for default WiiMote buttons
-    ProcessWPadButtons(kbdHandle, channel, wpad_default);
+    ProcessWPadButtons(kbdHandle, buttons, wpad_default);
+    if( wpad_orientation == WPADO_HORIZONTAL ) {
+        ProcessWPadButtons(kbdHandle, buttons, wpad_horizontal);
+    }else{
+        ProcessWPadButtons(kbdHandle, buttons, wpad_vertical);
+    }
 
     // Check extensions
     WPAD_Probe(channel, &extensions);
     if( extensions == WPAD_EXP_NUNCHUK ) {
+      // Nunchuck button translations
+      ProcessWPadButtons(kbdHandle, buttons, wpad_nunchuk);
       // Nunchuk stick
       WPAD_Expansion(channel, &data.exp);
-      buttons |= GetJoystickDirection(&data.exp.nunchuk.js);
-      // Nunchuck key translations
-      ProcessWPadButtons(kbdHandle, channel, wpad_nunchuk);
+      ProcessJoystickDirection(kbdHandle, channel, &data.exp.nunchuk.js);
     } else if( extensions == WPAD_EXP_CLASSIC ) {
+      // Classic controller button translations
+      ProcessWPadButtons(kbdHandle, buttons, wpad_classic);
       // Both classic controller sticks
       WPAD_Expansion(channel, &data.exp);
-      buttons |= GetJoystickDirection(&data.exp.classic.ljs);
-      buttons |= GetJoystickDirection(&data.exp.classic.rjs);
-      // Classic controller key translations
-      ProcessWPadButtons(kbdHandle, channel, wpad_classic);
+      ProcessJoystickDirection(kbdHandle, channel, &data.exp.classic.ljs);
+      ProcessJoystickDirection(kbdHandle, channel, &data.exp.classic.rjs);
     }
 
     // Scan GameCube sticks
@@ -615,13 +640,11 @@ u32 KBD_GetPadButtonStatus(int channel)
 
     padjoy.pos.x = (int)PAD_StickX(channel) + 128;
     padjoy.pos.y = (int)PAD_StickY(channel) + 128;
-    buttons |= GetJoystickDirection(&padjoy);
+    ProcessJoystickDirection(kbdHandle, channel, &padjoy);
 
     padjoy.pos.x = (int)PAD_SubStickX(channel) + 128;
     padjoy.pos.y = (int)PAD_SubStickY(channel) + 128;
-    buttons |= GetJoystickDirection(&padjoy);
-
-    return buttons;
+    ProcessJoystickDirection(kbdHandle, channel, &padjoy);
 }
 
 u32 KBD_GetPadButtons(void)
@@ -629,9 +652,8 @@ u32 KBD_GetPadButtons(void)
     int i;
     static u32 prev_buttons = 0;
     static u64 repeat_time = 0;
-    u32 buttons;
+    u32 buttons = 0;
     KBD_GetKeys(NULL);
-    buttons = kbdHandle->wpad[0] | kbdHandle->wpad[1];
     for( i = 0; keypad[i].code != 0; i++ ) {
         if( KBD_GetKeyStatus(keypad[i].key_a) ||
             KBD_GetKeyStatus(keypad[i].key_b) ) {
@@ -692,8 +714,8 @@ void KBD_GetKeys(KBD_CALLBACK cb)
     // handle WPAD buttons
     WPAD_ScanPads();
     PAD_ScanPads();
-    kbdHandle->wpad[0] = KBD_GetPadButtonStatus(WPAD_CHAN_0);
-    kbdHandle->wpad[1] = KBD_GetPadButtonStatus(WPAD_CHAN_1);
+    KBD_GetPadButtonStatus(WPAD_CHAN_0);
+    KBD_GetPadButtonStatus(WPAD_CHAN_1);
 
     // compare with previous and call for each difference
     for(i = 0; i < KEY_LAST-KEY_JOY_FIRST; i++) {
