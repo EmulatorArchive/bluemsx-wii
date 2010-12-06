@@ -26,7 +26,7 @@ class GuiElmSelectionList;
 class GuiDlgGameSelect : public GuiDialog
 {
 public:
-    GuiDlgGameSelect(GuiContainer *cntr, GuiElmBackground *bgr);
+    GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiElmBackground *bgr);
     virtual ~GuiDlgGameSelect();
 
     // GuiDialog interface

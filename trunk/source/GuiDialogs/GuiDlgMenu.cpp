@@ -19,8 +19,7 @@ void GuiDlgMenu::Initialize(const char **items, int num, int width)
     int height = num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
     int posx = GetWidth()/2-width/2;
     int posy = GetHeight()/2-height/2;
-    frame = new GuiLayFrame(posx, posy, width, height, 192);
-    RegisterForDelete(frame);
+    frame = new GuiLayFrame(this, "frame", posx, posy, width, height, 192);
     AddTop(frame, new GuiEffectFade(10));
     width = frame->GetWidth();
     height = frame->GetHeight();
@@ -58,13 +57,12 @@ SELRET GuiDlgMenu::DoModal(int *selected)
     return retval;
 }
 
-GuiDlgMenu::GuiDlgMenu(GuiContainer *cntr, int rows)
-           :GuiDialog(cntr)
+GuiDlgMenu::GuiDlgMenu(GuiContainer *parent, const char *name, int rows)
+           :GuiDialog(parent, name)
 {
     initialized = false;
     frame = NULL;
-    list = new GuiElmSelectionList(this, rows);
-    RegisterForDelete(list);
+    list = new GuiElmSelectionList(this, name, rows);
     num_item_rows = rows;
     SetRefPixelPosition(GetWidth()/2, GetHeight()/2);
 }

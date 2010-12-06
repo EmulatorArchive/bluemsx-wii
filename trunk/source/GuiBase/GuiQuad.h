@@ -11,11 +11,13 @@
 #include "GuiLayer.h"
 #include "GuiSprite.h"
 
+class GuiContainer;
+
 //!Capable of drawing a rectangle on screen.
 class GuiQuad : public GuiLayer {
 public:
     //!Constructor.
-    GuiQuad();
+    GuiQuad(GuiContainer *parent, const char *name);
     //!Destructor.
     virtual ~GuiQuad();
 

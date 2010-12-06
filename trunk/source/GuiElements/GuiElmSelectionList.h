@@ -17,7 +17,7 @@ typedef enum {
 
 class GuiElmSelectionList : public GuiElement {
 public:
-    GuiElmSelectionList(GuiContainer *man, int rows);
+    GuiElmSelectionList(GuiContainer *parent, const char *name, int rows);
     virtual ~GuiElmSelectionList();
 
     virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);

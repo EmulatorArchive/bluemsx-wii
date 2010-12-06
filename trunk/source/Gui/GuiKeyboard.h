@@ -8,7 +8,7 @@ class GuiSprite;
 
 class GuiKeyboard  : public GuiDialog {
 public:
-    GuiKeyboard(GuiContainer *cntr);
+    GuiKeyboard(GuiContainer *parent, const char *name);
     virtual ~GuiKeyboard();
 
     void Show(void);

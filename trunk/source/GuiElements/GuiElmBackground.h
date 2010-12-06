@@ -9,7 +9,7 @@ class GuiSprite;
 class GuiElmBackground : public GuiContainer
 {
     public:
-        GuiElmBackground(GuiContainer *cntr);
+        GuiElmBackground(GuiContainer *parent, const char *name);
         virtual ~GuiElmBackground();
         void Show(GuiEffect *effect = NULL);
         void Hide(GuiEffect *effect = NULL);

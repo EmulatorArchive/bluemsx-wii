@@ -29,12 +29,12 @@ typedef enum {
 
 class GuiDlgMessageBox : public GuiDialog {
 public:
-    GuiDlgMessageBox(GuiContainer *cntr);
+    GuiDlgMessageBox(GuiContainer *parent, const char *name);
     virtual ~GuiDlgMessageBox();
 
-    static void ShowPopup(GuiContainer *cntr, GuiImage *image, int alpha, int delay,
+    static void ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, int alpha, int delay,
                           GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
-    static MSGBTN ShowModal(GuiContainer *cntr, MSGT type, GuiImage *image, int alpha,
+    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, int alpha,
                             GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
 
     void Create(MSGT type, GuiImage *image, int alpha, const char *txt, ...);

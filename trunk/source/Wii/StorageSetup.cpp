@@ -61,10 +61,10 @@ bool SetupInstallZip(GuiContainer *container, void *zipptr, unsigned int zipsize
                      const char *directory, const char *message)
 {
     // Prepare messagebox
-    bool ok = GuiDlgMessageBox::ShowModal(container, MSGT_YESNO, NULL, 192, new GuiEffectFade(10),
-                                       new GuiEffectFade(10), message) == MSGBTN_YES;
-    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container);
-    container->RegisterForDelete(msgbox);
+    bool ok = GuiDlgMessageBox::ShowModal(container, "wantinstall",
+                                          MSGT_YESNO, NULL, 192, new GuiEffectFade(10),
+                                          new GuiEffectFade(10), message) == MSGBTN_YES;
+    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container, "install");
     container->AddTop(msgbox, new GuiEffectFade(10));
     if( ok ) {
         bool failed = false;
@@ -121,8 +121,7 @@ bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
     if( !bBlueMSXInstalled ) {
         if( bSDMounted && bUSBMounted ) {
             // Have the user decide which device to install to
-            GuiDlgMenu *menu = new GuiDlgMenu(container, 2);
-            container->RegisterForDelete(menu)
+            GuiDlgMenu *menu = new GuiDlgMenu(container, "menu", 2);
             container->AddTop(menu);
             const char *menu_items[] = {
               "Use USB Device",

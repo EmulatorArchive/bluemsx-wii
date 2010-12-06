@@ -12,7 +12,8 @@
 #define BUTTON_TRANSPARENCY_NORMAL    160
 #define BUTTON_TRANSPARENCY_HIGHLIGHT 255
 
-GuiElmButton::GuiElmButton() : GuiElement()
+GuiElmButton::GuiElmButton(GuiContainer *parent, const char *name)
+            : GuiElement(parent, name)
 {
     sprImage = NULL;
     sprText = NULL;
@@ -48,8 +49,7 @@ void GuiElmButton::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
     switch( type ) {
         case BTE_SELECTOR:
             if( !selected && sel && sprImage != NULL ) {
-                sprSelector = new GuiSprite(g_imgSelector2, 0, 0);
-                RegisterForDelete(sprSelector);
+                sprSelector = new GuiSprite(this, "selector", g_imgSelector2, 0, 0);
                 AddBehind(sprImage, sprSelector, new GuiEffectFade(fade_sel));
                 selected = true;
             }
@@ -128,8 +128,7 @@ void GuiElmButton::CreateImageSelectorButton(GuiImage *image, int f_sel)
     SetHeight(image->GetHeight() + 2*HIHGLIGHT_OVERLAP);
     fade_sel = f_sel;
     selected = false;
-    sprImage = new GuiSprite(image, HIHGLIGHT_OVERLAP, HIHGLIGHT_OVERLAP);
-    RegisterForDelete(sprImage);
+    sprImage = new GuiSprite(this, "image", image, HIHGLIGHT_OVERLAP, HIHGLIGHT_OVERLAP);
 
     // Show
     AddTop(sprImage);
@@ -144,9 +143,8 @@ void GuiElmButton::CreateImageHighlightButton(GuiImage *image, int f_sel)
     SetHeight(image->GetHeight());
     fade_sel = f_sel;
     selected = false;
-    sprImage = new GuiSprite(image, 0, 0);
+    sprImage = new GuiSprite(this, "image", image, 0, 0);
     sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-    RegisterForDelete(sprImage);
 
     // Show
     AddTop(sprImage);
@@ -163,19 +161,17 @@ void GuiElmButton::CreateImageTextHighlightButton(GuiImage *image, const char *t
     selected = false;
 
     // GuiImage
-    sprImage = new GuiSprite(image, 0, 0);
+    sprImage = new GuiSprite(this, "image", image, 0, 0);
     sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
     int imgwidth = sprImage->GetWidth();
     int imgheight = sprImage->GetHeight();
-    RegisterForDelete(sprImage);
 
     // Text
     GXColor white = {255,255,255,255};
-    sprText= new GuiSprite();
+    sprText= new GuiSprite(this, "text");
     sprText->CreateTextImage(g_fontImpact, 36, 0, 0, true, white, txt);
     sprText->SetPosition((imgwidth - (int)sprText->GetWidth()) / 2, (imgheight - (int)sprText->GetHeight()) / 2);
     sprText->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-    RegisterForDelete(sprText);
 
     // Show
     AddTop(sprImage);

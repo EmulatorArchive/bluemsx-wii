@@ -15,6 +15,7 @@
 #ifndef WII
 class hgeSprite;
 #endif
+class GuiContainer;
 class GuiTiles;
 class DrawableImage;
 class TextRender;
@@ -37,7 +38,7 @@ typedef enum {
 class GuiSprite : public GuiLayer {
 public:
     //!Constructors.
-    GuiSprite(GuiImage* image=NULL, int x=0, int y=0);
+    GuiSprite(GuiContainer *parent, const char *name, GuiImage* image=NULL, int x=0, int y=0);
     //!Destructor.
     virtual ~GuiSprite();
 

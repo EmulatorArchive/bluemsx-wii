@@ -7,6 +7,7 @@
 #include <hge/hgeSprite.h>
 #endif
 
+#include "GuiContainer.h"
 #include "GuiImage.h"
 #include "DrawableImage.h"
 #include "GuiTiles.h"
@@ -14,7 +15,8 @@
 #define FRAME_CORRECTION 0.375f //!< Displays frames a lot nicer, still needs a complete fix.
 
 
-GuiSprite::GuiSprite(GuiImage* image, int x, int y) : GuiLayer(),
+GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, int x, int y) :
+    GuiLayer(parent, name),
     _image(NULL), _draw_image(NULL), _image_owner(false),
     _colRect(NULL), _frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0),
     _frameSeqPos(0)

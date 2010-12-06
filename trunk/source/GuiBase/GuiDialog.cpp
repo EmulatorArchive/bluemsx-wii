@@ -15,8 +15,8 @@ typedef struct _gritem {
 int GuiDialog::running_count = 0;
 GuiSprite* GuiDialog::cursor = NULL;
 
-GuiDialog::GuiDialog(GuiContainer *cntr)
-         : GuiContainer(cntr)
+GuiDialog::GuiDialog(GuiContainer *parent, const char *name)
+         : GuiContainer(parent, name)
 {
     first_item = last_item = NULL;
     selected_element = NULL;
@@ -191,27 +191,6 @@ void GuiDialog::AddBottom(GuiElement *element, GuiEffect *effect)
     AddElement(element);
 }
 
-#ifdef DEBUG
-void GuiDialog::_Remove(const char *file, int line, GuiLayer *layer, GuiEffect *effect)
-{
-    GuiContainer::_Remove(file, line, layer, effect);
-}
-void GuiDialog::_Remove(const char *file, int line, GuiElement *element, GuiEffect *effect)
-{
-    RemoveElement(element);
-    GuiContainer::_Remove(file, line, element, effect);
-}
-
-void GuiDialog::_RemoveAndDelete(const char *file, int line, GuiLayer *layer, GuiEffect *effect)
-{
-    GuiContainer::_RemoveAndDelete(file, line, layer, effect);
-}
-void GuiDialog::_RemoveAndDelete(const char *file, int line, GuiElement *element, GuiEffect *effect)
-{
-    RemoveElement(element);
-    GuiContainer::_RemoveAndDelete(file, line, element, effect);
-}
-#else
 void GuiDialog::Remove(GuiLayer *layer, GuiEffect *effect)
 {
     GuiContainer::Remove(layer, effect);
@@ -231,7 +210,6 @@ void GuiDialog::RemoveAndDelete(GuiElement *element, GuiEffect *effect)
     RemoveElement(element);
     GuiContainer::RemoveAndDelete(element, effect);
 }
-#endif
 
 /*-----------------*/
 
@@ -460,11 +438,10 @@ void* GuiDialog::Run(bool modal)
 
     // Cursor
     if( running_count == 0 ) {
-        cursor = new GuiSprite;
+        cursor = new GuiSprite(GetRootContainer(), "cursor");
         cursor->SetImage(GetPointerImage());
         cursor->SetPosition(0, 0);
         cursor->SetVisible(false);
-        GetRootContainer()->RegisterForDelete(cursor);
         GetRootContainer()->AddTopFixed(cursor);
     }
 

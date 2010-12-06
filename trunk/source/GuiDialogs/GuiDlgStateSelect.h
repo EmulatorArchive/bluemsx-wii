@@ -15,7 +15,7 @@ class GuiElmSelectionList;
 class GuiDlgStateSelect : public GuiDialog
 {
 public:
-    GuiDlgStateSelect(GuiContainer *cntr, Properties *properties, char *directory);
+    GuiDlgStateSelect(GuiContainer *parent, const char *name, Properties *properties, char *directory);
     virtual ~GuiDlgStateSelect();
 
     // GuiDialog interface

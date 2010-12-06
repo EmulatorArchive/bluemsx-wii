@@ -5,12 +5,6 @@
 
 #include "GuiLayer.h"
 
-#ifdef DEBUG
-#define Remove(layer, ...) _Remove(__FILE__, __LINE__, layer, __VA_ARGS__)
-#define RemoveAndDelete(layer, ...) _RemoveAndDelete(__FILE__, __LINE__, layer, __VA_ARGS__)
-#define Delete(layer) _Delete(__FILE__, __LINE__, layer)
-#endif
-
 class GuiRootContainer;
 class GuiEffect;
 class GuiImage;
@@ -22,8 +16,6 @@ typedef struct _GuiContainerCallback {
 } GuiContainerCallback;
 
 typedef struct _LayerEffect {
-    const char *file;
-    int line;
     GuiEffect *effect;
     GuiLayer *active_layer[2];
     GuiLayer *remove_layer;
@@ -32,8 +24,10 @@ typedef struct _LayerEffect {
 
 class GuiContainer : public GuiLayer
 {
+    friend class GuiLayer; // GuiLayer is allowed to call 'RegisterForDelete'
+
 public:
-    GuiContainer(GuiContainer *cntr);
+    GuiContainer(GuiContainer *parent, const char *name);
     virtual ~GuiContainer();
 
     // Utility
@@ -68,7 +62,6 @@ public:
     // Layer order management
     int GetIndex(GuiLayer *layer);
     int GetFixedLayers(void);
-    void RegisterForDelete(GuiLayer *layer);
     void DeleteAll(void);
 
     virtual void AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *effect = NULL);
@@ -77,21 +70,16 @@ public:
     virtual bool AddOnTopOf(GuiLayer *ontopof, GuiLayer *layer, GuiEffect *effect = NULL);
     virtual bool AddBehind(GuiLayer *behind, GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void AddBottom(GuiLayer *layer, GuiEffect *effect = NULL);
-#ifdef DEBUG
-    virtual void _Remove(const char *file, int line, GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void _RemoveAndDelete(const char *file, int line, GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void _Delete(const char *file, int line, GuiLayer *layer);
-#else
     virtual void Remove(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void RemoveAndDelete(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void Delete(GuiLayer *layer);
-#endif
 protected:
+    void RegisterForDelete(GuiLayer *layer);
     static GuiRootContainer *_root;
 
 private:
     void DeleteDirect(GuiLayer *layer);
-    void PrivateRemove(const char *file, int line, GuiLayer *layer, bool needdelete, GuiEffect *effect);
+    void PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *effect);
 
     // Basic layer administration
     GuiLayer** _layers;

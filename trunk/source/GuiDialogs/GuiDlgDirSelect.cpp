@@ -55,7 +55,8 @@ char *GuiDlgDirSelect::DoModal(void)
             }else{
                 if( dir_level == 0 ) {
                     // on root level, leave after confirmation
-                    bool ok = GuiDlgMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192,
+                    bool ok = GuiDlgMessageBox::ShowModal(this, "wantquit",
+                                                          MSGT_YESNO, NULL, 192,
                                                           new GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
                                                           new GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
                                                           "Do you want to quit?") == MSGBTN_YES;
@@ -114,14 +115,12 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
     return NULL;
 }
 
-GuiDlgDirSelect::GuiDlgDirSelect(GuiContainer *cntr, const char *startdir, const char *filename)
-             :GuiDialog(cntr)
+GuiDlgDirSelect::GuiDlgDirSelect(GuiContainer* parent, const char* name, const char* startdir, const char* filename)
+                :GuiDialog(parent, name)
 {
     title_list = NULL;
-    frame = new GuiLayFrame(320-180, 28, 2*180, 440-48);
-    RegisterForDelete(frame);
-    list = new GuiElmSelectionList(this, NUM_DIR_ITEMS);
-    RegisterForDelete(list);
+    frame = new GuiLayFrame(this, "frame", 320-180, 28, 2*180, 440-48);
+    list = new GuiElmSelectionList(this, "list", NUM_DIR_ITEMS);
 
     strcpy(current_dir, startdir);
     strcpy(xmlfile, filename);

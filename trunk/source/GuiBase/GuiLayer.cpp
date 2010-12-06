@@ -1,11 +1,14 @@
 
 #include "GuiLayer.h"
+#include "GuiContainer.h"
 #include <math.h>
 
 u32 GuiLayer::_highest_id = 0;
 CMutex GuiLayer::_mutex;
 
-GuiLayer::GuiLayer() :
+GuiLayer::GuiLayer(GuiContainer *parent, const char *name) :
+    _parent(parent),
+    _name(name),
     _rotation(0.0f),
     _height(0), _width(0),
     _alpha(0xff),
@@ -14,6 +17,9 @@ GuiLayer::GuiLayer() :
     _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0),
     _stretchWidth(1.0f), _stretchHeight(1.0f)
 {
+    if( _parent != NULL ) {
+        _parent->RegisterForDelete(this);
+    }
     _transform.valid = false;
     _transform.offsetX = 0.0f;
     _transform.offsetY = 0.0f;
@@ -30,10 +36,21 @@ GuiLayer::GuiLayer() :
 GuiLayer::~GuiLayer(){
 }
 
-u32 GuiLayer::GetID()
+GuiLayer* GuiLayer::GetParent() const
+{
+    return _parent;
+}
+
+const char* GuiLayer::GetName() const
+{
+    return _name;
+}
+
+u32 GuiLayer::GetID() const
 {
     return _id;
 }
+
 u32 GuiLayer::GetHeight() const{
     return _height;
 }

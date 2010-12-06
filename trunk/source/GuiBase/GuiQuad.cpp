@@ -7,7 +7,7 @@
 #include "GuiLayer.h"
 #include "GuiSprite.h"
 
-GuiQuad::GuiQuad() : GuiLayer(),
+GuiQuad::GuiQuad(GuiContainer *parent, const char *name) : GuiLayer(parent, name),
     _rect(NULL), _border(false), _borderWidth(1)
 {
     _rect = new Rect();

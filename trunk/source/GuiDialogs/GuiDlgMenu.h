@@ -10,7 +10,7 @@ class GuiLayFrame;
 class GuiDlgMenu : public GuiDialog
 {
 public:
-    GuiDlgMenu(GuiContainer *cntr, int rows);
+    GuiDlgMenu(GuiContainer *parent, const char *name, int rows);
     virtual ~GuiDlgMenu();
 
     void Initialize(const char **items, int num, int width);
