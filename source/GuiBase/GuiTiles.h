@@ -17,7 +17,7 @@ public:
     //!\param columns The number of columns.
     //!\param rows The number of rows.
     //!\param ani The possible number of tiles with animations.
-    GuiTiles(s32 columns, s32 rows, u32 ani);
+    GuiTiles(GuiContainer *parent, const char *name, s32 columns, s32 rows, u32 ani);
     //!Destructor.
     virtual ~GuiTiles();
 

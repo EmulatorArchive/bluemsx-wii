@@ -13,7 +13,7 @@ class GuiImage;
 
 class GuiElmButton : public GuiElement {
 public:
-    GuiElmButton();
+    GuiElmButton(GuiContainer *parent, const char *name);
     virtual ~GuiElmButton();
 
     virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);

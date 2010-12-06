@@ -111,8 +111,7 @@ void GuiDlgStateSelect::UpdateScreenShot(char *file)
         int size;
         void* buffer = zipLoadFile(file, "screenshot.png", &size);
 
-        sprScreenShot = new GuiSprite;
-        RegisterForDelete(sprScreenShot);
+        sprScreenShot = new GuiSprite(this, "screenshot");
         if( buffer == NULL || !sprScreenShot->LoadImage((const unsigned char*)buffer) ) {
             sprScreenShot->SetImage(g_imgNoise);
         }
@@ -163,8 +162,10 @@ char *GuiDlgStateSelect::DoModal(void)
             sel = list->GetSelectedItem();
             returnValue = filenames[sel];
             // confirmation
-            bool ok = GuiDlgMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192, new GuiEffectFade(10), new GuiEffectFade(10),
-                                               "Do you want to load\n\"%s\"", timestrings[sel]) == MSGBTN_YES;
+            bool ok = GuiDlgMessageBox::ShowModal(this, "wantload",
+                                                  MSGT_YESNO, NULL, 192,
+                                                  new GuiEffectFade(10), new GuiEffectFade(10),
+                                                  "Do you want to load\n\"%s\"", timestrings[sel]) == MSGBTN_YES;
             if( ok ) {
                 break;
             }
@@ -176,11 +177,10 @@ char *GuiDlgStateSelect::DoModal(void)
     return returnValue;
 }
 
-GuiDlgStateSelect::GuiDlgStateSelect(GuiContainer *cntr, Properties *properties, char *directory)
-               :GuiDialog(cntr)
+GuiDlgStateSelect::GuiDlgStateSelect(GuiContainer *parent, const char *name, Properties *properties, char *directory)
+                  :GuiDialog(parent, name)
 {
-    list = new GuiElmSelectionList(cntr, NUM_STATE_ITEMS);
-    RegisterForDelete(list);
+    list = new GuiElmSelectionList(this, name, NUM_STATE_ITEMS);
     num_states = 0;
     sprScreenShot = NULL;
     last_selected = -1;
@@ -194,8 +194,7 @@ GuiDlgStateSelect::GuiDlgStateSelect(GuiContainer *cntr, Properties *properties,
     posy = GetHeight()/2-(SSEL_HEIGHT/2)-16;
     sizex = 640-28;
     sizey = SSEL_HEIGHT+32;
-    frame = new GuiLayFrame(posx, posy, sizex, sizey, 160);
-    RegisterForDelete(frame);
+    frame = new GuiLayFrame(this, "frame", posx, posy, sizex, sizey, 160);
     AddTop(frame);
 
     // Selection

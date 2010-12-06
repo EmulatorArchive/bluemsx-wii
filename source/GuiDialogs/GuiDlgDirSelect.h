@@ -14,7 +14,7 @@ class GuiElmSelectionList;
 class GuiDlgDirSelect : public GuiDialog
 {
 public:
-    GuiDlgDirSelect(GuiContainer *cntr, const char *startdir, const char *filename);
+    GuiDlgDirSelect(GuiContainer* parent, const char* name, const char* startdir, const char* filename);
     virtual ~GuiDlgDirSelect();
 
     char* DoModal(void);

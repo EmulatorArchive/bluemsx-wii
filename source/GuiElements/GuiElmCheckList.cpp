@@ -16,12 +16,12 @@ SELRET GuiElmCheckList::DoModal(int *selected, const char **items, bool *items_s
 
     // Add container
     int height = num_item_rows*CHECKLIST_YPITCH+(CHECKLIST_YPITCH/2);
-    int posx = container->GetWidth()/2-width/2;
-    int posy = container->GetHeight()/2-height/2;
-    GuiLayFrame *frame = new GuiLayFrame(posx, posy, width, height, 192);
+    int posx = GetWidth()/2-width/2;
+    int posy = GetHeight()/2-height/2;
+    GuiLayFrame *frame = new GuiLayFrame(this, "frame", posx, posy, width, height, 192);
     AddTop(frame, CHECKLIST_EFFECT);
-    width = container->GetWidth();
-    height = container->GetHeight();
+    width = GetWidth();
+    height = GetHeight();
 
     // Menu list
     list->InitSelection(items, num, 0, 32, CHECKLIST_YPITCH,
@@ -29,7 +29,7 @@ SELRET GuiElmCheckList::DoModal(int *selected, const char **items, bool *items_s
     SetSelected(list);
     AddTop(list, CHECKLIST_EFFECT);
 
-    container->AddTop(this, CHECKLIST_EFFECT);
+    AddTop(this, CHECKLIST_EFFECT);
 
     // Run GUI
     SELRET retval = SELRET_KEY_B;
@@ -42,21 +42,21 @@ SELRET GuiElmCheckList::DoModal(int *selected, const char **items, bool *items_s
     Remove(list, CHECKLIST_EFFECT);
     RemoveAndDelete(frame, CHECKLIST_EFFECT);
 
-    container->Remove(this, CHECKLIST_EFFECT);
+    Remove(this, CHECKLIST_EFFECT);
 
     return retval;
 }
 
-GuiElmCheckList::GuiElmCheckList(GuiContainer *cntr, int rows)
-             :GuiDialog(cntr)
+GuiElmCheckList::GuiElmCheckList(GuiContainer *parent, const char *name, int rows)
+               : GuiDialog(parent, name)
 {
-    list = new GuiElmSelectionList(cntr, rows);
-    container = cntr;
+    list = new GuiElmSelectionList(this, "list", rows);
+    AddTop(list);
     num_item_rows = rows;
 }
 
 GuiElmCheckList::~GuiElmCheckList()
 {
-    delete list;
+    RemoveAndDelete(list);
 }
 

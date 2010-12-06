@@ -11,10 +11,10 @@
 
 GuiRootContainer* GuiContainer::_root = NULL;
 
-GuiContainer::GuiContainer(GuiContainer *cntr)
-            : GuiLayer()
+GuiContainer::GuiContainer(GuiContainer *parent, const char *name)
+            : GuiLayer(parent, name)
 {
-    _parent = cntr? cntr : _root;
+    _parent = parent? parent : _root;
 
     // Inherit properties
     if( _parent != NULL ) {
@@ -502,7 +502,7 @@ void GuiContainer::AddBottom(GuiLayer *layer, GuiEffect *effect)
     AddIndex(MAX_LAYERS, layer, false, effect);
 }
 
-void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bool needdelete, GuiEffect *effect)
+void GuiContainer::PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *effect)
 {
     assert(layer);
 
@@ -551,8 +551,6 @@ void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bo
 
         // Add entry to list
         LayerEffect *pe = new LayerEffect;
-        pe->file = file;
-        pe->line = line;
         pe->active_layer[0] = layer;
         pe->active_layer[1] = NULL;
         pe->remove_layer = layer;
@@ -605,8 +603,6 @@ void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bo
             
             // Add entry to list
             LayerEffect *pe = new LayerEffect;
-            pe->file = file;
-            pe->line = line;
             pe->active_layer[0] = layer;
             pe->active_layer[1] = NULL;
             pe->remove_layer = layer;
@@ -627,41 +623,20 @@ void GuiContainer::PrivateRemove(const char *file, int line, GuiLayer *layer, bo
     Unlock();
 }
 
-#ifdef DEBUG
-
-void GuiContainer::_Remove(const char *file, int line, GuiLayer *layer, GuiEffect *effect)
-{
-    PrivateRemove(file, line, layer, false, effect);
-}
-
-void GuiContainer::_RemoveAndDelete(const char *file, int line, GuiLayer *layer, GuiEffect *effect)
-{
-    PrivateRemove(file, line, layer, true, effect);
-}
-
-void GuiContainer::_Delete(const char *file, int line, GuiLayer *layer)
-{
-    PrivateRemove(file, line, layer, true, NULL);
-}
-
-#else
-
 void GuiContainer::Remove(GuiLayer *layer, GuiEffect *effect)
 {
-    PrivateRemove("", 0, layer, false, effect);
+    PrivateRemove(layer, false, effect);
 }
 
 void GuiContainer::RemoveAndDelete(GuiLayer *layer, GuiEffect *effect)
 {
-    PrivateRemove("", 0, layer, true, effect);
+    PrivateRemove(layer, true, effect);
 }
 
 void GuiContainer::Delete(GuiLayer *layer)
 {
-    PrivateRemove("", 0, layer, true, NULL);
+    PrivateRemove(layer, true, NULL);
 }
-
-#endif
 
 //--------------------------------------------------------------------------
 // Overloaded GuiLayer functions

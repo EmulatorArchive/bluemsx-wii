@@ -8,7 +8,7 @@
 GameWindow *g_poGwd = NULL;
 
 GuiRootContainer::GuiRootContainer()
-                 :GuiContainer(NULL)
+                 :GuiContainer(NULL, "root")
 {
     assert(_root == NULL); // only one root allowed
     _root = this;

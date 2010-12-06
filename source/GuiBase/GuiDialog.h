@@ -13,7 +13,7 @@ class GuiSprite;
 
 class GuiDialog : public GuiContainer {
 public:
-    GuiDialog(GuiContainer *cntr);
+    GuiDialog(GuiContainer *parent, const char *name);
     virtual ~GuiDialog();
 
     virtual void OnUpdateScreen(void);
@@ -34,17 +34,10 @@ public:
     virtual bool AddBehind(GuiLayer *behind, GuiElement *element, GuiEffect *effect = NULL);
     virtual void AddBottom(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void AddBottom(GuiElement *elementr, GuiEffect *effect = NULL);
-#ifdef DEBUG
-    virtual void _Remove(const char *file, int line, GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void _Remove(const char *file, int line, GuiElement *element, GuiEffect *effect = NULL);
-    virtual void _RemoveAndDelete(const char *file, int line, GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void _RemoveAndDelete(const char *file, int line, GuiElement *element, GuiEffect *effect = NULL);
-#else
     virtual void Remove(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void Remove(GuiElement *element, GuiEffect *effect = NULL);
     virtual void RemoveAndDelete(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void RemoveAndDelete(GuiElement *element, GuiEffect *effect = NULL);
-#endif
 
     void SetSelected(GuiElement *elm, int x=0, int y=0);
     GuiElement* GetSelected(bool active_only = false);

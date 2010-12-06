@@ -37,12 +37,10 @@ void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
         first = false;
         RemoveAndDelete(sprScreenShot[1], GAMESEL_EFFECT_SCREENSHOTS);
     }
-    sprScreenShot[0] = new GuiSprite;
+    sprScreenShot[0] = new GuiSprite(this, "screen1");
     sprScreenShot[0]->SetPosition(344+12-8, screenshotYpos1);
-    RegisterForDelete(sprScreenShot[0]);
-    sprScreenShot[1] = new GuiSprite;
+    sprScreenShot[1] = new GuiSprite(this, "screen2");
     sprScreenShot[1]->SetPosition(344+12-8, screenshotYpos2);
-    RegisterForDelete(sprScreenShot[1]);
     // Update screenshots
     if( selected >= 0 ) {
         GameElement *game = games.GetGame(index+selected);
@@ -97,15 +95,19 @@ void GuiDlgGameSelect::OnKey(BTN key, bool pressed)
             if( elm == list && list->IsActive() ) {
                 // confirmation
                 GameElement *game = games.GetGame(selected_game);
-                bool ok = GuiDlgMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192, GAMESEL_EFFECT_DEFAULT, GAMESEL_EFFECT_DEFAULT,
-                                                   "Do you want to start\n\"%s\"", game->GetName()) == MSGBTN_YES;
+                bool ok = GuiDlgMessageBox::ShowModal(this, "wantstart",
+                                                      MSGT_YESNO, NULL, 192,
+                                                      GAMESEL_EFFECT_DEFAULT, GAMESEL_EFFECT_DEFAULT,
+                                                      "Do you want to start\n\"%s\"", game->GetName()) == MSGBTN_YES;
                 if( ok ) {
                     Leave(game);
                 }
             }
             if( elm == grButtonDel ) {
-                bool ok = GuiDlgMessageBox::ShowModal(this, MSGT_YESNO, NULL, 192, GAMESEL_EFFECT_DEFAULT, GAMESEL_EFFECT_DEFAULT,
-                                                   "Do you want to delete\n\"%s\"", games.GetGame(selected_game)->GetName()) == MSGBTN_YES;
+                bool ok = GuiDlgMessageBox::ShowModal(this, "wantdelete",
+                                                      MSGT_YESNO, NULL, 192,
+                                                      GAMESEL_EFFECT_DEFAULT, GAMESEL_EFFECT_DEFAULT,
+                                                      "Do you want to delete\n\"%s\"", games.GetGame(selected_game)->GetName()) == MSGBTN_YES;
                 if( ok ) {
                     games.DeleteItem(selected_game);
                     num_games--;
@@ -213,8 +215,7 @@ void GuiDlgGameSelect::Show(bool restart)
     
     // Add selection list
     if( grWinList == NULL ) {
-        grWinList = new GuiLayFrame(32-8, 28, 288, 33*12);
-        RegisterForDelete(grWinList);
+        grWinList = new GuiLayFrame(this, "listframe", 32-8, 28, 288, 33*12);
         AddTop(grWinList, EFFECT);
         AddTop(list, EFFECT);
     }
@@ -222,50 +223,40 @@ void GuiDlgGameSelect::Show(bool restart)
     // GUI Elements
     if( editMode ) {
         // Containers
-        grWinTitle = new GuiLayFrame(344-8, 28, 264+12, 14*12);
-        RegisterForDelete(grWinTitle);
+        grWinTitle = new GuiLayFrame(this, "screen1frame", 344-8, 28, 264+12, 14*12);
         AddTop(grWinTitle, EFFECT);
-        grWinPlay = new GuiLayFrame(344-8, 232-30, 264+12, 14*12);
-        RegisterForDelete(grWinPlay);
+        grWinPlay = new GuiLayFrame(this, "screen2frame", 344-8, 232-30, 264+12, 14*12);
         AddTop(grWinPlay, EFFECT);
-        grWinControls = new GuiLayFrame(344-8, 232-30+14*12+6, 264+12, 4*12);
-        RegisterForDelete(grWinControls);
+        grWinControls = new GuiLayFrame(this, "controlframe", 344-8, 232-30+14*12+6, 264+12, 4*12);
         AddTop(grWinControls, EFFECT);
         // Icons
-        grButtonAdd = new GuiElmButton();
+        grButtonAdd = new GuiElmButton(this, "add");
         grButtonAdd->CreateImageSelectorButton(g_imgAdd);
         grButtonAdd->SetPosition(344+8, 232-30+14*12+8);
-        RegisterForDelete(grButtonAdd);
         AddTop(grButtonAdd, EFFECT);
-        grButtonDel = new GuiElmButton();
+        grButtonDel = new GuiElmButton(this, "del");
         grButtonDel->CreateImageSelectorButton(g_imgDelete);
         grButtonDel->SetPosition(344+8+50, 232-30+14*12+8);
-        RegisterForDelete(grButtonDel);
         AddTop(grButtonDel, EFFECT);
-        grButtonUp = new GuiElmButton();
+        grButtonUp = new GuiElmButton(this, "up");
         grButtonUp->CreateImageSelectorButton(g_imgUp);
         grButtonUp->SetPosition(344+8+2*50, 232-30+14*12+8);
-        RegisterForDelete(grButtonUp);
         AddTop(grButtonUp, EFFECT);
-        grButtonDown = new GuiElmButton();
+        grButtonDown = new GuiElmButton(this, "down");
         grButtonDown->CreateImageSelectorButton(g_imgDown);
         grButtonDown->SetPosition(344+8+3*50, 232-30+14*12+8);
-        RegisterForDelete(grButtonDown);
         AddTop(grButtonDown, EFFECT);
-        grButtonSettings = new GuiElmButton();
+        grButtonSettings = new GuiElmButton(this, "settings");
         grButtonSettings->CreateImageSelectorButton(g_imgSettings);
         grButtonSettings->SetPosition(344+8+4*50, 232-30+14*12+8);
-        RegisterForDelete(grButtonSettings);
         AddTop(grButtonSettings, EFFECT);
-        grButtonDelScr1 = new GuiElmButton();
+        grButtonDelScr1 = new GuiElmButton(this, "delscr1");
         grButtonDelScr1->CreateImageSelectorButton(g_imgDelete2);
         grButtonDelScr1->SetPosition(344+8+264+5-54, 28+12);
-        RegisterForDelete(grButtonDelScr1);
         AddTop(grButtonDelScr1, EFFECT);
-        grButtonDelScr2 = new GuiElmButton();
+        grButtonDelScr2 = new GuiElmButton(this, "delscr2");
         grButtonDelScr2->CreateImageSelectorButton(g_imgDelete2);
         grButtonDelScr2->SetPosition(344+8+264+5-54, 232-30+12);
-        RegisterForDelete(grButtonDelScr2);
         AddTop(grButtonDelScr2, EFFECT);
         // Screenshot coordinates
         screenshotWidth = (252.0f/16.0f)*14.0f;
@@ -274,11 +265,9 @@ void GuiDlgGameSelect::Show(bool restart)
         screenshotYpos2 = 228+16-30;
     }else{
         // Containers
-        grWinTitle = new GuiLayFrame(344-8, 28, 264+12, 16*12);
-        RegisterForDelete(grWinTitle);
+        grWinTitle = new GuiLayFrame(this, "screen1frame", 344-8, 28, 264+12, 16*12);
         AddTop(grWinTitle, EFFECT);
-        grWinPlay = new GuiLayFrame(344-8, 232, 264+12, 16*12);
-        RegisterForDelete(grWinPlay);
+        grWinPlay = new GuiLayFrame(this, "screen2frame", 344-8, 232, 264+12, 16*12);
         AddTop(grWinPlay, EFFECT);
         // Screenshot coordinates
         screenshotWidth = 252.0f;
@@ -355,11 +344,13 @@ GameElement *GuiDlgGameSelect::DoModal(void)
 
         if( !restart && (games_crc != games.CalcCRC()) ) {
             // Gamelist changed, ask to save
-            MSGBTN btn = GuiDlgMessageBox::ShowModal(this, MSGT_YESNOCANCEL, NULL, 192, GAMESEL_EFFECT_DEFAULT,
+            MSGBTN btn = GuiDlgMessageBox::ShowModal(this, "savechanges",
+                                                     MSGT_YESNOCANCEL, NULL, 192, GAMESEL_EFFECT_DEFAULT,
                                                      GAMESEL_EFFECT_DEFAULT, "Save changes?");
             if( btn == MSGBTN_YES ) {
                 games.Save(games_filename);
-                (void)GuiDlgMessageBox::ShowModal(this, MSGT_OK, NULL, 192, GAMESEL_EFFECT_DEFAULT,
+                (void)GuiDlgMessageBox::ShowModal(this, "changessaved",
+                                                  MSGT_OK, NULL, 192, GAMESEL_EFFECT_DEFAULT,
                                                   GAMESEL_EFFECT_DEFAULT, "Changes saved");
             }
             if( btn == MSGBTN_CANCEL ) {
@@ -384,11 +375,10 @@ GameElement *GuiDlgGameSelect::DoModal(void)
     }
 }
 
-GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *cntr, GuiElmBackground *bgr)
-                 :GuiDialog(cntr)
+GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiElmBackground *bgr)
+                 :GuiDialog(parent, name)
 {
-    list = new GuiElmSelectionList(this, NUM_LIST_ITEMS);
-    RegisterForDelete(list);
+    list = new GuiElmSelectionList(this, name, NUM_LIST_ITEMS);
 
     background = bgr;
 

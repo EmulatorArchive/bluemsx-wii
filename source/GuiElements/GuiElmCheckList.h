@@ -8,7 +8,7 @@
 class GuiElmCheckList : public GuiDialog
 {
 public:
-    GuiElmCheckList(GuiContainer *cntr, int rows);
+    GuiElmCheckList(GuiContainer *parent, const char *name, int rows);
     virtual ~GuiElmCheckList();
 
     SELRET DoModal(int *selected, const char **items, bool *items_selected, int num, int width);

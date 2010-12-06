@@ -4,10 +4,12 @@
 #include <hge/hgeSprite.h>
 #endif
 #include "GuiTiles.h"
+#include "GuiContainer.h"
 
 #define FRAME_CORRECTION 0.375f //!< Displays frames a lot nicer, still needs a complete fix.
 
-GuiTiles::GuiTiles(s32 columns, s32 rows, u32 ani) : GuiLayer(),
+GuiTiles::GuiTiles(GuiContainer *parent, const char *name, s32 columns, s32 rows, u32 ani) :
+    GuiLayer(parent, name),
     _data(NULL), _columns(columns), _rows(rows),
     _tileWidth(0), _tileHeight(0),
     _animations(NULL), _aniSize(0), _aniBoundary(ani),

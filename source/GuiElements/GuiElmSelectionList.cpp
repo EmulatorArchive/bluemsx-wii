@@ -227,10 +227,9 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
             titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
             titleTxtSprite[i]->SetVisible(true);
         }
-        GuiSprite* spr = new GuiSprite();
+        GuiSprite* spr = new GuiSprite(this, "item");
         spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[num_item_rows-1]);
         spr->SetPosition(xpos + xspacing, ypos + (num_item_rows-1)*ypitch + fontsize/3);
-        RegisterForDelete(spr);
         AddOnTopOf(titleTxtSprite[num_item_rows-1], spr, SELECTION_EFFECT);
         titleTxtSprite[num_item_rows-1] = spr;
     }else
@@ -244,20 +243,18 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
             titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
             titleTxtSprite[i]->SetVisible(true);
         }
-        GuiSprite* spr = new GuiSprite();
+        GuiSprite* spr = new GuiSprite(this, "item");
         spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[0]);
         spr->SetPosition(xpos + xspacing, ypos + fontsize/3);
-        RegisterForDelete(spr);
         AddOnTopOf(titleTxtSprite[0], spr, SELECTION_EFFECT);
         titleTxtSprite[0] = spr;
     }else{
         // rebuild
         for(int i = 0, yy = ypos; i < num_item_rows; i++, yy += ypitch) {
-            GuiSprite* spr = new GuiSprite();
+            GuiSprite* spr = new GuiSprite(this, "item");
             spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[i]);
             spr->SetPosition(xpos + xspacing, yy + fontsize/3);
             spr->SetVisible(true);
-            RegisterForDelete(spr);
             if( titleTxtSprite[i] ) {
                 AddOnTopOf(titleTxtSprite[i], spr, SELECTION_EFFECT);
                 RemoveAndDelete(titleTxtSprite[i], SELECTION_EFFECT);
@@ -297,13 +294,12 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         }
         if( selected >= 0 ) {
             GuiSprite *selectedsprite = titleTxtSprite[selected];
-            sprSelector = new GuiSprite;
+            sprSelector = new GuiSprite(this, "selector");
             sprSelector->SetImage(g_imgSelector);
             sprSelector->SetRefPixelPosition(0, 0);
             sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-(float)fontsize/2.8f);
             sprSelector->SetStretchWidth((float)xsize / 4);
             sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
-            RegisterForDelete(sprSelector);
             AddBottom(sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
             is_active = true;
         }
@@ -354,7 +350,7 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     ClearTitleList();
 
     // Arrows
-    sprArrowUp = new GuiSprite;
+    sprArrowUp = new GuiSprite(this, "arrow_up");
     sprArrowUp->SetImage(g_imgArrow);
     sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
     sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2+fontsize/3);
@@ -362,16 +358,14 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     sprArrowUp->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
     sprArrowUp->SetRotation(180.0f);
     sprArrowUp->SetVisible(false);
-    RegisterForDelete(sprArrowUp);
 
-    sprArrowDown = new GuiSprite;
+    sprArrowDown = new GuiSprite(this, "arrow_down");
     sprArrowDown->SetImage(g_imgArrow);
     sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
     sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2+fontsize/3);
     sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
     sprArrowDown->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
     sprArrowDown->SetVisible(false);
-    RegisterForDelete(sprArrowDown);
 
     current_index = -1;
     prev_selected = -1;
@@ -387,7 +381,8 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     Unlock();
 }
 
-GuiElmSelectionList::GuiElmSelectionList(GuiContainer *man, int rows)
+GuiElmSelectionList::GuiElmSelectionList(GuiContainer *parent, const char *name, int rows)
+                   : GuiElement(parent, name)
 {
     num_item_rows = rows;
     is_showing = false;

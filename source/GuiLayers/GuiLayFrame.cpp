@@ -1,12 +1,16 @@
 
 #include "GuiLayFrame.h"
+
+#include "../GuiBase/GuiContainer.h"
+
 #include "image_container.inc"
 
 #define TILE_SIZE 12
 
-GuiLayFrame::GuiLayFrame( int posx,  int posy, int width, int height, int alpha)
-            : GuiTiles((width + TILE_SIZE/2)/TILE_SIZE+1,
-                         (height + TILE_SIZE/2)/TILE_SIZE+1, 0)
+GuiLayFrame::GuiLayFrame(GuiContainer *parent, const char *name, int posx,  int posy, int width, int height, int alpha)
+            : GuiTiles(parent, name,
+                       (width + TILE_SIZE/2)/TILE_SIZE+1,
+                       (height + TILE_SIZE/2)/TILE_SIZE+1, 0)
 {
     cols = (width + TILE_SIZE/2) /TILE_SIZE;
     rows = (height + TILE_SIZE/2) / TILE_SIZE;
@@ -21,7 +25,7 @@ GuiLayFrame::~GuiLayFrame()
 {
 }
 
-void GuiLayFrame::SetPosition( int posx,  int posy)
+void GuiLayFrame::SetPosition(int posx,  int posy)
 {
     GuiTiles::SetPosition(posx - TILE_SIZE, posy - TILE_SIZE);
 }

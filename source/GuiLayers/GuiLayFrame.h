@@ -3,10 +3,12 @@
 
 #include "../GuiBase/GuiTiles.h"
 
+class GuiContainer;
+
 class GuiLayFrame : public GuiTiles
 {
     public:
-        GuiLayFrame(int posx, int posy, int width, int height, int alpha = 128);
+        GuiLayFrame(GuiContainer *parent, const char *name, int posx, int posy, int width, int height, int alpha = 128);
         virtual ~GuiLayFrame();
         void Render(void);
         void SetPosition(int posx,  int posy);

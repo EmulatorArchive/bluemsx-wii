@@ -53,31 +53,29 @@ void GuiDlgMessageBox::CleanUp(void)
     }
 }
 
-void GuiDlgMessageBox::ShowPopup(GuiContainer *cntr, GuiImage *image, int alpha, int delay, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
+void GuiDlgMessageBox::ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, int alpha, int delay, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
 
-    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(cntr);
-    cntr->RegisterForDelete(msgbox);
+    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(parent, name);
     msgbox->CreateVA(MSGT_TEXT, image, alpha, txt, marker);
-    cntr->AddTop(msgbox, effa);
+    parent->AddTop(msgbox, effa);
     archThreadSleep(delay);
-    cntr->RemoveAndDelete(msgbox, effb);
+    parent->RemoveAndDelete(msgbox, effb);
 
     va_end(marker);
 }
 
-MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *cntr, MSGT type, GuiImage *image, int alpha, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
+MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, int alpha, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
 
     // Create and show
-    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(cntr);
-    cntr->RegisterForDelete(msgbox);
+    GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(parent, name);
     msgbox->CreateVA(type, image, alpha, txt, marker);
-    cntr->AddTop(msgbox, effa);
+    parent->AddTop(msgbox, effa);
 
     // selection
     MSGBTN return_value;
@@ -89,7 +87,7 @@ MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *cntr, MSGT type, GuiImage *imag
     }
 
     // Remove
-    cntr->RemoveAndDelete(msgbox, effb);
+    parent->RemoveAndDelete(msgbox, effb);
 
     return return_value;
 }
@@ -113,9 +111,8 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
 
     // prepare text
     GXColor white={255,255,255,255};
-    txt_sprite = new GuiSprite;
+    txt_sprite = new GuiSprite(this, "text");
     txt_sprite->CreateTextImageVA(g_fontArial, 32, 0, 0, true, white, txt, valist);
-    RegisterForDelete(txt_sprite);
 
     // frame
     int minsizex = image? 560 : 400;
@@ -133,8 +130,7 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
     SetWidth(sizex);
     SetHeight(sizey);
     SetRefPixelPosition(sizex/2, sizey/2);
-    frame = new GuiLayFrame(0, 0, sizex, sizey, alpha);
-    RegisterForDelete(frame);
+    frame = new GuiLayFrame(this, "frame", 0, 0, sizex, sizey, alpha);
     AddTop(frame);
     sizex = frame->GetWidth();
     sizey = frame->GetHeight();
@@ -142,11 +138,10 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
     s32 x = 0, y = 0;
     // image (optional)
     if( image ) {
-        img_sprite = new GuiSprite;
+        img_sprite = new GuiSprite(this, "image");
         img_sprite->SetImage(image);
         img_sprite->SetRefPixelPosition(0, 0);
         img_sprite->SetPosition(x+24, y+sizey/2-image->GetHeight()/2);
-        RegisterForDelete(img_sprite);
         AddTop(img_sprite);
         x += 24+image->GetWidth();
         sizex -= 24+image->GetWidth();
@@ -188,10 +183,9 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
         }
         by = y + sizey - btnimg[0]->GetHeight() - 36;
         for(i = 0; i < no_buttons; i++) {
-            button[i] = new GuiElmButton();
+            button[i] = new GuiElmButton(this, "button");
             button[i]->CreateImageTextHighlightButton(btnimg[i], btntxt[i]);
             button[i]->SetPosition(bx, by);
-            RegisterForDelete(button[i]);
             AddTop(button[i]);
             bx += btnimg[i]->GetWidth() + 24;
         }
@@ -203,8 +197,8 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
     AddTop(txt_sprite);
 }
 
-GuiDlgMessageBox::GuiDlgMessageBox(GuiContainer *cntr)
-              :GuiDialog(cntr)
+GuiDlgMessageBox::GuiDlgMessageBox(GuiContainer *parent, const char *name)
+                 :GuiDialog(parent, name)
 {
     memset(button, 0, sizeof(button));
     btn_type = MSGT_TEXT;

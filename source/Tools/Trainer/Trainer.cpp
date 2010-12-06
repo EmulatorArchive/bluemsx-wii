@@ -305,7 +305,7 @@ static bool loadCheatFile(const char* filename)
 
     FILE* f = fopen(filename, "r");
     if (f == NULL) {
-        GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container);
+        GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container, "invalidchaet");
         msgbox->Create(MSGT_TEXT, NULL, 128, "Invalid cheat file!");
         container->AddTop(msgbox, new GuiEffectFade(10));
         archThreadSleep(2000);
@@ -382,7 +382,7 @@ void OnShowTool()
         enabled_list[idx++] = (*i).enabled;
     }
 
-    GuiElmCheckList *check_list = new GuiElmCheckList(container, 9);
+    GuiElmCheckList *check_list = new GuiElmCheckList(container, "checklist", 9);
     bool leave = false;
     do {
         int selection;

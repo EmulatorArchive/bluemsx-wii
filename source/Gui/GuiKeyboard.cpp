@@ -233,41 +233,32 @@ void GuiKeyboard::Show(void)
     }
 
     // Keyboard image
-    spr_image = new GuiSprite;
+    spr_image = new GuiSprite(this, "keyboard");
     spr_image->SetImage(g_imgKeyboard);
     spr_image->SetStretchWidth(xscale);
     spr_image->SetStretchHeight(yscale);
     spr_image->SetRefPixelPosition(0,0);
     spr_image->SetPosition(xpos, ypos);
     spr_image->SetTransparency(256-32);
-    RegisterForDelete(spr_image);
 
-    spr_hover = new GuiSprite();
+    spr_hover = new GuiSprite(this, "hover");
     spr_hover->CreateDrawImage(4, 4, GX_TF_RGB565);
     spr_hover->FillSolidColor(COLOR_HOVER);
-    RegisterForDelete(spr_hover);
-    spr_pressed = new GuiSprite();
+    spr_pressed = new GuiSprite(this, "pressed");
     spr_pressed->CreateDrawImage(4, 4, GX_TF_RGB565);
     spr_pressed->FillSolidColor(COLOR_PRESSED);
-    RegisterForDelete(spr_pressed);
-    spr_caps = new GuiSprite;
+    spr_caps = new GuiSprite(this, "caps");
     spr_caps->SetImage(spr_pressed->GetImage());
-    RegisterForDelete(spr_caps);
-    spr_shift_l = new GuiSprite;
+    spr_shift_l = new GuiSprite(this, "shift_left");
     spr_shift_l->SetImage(spr_pressed->GetImage());
-    RegisterForDelete(spr_shift_l);
-    spr_shift_r = new GuiSprite;
+    spr_shift_r = new GuiSprite(this, "shift_right");
     spr_shift_r->SetImage(spr_pressed->GetImage());
-    RegisterForDelete(spr_shift_r);
-    spr_ctrl = new GuiSprite;
+    spr_ctrl = new GuiSprite(this, "ctrl");
     spr_ctrl->SetImage(spr_pressed->GetImage());
-    RegisterForDelete(spr_ctrl);
-    spr_graph = new GuiSprite;
+    spr_graph = new GuiSprite(this, "graph");
     spr_graph->SetImage(spr_pressed->GetImage());
-    RegisterForDelete(spr_graph);
-    spr_code = new GuiSprite;
+    spr_code = new GuiSprite(this, "code");
     spr_code->SetImage(spr_pressed->GetImage());
-    RegisterForDelete(spr_code);
 
     keymap1 = keyboardGetMapping(BTN_JOY1_WIIMOTE_A);
     keymap2 = keyboardGetMapping(BTN_JOY2_WIIMOTE_A);
@@ -333,8 +324,8 @@ void GuiKeyboard::SetEnabled(bool enable)
     is_enabled = is_hidden = enable;
 }
 
-GuiKeyboard::GuiKeyboard(GuiContainer *cntr)
-            :GuiDialog(cntr)
+GuiKeyboard::GuiKeyboard(GuiContainer *parent, const char *name)
+            :GuiDialog(parent, name)
 {
     is_showing = false;
     is_enabled = true;
@@ -347,8 +338,7 @@ GuiKeyboard::GuiKeyboard(GuiContainer *cntr)
     ypos = (GetHeight()-ysize)/2;
 
     // Cursor
-    spr_cursor = new GuiSprite;
-    RegisterForDelete(spr_cursor);
+    spr_cursor = new GuiSprite(this, "cursor");
     spr_cursor->SetImage(g_imgMousecursor);
     spr_cursor->SetRefPixelPosition(11, 4);
     spr_cursor->SetPosition(0, 0);

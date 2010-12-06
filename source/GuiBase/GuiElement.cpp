@@ -3,8 +3,8 @@
 
 class GuiEffect;
 
-GuiElement::GuiElement(GuiContainer *cntr)
-          : GuiContainer(cntr)
+GuiElement::GuiElement(GuiContainer *parent, const char *name)
+          : GuiContainer(parent, name)
 {
 }
 

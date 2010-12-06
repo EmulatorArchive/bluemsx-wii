@@ -19,6 +19,8 @@
 #define GUI_2_PI    0.636619772367581343076f
 #endif
 
+class GuiContainer;
+
 class LayerTransform {
 public:
   LayerTransform()
@@ -47,11 +49,13 @@ public:
 class GuiLayer{
 public:
     //Constructor.
-    GuiLayer();
+    GuiLayer(GuiContainer *parent, const char *name);
     //Destructor.
     virtual ~GuiLayer();
 
-    u32 GetID();
+    GuiLayer* GetParent() const;
+    const char* GetName() const;
+    u32 GetID() const;
 
     //!Gets the height of the layer.
     //!\return the current height of this layer.
@@ -165,6 +169,8 @@ public:
     virtual LayerTransform GetTransform(void);
     virtual void Draw(void);
 protected:
+    GuiContainer *_parent;
+    const char *_name;
     // Transformation
     LayerTransform _transform;
     // Positioning

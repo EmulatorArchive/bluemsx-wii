@@ -11,7 +11,7 @@ class GuiSprite;
 
 class GuiElement : public GuiContainer {
 public:
-    GuiElement(GuiContainer *cntr = NULL);
+    GuiElement(GuiContainer *parent, const char *name);
     virtual ~GuiElement();
 
     virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);
