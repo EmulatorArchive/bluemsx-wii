@@ -112,7 +112,7 @@ void* zipLoadFileFromOpenZip(ZipFile *zip, const char* fileName, int* size)
         strcpy(name, fileName);
     }
 
-    if (unzLocateFile(zip->zip, fileName, 1) == UNZ_END_OF_LIST_OF_FILE) {
+    if (unzLocateFile(zip->zip, fileName, 2) == UNZ_END_OF_LIST_OF_FILE) {
         return NULL;
     }
 
@@ -276,7 +276,7 @@ int zipFileExists(const char* zipName, const char* fileName)
         return 0;
     }
 
-    if (unzLocateFile(zip, name, 1) == UNZ_END_OF_LIST_OF_FILE) {
+    if (unzLocateFile(zip, name, 2) == UNZ_END_OF_LIST_OF_FILE) {
         unzClose(zip);
         return 0;
     }else{
