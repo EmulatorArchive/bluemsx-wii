@@ -16,8 +16,12 @@ public:
     GuiDialog(GuiContainer *parent, const char *name);
     virtual ~GuiDialog();
 
+    // Callbacks
     virtual void OnUpdateScreen(void);
     virtual void OnKey(BTN key, bool pressed);
+
+    // Callbacks from GuiContainer
+    virtual void OnDelete(GuiLayer *layer);
 
     void AddElement(GuiElement *element);
     void RemoveElement(GuiElement *element);

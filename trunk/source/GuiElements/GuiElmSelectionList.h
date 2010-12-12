@@ -25,12 +25,11 @@ public:
     virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
     virtual bool ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed);
 
-    void InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
+    void InitSelection(const char **items, int num, int select, int fontsz, GXColor fontcol, int pitchy,
                        int posx, int posy, int xspace, int width, bool centr = false);
     void ClearTitleList(void);
     void SetSelectedItem(int fade = -1, int delay = -1);
     void SetNumberOfItems(int num);
-    SELRET DoSelection(int *selection);
     bool IsShowing(void);
     int IsActive(void);
     int GetSelectedItem(void);
@@ -40,6 +39,7 @@ public:
 private:
     void CleanUp(void);
 
+    GXColor fontcolor;
     int xpos;
     int ypos;
     int xsize;

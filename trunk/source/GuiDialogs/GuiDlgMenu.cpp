@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 
 #define MENU_YPITCH      56
@@ -19,13 +19,14 @@ void GuiDlgMenu::Initialize(const char **items, int num, int width)
     int height = num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
     int posx = GetWidth()/2-width/2;
     int posy = GetHeight()/2-height/2;
-    frame = new GuiLayFrame(this, "frame", posx, posy, width, height, 192);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, width, height, 192);
     AddTop(frame, new GuiEffectFade(10));
     width = frame->GetWidth();
     height = frame->GetHeight();
 
     // Menu list
-    list->InitSelection(items, num, 0, 32, MENU_YPITCH,
+    GXColor white = {255, 255, 255, 255};
+    list->InitSelection(items, num, 0, 32, white, MENU_YPITCH,
                         posx+10, posy+24, 24, width-32, false);
     AddTop(list, new GuiEffectFade(10));
     SetSelected(list);

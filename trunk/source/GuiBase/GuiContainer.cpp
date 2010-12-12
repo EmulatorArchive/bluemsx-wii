@@ -136,10 +136,17 @@ void GuiContainer::LayerAppend(GuiLayer* layer)
 {
     if(layer == NULL) return;
 
-    // Check if it can be appended
-    if(_size >= _boundary) return;
-
     Lock();
+
+#ifdef DEBUG // Only for debug because this check eats performance
+    assert( LayerGetIndex(layer) == -1 ); // Layer should not added already
+#endif
+
+    // Check if it can be appended
+    if(_size >= _boundary) {
+        Unlock();
+        return;
+    }
 
     // Set layer on farthest position
     _layers[_size] = layer;
@@ -150,12 +157,19 @@ void GuiContainer::LayerAppend(GuiLayer* layer)
 
 void GuiContainer::LayerInsert(GuiLayer* layer, u32 index)
 {
-    if(layer == NULL || index > _size)return;
-
-    // Check if it can be inserted
-    if(_size >= _boundary || index > _size)return;
+    if(layer == NULL) return;
 
     Lock();
+
+#ifdef DEBUG // Only for debug because this check eats performance
+    assert( LayerGetIndex(layer) == -1 ); // Layer should not added already
+#endif
+
+    // Check if it can be inserted
+    if(_size >= _boundary || index > _size) {
+        Unlock();
+        return;
+    }
 
     // Make some space for our new layer
     for(u32 i = _size; i > index; i--) {
@@ -169,7 +183,7 @@ void GuiContainer::LayerInsert(GuiLayer* layer, u32 index)
 
 int GuiContainer::LayerGetIndex(GuiLayer* layer)
 {
-    if(layer == NULL)return -1;
+    if(layer == NULL) return -1;
 
     Lock();
     for(u32 i = 0; i < _size; i++){
@@ -186,11 +200,12 @@ int GuiContainer::LayerGetIndex(GuiLayer* layer)
 
 void GuiContainer::LayerRemove(GuiLayer* layer)
 {
-    if(layer == NULL)return;
+    if(layer == NULL) return;
 
     bool shift = false;
 
     Lock();
+
     for(u32 i = 0; i < _size; i++){
         // Or check if the layers are equal and turn shifting on
         if(_layers[i] != NULL && layer->GetID() == _layers[i]->GetID()) {
@@ -211,24 +226,21 @@ void GuiContainer::LayerRemove(GuiLayer* layer)
     }
 
     if(shift)_size--; // Success!
+
     Unlock();
 }
 
 void GuiContainer::LayerRemoveAll()
 {
     Lock();
+
     for(u32 i = 0; i < _size; i++){
         _layers[i] = NULL;
     }
     fixed_layers = 0;
     _size = 0;
-    Unlock();
-}
 
-GuiLayer* GuiContainer::LayerGetLayerAt(u32 index) const
-{
-    if(index >= _size)return NULL;
-    return _layers[index];
+    Unlock();
 }
 
 u32 GuiContainer::LayerGetSize() const
@@ -246,7 +258,9 @@ void GuiContainer::AddRenderCallback(bool (*callback)(void*), void *context)
     newrender->callback = callback;
     newrender->context = context;
     newrender->next = NULL;
+
     Lock();
+
     if( render_callback ) {
         p = render_callback;
         while( p->next ) {
@@ -256,12 +270,14 @@ void GuiContainer::AddRenderCallback(bool (*callback)(void*), void *context)
     }else{
         render_callback = newrender;
     }
+
     Unlock();
 }
 
 void GuiContainer::RemoveRenderCallback(bool (*callback)(void*), void *context)
 {
     Lock();
+
     GuiContainerCallback *cur = render_callback;
     GuiContainerCallback *prev = NULL;
     while( cur ) {
@@ -278,6 +294,7 @@ void GuiContainer::RemoveRenderCallback(bool (*callback)(void*), void *context)
         prev = cur;
         cur = cur->next;
     }
+
     Unlock();
 }
 
@@ -286,15 +303,19 @@ void GuiContainer::AddFrameCallback(bool (*callback)(void*), void *context)
     GuiContainerCallback *newrender = new GuiContainerCallback;
     newrender->callback = callback;
     newrender->context = context;
+
     Lock();
+
     newrender->next = frame_callback;
     frame_callback = newrender;
+
     Unlock();
 }
 
 void GuiContainer::RemoveFrameCallback(bool (*callback)(void*), void *context)
 {
     Lock();
+
     GuiContainerCallback *cur = frame_callback;
     GuiContainerCallback *prev = NULL;
     while( cur ) {
@@ -311,6 +332,7 @@ void GuiContainer::RemoveFrameCallback(bool (*callback)(void*), void *context)
         prev = cur;
         cur = cur->next;
     }
+
     Unlock();
 }
 
@@ -331,6 +353,7 @@ int GuiContainer::GetFixedLayers(void)
 void GuiContainer::RegisterForDelete(GuiLayer *layer)
 {
     Lock();
+
     for(int i = 0; i < MAX_LAYERS; i++) {
         if( layers_to_delete[i] == NULL ) {
             layers_to_delete[i] = layer;
@@ -338,8 +361,24 @@ void GuiContainer::RegisterForDelete(GuiLayer *layer)
             return;
         }
     }
+
     Unlock();
     assert(0);
+}
+
+bool GuiContainer::IsRegisteredForDelete(GuiLayer *layer)
+{
+    Lock();
+
+    for(int i = 0; i < MAX_LAYERS; i++) {
+        if( layers_to_delete[i] == layer ) {
+            Unlock();
+            return true;
+        }
+    }
+
+    Unlock();
+    return false;
 }
 
 void GuiContainer::DeleteDirect(GuiLayer *layer)
@@ -347,11 +386,16 @@ void GuiContainer::DeleteDirect(GuiLayer *layer)
     Lock();
 
     assert( layer );
+#ifdef DEBUG // Only for debug because this checks eats performance
+    assert( IsRegisteredForDelete(layer) ); // Layer must be registered
+    assert( LayerGetIndex(layer) == -1 ); // Layer should not be displaying
+#endif
     for(int i = 0; i < MAX_LAYERS; i++) {
         if( layers_to_delete[i] != NULL &&
             layers_to_delete[i]->GetID() == layer->GetID() ) {
             layers_to_delete[i] = NULL;
             Unlock();
+            OnDelete(layer);
             delete layer;
             return;
         }
@@ -364,6 +408,10 @@ void GuiContainer::DeleteDirect(GuiLayer *layer)
 void GuiContainer::DeleteAll(void)
 {
     Lock();
+
+    // Make sure no layer is shown anymore
+    LayerRemoveAll();
+
     bool bAgain;
     do {
         bAgain = false;
@@ -372,12 +420,14 @@ void GuiContainer::DeleteAll(void)
             if( layer != NULL ) {
                 layers_to_delete[i] = NULL;
                 Unlock();
+                OnDelete(layer);
                 delete layer;
                 Lock();
                 bAgain = true;
             }
         }
     }while( bAgain );
+
     Unlock();
 }
 
@@ -392,21 +442,19 @@ void GuiContainer::AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *eff
             LayerEffect *pe = effect_list[i];
             // check if currently active
             if( pe != NULL &&
-                ((pe->active_layer[0] && pe->active_layer[0]->GetID() == layer->GetID()) ||
-                 (pe->active_layer[1] && pe->active_layer[1]->GetID() == layer->GetID())) )
+                ((pe->add_layer && pe->add_layer->GetID() == layer->GetID()) ||
+                 (pe->remove_layer && pe->remove_layer->GetID() == layer->GetID())) )
             {
                 // Cancel the old effect
                 if( pe->effect->CancelLayer(layer, &old_transform) ) {
                     // When it is a remove effect, do the remove actions
                     if( pe->remove_layer ) {
                         LayerRemove(pe->remove_layer);
-                        assert( pe->delete_layer == NULL ||
-                                pe->delete_layer == pe->remove_layer );
-                        pe->remove_layer = NULL;
                         if( pe->delete_layer ) {
-                            DeleteDirect(pe->delete_layer);
-                            pe->delete_layer = NULL;
+                            DeleteDirect(pe->remove_layer);
+                            pe->delete_layer = false;
                         }
+                        pe->remove_layer = NULL;
                     }
                     // Clear the old effect
                     if( pe->effect != NULL ) {
@@ -450,10 +498,9 @@ void GuiContainer::AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *eff
 
         // start the effect
         LayerEffect *pe = new LayerEffect;
-        pe->active_layer[0] = layer;
-        pe->active_layer[1] = NULL;
+        pe->add_layer = layer;
         pe->remove_layer = NULL;
-        pe->delete_layer = NULL;
+        pe->delete_layer = false;
         pe->effect = effect;
         effect_list[i] = pe;
     }
@@ -474,12 +521,14 @@ void GuiContainer::AddTopFixed(GuiLayer *layer, GuiEffect *effect)
 bool GuiContainer::AddOnTopOf(GuiLayer *ontopof, GuiLayer *layer, GuiEffect *effect)
 {
     Lock();
+
     int index = LayerGetIndex(ontopof);
     if( index >= 0 ) {
         AddIndex(index, layer, false, effect);
         Unlock();
         return true;
     }
+
     Unlock();
     return false;
 }
@@ -487,12 +536,14 @@ bool GuiContainer::AddOnTopOf(GuiLayer *ontopof, GuiLayer *layer, GuiEffect *eff
 bool GuiContainer::AddBehind(GuiLayer *behind, GuiLayer *layer, GuiEffect *effect)
 {
     Lock();
+
     int index = LayerGetIndex(behind);
     if( index >= 0 ) {
         AddIndex(index+1, layer, false, effect);
         Unlock();
         return true;
     }
+
     Unlock();
     return false;
 }
@@ -504,43 +555,69 @@ void GuiContainer::AddBottom(GuiLayer *layer, GuiEffect *effect)
 
 void GuiContainer::PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *effect)
 {
+    LayerTransform old_transform;
+
     assert(layer);
 
     Lock();
 
-    if( effect != NULL ) {
-        LayerTransform old_transform;
-        // Check for pending actions with this layer in effect-list
-        for(int i = 0; i < MAX_LAYERS; i++) {
-            LayerEffect *pe = effect_list[i];
-            // check if currently active
-            if( pe != NULL &&
-                ((pe->active_layer[0] && pe->active_layer[0]->GetID() == layer->GetID()) ||
-                 (pe->active_layer[1] && pe->active_layer[1]->GetID() == layer->GetID())) )
-            {
-                // Cancel the old effect
-                if( pe->effect->CancelLayer(layer, &old_transform) ) {
-                    // Clear the old effect
-                    if( pe->effect != NULL ) {
-                        delete pe->effect;
-                        pe->effect = NULL;
+    // Check for pending actions with this layer in effect-list
+    for(int i = 0; i < MAX_LAYERS; i++) {
+        LayerEffect *pe = effect_list[i];
+        // Check if beeing removed already
+        if( pe != NULL && pe->remove_layer && pe->remove_layer->GetID() == layer->GetID() )
+        {
+            // If already pending for delete, don't loose the request
+            if( pe->delete_layer ) {
+                needdelete = true;
+            }
+            // Cancel the effect
+            //   (but don't handle the remove because we are about to create a new remove request)
+            pe->remove_layer = NULL;
+            pe->delete_layer = false;
+            if( pe->effect->CancelLayer(layer, &old_transform) ) {
+                // Effect done, delete the effect
+                delete pe->effect;
+                pe->effect = NULL;
+                // Remove from list
+                delete pe;
+                pe = NULL;
+                effect_list[i] = NULL;
+            }
+        }
+        // Check if currently beeing added
+        if( pe != NULL && pe->add_layer && pe->add_layer->GetID() == layer->GetID() )
+        {
+            // Cancel the effect
+            pe->add_layer = NULL;
+            if( pe->effect->CancelLayer(layer, &old_transform) ) {
+                // Effect done, delete the effect
+                delete pe->effect;
+                pe->effect = NULL;
+                // Handle remove (must be some other layer)
+                if( pe->remove_layer && !pe->remove_layer->IsBusy() ) {
+                    assert( pe->remove_layer->GetID() != layer->GetID() ); // must be someone else
+                    LayerRemove(pe->remove_layer);
+                    if( pe->delete_layer ) {
+                        DeleteDirect(pe->remove_layer);
+                        pe->delete_layer = false;
                     }
-                    // This should not be a remove effect
-                    assert( pe->remove_layer == NULL );
-                    assert( pe->delete_layer == NULL );
-                    // Free item from list
-                    delete effect_list[i];
+                    pe->remove_layer = NULL;
+                }
+                // Remove from list if all done
+                if( pe->effect == NULL && pe->remove_layer == NULL ) {
+                    delete pe;
                     effect_list[i] = NULL;
                 }
             }
         }
+    }
 
+    if( effect != NULL || layer->IsBusy() ) {
         // initialize the new effect
-        Unlock();
         if( effect != NULL ) {
             effect->Initialize(layer, NULL, old_transform);
         }
-        Lock();
 
         // find free spot in effect-list
         int i;
@@ -551,72 +628,18 @@ void GuiContainer::PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *ef
 
         // Add entry to list
         LayerEffect *pe = new LayerEffect;
-        pe->active_layer[0] = layer;
-        pe->active_layer[1] = NULL;
+        pe->add_layer = NULL;
         pe->remove_layer = layer;
-        pe->delete_layer = needdelete? layer : NULL;
+        pe->delete_layer = needdelete;
         pe->effect = effect;
         effect_list[i] = pe;
     }
     else
     {
-        // Check for pending actions with this layer in effect-list
-        for(int i = 0; i < MAX_LAYERS; i++) {
-            LayerEffect *pe = effect_list[i];
-            // check if currently active
-            if( pe != NULL &&
-                ((pe->active_layer[0] && pe->active_layer[0]->GetID() == layer->GetID()) ||
-                 (pe->active_layer[1] && pe->active_layer[1]->GetID() == layer->GetID())) )
-            {
-                // found an active effect with the layer to remove and/or delete
-                if( pe->remove_layer != NULL ) {
-                    // already pending for remove, check it
-                    assert( pe->remove_layer->GetID() == layer->GetID() );
-                }else{
-                    // make this layer dending for remove
-                    pe->remove_layer = layer;
-                }
-                if( needdelete ) {
-                    if( pe->delete_layer != NULL ) {
-                        // already pending for delete, check it
-                        assert( pe->delete_layer->GetID() == layer->GetID() );
-                    }else{
-                        // make this layer dending for delete
-                        pe->delete_layer = layer;
-                    }
-                }
-                Unlock();
-                return;
-            }
-        }
-        
-        // No effect with this layer currently in progress, remove/delete directly
-        if( layer->IsBusy() ) {
-            // layer is busy, postpone till ready
-
-            // find free spot in effect-list
-            int i;
-            for(i = 0; i < MAX_LAYERS; i++) {
-                if( effect_list[i] == NULL ) break;
-            }
-            assert( i != MAX_LAYERS );
-            
-            // Add entry to list
-            LayerEffect *pe = new LayerEffect;
-            pe->active_layer[0] = layer;
-            pe->active_layer[1] = NULL;
-            pe->remove_layer = layer;
-            pe->delete_layer = needdelete? layer : NULL;
-            pe->effect = NULL;
-            effect_list[i] = pe;
-        }
-        else
-        {
-            // layer can be removed/deleted directly
-            LayerRemove(layer);
-            if( needdelete ) {
-                DeleteDirect(layer);
-            }
+        // No effect and not busy, remove/delete directly
+        LayerRemove(layer);
+        if( needdelete ) {
+            DeleteDirect(layer);
         }
     }
 
@@ -654,11 +677,16 @@ void GuiContainer::SetHeight(u32 height)
 
 bool GuiContainer::IsBusy(void)
 {
+    Lock();
+
     for(int i = 0; i < MAX_LAYERS; i++) {
         if( effect_list[i] != NULL ) {
+            Unlock();
             return true;
         }
     }
+
+    Unlock();
     return false;
 }
 
@@ -724,18 +752,17 @@ void GuiContainer::Draw(void)
                 }
             }
             if( eff->effect == NULL ) {
+                // Do remove
                 if( eff->remove_layer && !eff->remove_layer->IsBusy() ) {
                     LayerRemove(eff->remove_layer);
-                    assert( eff->delete_layer == NULL ||
-                            eff->delete_layer == eff->remove_layer );
-                    eff->remove_layer = NULL;
                     if( eff->delete_layer ) {
-                        DeleteDirect(eff->delete_layer);
-                        eff->delete_layer = NULL;
+                        DeleteDirect(eff->remove_layer);
+                        eff->delete_layer = false;
                     }
+                    eff->remove_layer = NULL;
                 }
             }
-            if( eff->effect == NULL && eff->remove_layer == NULL && eff->delete_layer == NULL ) {
+            if( eff->effect == NULL && eff->remove_layer == NULL ) {
                 // all done, remove from effect list
                 delete eff;
                 effect_list[i] = NULL;

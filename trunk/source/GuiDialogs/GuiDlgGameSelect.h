@@ -20,7 +20,7 @@ typedef enum {
 
 class GuiElmBackground;
 class GuiElmButton;
-class GuiLayFrame;
+class GuiElmFrame;
 class GuiElmSelectionList;
 
 class GuiDlgGameSelect : public GuiDialog
@@ -56,10 +56,10 @@ private:
     GLEDITSEL selected_button;
     bool editMode;
 
-    GuiLayFrame *grWinList;
-    GuiLayFrame *grWinTitle;
-    GuiLayFrame *grWinPlay;
-    GuiLayFrame *grWinControls;
+    GuiElmFrame *grWinList;
+    GuiElmFrame *grWinTitle;
+    GuiElmFrame *grWinPlay;
+    GuiElmFrame *grWinControls;
 
     GuiElmButton *grButtonAdd;
     GuiElmButton *grButtonDel;

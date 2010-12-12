@@ -3004,6 +3004,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\source\GuiElements\GuiElmFrame.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiElements\GuiElmFrame.h"
+					>
+				</File>
+				<File
 					RelativePath="..\source\GuiElements\GuiElmSelectionList.cpp"
 					>
 				</File>
@@ -3021,6 +3029,14 @@
 				</File>
 				<File
 					RelativePath="..\source\GuiDialogs\GuiDlgDirSelect.h"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgGameFileSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgGameFileSelect.h"
 					>
 				</File>
 				<File
@@ -3053,18 +3069,6 @@
 				</File>
 				<File
 					RelativePath="..\source\GuiDialogs\GuiDlgStateSelect.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="GuiLayers"
-				>
-				<File
-					RelativePath="..\source\GuiLayers\GuiLayFrame.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\GuiLayers\GuiLayFrame.h"
 					>
 				</File>
 			</Filter>

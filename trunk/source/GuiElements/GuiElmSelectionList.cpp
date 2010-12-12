@@ -11,7 +11,7 @@
 #include "../GuiBase/GuiEffectFade.h"
 #include "../GuiBase/GuiSprite.h"
 
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../Gui/GuiImages.h"
 #include "../Gui/GuiFonts.h"
 
@@ -205,7 +205,6 @@ int GuiElmSelectionList::IsActive(void)
 
 void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
 {
-    GXColor white = {255,255,255,255};
     Lock();
     // Update dir info
     for(int i = 0; i < num_item_rows; i++) {
@@ -228,7 +227,7 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
             titleTxtSprite[i]->SetVisible(true);
         }
         GuiSprite* spr = new GuiSprite(this, "item");
-        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[num_item_rows-1]);
+        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, fontcolor, visible_items[num_item_rows-1]);
         spr->SetPosition(xpos + xspacing, ypos + (num_item_rows-1)*ypitch + fontsize/3);
         AddOnTopOf(titleTxtSprite[num_item_rows-1], spr, SELECTION_EFFECT);
         titleTxtSprite[num_item_rows-1] = spr;
@@ -244,7 +243,7 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
             titleTxtSprite[i]->SetVisible(true);
         }
         GuiSprite* spr = new GuiSprite(this, "item");
-        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[0]);
+        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, fontcolor, visible_items[0]);
         spr->SetPosition(xpos + xspacing, ypos + fontsize/3);
         AddOnTopOf(titleTxtSprite[0], spr, SELECTION_EFFECT);
         titleTxtSprite[0] = spr;
@@ -252,7 +251,7 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         // rebuild
         for(int i = 0, yy = ypos; i < num_item_rows; i++, yy += ypitch) {
             GuiSprite* spr = new GuiSprite(this, "item");
-            spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, white, visible_items[i]);
+            spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, fontcolor, visible_items[i]);
             spr->SetPosition(xpos + xspacing, yy + fontsize/3);
             spr->SetVisible(true);
             if( titleTxtSprite[i] ) {
@@ -310,14 +309,15 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
 }
 
 
-void GuiElmSelectionList::InitSelection(const char **items, int num, int select, int fontsz, int pitchy,
-                                        int posx, int posy, int xspace, int width, bool centr)
+void GuiElmSelectionList::InitSelection(const char **items, int num, int select, int fontsz, GXColor fontcol,
+                                        int pitchy, int posx, int posy, int xspace, int width, bool centr)
 {
     xpos = posx;
     ypos = posy;
     xsize = width;
     xspacing = xspace;
     fontsize = fontsz;
+    fontcolor = fontcol;
     ypitch = pitchy;
     center = centr;
 

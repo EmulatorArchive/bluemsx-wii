@@ -12,7 +12,7 @@
 #include "GuiDlgMessageBox.h"
 #include "../Gui/GuiImages.h"
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 
 
@@ -194,11 +194,12 @@ GuiDlgStateSelect::GuiDlgStateSelect(GuiContainer *parent, const char *name, Pro
     posy = GetHeight()/2-(SSEL_HEIGHT/2)-16;
     sizex = 640-28;
     sizey = SSEL_HEIGHT+32;
-    frame = new GuiLayFrame(this, "frame", posx, posy, sizex, sizey, 160);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, sizex, sizey, 160);
     AddTop(frame);
 
     // Selection
-    list->InitSelection((const char **)timestrings, num_states, 0, 26, SSEL_YPITCH,
+    GXColor white = {255, 255, 255, 255};
+    list->InitSelection((const char **)timestrings, num_states, 0, 26, white, SSEL_YPITCH,
                         posx+SSEL_X_SPACING,
                         posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
                         SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);

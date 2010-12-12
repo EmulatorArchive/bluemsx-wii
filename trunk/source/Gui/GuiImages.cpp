@@ -21,6 +21,8 @@
 #include "image_delete.inc"
 #include "image_delete2.inc"
 #include "image_settings.inc"
+#include "image_frame_a.inc"
+#include "image_frame_b.inc"
 
 #include "../GuiBase/GuiImage.h"
 
@@ -44,6 +46,8 @@ GuiImage *g_imgAdd             = NULL;
 GuiImage *g_imgDelete          = NULL;
 GuiImage *g_imgDelete2         = NULL;
 GuiImage *g_imgSettings        = NULL;
+GuiImage *g_imgFrameA          = NULL;
+GuiImage *g_imgFrameB          = NULL;
 
 void GuiImageInit(void)
 {
@@ -87,6 +91,10 @@ void GuiImageInit(void)
     if(g_imgDelete2->LoadImage(image_delete2) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgSettings = new GuiImage;
     if(g_imgSettings->LoadImage(image_settings) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgFrameA = new GuiImage;
+    if(g_imgFrameA->LoadImage(image_frame_a) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgFrameB = new GuiImage;
+    if(g_imgFrameB->LoadImage(image_frame_b) != IMG_LOAD_ERROR_NONE) exit(0);
 }
 
 void GuiImageClose(void)
@@ -131,5 +139,9 @@ void GuiImageClose(void)
     g_imgDelete2 = NULL;
     delete g_imgSettings;
     g_imgSettings = NULL;
+    delete g_imgFrameA;
+    g_imgFrameA = NULL;
+    delete g_imgFrameB;
+    g_imgFrameB = NULL;
 }
 

@@ -8,7 +8,7 @@
 #define MAX_PATH        256
 #define NUM_DIR_ITEMS   7
 
-class GuiLayFrame;
+class GuiElmFrame;
 class GuiElmSelectionList;
 
 class GuiDlgDirSelect : public GuiDialog
@@ -22,7 +22,7 @@ private:
     char* InitialiseList(char *prevsel);
 
     const char **title_list;
-    GuiLayFrame *frame;
+    GuiElmFrame *frame;
     GuiElmSelectionList *list;
     DirList dirs;
     int num_dirs;

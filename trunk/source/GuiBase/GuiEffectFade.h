@@ -37,8 +37,6 @@ private:
     int m_iPosY;
     float m_fStartOffsetX;
     float m_fStartOffsetY;
-    float m_fEndOffsetX;
-    float m_fEndOffsetY;
 };
 
 #endif

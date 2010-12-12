@@ -237,10 +237,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\source\Resource\image_container.png"
-				>
-			</File>
-			<File
 				RelativePath="..\source\Resource\image_delete.png"
 				>
 			</File>
@@ -254,6 +250,14 @@
 			</File>
 			<File
 				RelativePath="..\source\Resource\image_floppy_disk.png"
+				>
+			</File>
+			<File
+				RelativePath="..\source\Resource\image_frame_a.png"
+				>
+			</File>
+			<File
+				RelativePath="..\source\Resource\image_frame_b.png"
 				>
 			</File>
 			<File
