@@ -36,7 +36,7 @@ GuiLayer::GuiLayer(GuiContainer *parent, const char *name) :
 GuiLayer::~GuiLayer(){
 }
 
-GuiLayer* GuiLayer::GetParent() const
+GuiContainer* GuiLayer::GetParent() const
 {
     return _parent;
 }

@@ -9,7 +9,7 @@
 #endif
 
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 #include "../GuiDialogs/GuiDlgMessageBox.h"
 
@@ -109,8 +109,9 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
     }
     
     // Selection
-    list->InitSelection(title_list, num_dirs, sel, 30, DSEL_YPITCH,
-                        320-180+8, 24+24, 24, 2*180-16, false);
+    GXColor white = {255, 255, 255, 255};
+    list->InitSelection(title_list, num_dirs, sel, 30, white, DSEL_YPITCH,
+                        320-180+8, 24+20, 24, 2*180-16, false);
 
     return NULL;
 }
@@ -119,7 +120,7 @@ GuiDlgDirSelect::GuiDlgDirSelect(GuiContainer* parent, const char* name, const c
                 :GuiDialog(parent, name)
 {
     title_list = NULL;
-    frame = new GuiLayFrame(this, "frame", 320-180, 28, 2*180, 440-48);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, 320-180, 24, 2*180, 440-48);
     list = new GuiElmSelectionList(this, "list", NUM_DIR_ITEMS);
 
     strcpy(current_dir, startdir);

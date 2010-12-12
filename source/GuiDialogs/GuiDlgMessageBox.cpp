@@ -8,7 +8,7 @@
 
 #include "../Gui/GuiImages.h"
 #include "../Gui/GuiFonts.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 
 
 int GuiDlgMessageBox::DoSelection(void)
@@ -130,10 +130,8 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
     SetWidth(sizex);
     SetHeight(sizey);
     SetRefPixelPosition(sizex/2, sizey/2);
-    frame = new GuiLayFrame(this, "frame", 0, 0, sizex, sizey, alpha);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, 0, 0, sizex, sizey, alpha);
     AddTop(frame);
-    sizex = frame->GetWidth();
-    sizey = frame->GetHeight();
 
     s32 x = 0, y = 0;
     // image (optional)
@@ -181,7 +179,7 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
         for(i = 0; i < no_buttons; i++) {
             bx -= btnimg[i]->GetWidth() / 2;
         }
-        by = y + sizey - btnimg[0]->GetHeight() - 36;
+        by = y + sizey - btnimg[0]->GetHeight() - 32;
         for(i = 0; i < no_buttons; i++) {
             button[i] = new GuiElmButton(this, "button");
             button[i]->CreateImageTextHighlightButton(btnimg[i], btntxt[i]);
@@ -189,11 +187,11 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
             AddTop(button[i]);
             bx += btnimg[i]->GetWidth() + 24;
         }
-        sizey -= btnimg[0]->GetHeight() + 36;
+        sizey -= btnimg[0]->GetHeight() + 32;
     }
 
     // text
-    txt_sprite->SetPosition(x+(sizex-(s32)txt_sprite->GetWidth())/2, y+(sizey-(s32)txt_sprite->GetHeight())/2-4);
+    txt_sprite->SetPosition(x+(sizex-(s32)txt_sprite->GetWidth())/2, y+(sizey-(s32)txt_sprite->GetHeight())/2);
     AddTop(txt_sprite);
 }
 

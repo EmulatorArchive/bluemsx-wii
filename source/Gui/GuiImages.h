@@ -23,6 +23,8 @@ extern GuiImage *g_imgAdd;
 extern GuiImage *g_imgDelete;
 extern GuiImage *g_imgDelete2;
 extern GuiImage *g_imgSettings;
+extern GuiImage *g_imgFrameA;
+extern GuiImage *g_imgFrameB;
 
 extern void GuiImageInit(void);
 extern void GuiImageClose(void);

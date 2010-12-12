@@ -5,7 +5,7 @@
 #include "../GuiBase/GuiDialog.h"
 #include "../GuiElements/GuiElmSelectionList.h"
 
-class GuiLayFrame;
+class GuiElmFrame;
 
 class GuiDlgMenu : public GuiDialog
 {
@@ -18,7 +18,7 @@ public:
     SELRET DoModal(int *selected);
 private:
     bool initialized;
-    GuiLayFrame *frame; 
+    GuiElmFrame *frame; 
     GuiElmSelectionList *list;
     int num_item_rows;
 };

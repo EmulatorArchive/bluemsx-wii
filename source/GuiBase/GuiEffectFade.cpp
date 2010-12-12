@@ -46,6 +46,8 @@ void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfro
         m_fEndZoomY = m_bZoom? 0.0f : 1.0f;
         m_iStartAlpha = tfrom.alpha;
         m_iEndAlpha = 0;
+        m_fStartOffsetX = tfrom.valid? tfrom.offsetX : 0.0f;
+        m_fStartOffsetY = tfrom.valid? tfrom.offsetY : 0.0f;
     }else{
         m_poLayer = to;
         m_bFadeIn = true;
@@ -57,6 +59,8 @@ void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfro
         m_fEndZoomY = 1.0f;
         m_iStartAlpha = tto.valid? tto.alpha : 0;
         m_iEndAlpha = 255;
+        m_fStartOffsetX = tto.valid? tto.offsetX : 0.0f;
+        m_fStartOffsetY = tto.valid? tto.offsetY : 0.0f;
     }
     if( m_bClockwise ) {
         m_fStartRotation = -m_fStartRotation;
@@ -103,12 +107,14 @@ bool GuiEffectFade::Run(void)
     float refy = m_poLayer->GetRefPixelY() * m_poLayer->GetStretchHeight();
     if( m_bMove ) {
         float move_factor = m_bFadeIn? 1.0f - factor : factor;
-        m_oTransform.offsetX = ((float)m_iPosX - tr.offsetX - refx) * move_factor;
-        m_oTransform.offsetY = ((float)m_iPosY - tr.offsetY - refy) * move_factor;
+        m_oTransform.offsetX = ((float)m_iPosX - tr.offsetX - m_fStartOffsetX - refx) * move_factor;
+        m_oTransform.offsetY = ((float)m_iPosY - tr.offsetY - m_fStartOffsetY - refy) * move_factor;
     }else{
         m_oTransform.offsetX = 0.0f;
         m_oTransform.offsetY = 0.0f;
     }
+    m_oTransform.offsetX += m_fStartOffsetX;
+    m_oTransform.offsetY += m_fStartOffsetY;
     m_oTransform.valid = true;
 
     // Apply

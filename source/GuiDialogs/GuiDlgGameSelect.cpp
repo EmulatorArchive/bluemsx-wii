@@ -12,7 +12,8 @@
 #include "../Gui/GameElement.h"
 #include "../Gui/GuiImages.h"
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiDialogs/GuiDlgGameFileSelect.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiElements/GuiElmButton.h"
 #include "../GuiElements/GuiElmSelectionList.h"
@@ -24,6 +25,8 @@
 void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
 {
     bool first = true;
+
+    Lock();
 
     last_index = index;
     last_selected = selected;
@@ -67,14 +70,18 @@ void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
             game->FreeImage(1);
         }
     }
+
+    Unlock();
 }
 
 void GuiDlgGameSelect::OnUpdateScreen(void)
 {
+    Lock();
     int sel = list->GetSelectedItem();
     if( sel >= 0 && sel != last_selected ) {
         SetSelectedGame(last_index, sel, false);
     }
+    Unlock();
 }
 
 void GuiDlgGameSelect::OnKey(BTN key, bool pressed)
@@ -113,6 +120,16 @@ void GuiDlgGameSelect::OnKey(BTN key, bool pressed)
                     num_games--;
                     UpdateList();
                 }
+                break;
+            }
+            if( elm == grButtonAdd ) {
+                GuiDlgGameFileSelect *filesel = new GuiDlgGameFileSelect(this, "filesel");
+                if( filesel->Create(".") ) {
+                    AddTop(filesel, new GuiEffectFade(10));
+                    (void)filesel->DoModal();
+                    Remove(filesel, new GuiEffectFade(10));
+                }
+                Delete(filesel);
                 break;
             }
             if( elm == grButtonUp ) {
@@ -188,8 +205,9 @@ bool GuiDlgGameSelect::Load(const char *dir, const char *filename, GameElement *
     }
 
     // Init selection list
-    list->InitSelection(title_list, num_games, sel, 22, 31,
-                        30, 38, 12, 264+12, false);
+    GXColor white = {255, 255, 255, 255};
+    list->InitSelection(title_list, num_games, sel, 22, white, 31,
+                        30, 30, 12, 276, false);
 
     Show(false);
 
@@ -198,24 +216,28 @@ bool GuiDlgGameSelect::Load(const char *dir, const char *filename, GameElement *
 
 void GuiDlgGameSelect::UpdateList(void)
 {
+    Lock();
     for(int i = 0; i < num_games; i++) {
         title_list[i] = games.GetGame(i)->GetName();
     }
     list->SetNumberOfItems(num_games);
     list->ClearTitleList();
     list->SetSelectedItem();
+    Unlock();
 }
 
 void GuiDlgGameSelect::Show(bool restart)
 {
     #define EFFECT restart? GAMESEL_EFFECT_RESTART : NULL
 
+    Lock();
+
     // Remove version from background
     background->HideVersion(new GuiEffectFade(50));
     
     // Add selection list
     if( grWinList == NULL ) {
-        grWinList = new GuiLayFrame(this, "listframe", 32-8, 28, 288, 33*12);
+        grWinList = new GuiElmFrame(this, "listframe", FRAMETYPE_BLUE, 32-8, 22, 288, 396);
         AddTop(grWinList, EFFECT);
         AddTop(list, EFFECT);
     }
@@ -223,69 +245,74 @@ void GuiDlgGameSelect::Show(bool restart)
     // GUI Elements
     if( editMode ) {
         // Containers
-        grWinTitle = new GuiLayFrame(this, "screen1frame", 344-8, 28, 264+12, 14*12);
+        grWinTitle = new GuiElmFrame(this, "screen1frame", FRAMETYPE_BLUE, 336, 22, 280, 167);
         AddTop(grWinTitle, EFFECT);
-        grWinPlay = new GuiLayFrame(this, "screen2frame", 344-8, 232-30, 264+12, 14*12);
+        grWinPlay = new GuiElmFrame(this, "screen2frame", FRAMETYPE_BLUE, 336, 196, 280, 167);
         AddTop(grWinPlay, EFFECT);
-        grWinControls = new GuiLayFrame(this, "controlframe", 344-8, 232-30+14*12+6, 264+12, 4*12);
+        grWinControls = new GuiElmFrame(this, "controlframe", FRAMETYPE_BLUE, 336, 370, 280, 48);
         AddTop(grWinControls, EFFECT);
         // Icons
         grButtonAdd = new GuiElmButton(this, "add");
         grButtonAdd->CreateImageSelectorButton(g_imgAdd);
-        grButtonAdd->SetPosition(344+8, 232-30+14*12+8);
+        grButtonAdd->SetPosition(352, 372);
         AddTop(grButtonAdd, EFFECT);
         grButtonDel = new GuiElmButton(this, "del");
         grButtonDel->CreateImageSelectorButton(g_imgDelete);
-        grButtonDel->SetPosition(344+8+50, 232-30+14*12+8);
+        grButtonDel->SetPosition(402, 372);
         AddTop(grButtonDel, EFFECT);
         grButtonUp = new GuiElmButton(this, "up");
         grButtonUp->CreateImageSelectorButton(g_imgUp);
-        grButtonUp->SetPosition(344+8+2*50, 232-30+14*12+8);
+        grButtonUp->SetPosition(452, 372);
         AddTop(grButtonUp, EFFECT);
         grButtonDown = new GuiElmButton(this, "down");
         grButtonDown->CreateImageSelectorButton(g_imgDown);
-        grButtonDown->SetPosition(344+8+3*50, 232-30+14*12+8);
+        grButtonDown->SetPosition(502, 372);
         AddTop(grButtonDown, EFFECT);
         grButtonSettings = new GuiElmButton(this, "settings");
         grButtonSettings->CreateImageSelectorButton(g_imgSettings);
-        grButtonSettings->SetPosition(344+8+4*50, 232-30+14*12+8);
+        grButtonSettings->SetPosition(552, 372);
         AddTop(grButtonSettings, EFFECT);
         grButtonDelScr1 = new GuiElmButton(this, "delscr1");
         grButtonDelScr1->CreateImageSelectorButton(g_imgDelete2);
-        grButtonDelScr1->SetPosition(344+8+264+5-54, 28+12);
+        grButtonDelScr1->SetPosition(569, 32);
         AddTop(grButtonDelScr1, EFFECT);
         grButtonDelScr2 = new GuiElmButton(this, "delscr2");
         grButtonDelScr2->CreateImageSelectorButton(g_imgDelete2);
-        grButtonDelScr2->SetPosition(344+8+264+5-54, 232-30+12);
+        grButtonDelScr2->SetPosition(569, 206);
         AddTop(grButtonDelScr2, EFFECT);
         // Screenshot coordinates
-        screenshotWidth = (252.0f/16.0f)*14.0f;
-        screenshotHeigth = (168.0f/16.0f)*14.0f;
-        screenshotYpos1 = 24+16;
-        screenshotYpos2 = 228+16-30;
+        screenshotWidth = 220.0f;
+        screenshotHeigth = 147.0f;
+        screenshotYpos1 = 32;
+        screenshotYpos2 = 206;
     }else{
         // Containers
-        grWinTitle = new GuiLayFrame(this, "screen1frame", 344-8, 28, 264+12, 16*12);
+        grWinTitle = new GuiElmFrame(this, "screen1frame", FRAMETYPE_BLUE, 336, 22, 276, 192);
         AddTop(grWinTitle, EFFECT);
-        grWinPlay = new GuiLayFrame(this, "screen2frame", 344-8, 232, 264+12, 16*12);
+        grWinPlay = new GuiElmFrame(this, "screen2frame", FRAMETYPE_BLUE, 336, 226, 276, 192);
         AddTop(grWinPlay, EFFECT);
         // Screenshot coordinates
         screenshotWidth = 252.0f;
         screenshotHeigth = 168.0f;
-        screenshotYpos1 = 24+16;
-        screenshotYpos2 = 228+16;
+        screenshotYpos1 = 34;
+        screenshotYpos2 = 238;
     }
     SetSelectedGame(last_index, last_selected, restart);
     is_showing = true;
+    Unlock();
 }
 
 void GuiDlgGameSelect::Hide(bool restart)
 {
     #define EFFECT restart? GAMESEL_EFFECT_RESTART : NULL
 
+    Lock();
+
     if( !is_showing ) {
+        Unlock();
         return;
     }
+
     if( !restart ) {
         if( grWinList != NULL ) {
             RemoveAndDelete(grWinList, EFFECT);
@@ -326,7 +353,10 @@ void GuiDlgGameSelect::Hide(bool restart)
     if( !restart ) {
         background->ShowVersion(new GuiEffectFade(50));
     }
+
     is_showing = false;
+
+    Unlock();
 }
 
 GameElement *GuiDlgGameSelect::DoModal(void)

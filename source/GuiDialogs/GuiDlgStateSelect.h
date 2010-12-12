@@ -9,7 +9,7 @@
 
 struct Properties;
 
-class GuiLayFrame;
+class GuiElmFrame;
 class GuiElmSelectionList;
 
 class GuiDlgStateSelect : public GuiDialog
@@ -23,7 +23,7 @@ public:
 
     char *DoModal(void);
 private:
-    GuiLayFrame *frame;
+    GuiElmFrame *frame;
     GuiElmSelectionList *list;
     int last_selected;
     int last_index;

@@ -53,7 +53,7 @@ public:
     //Destructor.
     virtual ~GuiLayer();
 
-    GuiLayer* GetParent() const;
+    GuiContainer* GetParent() const;
     const char* GetName() const;
     u32 GetID() const;
 
@@ -175,6 +175,7 @@ protected:
     LayerTransform _transform;
     // Positioning
     u32 _height, _width;
+    u32 _clip_x, _clip_y;
     f32 _x, _y;
     // Transparency
     u8 _alpha, _alphaoff;

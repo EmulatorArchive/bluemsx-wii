@@ -38,7 +38,8 @@ typedef enum {
 class GuiSprite : public GuiLayer {
 public:
     //!Constructors.
-    GuiSprite(GuiContainer *parent, const char *name, GuiImage* image=NULL, int x=0, int y=0);
+    GuiSprite(GuiContainer *parent, const char *name, GuiImage* image=NULL, int x=0, int y=0,
+              int clipw=0, int cliph=0, int clipx=0, int clipy=0);
     //!Destructor.
     virtual ~GuiSprite();
 
@@ -49,8 +50,8 @@ public:
     //!\param image The image for this sprite.
     //!\param frameWidth The width of the frame. Should be a multiple of image->GetWidth() or 0 if it should get the same width as the image.
     //!\param frameHeight The height of the frame. Should be a multiple of image->GetHeight() or 0 if it should get the same height as the image.
-    void SetImage(GuiImage* image, u32 frameWidth = 0, u32 frameHeight = 0);
-    void SetImage(DrawableImage* drawimage, u32 frameWidth = 0, u32 frameHeight = 0);
+    void SetImage(GuiImage* image, u32 clipWidth = 0, u32 clipHeight = 0, u32 clipOffsetX = 0, u32 clipOffsetY = 0);
+    void SetImage(DrawableImage* drawimage, u32 clipWidth = 0, u32 clipHeight = 0, u32 clipOffsetX = 0, u32 clipOffsetY = 0);
     //!Gets the assigned image.
     //!\return A pointer to the image. NULL if no image was assigned.
     GuiImage* GetImage() const;
@@ -94,45 +95,12 @@ public:
     //!\return true if it is colliding, false if not.
     COLL CollidesWith(GuiTiles* tiledlayer);
 
-    //!Gets the current frame of the sprite.
-    //!\return The frame this sprite is at.
-    //!\sa \ref sprite_sequences_page
-    u32 GetFrame() const;
-    //!Gets the current position of the sequence.
-    //!Equals to GetFrame() if sequence was not changed.
-    //!\return The current position of the sequence.
-    //!\sa \ref sprite_sequences_page
-    u32 GetFrameSequencePos() const;
-    //!Gets how long the current frame sequence is.
-    //!Same as GetRawFrameCount() if no frame sequence speficied.
-    //!\sa \ref sprite_sequences_page
-    u32 GetFrameSequenceLength() const;
-    //!Gets how many frames there are at all.
-    //!\sa \ref sprite_sequences_page
-    u32 GetRawFrameCount() const;
-    //!Sets the current frame to a frame at the sequence.
-    //!\param sequenceIndex The index in the current frame sequence.
-    //!\sa \ref sprite_sequences_page
-    void SetFrame(u32 sequenceIndex);
-    //!Sets the current frame to the next frame in the sequence. Goes back to the first member if no frames left in the sequence.
-    //!\sa \ref sprite_sequences_page
-    void NextFrame();
-    //!Sets the current frame to the previous frame in the sequence. Goes to the last member if the current frame is 0.
-    //!\sa \ref sprite_sequences_page
-    void PrevFrame();
-    //!Sets the current frame sequence.
-    //!\param sequence An array with data for each sequence. Each member cannot be bigger than the maximum amount of frames.
-    //!\param length The length of the sequence. Gets length amount of data.
-    //!\sa \ref sprite_sequences_page
-    void SetFrameSequence(u32* sequence, u32 length);
-
     //!Draws the GuiSprite.
     void Draw(void);
 protected:
 private:
-    void SetImageIntern(GuiImage* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight);
-    void _CalcFrame();
-
+    void SetImageIntern(GuiImage* image, DrawableImage* drawimage,
+                        u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY);
 #ifndef WII
     hgeSprite *spr;
 #endif
@@ -141,41 +109,6 @@ private:
     bool _image_owner;
 
     Rect* _colRect;
-
-    u32 _frame, _frameRawCount;
-    u32* _frameSeq; u32 _frameSeqLength, _frameSeqPos;
-    f32 _txCoords[4];
 };
-
-/*! \page sprite_sequences_page GuiSprite - Animation Sequences
- *  Animation sequences help the develeloper handle animations more easily.
- *
- *  Sequences are arrays of u32 variables. Each of these variables is a frame index
- *  of the sprite.
- *
- *  The starting sequence looks like this:
-\verbatim
-When you do NextFrame() on a Sprite which has 4 frames without modifying its
-sequence, frames get changed like this:
-[0] -> [1] -> [2] -> [3] -> [0] -> ...
-This happens, when you do PrevFrame()
-[0] -> [3] -> [2] -> [1] -> [0] -> ...
-\endverbatim
- *  As you can see, it is pretty straightforward.
- *
- *  Now we assign an own sequence.\n
- *  When assigning a sequence, each of its members musn't be bigger than actual frames available,
- *  or it won't get set. So if we assign the sequence to u32 seq[6] = {0, 3, 1, 1, 2, 3}; this happens:
-\verbatim
-On NextFrame():
-[0] -> [3] -> [1] -> [1] -> [2] -> [3] -> [0] -> ...
-On PrevFrame():
-[0] -> [3] -> [2] -> [1] -> [1] -> [3] -> [0] -> ...
-\endverbatim
- *
- * The sequence just keeps on looping and only changes when you assign a new one or change to an
- * Image with fewer frames than the current one. So as you may see, sequencing can help you a lot
- * with your animation needs.
- */
 
 #endif

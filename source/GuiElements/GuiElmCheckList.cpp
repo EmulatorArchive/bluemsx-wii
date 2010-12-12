@@ -3,7 +3,7 @@
 
 #include "GuiElmCheckList.h"
 #include "GuiElmSelectionList.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../GuiBase/GuiEffectFade.h"
 
 #define CHECKLIST_YPITCH 40
@@ -18,13 +18,14 @@ SELRET GuiElmCheckList::DoModal(int *selected, const char **items, bool *items_s
     int height = num_item_rows*CHECKLIST_YPITCH+(CHECKLIST_YPITCH/2);
     int posx = GetWidth()/2-width/2;
     int posy = GetHeight()/2-height/2;
-    GuiLayFrame *frame = new GuiLayFrame(this, "frame", posx, posy, width, height, 192);
+    GuiElmFrame *frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, width, height, 192);
     AddTop(frame, CHECKLIST_EFFECT);
     width = GetWidth();
     height = GetHeight();
 
     // Menu list
-    list->InitSelection(items, num, 0, 32, CHECKLIST_YPITCH,
+    GXColor white = {255, 255, 255, 255};
+    list->InitSelection(items, num, 0, 32, white, CHECKLIST_YPITCH,
                            posx+16, posy+24, 24, width-32, false);
     SetSelected(list);
     AddTop(list, CHECKLIST_EFFECT);

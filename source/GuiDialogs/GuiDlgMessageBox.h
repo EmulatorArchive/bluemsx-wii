@@ -9,7 +9,7 @@
 #include "../GuiBase/GuiSprite.h"
 
 #include "../GuiElements/GuiElmButton.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 
 typedef enum {
   MSGT_TEXT,
@@ -46,7 +46,7 @@ private:
     MSGT btn_type;
     MSGBTN buttons[3];
     GuiContainer *container;
-    GuiLayFrame *frame;
+    GuiElmFrame *frame;
     GuiSprite *txt_sprite;
     GuiSprite *img_sprite;
     GuiElmButton *button[3];

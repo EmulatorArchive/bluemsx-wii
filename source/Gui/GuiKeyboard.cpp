@@ -299,6 +299,7 @@ void GuiKeyboard::Hide(void)
         return;
     }
 
+    Remove(spr_cursor);
     RemoveAndDelete(spr_code, KEYBOARD_EFFECT);
     RemoveAndDelete(spr_graph, KEYBOARD_EFFECT);
     RemoveAndDelete(spr_ctrl, KEYBOARD_EFFECT);

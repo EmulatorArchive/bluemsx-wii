@@ -17,9 +17,9 @@ typedef struct _GuiContainerCallback {
 
 typedef struct _LayerEffect {
     GuiEffect *effect;
-    GuiLayer *active_layer[2];
-    GuiLayer *remove_layer;
-    GuiLayer *delete_layer;
+    GuiLayer  *add_layer;
+    GuiLayer  *remove_layer;
+    bool      delete_layer;
 } LayerEffect;
 
 class GuiContainer : public GuiLayer
@@ -29,6 +29,9 @@ class GuiContainer : public GuiLayer
 public:
     GuiContainer(GuiContainer *parent, const char *name);
     virtual ~GuiContainer();
+
+    // Callbacks
+    virtual void OnDelete(GuiLayer *layer) {};
 
     // Utility
     void Lock(void);
@@ -44,7 +47,6 @@ public:
     void LayerRemove(GuiLayer* layer);
     void LayerRemoveAll();
     int LayerGetIndex(GuiLayer* layer);
-    GuiLayer* LayerGetLayerAt(u32 index) const;
     u32 LayerGetSize() const;
 
     // Render/Frame callbacks
@@ -75,6 +77,7 @@ public:
     virtual void Delete(GuiLayer *layer);
 protected:
     void RegisterForDelete(GuiLayer *layer);
+    bool IsRegisteredForDelete(GuiLayer *layer);
     static GuiRootContainer *_root;
 
 private:

@@ -39,7 +39,7 @@
 #endif
 
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiLayers/GuiLayFrame.h"
+#include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiDialogs/GuiDlgDirSelect.h"
 #include "../GuiDialogs/GuiDlgGameSelect.h"

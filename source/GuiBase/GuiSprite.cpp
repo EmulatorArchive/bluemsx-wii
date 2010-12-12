@@ -15,28 +15,24 @@
 #define FRAME_CORRECTION 0.375f //!< Displays frames a lot nicer, still needs a complete fix.
 
 
-GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, int x, int y) :
+GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, int x, int y,
+                     int clipw, int cliph, int clipx, int clipy) :
     GuiLayer(parent, name),
     _image(NULL), _draw_image(NULL), _image_owner(false),
-    _colRect(NULL), _frame(0), _frameRawCount(0), _frameSeq(NULL), _frameSeqLength(0),
-    _frameSeqPos(0)
+    _colRect(NULL)
 {
 #ifndef WII
     spr = NULL;
 #endif
-    for(u8 i = 0; i < 4; i++)
-        _txCoords[i] = 0;
     _colRect = new Rect();
     if( image != NULL) {
-        SetImage(image);
+        SetImage(image, clipw, cliph, clipx, clipy);
     }
     SetPosition((f32)x,(f32)y);
 }
 GuiSprite::~GuiSprite(){
     if(_colRect)
         delete _colRect; _colRect = NULL;
-    if(_frameSeq)
-        delete[] _frameSeq; _frameSeq = NULL;
     CleanUp();
 #ifndef WII
     if(spr)
@@ -59,7 +55,8 @@ void GuiSprite::CleanUp(void)
     }
 }
 
-void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
+void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage,
+                               u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
     if(drawimage != NULL) {
         image = drawimage;
@@ -76,44 +73,22 @@ void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage, u32 fr
 #endif
     // Free previous image if needed
     CleanUp();
-    // If GuiImage has the same size and if frameWidth and frameHeight are not modified
-    if(_image != NULL && _image->GetHeight() == image->GetHeight() &&
-        _image->GetWidth() == image->GetWidth() &&
-        (frameWidth == 0 || frameWidth == _width) &&
-        (frameHeight == 0 || frameHeight == _height))
-        {
-        // Just assign our image and it should be fine then
-        _image = image;
-        _draw_image = drawimage;
-        return;
-    }
 
-    if(frameWidth == 0 && frameHeight == 0){
-        frameWidth = image->GetWidth();
-        frameHeight = image->GetHeight();
+    // Check/setup clipping rect
+    if(clipWidth == 0 || (clipWidth + clipOffsetX) > image->GetWidth()) {
+        clipWidth = image->GetWidth() - clipOffsetX;
     }
-    // If presented with a completely different image
-    // Check if framesizes are multipliers of width and height
-    if(image->GetWidth() % frameWidth != 0 || image->GetHeight() % frameHeight != 0){
-        frameWidth = image->GetWidth();
-        frameHeight = image->GetHeight();
+    if(clipHeight == 0 || (clipHeight + clipOffsetY) > image->GetHeight()) {
+        clipHeight = image->GetHeight() - clipOffsetY; 
     }
-    _width = frameWidth; _height = frameHeight;
+    assert(clipWidth > 0);
+    assert(clipHeight > 0);
+    _width = clipWidth; _height = clipHeight;
+    _clip_x = clipOffsetX; _clip_y = clipOffsetY;
 
     // Set the new collision data
     _colRect->x = 0; _colRect->y = 0;
     _colRect->width = (f32)_width; _colRect->height = (f32)_height;
-
-    // Now set framedata
-    _frame = 0; _frameRawCount = (image->GetWidth()/_width)*(image->GetHeight()/_height);
-    // Erase previous sequence
-    if(_frameSeq)
-        delete[] _frameSeq; _frameSeq = NULL;
-    // Create a new sequence with startdata
-    _frameSeqLength = _frameRawCount;
-    _frameSeq = new u32[_frameSeqLength];
-    _frameSeqPos = 0;
-    for(u32 i = 0; i < _frameSeqLength; i++)_frameSeq[i] = i;
 
     // Refpixel setting. This positions the refpixel at the center.
     _refPixelX = (f32)_width/2; _refPixelY = (f32)_height/2;
@@ -122,17 +97,16 @@ void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage, u32 fr
 
     _image = image;
     _draw_image = drawimage;
-    _CalcFrame();
 }
 
-void GuiSprite::SetImage(GuiImage* image, u32 frameWidth, u32 frameHeight)
+void GuiSprite::SetImage(GuiImage* image, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
-    SetImageIntern(new GuiImage(image), NULL, frameWidth, frameHeight);
+    SetImageIntern(new GuiImage(image), NULL, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
     _image_owner = true;
 }
-void GuiSprite::SetImage(DrawableImage* drawimage, u32 frameWidth, u32 frameHeight)
+void GuiSprite::SetImage(DrawableImage* drawimage, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
-    SetImageIntern(NULL, drawimage, frameWidth, frameHeight);
+    SetImageIntern(NULL, drawimage, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
 }
 
 GuiImage* GuiSprite::GetImage() const{
@@ -142,7 +116,7 @@ GuiImage* GuiSprite::GetImage() const{
 bool GuiSprite::LoadImage(const unsigned char *buf){
     GuiImage *image = new GuiImage;
     if(image->LoadImage(buf) == IMG_LOAD_ERROR_NONE) {
-        SetImageIntern(image, NULL, 0, 0);
+        SetImageIntern(image, NULL, 0, 0, 0, 0);
         _image_owner = true;
         return true;
     }else{
@@ -153,7 +127,7 @@ bool GuiSprite::LoadImage(const unsigned char *buf){
 bool GuiSprite::LoadImage(const char *file){
     GuiImage *image = new GuiImage;
     if(image->LoadImage(file) == IMG_LOAD_ERROR_NONE) {
-        SetImageIntern(image, NULL, 0, 0);
+        SetImageIntern(image, NULL, 0, 0, 0, 0);
         _image_owner = true;
         return true;
     }else{
@@ -410,64 +384,6 @@ COLL GuiSprite::CollidesWith(GuiTiles* tiledlayer)
     return COLL_NO_COLLISION;
 }
 
-u32 GuiSprite::GetFrame() const{
-    return _frame;
-}
-u32 GuiSprite::GetFrameSequencePos() const{
-    return _frameSeqPos;
-}
-u32 GuiSprite::GetFrameSequenceLength() const{
-    return _frameSeqLength;
-}
-u32 GuiSprite::GetRawFrameCount() const{
-    return _frameRawCount;
-}
-void GuiSprite::SetFrame(u32 sequenceIndex){
-    if(sequenceIndex >= _frameSeqLength)return;
-
-    _frameSeqPos = sequenceIndex;
-    if(!_frameSeq){
-        _frame = 0;
-    }
-    _frame = _frameSeq[_frameSeqPos];
-    _CalcFrame();
-}
-void GuiSprite::NextFrame(){
-    _frameSeqPos++;
-    if(_frameSeqPos == _frameSeqLength)_frameSeqPos = 0;
-    if(!_frameSeq){
-        _frame = 0;
-    }
-    _frame = _frameSeq[_frameSeqPos];
-    _CalcFrame();
-}
-void GuiSprite::PrevFrame(){
-    if(_frameSeqPos == 0)_frameSeqPos = _frameSeqLength;
-    _frameSeqPos--;
-    if(!_frameSeq){
-        _frame = 0;
-    }
-    _frame = _frameSeq[_frameSeqPos];
-    _CalcFrame();
-}
-void GuiSprite::SetFrameSequence(u32* sequence, u32 length){
-    if(sequence == NULL || length == 0)return;
-    for(u32 i = 0; i < length; i++){
-        if(sequence[i] >= _frameRawCount)return;
-    }
-    // Erase old frame sequence and copy the new one
-    if(_frameSeq)
-        delete[] _frameSeq; _frameSeq = NULL;
-    _frameSeqLength = length;
-    _frameSeq = new u32[length];
-    for(u32 i = 0; i < length; i++){
-        _frameSeq[i] = sequence[i];
-    }
-    _frameSeqPos = 0;
-    _frame = _frameSeq[_frameSeqPos];
-    _CalcFrame();
-}
-
 void GuiSprite::Draw(void)
 {
     LayerTransform transform = GetTransform();
@@ -496,39 +412,40 @@ void GuiSprite::Draw(void)
         refWidth = _refWidth * transform.stretchWidth,
         refHeight = _refHeight * transform.stretchHeight;
 
+    // Returns the position of the frame
+    if(_width == 0 || _image == NULL || !_image->IsInitialized() || _image->GetWidth() == 0)return;
+    f32 frameX = (f32)_clip_x,
+        frameY = (f32)_clip_y;
+    // Calculates the texture position
+    f32 txCoords[4] = {
+        frameX/_image->GetWidth()+(FRAME_CORRECTION/_image->GetWidth()),
+        frameY/_image->GetHeight()+(FRAME_CORRECTION/_image->GetHeight()),
+        (frameX+_width)/_image->GetWidth()-(FRAME_CORRECTION/_image->GetWidth()),
+        (frameY+_height)/_image->GetHeight()-(FRAME_CORRECTION/_image->GetHeight()),
+    };
+
     // Normal texture
     GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
         GX_Position2f32(-refPixelX, -refPixelY);
         GX_Color4u8(0xff,0xff,0xff, transform.alpha);
-        GX_TexCoord2f32(_txCoords[0], _txCoords[1]);
+        GX_TexCoord2f32(txCoords[0], txCoords[1]);
         GX_Position2f32(refWidth, -refPixelY);
         GX_Color4u8(0xff,0xff,0xff, transform.alpha);
-        GX_TexCoord2f32(_txCoords[2], _txCoords[1]);
+        GX_TexCoord2f32(txCoords[2], txCoords[1]);
         GX_Position2f32(refWidth, refHeight);
         GX_Color4u8(0xff,0xff,0xff, transform.alpha);
-        GX_TexCoord2f32(_txCoords[2], _txCoords[3]);
+        GX_TexCoord2f32(txCoords[2], txCoords[3]);
         GX_Position2f32(-refPixelX, refHeight);
         GX_Color4u8(0xff,0xff,0xff, transform.alpha);
-        GX_TexCoord2f32(_txCoords[0], _txCoords[3]);
+        GX_TexCoord2f32(txCoords[0], txCoords[3]);
     GX_End();
 
 #else
     spr->SetColor(((u32)transform.alpha << 24) + 0xffffff);
     spr->SetHotSpot(_refPixelX, _refPixelY);
+    spr->SetTextureRect(_clip_x, _clip_y, _width, _height);
     spr->RenderEx(transform.offsetX, transform.offsetY+20, (transform.rotation / 180.0f) * M_PI,
                   transform.stretchWidth, transform.stretchHeight);
 #endif
-}
-
-void GuiSprite::_CalcFrame(){
-    // Returns the position of the frame
-    if(_width == 0 || _image == NULL || !_image->IsInitialized() || _image->GetWidth() == 0)return;
-    f32 frameX = (f32)((_frame%(_image->GetWidth()/_width))*_width),
-        frameY = (f32)((_frame/(_image->GetWidth()/_width))*_height);
-    // Calculates the texture position
-    _txCoords[0] = frameX/_image->GetWidth()+(FRAME_CORRECTION/_image->GetWidth());
-    _txCoords[1] = frameY/_image->GetHeight()+(FRAME_CORRECTION/_image->GetHeight());
-    _txCoords[2] = (frameX+_width)/_image->GetWidth()-(FRAME_CORRECTION/_image->GetWidth());
-    _txCoords[3] = (frameY+_height)/_image->GetHeight()-(FRAME_CORRECTION/_image->GetHeight());
 }
 

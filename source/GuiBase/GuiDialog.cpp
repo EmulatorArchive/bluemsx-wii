@@ -68,6 +68,15 @@ void GuiDialog::OnKey(BTN key, bool pressed)
 
 /*-----------------*/
 
+void GuiDialog::OnDelete(GuiLayer *layer)
+{
+    if( layer == selected_element ) {
+        selected_element = NULL;
+    }
+}
+
+/*-----------------*/
+
 void GuiDialog::AddElement(GuiElement *element)
 {
     if( element != NULL ) {
