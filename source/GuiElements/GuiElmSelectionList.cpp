@@ -25,13 +25,58 @@
 
 //-----------------------
 
+GuiElmListLineDefault::GuiElmListLineDefault(GuiContainer *parent, const char *name,
+                                             GXColor fontcol, int fontsz, bool cntr)
+                     : GuiElmListLine(parent, name)
+{
+    text = NULL;
+    sprite = NULL;
+    fontcolor = fontcol;
+    fontsize = fontsz;
+    center = cntr;
+}
+
+GuiElmListLineDefault::~GuiElmListLineDefault()
+{
+    if( sprite != NULL ) {
+        RemoveAndDelete(sprite);
+        sprite = NULL;
+    }
+}
+
+void GuiElmListLineDefault::Initialize(void *item)
+{
+    text = (const char *)item;
+    sprite = new GuiSprite(this, "textsprite");
+    sprite->CreateTextImage(g_fontArial, fontsize, GetWidth(), 0, center, fontcolor, text);
+    sprite->SetPosition(0, fontsize/3);
+    AddTop(sprite);
+}
+
+GuiElmListLine* GuiElmListLineDefault::Create(GuiContainer *parent)
+{
+    return new GuiElmListLineDefault(parent, text,
+                                     fontcolor, fontsize, center);
+}
+
+COLL GuiElmListLineDefault::CollidesWith(GuiSprite* spr, bool compl)
+{
+    assert( sprite != NULL );
+    return sprite->CollidesWith(spr, compl);
+}
+
+
+//-----------------------
+
 bool GuiElmSelectionList::ElmSetSelectedOnCollision(GuiSprite *sprite)
 {
     bool return_value = false;
+
     Lock();
+
     for(int i = upper_index; i <= lower_index; i++) {
-        if( strlen(visible_items[i]) ) {
-            COLL coll = sprite->CollidesWith(titleTxtSprite[i]);
+        if( visible_items[i] != NULL ) {
+            COLL coll = visible_items[i]->CollidesWith(sprite);
             if( coll == COLL_UNKNOWN ) {
                 Unlock();
                 return false;
@@ -50,25 +95,29 @@ bool GuiElmSelectionList::ElmSetSelectedOnCollision(GuiSprite *sprite)
         }
     }
     SetSelectedItem();
+
     Unlock();
+
     return return_value;;
 }
 
 void GuiElmSelectionList::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
 {
     Lock();
+
     if( sel ) {
         int s = -1;
         for(int i = upper_index; i <= lower_index; i++) {
-            if( strlen(visible_items[i]) && pointer &&
-                pointer->CollidesWith(titleTxtSprite[i]) == COLL_COLLISION ) {
+            if( visible_items[i] != NULL && pointer != NULL &&
+                visible_items[i]->CollidesWith(pointer) == COLL_COLLISION ) {
                 s = i;
                 break;
             }
         }
         for(int i = upper_index; s < 0 && i <= lower_index; i++) {
-            int yy = titleTxtSprite[i]->GetY() + titleTxtSprite[i]->GetHeight() / 2;
-            if( yy > y ) {
+            if( visible_items[i] == NULL ||
+               (int)visible_items[i]->GetY() + visible_items[i]->GetHeight() / 2 > y )
+            {
                 break;
             }
             s = i;
@@ -83,6 +132,7 @@ void GuiElmSelectionList::ElmSetSelected(bool sel, GuiSprite *pointer, int x, in
         // We're never deselected, just inactive
         is_active = false;
     }
+
     Unlock();
 }
 
@@ -138,7 +188,7 @@ void GuiElmSelectionList::DoKeyUp(void)
 void GuiElmSelectionList::DoKeyDown(void)
 {
     if( selected < lower_index &&
-        strlen(visible_items[selected+1]) ) {
+        visible_items[selected+1] != NULL ) {
         selected++;
     }else{
         if( index+selected < num_items-1 ) {
@@ -150,11 +200,18 @@ void GuiElmSelectionList::DoKeyDown(void)
 void GuiElmSelectionList::CleanUp(void)
 {
     Lock();
+
+    if( listline != NULL ) {
+        GetParentContainer()->Delete(listline);
+        listline = NULL;
+    }
     if( is_showing ) {
         // Titles
         for(int i = 0; i < num_item_rows; i++) {
-            RemoveAndDelete(titleTxtSprite[i], SELECTION_EFFECT);
-            titleTxtSprite[i] = NULL;
+            if( visible_items[i] != NULL ) {
+                RemoveAndDelete(visible_items[i], SELECTION_EFFECT);
+                visible_items[i] = NULL;
+            }
         }
 
         // Arrows
@@ -175,6 +232,7 @@ void GuiElmSelectionList::CleanUp(void)
 
         is_showing = false;
     }
+
     Unlock();
 }
 
@@ -206,80 +264,91 @@ int GuiElmSelectionList::IsActive(void)
 void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
 {
     Lock();
-    // Update dir info
-    for(int i = 0; i < num_item_rows; i++) {
-        if( i+index < num_items ) {
-            visible_items[i] = item_list[i+index];
-        }else{
-            visible_items[i] = "";
-        }
-    }
+
     // Render text
     if( index == current_index && current_index != -1 ) {
         // Index not changed, nothing to update
     }else
     if( index == current_index+1 && current_index != -1 ) {
         // move list up
-        RemoveAndDelete(titleTxtSprite[0]);
+        RemoveAndDelete(visible_items[0]);
         for(int i = 0, yy = ypos; i < num_item_rows-1; i++, yy += ypitch) {
-            titleTxtSprite[i] = titleTxtSprite[i+1];
-            titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
-            titleTxtSprite[i]->SetVisible(true);
+            visible_items[i] = visible_items[i+1];
+            visible_items[i]->SetPosition(xpos + xspacing, yy);
+            visible_items[i]->SetVisible(true);
         }
-        GuiSprite* spr = new GuiSprite(this, "item");
-        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, fontcolor, visible_items[num_item_rows-1]);
-        spr->SetPosition(xpos + xspacing, ypos + (num_item_rows-1)*ypitch + fontsize/3);
-        AddOnTopOf(titleTxtSprite[num_item_rows-1], spr, SELECTION_EFFECT);
-        titleTxtSprite[num_item_rows-1] = spr;
+        GuiElmListLine* line = listline->Create(this);
+        line->SetWidth(xsize-2*xspacing);
+        line->SetHeight(ypitch);
+        line->Initialize(item_list[num_item_rows-1+index]);
+        line->SetPosition(xpos + xspacing, ypos + (num_item_rows-1)*ypitch);
+        AddOnTopOf(visible_items[num_item_rows-1], line, SELECTION_EFFECT);
+        visible_items[num_item_rows-1] = line;
     }else
     if( index == current_index-1 ) {
         // move list down
-        if( titleTxtSprite[num_item_rows-1] ) {
-            RemoveAndDelete(titleTxtSprite[num_item_rows-1]);
+        if( visible_items[num_item_rows-1] ) {
+            RemoveAndDelete(visible_items[num_item_rows-1]);
         }
         for(int i = num_item_rows-1, yy = ypos+(num_item_rows-1)*ypitch; i > 0; i--, yy -= ypitch) {
-            titleTxtSprite[i] = titleTxtSprite[i-1];
-            titleTxtSprite[i]->SetPosition(xpos + xspacing, yy + fontsize/3);
-            titleTxtSprite[i]->SetVisible(true);
+            visible_items[i] = visible_items[i-1];
+            visible_items[i]->SetPosition(xpos + xspacing, yy);
+            visible_items[i]->SetVisible(true);
         }
-        GuiSprite* spr = new GuiSprite(this, "item");
-        spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, fontcolor, visible_items[0]);
-        spr->SetPosition(xpos + xspacing, ypos + fontsize/3);
-        AddOnTopOf(titleTxtSprite[0], spr, SELECTION_EFFECT);
-        titleTxtSprite[0] = spr;
+        GuiElmListLine* line = listline->Create(this);
+        line->SetWidth(xsize-2*xspacing);
+        line->SetHeight(ypitch);
+        line->Initialize(item_list[0+index]);
+        line->SetPosition(xpos + xspacing, ypos);
+        AddOnTopOf(visible_items[0], line, SELECTION_EFFECT);
+        visible_items[0] = line;
     }else{
         // rebuild
         for(int i = 0, yy = ypos; i < num_item_rows; i++, yy += ypitch) {
-            GuiSprite* spr = new GuiSprite(this, "item");
-            spr->CreateTextImage(g_fontArial, fontsize, xsize-2*xspacing, 0, center, fontcolor, visible_items[i]);
-            spr->SetPosition(xpos + xspacing, yy + fontsize/3);
-            spr->SetVisible(true);
-            if( titleTxtSprite[i] ) {
-                AddOnTopOf(titleTxtSprite[i], spr, SELECTION_EFFECT);
-                RemoveAndDelete(titleTxtSprite[i], SELECTION_EFFECT);
+            if( i < num_items ) {
+                GuiElmListLine* line = listline->Create(this);
+                line->SetWidth(xsize-2*xspacing);
+                line->SetHeight(ypitch);
+                line->Initialize(item_list[i+index]);
+                line->SetPosition(xpos + xspacing, yy);
+                line->SetVisible(true);
+                if( visible_items[i] != NULL ) {
+                    AddOnTopOf(visible_items[i], line, SELECTION_EFFECT);
+                    RemoveAndDelete(visible_items[i], SELECTION_EFFECT);
+                }else{
+                    AddTop(line, SELECTION_EFFECT);
+                }
+                visible_items[i] = line;
             }else{
-                AddTop(spr, SELECTION_EFFECT);
+                visible_items[i] = NULL;
             }
-            titleTxtSprite[i] = spr;
         }
     }
     // Up button
     if( index > 0  ) {
-        titleTxtSprite[0]->SetVisible(false);
+        if( visible_items[0] != NULL ) {
+            visible_items[0]->SetVisible(false);
+        }
         sprArrowUp->SetVisible(true);
         upper_index = 1;
     }else{
-        titleTxtSprite[0]->SetVisible(true);
+        if( visible_items[0] != NULL ) {
+            visible_items[0]->SetVisible(true);
+        }
         sprArrowUp->SetVisible(false);
         upper_index = 0;
     }
     // Down button
     if( index+num_item_rows < num_items ) {
-        titleTxtSprite[num_item_rows-1]->SetVisible(false);
+        if( visible_items[num_item_rows-1] != NULL ) {
+            visible_items[num_item_rows-1]->SetVisible(false);
+        }
         sprArrowDown->SetVisible(true);
         lower_index = num_item_rows-2;
     }else{
-        titleTxtSprite[num_item_rows-1]->SetVisible(true);
+        if( visible_items[num_item_rows-1] != NULL ) {
+            visible_items[num_item_rows-1]->SetVisible(true);
+        }
         sprArrowDown->SetVisible(false);
         lower_index = num_item_rows-1;
     }
@@ -292,37 +361,38 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
             sprSelector = NULL;
         }
         if( selected >= 0 ) {
-            GuiSprite *selectedsprite = titleTxtSprite[selected];
+            GuiLayer *selectedline = visible_items[selected];
             sprSelector = new GuiSprite(this, "selector");
             sprSelector->SetImage(g_imgSelector);
             sprSelector->SetRefPixelPosition(0, 0);
-            sprSelector->SetPosition(selectedsprite->GetX()-xspacing,selectedsprite->GetY()-(float)fontsize/2.8f);
-            sprSelector->SetStretchWidth((float)xsize / 4);
-            sprSelector->SetStretchHeight((float)fontsize * 1.8f / 44);
+            sprSelector->SetPosition(selectedline->GetX()-xspacing,selectedline->GetY());
+            sprSelector->SetStretchWidth((float)xsize / sprSelector->GetWidth());
+            sprSelector->SetStretchHeight((float)ypitch * 1.15f / sprSelector->GetHeight());
             AddBottom(sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
             is_active = true;
         }
         prev_selected = selected;
     }
     current_index = index;
+
     Unlock();
 }
 
 
-void GuiElmSelectionList::InitSelection(const char **items, int num, int select, int fontsz, GXColor fontcol,
-                                        int pitchy, int posx, int posy, int xspace, int width, bool centr)
+void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, int num, int select,
+                                        int pitchy, int posx, int posy, int xspace, int width)
 {
+    Lock();
+
+    CleanUp();
+
+    assert( listln != NULL );
+    listline = listln;
     xpos = posx;
     ypos = posy;
     xsize = width;
     xspacing = xspace;
-    fontsize = fontsz;
-    fontcolor = fontcol;
     ypitch = pitchy;
-    center = centr;
-
-    Lock();
-    CleanUp();
 
     // Init items
     item_list = items;
@@ -353,18 +423,18 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     sprArrowUp = new GuiSprite(this, "arrow_up");
     sprArrowUp->SetImage(g_imgArrow);
     sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
-    sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2+fontsize/3);
-    sprArrowUp->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
-    sprArrowUp->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
+    sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2);
+    sprArrowUp->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
+    sprArrowUp->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());
     sprArrowUp->SetRotation(180.0f);
     sprArrowUp->SetVisible(false);
 
     sprArrowDown = new GuiSprite(this, "arrow_down");
     sprArrowDown->SetImage(g_imgArrow);
     sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
-    sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2+fontsize/3);
-    sprArrowDown->SetStretchWidth((float)(width/2)/g_imgArrow->GetWidth());
-    sprArrowDown->SetStretchHeight(((float)fontsize/g_imgArrow->GetHeight())*0.8f);
+    sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2);
+    sprArrowDown->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
+    sprArrowDown->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());
     sprArrowDown->SetVisible(false);
 
     current_index = -1;
@@ -378,6 +448,7 @@ void GuiElmSelectionList::InitSelection(const char **items, int num, int select,
     AddTop(sprArrowDown, SELECTION_EFFECT);
 
     is_showing = true;
+
     Unlock();
 }
 
@@ -387,18 +458,16 @@ GuiElmSelectionList::GuiElmSelectionList(GuiContainer *parent, const char *name,
     num_item_rows = rows;
     is_showing = false;
     is_active = false;
+    listline = NULL;
     sprSelector = NULL;
     sprCursor = NULL;
-    visible_items = new const char*[rows];
-    memset(visible_items, 0, rows * sizeof(const char*));
-    titleTxtSprite = new GuiSprite*[rows];
-    memset(titleTxtSprite, 0, rows * sizeof(GuiSprite*));
+    visible_items = new GuiElmListLine*[rows];
+    memset(visible_items, 0, rows * sizeof(GuiElmListLine*));
 }
 
 GuiElmSelectionList::~GuiElmSelectionList()
 {
     CleanUp();
-    delete[] titleTxtSprite;
     delete[] visible_items;
 }
 

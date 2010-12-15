@@ -199,10 +199,11 @@ GuiDlgStateSelect::GuiDlgStateSelect(GuiContainer *parent, const char *name, Pro
 
     // Selection
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection((const char **)timestrings, num_states, 0, 26, white, SSEL_YPITCH,
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 26, false),
+                        (void**)timestrings, num_states, 0, SSEL_YPITCH,
                         posx+SSEL_X_SPACING,
                         posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
-                        SSEL_MENU_SPACING, SSEL_LIST_WIDTH, false);
+                        SSEL_MENU_SPACING, SSEL_LIST_WIDTH);
     AddTop(list);
     SetSelected(list);
 }

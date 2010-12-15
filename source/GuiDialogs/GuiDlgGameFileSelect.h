@@ -4,17 +4,22 @@
 
 #include "../GuiBase/GuiDialog.h"
 
+typedef struct _fileitem FILEITEM;
+
 class GuiElmSelectionList;
 class GuiElmFrame;
 
 class GuiDlgGameFileSelect : public GuiDialog {
 public:
-    GuiDlgGameFileSelect(GuiContainer *parent, const char *name);
+    GuiDlgGameFileSelect(GuiContainer *parent, const char *name,
+                         const char *directory);
     virtual ~GuiDlgGameFileSelect();
 
-    int Create(char *directory);
+    int Create(void);
     char* DoModal(void);
 private:
+    char *org_dir;
+    char *root_dir;
     GuiElmFrame *frame;
     GuiElmSelectionList *list;
     int num_files;
@@ -22,9 +27,9 @@ private:
     int posy;
     int sizex;
     int sizey;
-    char *filenames[256];
+    FILEITEM **items;
 
-    void CreateFileList(char *directory);
+    void CreateFileList(void);
     void FreeFileList(void);
 };
 

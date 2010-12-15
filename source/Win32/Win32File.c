@@ -40,9 +40,16 @@ int archCreateDirectory(const char* pathname)
 const char* archGetCurrentDirectory()
 {
     static char buf[512];
+    char *p;
     (void)getcwd(buf, sizeof(buf));
-    if( buf[strlen(buf)-1] == '/' ) {
-        buf[strlen(buf)-1] = '\0';
+    p = buf;
+    while( *p != '\0' ) {
+        if( *p == '\\' ) *p = '/';
+        p++;
+    }
+    p--;
+    if( *p == '/' ) {
+        *p = '\0';
     }
     return buf;
 }

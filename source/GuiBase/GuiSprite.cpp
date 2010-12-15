@@ -90,9 +90,7 @@ void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage,
     _colRect->x = 0; _colRect->y = 0;
     _colRect->width = (f32)_width; _colRect->height = (f32)_height;
 
-    // Refpixel setting. This positions the refpixel at the center.
-    _refPixelX = (f32)_width/2; _refPixelY = (f32)_height/2;
-    _refWidth = _refPixelX; _refHeight = _refPixelY;
+    // Refpixel setting. This positions at the upper left corner.
     SetRefPixelPosition(0,0);
 
     _image = image;
