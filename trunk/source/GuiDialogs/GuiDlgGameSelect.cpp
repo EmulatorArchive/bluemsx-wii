@@ -77,9 +77,11 @@ void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
 void GuiDlgGameSelect::OnUpdateScreen(void)
 {
     Lock();
-    int sel = list->GetSelectedItem();
-    if( sel >= 0 && sel != last_selected ) {
-        SetSelectedGame(last_index, sel, false);
+    if( is_showing ) {
+        int sel = list->GetSelectedItem();
+        if( sel >= 0 && sel != last_selected ) {
+            SetSelectedGame(last_index, sel, false);
+        }
     }
     Unlock();
 }
@@ -123,13 +125,15 @@ void GuiDlgGameSelect::OnKey(BTN key, bool pressed)
                 break;
             }
             if( elm == grButtonAdd ) {
-                GuiDlgGameFileSelect *filesel = new GuiDlgGameFileSelect(this, "filesel");
-                if( filesel->Create(".") ) {
+                is_showing = false; // prevent updating screenshot images
+                GuiDlgGameFileSelect *filesel = new GuiDlgGameFileSelect(this, "filesel", ".");
+                if( filesel->Create() ) {
                     AddTop(filesel, new GuiEffectFade(10));
                     (void)filesel->DoModal();
                     Remove(filesel, new GuiEffectFade(10));
                 }
                 Delete(filesel);
+                is_showing = true;
                 break;
             }
             if( elm == grButtonUp ) {
@@ -206,8 +210,9 @@ bool GuiDlgGameSelect::Load(const char *dir, const char *filename, GameElement *
 
     // Init selection list
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(title_list, num_games, sel, 22, white, 31,
-                        30, 30, 12, 276, false);
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 22, false),
+                        (void**)title_list, num_games, sel, 31,
+                        30, 30, 12, 276);
 
     Show(false);
 

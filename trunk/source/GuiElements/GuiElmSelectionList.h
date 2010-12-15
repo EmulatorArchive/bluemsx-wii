@@ -3,6 +3,7 @@
 #define _GUI_SELECTION_LIST_H
 
 #include "../GuiBase/GuiElement.h"
+#include "../GuiBase/GuiSprite.h"
 
 class GuiContainer;
 class GuiSprite;
@@ -15,6 +16,35 @@ typedef enum {
   SELRET_KEY_PLUS,
 } SELRET;
 
+class GuiElmListLine : public GuiContainer {
+public:
+    GuiElmListLine(GuiContainer *parent, const char *name)
+                 : GuiContainer(parent, name) {};
+    virtual ~GuiElmListLine() {};
+
+    virtual GuiElmListLine* Create(GuiContainer *parent) = 0;
+    virtual void Initialize(void *item) = 0;
+    virtual COLL CollidesWith(GuiSprite* spr, bool compl = false) = 0;
+};
+
+class GuiElmListLineDefault : public GuiElmListLine {
+public:
+    GuiElmListLineDefault(GuiContainer *parent, const char *name,
+                          GXColor fontcol, int fontsz, bool cntr);
+    virtual ~GuiElmListLineDefault();
+
+    virtual GuiElmListLine* Create(GuiContainer *parent);
+    virtual void Initialize(void *item);
+    virtual COLL CollidesWith(GuiSprite* spr, bool compl);
+private:
+
+    const char *text;
+    GuiSprite *sprite;
+    GXColor fontcolor;
+    int fontsize;
+    bool center;
+};
+
 class GuiElmSelectionList : public GuiElement {
 public:
     GuiElmSelectionList(GuiContainer *parent, const char *name, int rows);
@@ -25,8 +55,8 @@ public:
     virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
     virtual bool ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed);
 
-    void InitSelection(const char **items, int num, int select, int fontsz, GXColor fontcol, int pitchy,
-                       int posx, int posy, int xspace, int width, bool centr = false);
+    void InitSelection(GuiElmListLine *listln, void **items, int num, int select,
+                       int pitchy, int posx, int posy, int xspace, int width);
     void ClearTitleList(void);
     void SetSelectedItem(int fade = -1, int delay = -1);
     void SetNumberOfItems(int num);
@@ -39,14 +69,12 @@ public:
 private:
     void CleanUp(void);
 
-    GXColor fontcolor;
+    GuiElmListLine *listline;
     int xpos;
     int ypos;
     int xsize;
     int xspacing;
     int ypitch;
-    int fontsize;
-    bool center;
     int selected, prev_selected;
     int index;
     int num_items;
@@ -56,9 +84,8 @@ private:
     int lower_index;
     bool is_showing;
     bool is_active;
-    const char **item_list;
-    const char **visible_items;
-    GuiSprite **titleTxtSprite;
+    void **item_list;
+    GuiElmListLine **visible_items;
     GuiSprite *sprCursor;
     GuiSprite *sprSelector;
     GuiSprite *sprArrowUp;

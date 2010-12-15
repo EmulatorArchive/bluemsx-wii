@@ -25,8 +25,9 @@ SELRET GuiElmCheckList::DoModal(int *selected, const char **items, bool *items_s
 
     // Menu list
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(items, num, 0, 32, white, CHECKLIST_YPITCH,
-                           posx+16, posy+24, 24, width-32, false);
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, false),
+                        (void**)items, num, 0, CHECKLIST_YPITCH,
+                        posx+16, posy+24, 24, width-32);
     SetSelected(list);
     AddTop(list, CHECKLIST_EFFECT);
 

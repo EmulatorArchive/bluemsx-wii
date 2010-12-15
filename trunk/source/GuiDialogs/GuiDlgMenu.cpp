@@ -26,8 +26,9 @@ void GuiDlgMenu::Initialize(const char **items, int num, int width)
 
     // Menu list
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(items, num, 0, 32, white, MENU_YPITCH,
-                        posx+10, posy+24, 24, width-32, false);
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, false),
+                        (void**)items, num, 0, MENU_YPITCH,
+                        posx+10, posy+24, 24, width-32);
     AddTop(list, new GuiEffectFade(10));
     SetSelected(list);
     initialized = true;

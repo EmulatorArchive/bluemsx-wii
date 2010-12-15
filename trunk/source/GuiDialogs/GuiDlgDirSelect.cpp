@@ -4,9 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#ifndef WII
-#include <direct.h>
-#endif
+
+#include "../Arch/ArchFile.h"
 
 #include "../GuiBase/GuiEffectFade.h"
 #include "../GuiElements/GuiElmFrame.h"
@@ -82,11 +81,7 @@ char *GuiDlgDirSelect::DoModal(void)
 
 char* GuiDlgDirSelect::InitialiseList(char *prevsel)
 {
-#ifdef WII
-    chdir(current_dir);
-#else
-    _chdir(current_dir);
-#endif
+    archSetCurrentDirectory(current_dir);
     dirs.Load(xmlfile);
     num_dirs = dirs.GetNumberOfDirs();
     if( num_dirs == 0 ) {
@@ -110,8 +105,9 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
     
     // Selection
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(title_list, num_dirs, sel, 30, white, DSEL_YPITCH,
-                        320-180+8, 24+20, 24, 2*180-16, false);
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, false),
+                        (void**)title_list, num_dirs, sel, DSEL_YPITCH,
+                        320-180+8, 24+20, 24, 2*180-16);
 
     return NULL;
 }

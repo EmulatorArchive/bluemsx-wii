@@ -616,7 +616,9 @@ void GuiContainer::PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *ef
     if( effect != NULL || layer->IsBusy() ) {
         // initialize the new effect
         if( effect != NULL ) {
+            Unlock();
             effect->Initialize(layer, NULL, old_transform);
+            Lock();
         }
 
         // find free spot in effect-list
@@ -692,6 +694,10 @@ bool GuiContainer::IsBusy(void)
 
 void GuiContainer::Draw(void)
 {
+    if( !IsVisible() ) {
+        return;
+    }
+
     LayerTransform transform = GetTransform();
 
     // Call ALL registered render callbacks
