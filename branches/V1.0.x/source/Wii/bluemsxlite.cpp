@@ -318,7 +318,7 @@ static void blueMsxRun(GameElement *game, char *game_dir)
 
     // Init keyboard and remap keys
     keyboardReset();
-    KBD_SetWpadOrientation(WPADO_VERTICAL);
+    KBD_SetWpadOrientation(WPADO_HORIZONTAL);
     for(i = 0; i < KEY_LAST; i++) {
         int event = game->GetKeyMapping((KEY)i);
         if( event != -1 ) {
