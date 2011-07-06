@@ -360,11 +360,11 @@ void GameWindow::InitVideo()
     SetMode(GW_VIDEO_MODE_PAL50_440);
     // HGE
     g_hge = hgeCreate(HGE_VERSION);
-    g_hge->System_SetState(HGE_LOGFILE, "test.log");
+    g_hge->System_SetState(HGE_LOGFILE, L"test.log");
     g_hge->System_SetState(HGE_FRAMEFUNC, FrameFuncWrapper);
     g_hge->System_SetState(HGE_RENDERFUNC, RenderFuncWrapper);
     g_hge->System_SetState(HGE_EXITFUNC, ExitFuncWrapper);
-    g_hge->System_SetState(HGE_TITLE, "HGE Test");
+    g_hge->System_SetState(HGE_TITLE, L"HGE Test");
     g_hge->System_SetState(HGE_USESOUND, false);
     g_hge->System_SetState(HGE_WINDOWED, true);
     g_hge->System_SetState(HGE_SCREENWIDTH, 640);
