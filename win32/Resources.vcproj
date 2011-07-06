@@ -261,15 +261,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\source\Resource\image_key_hover.png"
+				RelativePath="..\source\Resource\image_frame_c.png"
 				>
 			</File>
 			<File
-				RelativePath="..\source\Resource\image_key_pressed.png"
+				RelativePath="..\source\Resource\image_inputbar.png"
 				>
 			</File>
 			<File
 				RelativePath="..\source\Resource\image_keyboard.png"
+				>
+			</File>
+			<File
+				RelativePath="..\source\Resource\image_keyboard2.png"
 				>
 			</File>
 			<File

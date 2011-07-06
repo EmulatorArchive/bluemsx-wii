@@ -3048,6 +3048,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgInputLine.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiDialogs\GuiDlgInputLine.h"
+					>
+				</File>
+				<File
 					RelativePath="..\source\GuiDialogs\GuiDlgMenu.cpp"
 					>
 				</File>
