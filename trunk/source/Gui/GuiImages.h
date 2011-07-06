@@ -11,6 +11,7 @@ extern GuiImage *g_imgSelector;
 extern GuiImage *g_imgSelector2;
 extern GuiImage *g_imgFloppyDisk;
 extern GuiImage *g_imgKeyboard;
+extern GuiImage *g_imgKeyboard2;
 extern GuiImage *g_imgButtonRed;
 extern GuiImage *g_imgButtonGreen;
 extern GuiImage *g_imgButtonBlue;
@@ -25,6 +26,8 @@ extern GuiImage *g_imgDelete2;
 extern GuiImage *g_imgSettings;
 extern GuiImage *g_imgFrameA;
 extern GuiImage *g_imgFrameB;
+extern GuiImage *g_imgFrameC;
+extern GuiImage *g_imgInputBar;
 
 extern void GuiImageInit(void);
 extern void GuiImageClose(void);

@@ -13,6 +13,7 @@
 #include "../Gui/GuiImages.h"
 #include "../GuiBase/GuiEffectFade.h"
 #include "../GuiDialogs/GuiDlgGameFileSelect.h"
+#include "../GuiDialogs/GuiDlgInputLine.h"
 #include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmBackground.h"
 #include "../GuiElements/GuiElmButton.h"
@@ -146,6 +147,15 @@ void GuiDlgGameSelect::OnKey(BTN key, bool pressed)
                 games.MoveDown(selected_game);
                 list->DoKeyDown();
                 UpdateList();
+                break;
+            }
+            if( elm == grButtonSettings ) {
+                is_showing = false; // prevent updating screenshot images
+                GuiDlgInputLine *input = new GuiDlgInputLine(this, "input");
+                AddTop(input, new GuiEffectFade(10));
+                (void)input->DoModal();
+                RemoveAndDelete(input, new GuiEffectFade(10));
+                is_showing = true;
                 break;
             }
             if( elm == grButtonDelScr1 ) {

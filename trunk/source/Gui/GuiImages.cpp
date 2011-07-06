@@ -9,6 +9,7 @@
 #include "image_selector2.inc"
 #include "image_floppy_disk.inc"
 #include "image_keyboard.inc"
+#include "image_keyboard2.inc"
 #include "image_button_red.inc"
 #include "image_button_green.inc"
 #include "image_button_blue.inc"
@@ -23,6 +24,8 @@
 #include "image_settings.inc"
 #include "image_frame_a.inc"
 #include "image_frame_b.inc"
+#include "image_frame_c.inc"
+#include "image_inputbar.inc"
 
 #include "../GuiBase/GuiImage.h"
 
@@ -34,6 +37,7 @@ GuiImage *g_imgSelector        = NULL;
 GuiImage *g_imgSelector2       = NULL;
 GuiImage *g_imgFloppyDisk      = NULL;
 GuiImage *g_imgKeyboard        = NULL;
+GuiImage *g_imgKeyboard2       = NULL;
 GuiImage *g_imgButtonRed       = NULL;
 GuiImage *g_imgButtonGreen     = NULL;
 GuiImage *g_imgButtonBlue      = NULL;
@@ -48,6 +52,9 @@ GuiImage *g_imgDelete2         = NULL;
 GuiImage *g_imgSettings        = NULL;
 GuiImage *g_imgFrameA          = NULL;
 GuiImage *g_imgFrameB          = NULL;
+GuiImage *g_imgFrameC          = NULL;
+GuiImage *g_imgInputBar        = NULL;
+
 
 void GuiImageInit(void)
 {
@@ -67,6 +74,8 @@ void GuiImageInit(void)
     if(g_imgFloppyDisk->LoadImage(image_floppy_disk) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgKeyboard = new GuiImage;
     if(g_imgKeyboard->LoadImage(image_keyboard) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgKeyboard2 = new GuiImage;
+    if(g_imgKeyboard2->LoadImage(image_keyboard2) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgButtonRed = new GuiImage;
     if(g_imgButtonRed->LoadImage(image_button_red) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgButtonGreen = new GuiImage;
@@ -95,6 +104,10 @@ void GuiImageInit(void)
     if(g_imgFrameA->LoadImage(image_frame_a) != IMG_LOAD_ERROR_NONE) exit(0);
     g_imgFrameB = new GuiImage;
     if(g_imgFrameB->LoadImage(image_frame_b) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgFrameC = new GuiImage;
+    if(g_imgFrameC->LoadImage(image_frame_c) != IMG_LOAD_ERROR_NONE) exit(0);
+    g_imgInputBar = new GuiImage;
+    if(g_imgInputBar->LoadImage(image_inputbar) != IMG_LOAD_ERROR_NONE) exit(0);
 }
 
 void GuiImageClose(void)
@@ -109,6 +122,8 @@ void GuiImageClose(void)
     g_imgButtonYellow = NULL;
     delete g_imgKeyboard;
     g_imgKeyboard = NULL;
+    delete g_imgKeyboard2;
+    g_imgKeyboard2 = NULL;
     delete g_imgFloppyDisk;
     g_imgFloppyDisk = NULL;
     delete g_imgSelector;
@@ -143,5 +158,9 @@ void GuiImageClose(void)
     g_imgFrameA = NULL;
     delete g_imgFrameB;
     g_imgFrameB = NULL;
+    delete g_imgFrameC;
+    g_imgFrameC = NULL;
+    delete g_imgInputBar;
+    g_imgInputBar = NULL;
 }
 

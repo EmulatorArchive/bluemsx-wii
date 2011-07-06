@@ -5,7 +5,8 @@
 
 typedef enum {
   FRAMETYPE_BLUE,
-  FRAMETYPE_GRAY
+  FRAMETYPE_GRAY,
+  FRAMETYPE_BRUSHED
 } FRAMETYPE;
 
 class GuiSprite;
