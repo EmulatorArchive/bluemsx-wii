@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\WiiSprite;..\build"
+				AdditionalIncludeDirectories="..\include\d3dx8;..\include;..\include\Win32;..\source\WiiSprite;..\build"
 				PreprocessorDefinitions="BLUEMSXWII;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -71,11 +71,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\lib\win32\hge.lib ..\lib\win32\hgehelp.lib ..\lib\win32\freetype242MT.lib"
+				AdditionalDependencies="..\lib\win32\freetype242MT.lib ..\lib\win32\d3d8.lib ..\lib\win32\d3dx8.lib"
 				OutputFile="..\Release/WiiBlueMsx.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				IgnoreDefaultLibraryNames="libc.lib"
+				IgnoreDefaultLibraryNames="libc.lib;libci.lib"
 				ProgramDatabaseFile="..\Release/WiiBlueMsx.pdb"
 				SubSystem="2"
 				TargetMachine="1"
@@ -122,10 +122,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-				Description="Copy HGE dll"
-				CommandLine="copy $(ProjectDir)..\lib\win32\hge.dll $(TargetDir)&#x0D;&#x0A;"
-				AdditionalDependencies="$(ProjectDir)/lib/win32/hge.dll"
-				Outputs="$(TargetDir)/hge.dll"
+				Description="Performing Custom Build Step"
+				CommandLine=""
+				AdditionalDependencies=""
+				Outputs=""
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -142,7 +142,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/QIfist "
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include;..\include\Win32;..\source\WiiSprite;..\build"
+				AdditionalIncludeDirectories="..\include\d3dx8;..\include;..\include\Win32;..\source\WiiSprite;..\build"
 				PreprocessorDefinitions="BLUEMSXWII;WIN32;DEBUG;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -168,10 +168,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\lib\win32\hge.lib ..\lib\win32\hgehelp.lib ..\lib\win32\freetype242MT.lib"
+				AdditionalDependencies="..\lib\win32\freetype242MT.lib ..\lib\win32\d3d8.lib ..\lib\win32\d3dx8.lib"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				IgnoreDefaultLibraryNames="libc.lib"
+				IgnoreDefaultLibraryNames="libc.lib;libci.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../Debug/WiiBlueMsx.pdb"
 				SubSystem="2"
@@ -3079,6 +3079,46 @@
 					RelativePath="..\source\GuiDialogs\GuiDlgStateSelect.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="HGE"
+				>
+				<Filter
+					Name="Core"
+					>
+					<File
+						RelativePath=".\HGE\core\graphics.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\HGE\core\hge_impl.h"
+						>
+					</File>
+					<File
+						RelativePath=".\HGE\core\input.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\HGE\core\system.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\HGE\core\timer.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Helpers"
+					>
+					<File
+						RelativePath=".\HGE\helpers\hgerect.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\HGE\helpers\hgesprite.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 	</Files>
