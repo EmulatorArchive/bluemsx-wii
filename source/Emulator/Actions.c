@@ -624,16 +624,20 @@ void actionCasInsert() {
 
 void actionCasRewind() {
     if (emulatorGetState() != EMU_STOPPED) {
-            emulatorSuspend();
-        }
-        else {
-            tapeSetReadOnly(1);
-            boardChangeCassette(0, strlen(state.properties->media.tapes[0].fileName) ? state.properties->media.tapes[0].fileName : NULL, 
-                                strlen(state.properties->media.tapes[0].fileNameInZip) ? state.properties->media.tapes[0].fileNameInZip : NULL);
-        }
-        tapeSetCurrentPos(0);
+#ifndef WII
+        emulatorSuspend();
+#endif
+    }
+    else {
+        tapeSetReadOnly(1);
+        boardChangeCassette(0, strlen(state.properties->media.tapes[0].fileName) ? state.properties->media.tapes[0].fileName : NULL, 
+                            strlen(state.properties->media.tapes[0].fileNameInZip) ? state.properties->media.tapes[0].fileNameInZip : NULL);
+    }
+    tapeSetCurrentPos(0);
     if (emulatorGetState() != EMU_STOPPED) {
+#ifndef WII
         emulatorResume();
+#endif
     }
     else {
         boardChangeCassette(0, NULL, NULL);
