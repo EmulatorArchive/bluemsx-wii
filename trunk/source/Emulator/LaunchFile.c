@@ -660,7 +660,7 @@ int tryLaunchUnknownFile(Properties* properties, const char* fileName, int force
              isFileExtension(fileName, ".sf7")) 
     {
         int drive = properties->diskdrive.quickStartDrive;
-        FILE* f = fopen(fileName, "rb");
+        FILE* f = archFileOpen(fileName, "rb");
         if (f != NULL) {
             fseek(f, 0, SEEK_END);
             if (ftell(f) >= 1024 * 1024) {

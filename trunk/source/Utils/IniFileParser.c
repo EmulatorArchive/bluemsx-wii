@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "IniFileParser.h"
+#include "../Arch/ArchFile.h"
 
 
 // PacketFileSystem.h Need to be included after all other includes
@@ -27,7 +28,7 @@ static int readFile(const char* filename)
     iniEnd = NULL;
     iniBuffer = NULL;
 
-    f = fopen(filename, "r");
+    f = archFileOpen(filename, "r");
     if (f == NULL) {
         return 0;
     }
@@ -111,7 +112,7 @@ void writeLine(const char* line)
 
 void writeFile(const char* filename)
 {
-    FILE* f = fopen(filename, "w");
+    FILE* f = archFileOpen(filename, "w");
     if (f == NULL) {
         return;
     }

@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "UartIO.h"
+#include "../Arch/ArchFile.h"
 #include "../Arch/ArchUart.h"
 #include "../SoundChips/DAC.h"
 #include "../Board/Board.h"
@@ -54,7 +55,7 @@ static void setType(UartIO* uartIO)
         uartIO->uartReady = archUartCreate(uartIO->recvCallback);
         break;
     case UART_FILE:
-        uartIO->file = fopen(theFileName, "w+");
+        uartIO->file = archFileOpen(theFileName, "w+");
         break;
     }
 }

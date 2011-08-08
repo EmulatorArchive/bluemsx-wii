@@ -17,7 +17,7 @@ class hgeSprite;
 #endif
 class GuiContainer;
 class GuiTiles;
-class DrawableImage;
+class GuiTextImage;
 class TextRender;
 
 //!Basic data for a rectangle.
@@ -51,7 +51,7 @@ public:
     //!\param frameWidth The width of the frame. Should be a multiple of image->GetWidth() or 0 if it should get the same width as the image.
     //!\param frameHeight The height of the frame. Should be a multiple of image->GetHeight() or 0 if it should get the same height as the image.
     void SetImage(GuiImage* image, u32 clipWidth = 0, u32 clipHeight = 0, u32 clipOffsetX = 0, u32 clipOffsetY = 0);
-    void SetImage(DrawableImage* drawimage, u32 clipWidth = 0, u32 clipHeight = 0, u32 clipOffsetX = 0, u32 clipOffsetY = 0);
+    void SetImage(GuiTextImage* drawimage, u32 clipWidth = 0, u32 clipHeight = 0, u32 clipOffsetX = 0, u32 clipOffsetY = 0);
     //!Gets the assigned image.
     //!\return A pointer to the image. NULL if no image was assigned.
     GuiImage* GetImage() const;
@@ -60,7 +60,7 @@ public:
     bool LoadImage(const unsigned char *buf);
     bool LoadImage(const char *file);
 
-    // DrawableImage
+    // GuiTextImage
     void CreateDrawImage(int width, int height, int format = GX_TF_RGBA8);
     void CreateTextImageVA(TextRender* font, int size, int minwidth, int yspace, bool center,
                              GXColor color, const char *fmt, va_list valist);
@@ -99,14 +99,13 @@ public:
     void Draw(void);
 protected:
 private:
-    void SetImageIntern(GuiImage* image, DrawableImage* drawimage,
+    void SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
                         u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY);
 #ifndef WII
     hgeSprite *spr;
 #endif
     GuiImage* _image;
-    DrawableImage* _draw_image;
-    bool _image_owner;
+    GuiTextImage* _draw_image;
 
     Rect* _colRect;
 };

@@ -4,6 +4,9 @@
 #include DEVKITPPC_STDLIB_INCLUDE
 #include <string.h>
 
+#define _stricmp stricmp
+#define _unlink unlink
+
 #if MALLOC_LOGGING
 
 #ifdef __cplusplus
@@ -15,10 +18,11 @@ extern "C" {
 #undef calloc
 #undef realloc
 #undef strdup
+#undef _strdup
 
 #define __fbpadding(width) ((u16)(((u16)(width) + 15) & ~15))
 #define _SYS_AllocateFramebuffer(rmode) \
-	my_memalign(32,(__fbpadding((rmode)->fbWidth)*(rmode)->xfbHeight*2), __FILE__, __LINE__)
+        my_memalign(32,(__fbpadding((rmode)->fbWidth)*(rmode)->xfbHeight*2), __FILE__, __LINE__)
 
 #define free(a) my_free(a, __FILE__, __LINE__)
 #define malloc(a) my_malloc(a, __FILE__, __LINE__)
@@ -26,6 +30,7 @@ extern "C" {
 #define realloc(a, b) my_realloc(a, b, __FILE__, __LINE__)
 #define memalign(a, b) my_memalign(a, b, __FILE__, __LINE__)
 #define strdup(a) my_strdup(a, __FILE__, __LINE__)
+#define _strdup(a) my_strdup(a, __FILE__, __LINE__)
 
 extern void my_free(void *buf, const char *file, int line);
 extern void *my_malloc(int size, const char *file, int line);

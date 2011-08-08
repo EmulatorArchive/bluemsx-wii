@@ -450,7 +450,7 @@ int machineIsValid(const char* machineName, int checkRoms)
         if (strlen(machine->slotInfo[i].name) ||
             strlen(machine->slotInfo[i].inZipName))
         {
-            FILE* file = fopen(machine->slotInfo[i].name, "r");
+            FILE* file = archFileOpen(machine->slotInfo[i].name, "r");
             if (file == NULL) {
                 if (success) {
 //                    printf("\n%s: Cant find rom:\n", machineName);
@@ -481,7 +481,7 @@ char** machineGetAvailable(int checkRoms)
         FILE* file;
 
         sprintf(filename, "Machines/%s/config.ini", machineName);
-        file = fopen(filename, "rb");
+        file = archFileOpen(filename, "rb");
         if (file != NULL) {
             if (machineIsValid(machineName, checkRoms)) {
                 strcpy(names[index], machineName);
@@ -511,7 +511,7 @@ char** machineGetAvailable(int checkRoms)
             char fileName[512];
             FILE* file;
 		    sprintf(fileName, "%s/config.ini", glob->pathVector[i]);
-            file = fopen(fileName, "rb");
+            file = archFileOpen(fileName, "rb");
             if (file != NULL) {
                 const char* name = strrchr(glob->pathVector[i], '/');
                 if (name == NULL) {

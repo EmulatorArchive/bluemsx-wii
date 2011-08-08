@@ -27,6 +27,7 @@
 */
 #include "../Memory/RomLoader.h"
 #include "../Utils/ziphelper.h"
+#include "../arch/ArchFile.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -37,7 +38,7 @@
 
 UInt8* romLoad(const char *fileName, const char *fileInZipFile, int* size)
 {
-    UInt8* buf = NULL;
+	UInt8* buf = NULL;
     FILE *file;
 
     if (fileName == NULL || strlen(fileName) == 0) {
@@ -53,7 +54,7 @@ UInt8* romLoad(const char *fileName, const char *fileInZipFile, int* size)
         return buf;
     }
 
-    file = fopen(fileName, "rb");
+    file = archFileOpen(fileName, "rb");
     if (file == NULL) {
         return NULL;
     }

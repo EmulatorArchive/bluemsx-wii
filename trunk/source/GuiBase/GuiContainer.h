@@ -3,6 +3,7 @@
 
 #define MAX_LAYERS 256
 
+#include <list>
 #include "GuiLayer.h"
 
 class GuiRootContainer;
@@ -12,7 +13,6 @@ class GuiImage;
 typedef struct _GuiContainerCallback {
     bool (*callback)(void*);
     void *context;
-    _GuiContainerCallback *next;
 } GuiContainerCallback;
 
 typedef struct _LayerEffect {
@@ -21,6 +21,8 @@ typedef struct _LayerEffect {
     GuiLayer  *remove_layer;
     bool      delete_layer;
 } LayerEffect;
+
+typedef std::list<GuiLayer*>::iterator LayerIndex;
 
 class GuiContainer : public GuiLayer
 {
@@ -41,14 +43,6 @@ public:
     void SetPointerImage(GuiImage *image);
     GuiImage* GetPointerImage(void);
 
-    // Basic layer administration
-    void LayerAppend(GuiLayer* layer);
-    void LayerInsert(GuiLayer* layer, u32 index);
-    void LayerRemove(GuiLayer* layer);
-    void LayerRemoveAll();
-    int LayerGetIndex(GuiLayer* layer);
-    u32 LayerGetSize() const;
-
     // Render/Frame callbacks
     void AddRenderCallback(bool (*callback)(void*), void *context);
     void RemoveRenderCallback(bool (*callback)(void*), void *context);
@@ -66,7 +60,7 @@ public:
     int GetFixedLayers(void);
     void DeleteAll(void);
 
-    virtual void AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *effect = NULL);
+    // Layer order management
     virtual void AddTop(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void AddTopFixed(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual bool AddOnTopOf(GuiLayer *ontopof, GuiLayer *layer, GuiEffect *effect = NULL);
@@ -75,27 +69,32 @@ public:
     virtual void Remove(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void RemoveAndDelete(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void Delete(GuiLayer *layer);
+
 protected:
     void RegisterForDelete(GuiLayer *layer);
     bool IsRegisteredForDelete(GuiLayer *layer);
     static GuiRootContainer *_root;
 
 private:
+    // Internal layer administration
+    void LayerAdd(LayerIndex index, bool movenonfixed, GuiLayer *layer, GuiEffect *effect = NULL);
+    void LayerRemove(GuiLayer* layer);
+    void LayerRemoveAll();
+    LayerIndex LayerGetIndex(GuiLayer* layer);
+
     void DeleteDirect(GuiLayer *layer);
     void PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *effect);
-
-    // Basic layer administration
-    GuiLayer** _layers;
-    u32 _size, _boundary;
 
     GuiContainer *_parent;
     GuiImage* pointer_image;
     bool stop_requested;
-    u32 fixed_layers;
-    GuiContainerCallback *render_callback;
-    GuiContainerCallback *frame_callback;
-    GuiLayer *layers_to_delete[MAX_LAYERS];
-    LayerEffect *effect_list[MAX_LAYERS];
+
+    LayerIndex first_nonfixed;
+    std::list<GuiLayer*> layers;
+    std::list<GuiLayer*> layers_to_delete;
+    std::list<LayerEffect> effect_list;
+    std::list<GuiContainerCallback> render_callback;
+    std::list<GuiContainerCallback> frame_callback;
 };
 
 #endif

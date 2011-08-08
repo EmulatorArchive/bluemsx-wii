@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiiBlueMsx", "WiiBlueMsx.vcproj", "{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68} = {0A14AD71-79D7-4CB3-BA4E-112675A1AD68}
@@ -11,15 +11,27 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|CEPC_600 (x86) = Debug|CEPC_600 (x86)
 		Release|Win32 = Release|Win32
+		Release|CEPC_600 (x86) = Release|CEPC_600 (x86)
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Debug|CEPC_600 (x86).ActiveCfg = Debug|CEPC_600 (x86)
+		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Debug|CEPC_600 (x86).Build.0 = Debug|CEPC_600 (x86)
+		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Debug|CEPC_600 (x86).Deploy.0 = Debug|CEPC_600 (x86)
 		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Debug|Win32.Build.0 = Debug|Win32
+		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Release|CEPC_600 (x86).ActiveCfg = Release|CEPC_600 (x86)
+		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Release|CEPC_600 (x86).Build.0 = Release|CEPC_600 (x86)
+		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Release|CEPC_600 (x86).Deploy.0 = Release|CEPC_600 (x86)
 		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Release|Win32.ActiveCfg = Release|Win32
 		{F5C7CC2A-C959-4DB4-9F17-773F8B8B5F81}.Release|Win32.Build.0 = Release|Win32
+		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Debug|CEPC_600 (x86).ActiveCfg = Debug|CEPC_600 (x86)
+		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Debug|CEPC_600 (x86).Build.0 = Debug|CEPC_600 (x86)
 		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Debug|Win32.ActiveCfg = Debug|Win32
 		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Debug|Win32.Build.0 = Debug|Win32
+		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Release|CEPC_600 (x86).ActiveCfg = Release|CEPC_600 (x86)
+		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Release|CEPC_600 (x86).Build.0 = Release|CEPC_600 (x86)
 		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Release|Win32.ActiveCfg = Release|Win32
 		{0A14AD71-79D7-4CB3-BA4E-112675A1AD68}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection

@@ -61,6 +61,11 @@ int archFileExists(const char* fileName)
     return stat(fileName, &s) == 0;
 }
 
+FILE* archFileOpen(const char *fname, const char *mode)
+{
+    return fopen(fname, mode);
+}
+
 /* File dialogs: */
 char* archFilenameGetOpenRom(Properties* properties, int cartSlot, RomType* romType) { return NULL; }
 char* archFilenameGetOpenDisk(Properties* properties, int drive, int allowCreate) { return NULL; }

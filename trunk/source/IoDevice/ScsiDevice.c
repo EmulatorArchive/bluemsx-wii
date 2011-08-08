@@ -126,7 +126,7 @@ static FILE* scsiLog = NULL;
 FILE* scsiDeviceLogCreate()
 {
     if (!logNumber) {
-        scsiLog = fopen(SCSIDEBUG, "w");
+        scsiLog = archFileOpen(SCSIDEBUG, "w");
     }
     logNumber++;
     return scsiLog;

@@ -8,6 +8,7 @@
 /* @(#) $Id: gzio.c,v 1.2 2008/03/30 18:38:46 dvik Exp $ */
 
 #include <stdio.h>
+#include "../Arch/ArchFile.h"
 
 #include "zutil.h"
 
@@ -972,6 +973,9 @@ int ZEXPORT gzclose (file)
 }
 
 #ifdef STDC
+#ifdef UNDER_CE
+extern char* strerror(int errnum);
+#endif
 #  define zstrerror(errnum) strerror(errnum)
 #else
 #  define zstrerror(errnum) ""

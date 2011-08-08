@@ -218,7 +218,7 @@ int archScreenCaptureToFile(ScreenCaptureType type, const char *fname)
 {
     FrameBuffer *frame = frameBufferGetViewFrame();
     if( frame ) {
-        FILE *outfp = fopen(fname, "wb");
+        FILE *outfp = archFileOpen(fname, "wb");
         if( outfp ) {
             int success = WritePng(frame, outfp);
             fclose(outfp);

@@ -37,6 +37,9 @@
 #include <sys/stat.h>
 #include <wiiuse/wpad.h>
 #endif
+#ifdef UNDER_CE
+#include <Win32Wrappers.h>
+#endif
 
 #include "../GuiBase/GuiEffectFade.h"
 #include "../GuiElements/GuiElmFrame.h"
@@ -74,6 +77,7 @@
 #include "../Wii/WiiInput.h"
 #include "../Wii/StorageSetup.h"
 
+#include "DirectoryHelper.h"
 #include "GuiKeyboard.h"
 #include "GuiFonts.h"
 #include "GuiImages.h"
@@ -120,6 +124,8 @@ void setDefaultPaths(const char* rootDir)
 {
     char buffer[512];
 
+    DirectoryHelper::SetRootDirectory(rootDir);
+
     propertiesSetDirectory(rootDir, rootDir);
 
     sprintf(buffer, "%s/Audio Capture", rootDir);
@@ -156,7 +162,9 @@ static char currentDisk[256];
 
 void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZipFile)
 {
+#ifdef WII
     printf("DISKCHANGE: %d, '%s', '%s'\n", driveId, fileName, fileInZipFile);
+#endif
     if( fileInZipFile ) {
         strcpy(currentDisk, fileInZipFile);
     }else{
@@ -291,14 +299,6 @@ bool GuiMain::RenderEmuImage(void *context)
     return false;
 }
 
-#ifndef WII
-static char root_dir[256];
-char * GetMSXRootPath(void)
-{
-    return root_dir;
-}
-#endif
-
 void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
 {
     int i;
@@ -307,9 +307,6 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
     GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(this, "loading");
     msgbox->Create(MSGT_TEXT, NULL, 128, "Loading...");
     AddTop(msgbox, new GuiEffectFade(10, 0, true));
-
-    // Set current directory to the MSX-root
-    archSetCurrentDirectory(GetMSXRootPath());
 
     // Reset properties
     propInitDefaults(properties, 0, P_KBD_EUROPEAN, 0, "");
@@ -327,10 +324,12 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
     properties->emulation.syncMethod = P_EMU_SYNCTOVBLANKASYNC;
     videoUpdateAll(video, properties);
 
+#ifdef WII
     printf("Title        : '%s'\n", game->GetName());
     printf("Command line : '%s'\n", game->GetCommandLine());
     printf("Screen shot 1: '%s'\n", game->GetScreenShot(0));
     printf("Screen shot 2: '%s'\n", game->GetScreenShot(1));
+#endif
 
     // Init keyboard and remap keys
     keyboardReset();
@@ -370,7 +369,7 @@ void GuiMain::blueMsxRun(GameElement *game, char * game_dir)
     if( ti ) {
         char path[256];
         if( game->GetCheatFile() ) {
-            sprintf(path, "%s/Tools/Cheats/%s", GetMSXRootPath(), game->GetCheatFile());
+            sprintf(path, "Tools/Cheats/%s", game->GetCheatFile());
             toolInfoAddArgument(ti, "CheatFile", path);
         } else {
             toolInfoAddArgument(ti, "CheatFile", NULL);
@@ -574,14 +573,9 @@ extern bool g_bUSBMounted;
 
 void GuiMain::Main(void)
 {
-#ifndef WII
-    GetCurrentDirectoryA(sizeof(root_dir), root_dir);
-    strcat(root_dir, "\\..\\MSX");
-#endif
-
     // Resources
     GuiFontInit();
-    GuiImageInit();
+    GuiImageInit(this);
     SetPointerImage(g_imgMousecursor);
 
     // Background
@@ -604,9 +598,6 @@ void GuiMain::Main(void)
 #else
     {
 #endif
-        // Set current directory to the MSX-root
-        archSetCurrentDirectory(GetMSXRootPath());
-
         // Please wait...
         GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(this, "pleasewait");
         msgbox->Create(MSGT_TEXT, NULL, 128, "Please wait...");
@@ -617,9 +608,7 @@ void GuiMain::Main(void)
         RemoveAndDelete(msgbox, new GuiEffectFade(50, 0, true, 0.5f, false, 0.0f, 0.0f));
 
         char *game_dir = NULL;
-        char sGamesPath[100];
-        sprintf(sGamesPath, "%s/Games", GetMSXRootPath());
-        GuiDlgDirSelect *dirs = new GuiDlgDirSelect(this, "dirselect", sGamesPath, "dirlist.xml");
+        GuiDlgDirSelect *dirs = new GuiDlgDirSelect(this, "dirselect", "Games", "dirlist.xml");
 
         for(;;) {
             // Browse directory
@@ -663,8 +652,9 @@ void GuiMain::Main(void)
         }
         Delete(dirs);
 
+#ifdef WII
         printf("Clean-up\n");
-
+#endif
         // Destroy emulator
         emulatorExit();
         toolUnLoadAll();
@@ -681,7 +671,7 @@ void GuiMain::Main(void)
     RemoveAndDelete(background);
     // Free GUI resources
     GuiFontClose();
-    GuiImageClose();
+    GuiImageClose(this);
 }
 
 GuiMain::GuiMain()

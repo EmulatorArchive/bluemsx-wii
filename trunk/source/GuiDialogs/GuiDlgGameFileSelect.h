@@ -3,6 +3,7 @@
 #define _GUI_DLG_GAME_FILE_SELECT_H
 
 #include "../GuiBase/GuiDialog.h"
+#include "../Gui/DirectoryHelper.h"
 
 typedef struct _fileitem FILEITEM;
 
@@ -12,12 +13,13 @@ class GuiElmFrame;
 class GuiDlgGameFileSelect : public GuiDialog {
 public:
     GuiDlgGameFileSelect(GuiContainer *parent, const char *name,
-                         const char *directory);
+                         const char *dir);
     virtual ~GuiDlgGameFileSelect();
 
     int Create(void);
     char* DoModal(void);
 private:
+    DirectoryHelper directory;
     char *org_dir;
     char *root_dir;
     GuiElmFrame *frame;

@@ -27,6 +27,7 @@
 **
 ******************************************************************************
 */
+#include "../Arch/ArchFile.h"
 #include "../Arch/ArchNotifications.h"
 #include "../VideoChips/FrameBuffer.h"
 #include <stdio.h>
@@ -222,7 +223,7 @@ int archScreenCaptureToFile(ScreenCaptureType type, const char *fname)
 {
     FrameBuffer *frame = frameBufferGetViewFrame();
     if( frame ) {
-        FILE *outfp = fopen(fname, "wb");
+        FILE *outfp = archFileOpen(fname, "wb");
         if( outfp ) {
             int success = WritePng(frame, outfp);
             fclose(outfp);

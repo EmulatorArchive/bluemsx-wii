@@ -2,11 +2,9 @@
 #ifndef _GUI_SELECTION_LIST_H
 #define _GUI_SELECTION_LIST_H
 
+#include "../GuiBase/GuiContainer.h"
 #include "../GuiBase/GuiElement.h"
 #include "../GuiBase/GuiSprite.h"
-
-class GuiContainer;
-class GuiSprite;
 
 typedef enum {
   SELRET_SELECTED,
@@ -24,7 +22,7 @@ public:
 
     virtual GuiElmListLine* Create(GuiContainer *parent) = 0;
     virtual void Initialize(void *item) = 0;
-    virtual COLL CollidesWith(GuiSprite* spr, bool compl = false) = 0;
+    virtual COLL CollidesWith(GuiSprite* spr, bool complete = false) = 0;
 };
 
 class GuiElmListLineDefault : public GuiElmListLine {
@@ -35,7 +33,7 @@ public:
 
     virtual GuiElmListLine* Create(GuiContainer *parent);
     virtual void Initialize(void *item);
-    virtual COLL CollidesWith(GuiSprite* spr, bool compl);
+    virtual COLL CollidesWith(GuiSprite* spr, bool complete);
 private:
 
     const char *text;

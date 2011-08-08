@@ -264,7 +264,7 @@ typedef struct {
     int enable;
     int volume;
     int pan;
-} MixerChannel;
+} MixerChn;
 
 typedef struct {
     int enableY8950;
@@ -284,7 +284,7 @@ typedef struct {
     int  stereo;
     int  masterVolume;
     int  masterEnable;
-    MixerChannel mixerChannel[MIXER_CHANNEL_TYPE_COUNT];
+    MixerChn mixerChannel[MIXER_CHANNEL_TYPE_COUNT];
     int  log[PROP_MAXPATH];
     struct {
         int  type;

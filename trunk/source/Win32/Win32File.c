@@ -31,6 +31,11 @@
 
 #include <windows.h>
 #include <sys/stat.h>
+#ifdef UNDER_CE
+#include <Win32Wrappers.h>
+#else
+#include <direct.h>
+#endif
 
 int archCreateDirectory(const char* pathname)
 {
@@ -39,9 +44,10 @@ int archCreateDirectory(const char* pathname)
 
 const char* archGetCurrentDirectory()
 {
+#ifndef UNDER_CE
     static char buf[512];
     char *p;
-    (void)getcwd(buf, sizeof(buf));
+    (void)_getcwd(buf, sizeof(buf));
     p = buf;
     while( *p != '\0' ) {
         if( *p == '\\' ) *p = '/';
@@ -52,17 +58,38 @@ const char* archGetCurrentDirectory()
         *p = '\0';
     }
     return buf;
+#else
+    return "/User/MSX";
+#endif
 }
 
 void archSetCurrentDirectory(const char* pathname)
 {
+#ifndef UNDER_CE
     _chdir(pathname);
+#endif
 }
 
 int archFileExists(const char* fileName)
 {
     struct stat s;
     return stat(fileName, &s) == 0;
+}
+
+FILE* archFileOpen(const char *fname, const char *mode)
+{
+    char fullpath[512];
+    if( fname[0] == '/' || fname[0] == '\\' ||
+        (fname[0] != '\0' && fname[1] == ':') ) {
+        // It's an absolute path, use it
+        strcpy(fullpath, fname);
+    }else{
+        // Relative path, make it an absolute path
+        strcpy(fullpath, archGetCurrentDirectory());
+        strcat(fullpath, "/");
+        strcat(fullpath, fname);
+    }
+    return fopen(fullpath, mode);
 }
 
 /* File dialogs: */

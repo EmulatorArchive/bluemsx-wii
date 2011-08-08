@@ -134,16 +134,6 @@ void GuiDialog::RemoveElement(GuiElement *element)
 
 /*-----------------*/
 
-void GuiDialog::AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *effect)
-{
-    GuiContainer::AddIndex(index, layer, fix, effect);
-}
-void GuiDialog::AddIndex(int index, GuiElement *element, bool fix, GuiEffect *effect)
-{
-    GuiContainer::AddIndex(index, element, fix, effect);
-    AddElement(element);
-}
-
 void GuiDialog::AddTop(GuiLayer *layer, GuiEffect *effect)
 {
     GuiContainer::AddTop(layer, effect);

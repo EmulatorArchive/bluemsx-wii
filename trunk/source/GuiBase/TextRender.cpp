@@ -73,7 +73,7 @@ void TextRender::SetYSpacing(int s)
 
 void TextRender::SetBuffer(uint8_t *buf, int width, int height, int bufwidth)
 {
-    // Set up a buffer to render to (RGBA quads, most likely to be blitted into a DrawableImage and rendered using libwiisprite)
+    // Set up a buffer to render to (RGBA quads, most likely to be blitted into a GuiTextImage and rendered using libwiisprite)
     _buf = buf;
     _width = width;
     _height = height;

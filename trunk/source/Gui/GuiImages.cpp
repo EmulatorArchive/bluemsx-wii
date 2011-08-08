@@ -27,6 +27,7 @@
 #include "image_frame_c.inc"
 #include "image_inputbar.inc"
 
+#include "../GuiBase/GuiRootContainer.h"
 #include "../GuiBase/GuiImage.h"
 
 GuiImage *g_imgArrow           = NULL;
@@ -56,111 +57,111 @@ GuiImage *g_imgFrameC          = NULL;
 GuiImage *g_imgInputBar        = NULL;
 
 
-void GuiImageInit(void)
+void GuiImageInit(GuiRootContainer *root)
 {
-    g_imgArrow = new GuiImage;
+    g_imgArrow = root->CreateImage();
     if(g_imgArrow->LoadImage(image_arrow) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgBackground = new GuiImage;
+    g_imgBackground = root->CreateImage();
     if(g_imgBackground->LoadImage(image_background) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgMousecursor = new GuiImage;
+    g_imgMousecursor = root->CreateImage();
     if(g_imgMousecursor->LoadImage(image_mousecursor) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgNoise = new GuiImage;
+    g_imgNoise = root->CreateImage();
     if(g_imgNoise->LoadImage(image_noise) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgSelector = new GuiImage;
+    g_imgSelector = root->CreateImage();
     if(g_imgSelector->LoadImage(image_selector) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgSelector2 = new GuiImage;
+    g_imgSelector2 = root->CreateImage();
     if(g_imgSelector2->LoadImage(image_selector2) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgFloppyDisk = new GuiImage;
+    g_imgFloppyDisk = root->CreateImage();
     if(g_imgFloppyDisk->LoadImage(image_floppy_disk) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgKeyboard = new GuiImage;
+    g_imgKeyboard = root->CreateImage();
     if(g_imgKeyboard->LoadImage(image_keyboard) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgKeyboard2 = new GuiImage;
+    g_imgKeyboard2 = root->CreateImage();
     if(g_imgKeyboard2->LoadImage(image_keyboard2) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgButtonRed = new GuiImage;
+    g_imgButtonRed = root->CreateImage();
     if(g_imgButtonRed->LoadImage(image_button_red) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgButtonGreen = new GuiImage;
+    g_imgButtonGreen = root->CreateImage();
     if(g_imgButtonGreen->LoadImage(image_button_green) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgButtonBlue = new GuiImage;
+    g_imgButtonBlue = root->CreateImage();
     if(g_imgButtonBlue->LoadImage(image_button_blue) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgButtonYellow = new GuiImage;
+    g_imgButtonYellow = root->CreateImage();
     if(g_imgButtonYellow->LoadImage(image_button_yellow) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgCheckboxChecked = new GuiImage;
+    g_imgCheckboxChecked = root->CreateImage();
     if(g_imgCheckboxChecked->LoadImage(image_checkbox_checked) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgCheckbox = new GuiImage;
+    g_imgCheckbox = root->CreateImage();
     if(g_imgCheckbox->LoadImage(image_checkbox) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgUp = new GuiImage;
+    g_imgUp = root->CreateImage();
     if(g_imgUp->LoadImage(image_up) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgDown = new GuiImage;
+    g_imgDown = root->CreateImage();
     if(g_imgDown->LoadImage(image_down) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgAdd = new GuiImage;
+    g_imgAdd = root->CreateImage();
     if(g_imgAdd->LoadImage(image_add) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgDelete = new GuiImage;
+    g_imgDelete = root->CreateImage();
     if(g_imgDelete->LoadImage(image_delete) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgDelete2 = new GuiImage;
+    g_imgDelete2 = root->CreateImage();
     if(g_imgDelete2->LoadImage(image_delete2) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgSettings = new GuiImage;
+    g_imgSettings = root->CreateImage();
     if(g_imgSettings->LoadImage(image_settings) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgFrameA = new GuiImage;
+    g_imgFrameA = root->CreateImage();
     if(g_imgFrameA->LoadImage(image_frame_a) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgFrameB = new GuiImage;
+    g_imgFrameB = root->CreateImage();
     if(g_imgFrameB->LoadImage(image_frame_b) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgFrameC = new GuiImage;
+    g_imgFrameC = root->CreateImage();
     if(g_imgFrameC->LoadImage(image_frame_c) != IMG_LOAD_ERROR_NONE) exit(0);
-    g_imgInputBar = new GuiImage;
+    g_imgInputBar = root->CreateImage();
     if(g_imgInputBar->LoadImage(image_inputbar) != IMG_LOAD_ERROR_NONE) exit(0);
 }
 
-void GuiImageClose(void)
+void GuiImageClose(GuiRootContainer *root)
 {
-    delete g_imgButtonRed;
+    root->ReleaseImage(g_imgButtonRed);
     g_imgButtonRed = NULL;
-    delete g_imgButtonGreen;
+    root->ReleaseImage(g_imgButtonGreen);
     g_imgButtonGreen = NULL;
-    delete g_imgButtonBlue;
+    root->ReleaseImage(g_imgButtonBlue);
     g_imgButtonBlue = NULL;
-    delete g_imgButtonYellow;
+    root->ReleaseImage(g_imgButtonYellow);
     g_imgButtonYellow = NULL;
-    delete g_imgKeyboard;
+    root->ReleaseImage(g_imgKeyboard);
     g_imgKeyboard = NULL;
-    delete g_imgKeyboard2;
+    root->ReleaseImage(g_imgKeyboard2);
     g_imgKeyboard2 = NULL;
-    delete g_imgFloppyDisk;
+    root->ReleaseImage(g_imgFloppyDisk);
     g_imgFloppyDisk = NULL;
-    delete g_imgSelector;
+    root->ReleaseImage(g_imgSelector);
     g_imgSelector = NULL;
-    delete g_imgSelector2;
+    root->ReleaseImage(g_imgSelector2);
     g_imgSelector2 = NULL;
-    delete g_imgNoise;
+    root->ReleaseImage(g_imgNoise);
     g_imgNoise = NULL;
-    delete g_imgMousecursor;
+    root->ReleaseImage(g_imgMousecursor);
     g_imgMousecursor = NULL;
-    delete g_imgBackground;
+    root->ReleaseImage(g_imgBackground);
     g_imgBackground = NULL;
-    delete g_imgArrow;
+    root->ReleaseImage(g_imgArrow);
     g_imgArrow = NULL;
-    delete g_imgCheckboxChecked;
+    root->ReleaseImage(g_imgCheckboxChecked);
     g_imgCheckboxChecked = NULL;
-    delete g_imgCheckbox;
+    root->ReleaseImage(g_imgCheckbox);
     g_imgCheckbox = NULL;
-    delete g_imgUp;
+    root->ReleaseImage(g_imgUp);
     g_imgUp = NULL;
-    delete g_imgDown;
+    root->ReleaseImage(g_imgDown);
     g_imgDown = NULL;
-    delete g_imgAdd;
+    root->ReleaseImage(g_imgAdd);
     g_imgAdd = NULL;
-    delete g_imgDelete;
+    root->ReleaseImage(g_imgDelete);
     g_imgDelete = NULL;
-    delete g_imgDelete2;
+    root->ReleaseImage(g_imgDelete2);
     g_imgDelete2 = NULL;
-    delete g_imgSettings;
+    root->ReleaseImage(g_imgSettings);
     g_imgSettings = NULL;
-    delete g_imgFrameA;
+    root->ReleaseImage(g_imgFrameA);
     g_imgFrameA = NULL;
-    delete g_imgFrameB;
+    root->ReleaseImage(g_imgFrameB);
     g_imgFrameB = NULL;
-    delete g_imgFrameC;
+    root->ReleaseImage(g_imgFrameC);
     g_imgFrameC = NULL;
-    delete g_imgInputBar;
+    root->ReleaseImage(g_imgInputBar);
     g_imgInputBar = NULL;
 }
 

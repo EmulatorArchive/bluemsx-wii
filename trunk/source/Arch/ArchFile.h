@@ -28,6 +28,8 @@
 #ifndef ARCH_FILE_H
 #define ARCH_FILE_H
 
+#include <stdio.h>
+
 #include "../Emulator/Properties.h"
 #include "../Media/MediaDb.h"
 
@@ -35,6 +37,7 @@
 extern "C" {
 #endif
 
+FILE *archFileOpen(const char *fname, const char *mode);
 int archCreateDirectory(const char* pathname);
 const char* archGetCurrentDirectory();
 void archSetCurrentDirectory(const char* pathname);

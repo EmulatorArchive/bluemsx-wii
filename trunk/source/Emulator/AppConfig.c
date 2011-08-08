@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../Arch/ArchFile.h"
 #include "../Emulator/AppConfig.h"
 
 // PacketFileSystem.h Need to be included after all other includes
@@ -54,7 +55,7 @@ void appConfigLoad()
         return;
     }
 
-    f = fopen("blueMSX.cfg", "r");
+    f = archFileOpen("blueMSX.cfg", "r");
     if (f == NULL) {
         return;
     }

@@ -35,19 +35,19 @@ GuiElmFrame::GuiElmFrame(GuiContainer *parent, const char *name, FRAMETYPE type,
     int imgwidth = image->GetWidth();
     int imgheight = image->GetHeight();
 
-    spr_left_top      = new GuiSprite(this, "left_top", image,        -offset, -offset,
+    spr_left_top      = new GuiSprite(this, "left_top", image,        -(int)offset, -(int)offset,
                                       tilesize, tilesize,             0, 0);
-    spr_middle_top    = new GuiSprite(this, "middle_top", image,      tilesize-offset, -offset,
+    spr_middle_top    = new GuiSprite(this, "middle_top", image,      tilesize-offset, -(int)offset,
                                       imgwidth-2*tilesize, tilesize,  tilesize, 0);
-    spr_right_top     = new GuiSprite(this, "right_top", image,       width-tilesize+offset, -offset,
+    spr_right_top     = new GuiSprite(this, "right_top", image,       width-tilesize+offset, -(int)offset,
                                       tilesize, tilesize,             imgwidth-tilesize, 0);
-    spr_left_bottom   = new GuiSprite(this, "left_bottom", image,     -offset, height-tilesize+offset,
+    spr_left_bottom   = new GuiSprite(this, "left_bottom", image,     -(int)offset, height-tilesize+offset,
                                       tilesize, tilesize,             0, imgheight-tilesize);
     spr_middle_bottom = new GuiSprite(this, "middle_bottom", image,   tilesize-offset, height-tilesize+offset,
                                       imgwidth-2*tilesize, tilesize,  tilesize, imgheight-tilesize);
     spr_right_bottom  = new GuiSprite(this, "right_bottom", image,    width-tilesize+offset, height-tilesize+offset,
                                       tilesize, tilesize,             imgwidth-tilesize, imgheight-tilesize);
-    spr_middle_left   = new GuiSprite(this, "middle_left", image,     -offset, tilesize-offset,
+    spr_middle_left   = new GuiSprite(this, "middle_left", image,     -(int)offset, tilesize-offset,
                                       tilesize, imgheight-2*tilesize, 0, tilesize);
     spr_middle_right  = new GuiSprite(this, "middle_right", image,    width-tilesize+offset, tilesize-offset,
                                       tilesize, imgheight-2*tilesize, imgwidth-tilesize, tilesize);

@@ -1,5 +1,7 @@
 
 #include "GuiRootContainer.h"
+#include "GuiImage.h"
+#include "GuiTextImage.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +20,7 @@ GuiRootContainer::GuiRootContainer()
 
 GuiRootContainer::~GuiRootContainer()
 {
+	DeleteAll();
     gwd.StopVideo();
     _root = NULL;
 }
@@ -92,4 +95,66 @@ void GuiRootContainer::SetMode(GW_VIDEO_MODE mode)
     gwd.SetMode(mode);
 }
 
+// Image management
+
+GuiImage* GuiRootContainer::CreateImage()
+{
+    ImageRef ref;
+    GuiImage *image = new GuiImage();
+    ref.image = image;
+    ref.count = 1;
+	image_lock.Lock();
+    image_ref.push_back(ref);
+	image_lock.Unlock();
+    return image;
+}
+
+GuiTextImage* GuiRootContainer::CreateTextImage()
+{
+    ImageRef ref;
+    GuiTextImage *image = new GuiTextImage();
+    ref.image = image;
+    ref.count = 1;
+	image_lock.Lock();
+    image_ref.push_back(ref);
+	image_lock.Unlock();
+    return image;
+}
+
+void GuiRootContainer::UseImage(GuiImage *image)
+{
+	image_lock.Lock();
+    std::list<ImageRef>::iterator it;
+    for( it = image_ref.begin(); it != image_ref.end(); ++it ) {
+        ImageRef &ref = *it;
+        if( ref.image == image ) {
+            ref.count++;
+			image_lock.Unlock();
+            return;
+        }
+    }
+	image_lock.Unlock();
+    assert(0);
+    return;
+}
+
+void GuiRootContainer::ReleaseImage(GuiImage *image)
+{
+	image_lock.Lock();
+    std::list<ImageRef>::iterator it;
+    for( it = image_ref.begin(); it != image_ref.end(); ++it ) {
+        ImageRef &ref = *it;
+        if( ref.image == image ) {
+            if( --ref.count == 0 ) {
+                delete image;
+                image_ref.erase(it);
+            }
+			image_lock.Unlock();
+            return;
+        }
+    }
+	image_lock.Unlock();
+    assert(0);
+    return;
+}
 

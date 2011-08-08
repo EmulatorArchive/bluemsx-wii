@@ -1231,11 +1231,7 @@ typedef char            FAR * png_charp;
 typedef png_fixed_point FAR * png_fixed_point_p;
 
 #ifndef PNG_NO_STDIO
-#if defined(_WIN32_WCE)
-typedef HANDLE                png_FILE_p;
-#else
 typedef FILE                * png_FILE_p;
-#endif
 #endif
 
 #ifdef PNG_FLOATING_POINT_SUPPORTED

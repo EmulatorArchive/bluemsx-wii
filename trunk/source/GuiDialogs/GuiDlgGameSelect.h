@@ -3,6 +3,7 @@
 #define _GUI_GAME_SELECT_H
 
 #include "../GuiBase/GuiDialog.h"
+#include "../Gui/DirectoryHelper.h"
 #include "../Gui/GameList.h"
 
 #define NUM_LIST_ITEMS   12
@@ -38,6 +39,7 @@ public:
     void Hide(bool restart);
     GameElement *DoModal(void);
 private:
+    DirectoryHelper directory;
     bool is_showing;
     GuiElmBackground *background;
     GuiElmSelectionList *list;

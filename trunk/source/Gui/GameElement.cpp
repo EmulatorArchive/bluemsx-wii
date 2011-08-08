@@ -5,7 +5,12 @@
 #include <unistd.h>
 #include <zlib/zlib.h> /* for crc32 */
 
+#include "DirectoryHelper.h"
 #include "../GuiBase/GuiImage.h"
+#include "../GuiBase/GuiRootContainer.h"
+#ifdef UNDER_CE
+#include "../Arch/ArchFile.h"
+#endif
 
 #include "GuiImages.h"
 
@@ -13,8 +18,9 @@
   Game Element
  *************************************************/
 
-GameElement::GameElement()
+GameElement::GameElement(GuiRootContainer *root)
 {
+    root_container = root;
     next = NULL;
     name = NULL;
     cmdline = NULL;
@@ -27,8 +33,9 @@ GameElement::GameElement()
     memset(key_map, 0, sizeof(key_map)); /* set to EC_NONE */
 }
 
-GameElement::GameElement(GameElement *parent)
+GameElement::GameElement(GuiRootContainer *root, GameElement *parent)
 {
+    root_container = root;
     next = NULL;
     name = NULL;
     cmdline = NULL;
@@ -37,11 +44,11 @@ GameElement::GameElement(GameElement *parent)
     image[0] = NULL;
     image[1] = NULL;
     cheatfile = NULL;
-    if( parent->name != NULL ) name = strdup(parent->name);
-    if( parent->cmdline != NULL ) cmdline = strdup(parent->cmdline);
-    if( parent->screenshot[0] != NULL ) screenshot[0] = strdup(parent->screenshot[0]);
-    if( parent->screenshot[1] != NULL ) screenshot[1] = strdup(parent->screenshot[1]);
-    if( parent->cheatfile != NULL ) cheatfile = strdup(parent->cheatfile);
+    if( parent->name != NULL ) name = _strdup(parent->name);
+    if( parent->cmdline != NULL ) cmdline = _strdup(parent->cmdline);
+    if( parent->screenshot[0] != NULL ) screenshot[0] = _strdup(parent->screenshot[0]);
+    if( parent->screenshot[1] != NULL ) screenshot[1] = _strdup(parent->screenshot[1]);
+    if( parent->cheatfile != NULL ) cheatfile = _strdup(parent->cheatfile);
     memcpy(key_map, parent->key_map, sizeof(key_map));
 }
 
@@ -51,8 +58,8 @@ GameElement::~GameElement()
     if( cmdline ) free(cmdline);
     if( screenshot[0] ) free(screenshot[0]);
     if( screenshot[1] ) free(screenshot[1]);
-    if( image[0] ) delete image[0];
-    if( image[1] ) delete image[1];
+    if( image[0] ) root_container->ReleaseImage(image[0]);
+    if( image[1] ) root_container->ReleaseImage(image[1]);
     if( cheatfile ) free (cheatfile);
 }
 
@@ -71,7 +78,7 @@ void GameElement::SetName(const char *str)
 {
     if( name ) free(name);
     if( str ) {
-        name = strdup(str);
+        name = _strdup(str);
     }else{
         name = NULL;
     }
@@ -81,7 +88,7 @@ void GameElement::SetCommandLine(const char *str)
 {
     if( cmdline ) free(cmdline);
     if( str ) {
-        cmdline = strdup(str);
+        cmdline = _strdup(str);
     }else{
         cmdline = NULL;
     }
@@ -92,7 +99,7 @@ void GameElement::SetScreenShot(int number, const char *str)
     if( number < 2 ) {
         if( screenshot[number] ) free(screenshot[number]);
         if( str ) {
-            screenshot[number] = strdup(str);
+            screenshot[number] = _strdup(str);
         }
     }
 }
@@ -106,7 +113,7 @@ void GameElement::SetCheatFile(const char *str)
 {
     if( cheatfile ) free(cheatfile);
     if( str ) {
-        cheatfile = strdup(str);
+        cheatfile = _strdup(str);
     }else{
         cheatfile = NULL;
     }
@@ -158,7 +165,7 @@ int GameElement::GetKeyMapping(BTN key)
 void GameElement::FreeImage(int number)
 {
     if( image[number] ) {
-        delete image[number];
+        root_container->ReleaseImage(image[number]);
         image[number] = NULL;
     }
 }
@@ -168,12 +175,10 @@ GuiImage* GameElement::GetImage(int number)
     if( image[number] == NULL ) {
         char *filename = GetScreenShot(number);
         if( filename ) {
-            char str[256];
-            strcpy(str, "Screenshots/");
-            strcat(str, filename);
-            image[number] = new GuiImage;
-            if(image[number]->LoadImage(str) != IMG_LOAD_ERROR_NONE) {
-                delete image[number];
+            DirectoryHelper dir;
+            image[number] = root_container->CreateImage();
+            if(image[number]->LoadImage(dir.CreatePath("Screenshots/", filename)) != IMG_LOAD_ERROR_NONE) {
+                root_container->ReleaseImage(image[number]);
                 image[number] = NULL;
             }
         }
@@ -191,10 +196,16 @@ void GameElement::DeleteImage(int number)
     if( image[number] == NULL ) {
         char *filename = GetScreenShot(number);
         if( filename ) {
+#ifdef UNDER_CE
+            wchar_t str[512];
+            wsprintf(str, L"%hs/Screenshots/%hs", archGetCurrentDirectory(), filename);
+            DeleteFile(str);
+#else
             char str[256];
             strcpy(str, "Screenshots/");
             strcat(str, filename);
-            unlink(str);
+            _unlink(str);
+#endif
         }
     }
 }

@@ -81,7 +81,7 @@ s32 GuiTiles::CreateAnimatedTile(){
     if(_aniSize+1 > _aniBoundary)return 0;
 
     _aniSize++;
-    return -_aniSize;
+    return -(int)_aniSize;
 }
 u32 GuiTiles::GetAnimatedTile(s32 animatedTileIndex) const{
     if(animatedTileIndex >= 0 || (u32)-animatedTileIndex > _aniSize)return 0;
@@ -130,15 +130,15 @@ void GuiTiles::Draw(void)
         _tileWidth == 0 || _tileHeight == 0)return;
 
     // Get width and height
-    f32 width = _tileWidth/2,
-        height = _tileHeight/2;
+    f32 width = (f32)(_tileWidth/2),
+        height = (f32)(_tileHeight/2);
 
     // Use the image
     _image->BindTexture(false);
 
 #ifndef WII
     // Create HGE sprite object
-    hgeSprite *spr = new hgeSprite(_image->GetTEX(), GetX(), GetY(), _image->GetWidth(), _image->GetHeight());
+    hgeSprite *spr = new hgeSprite(_image->GetTEX(), GetX(), GetY(), (float)_image->GetWidth(), (float)_image->GetHeight());
     spr->SetBlendMode(BLEND_COLORMUL | BLEND_ALPHABLEND | BLEND_NOZWRITE);
     spr->SetColor(((u32)transform.alpha << 24) + 0xffffff);
 #endif
@@ -155,18 +155,18 @@ void GuiTiles::Draw(void)
             data--;
 
             // Get frame position
-            f32 frameX = (data%(_image->GetWidth()/_tileWidth))*_tileWidth,
-                frameY = (data/(_image->GetWidth()/_tileWidth))*_tileHeight;
+            f32 frameX = (f32)((data%(_image->GetWidth()/_tileWidth))*_tileWidth),
+                frameY = (f32)((data/(_image->GetWidth()/_tileWidth))*_tileHeight);
             // Calculate destination position
             f32 posx = (f32)x * _tileWidth;
             f32 posy = (f32)y * _tileHeight;
             f32 dx = posx - _refPixelX;
             f32 dy = posy - _refPixelY;
-            f32 r = sqrt(dx*dx+dy*dy);
-            f32 a = atan2(dy,dx);
-            a = fmod(a + (transform.rotation * GUI_2PI / 360.0f), GUI_2PI);
-            posx = transform.offsetX + transform.stretchWidth * (_refPixelX + r * cos(a));
-            posy = transform.offsetY + transform.stretchHeight * (_refPixelY + r * sin(a));
+            f32 r = (f32)sqrt(dx*dx+dy*dy);
+            f32 a = (f32)atan2(dy,dx);
+            a = (f32)fmod(a + (transform.rotation * GUI_2PI / 360.0f), GUI_2PI);
+            posx = transform.offsetX + transform.stretchWidth * (_refPixelX + r * (f32)cos(a));
+            posy = transform.offsetY + transform.stretchHeight * (_refPixelY + r * (f32)sin(a));
 #ifdef WII
             // Init position
             Mtx model, tmp;
@@ -202,7 +202,7 @@ void GuiTiles::Draw(void)
             GX_End();
 #else
             // Draw the texture on the quad
-            spr->SetTextureRect(frameX, frameY, _tileWidth, _tileHeight);
+            spr->SetTextureRect(frameX, frameY, (float)_tileWidth, (float)_tileHeight);
             spr->RenderEx(posx, posy + 20, (transform.rotation / 180.0f) * M_PI,
                           transform.stretchWidth, transform.stretchHeight);
 #endif

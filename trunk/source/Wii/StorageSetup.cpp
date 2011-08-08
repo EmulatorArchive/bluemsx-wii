@@ -36,14 +36,12 @@
 #include "../Utils/ZipHelper.h"
 
 extern "C" {
+#include "../Arch/ArchFile.h"
 #include "../Arch/ArchThread.h"
 }
 #include "../GuiDialogs/GuiDlgMenu.h"
 #include "../GuiDialogs/GuiDlgMessageBox.h"
 #include "../GuiBase/GuiEffectFade.h"
-
-static char sMSXRootPath[10] = {0};
-static char sStorageRoot[10] = {0};
 
 static void SetupStorageProgressCallback(int total, int current)
 {
@@ -88,20 +86,9 @@ bool SetupInstallZip(GuiContainer *container, void *zipptr, unsigned int zipsize
     return ok;
 }
 
-static void SetStorageSDCard(void)
-{
-    sprintf(sMSXRootPath, SD_ROOT_DIR MSX_DIR);
-    sprintf(sStorageRoot, SD_ROOT_DIR);
-}
-
-static void SetStorageUSBDevice(void)
-{
-    sprintf(sMSXRootPath, USB_ROOT_DIR MSX_DIR);
-    sprintf(sStorageRoot, USB_ROOT_DIR);
-}
-
 bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
 {
+    static char *sStorageRoot;
     bool ok = true;
 
     // Check if there already is a MSX folder on a storage device
@@ -109,11 +96,13 @@ bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
     bool bBlueMSXInstalled = false;
     struct stat s;
     if( bUSBMounted && stat(USB_ROOT_DIR MSX_DIR, &s) == 0 ) {
-        SetStorageUSBDevice();
+        archSetCurrentDirectory(USB_ROOT_DIR MSX_DIR);
+        sStorageRoot = USB_ROOT_DIR;
         bBlueMSXInstalled = true;
     } else
     if( bSDMounted && stat(SD_ROOT_DIR MSX_DIR, &s) == 0 ) {
-        SetStorageSDCard();
+        archSetCurrentDirectory(SD_ROOT_DIR MSX_DIR);
+        sStorageRoot = SD_ROOT_DIR;
         bBlueMSXInstalled = true;
     }
 
@@ -130,26 +119,30 @@ bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
             int action = menu->DoModal(menu_items, 2, 344);
             switch( action ) {
                 case 0: /* USB Device */
-                    SetStorageUSBDevice();
+                    archSetCurrentDirectory(USB_ROOT_DIR MSX_DIR);
+                    sStorageRoot = USB_ROOT_DIR);
                     break;
                 case 1: /* SD-Card */
-                    SetStorageSDCard();
+                    archSetCurrentDirectory(SD_ROOT_DIR MSX_DIR);
+                    sStorageRoot = SD_ROOT_DIR;
                     break;
                 default:
                     break;
             }
             container->RemoveAndDelete(menu);
         } else if( bSDMounted ) {
-            SetStorageSDCard();
+            archSetCurrentDirectory(SD_ROOT_DIR MSX_DIR);
+            sStorageRoot = SD_ROOT_DIR;
         } else if( bUSBMounted ) {
-            SetStorageUSBDevice();
+            archSetCurrentDirectory(USB_ROOT_DIR MSX_DIR);
+            sStorageRoot = USB_ROOT_DIR;
         }
     }
 
     char sDatabasePath[30];
     char sMachinesPath[30];
-    sprintf(sDatabasePath, "%s/Databases", sMSXRootPath);
-    sprintf(sMachinesPath, "%s/Machines", sMSXRootPath);
+    sprintf(sDatabasePath, "%s/Databases", archGetCurrentDirectory());
+    sprintf(sMachinesPath, "%s/Machines", archGetCurrentDirectory());
     // Check if 'Database' and 'Machine' directories exists
     if( stat(sDatabasePath, &s) != 0 ||
         stat(sMachinesPath, &s) != 0 ) {
@@ -161,11 +154,11 @@ bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
     }
     if( ok ) {
         char sGamesPath[20];
-        sprintf(sGamesPath, "%s/Games", sMSXRootPath);
+        sprintf(sGamesPath, "%s/Games", archGetCurrentDirectory());
         // Check if 'Games' directory exist
         if( stat(sGamesPath, &s) != 0 ) {
             // Does not exist yet, install
-            ok = SetupInstallZip(container, gamepack, sizeof(gamepack), sMSXRootPath,
+            ok = SetupInstallZip(container, gamepack, sizeof(gamepack), archGetCurrentDirectory(),
                                  "No gamepack is installed yet,\n"
                                  "Install the basic pack now?");
         }
@@ -173,10 +166,5 @@ bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted)
 #endif
 
     return ok;
-}
-
-char * GetMSXRootPath(void)
-{
-    return sMSXRootPath;
 }
 

@@ -56,8 +56,8 @@ void GuiDlgGameSelect::SetSelectedGame(int index, int selected, bool restart)
             }
             spr->SetImage(img);
             spr->SetRefPixelPosition(0, 0);
-            spr->SetStretchWidth(screenshotWidth / img->GetWidth());
-            spr->SetStretchHeight(screenshotHeigth / img->GetHeight());
+            spr->SetStretchWidth((screenshotWidth-1) / img->GetWidth());
+            spr->SetStretchHeight((screenshotHeigth-1) / img->GetHeight());
         }
     }
     // Add to screen
@@ -190,12 +190,10 @@ void GuiDlgGameSelect::OnKey(BTN key, bool pressed)
 bool GuiDlgGameSelect::Load(const char *dir, const char *filename, GameElement *select)
 {
     // Load games database
-    games_filename = strdup(filename);
-#ifdef WII
-        chdir(dir);
-#else
-        _chdir(dir);
-#endif
+    games_filename = (char*)malloc(256);
+    strcpy(games_filename, dir);
+    strcat(games_filename, "/");
+    strcat(games_filename, filename);
     games.Load(games_filename);
     num_games = games.GetNumberOfGames();
     if( num_games == 0 ) {
@@ -411,7 +409,7 @@ GameElement *GuiDlgGameSelect::DoModal(void)
     }while( restart );
 
     if( returnValue != NULL ) {
-        GameElement *game = new GameElement(returnValue);
+        GameElement *game = new GameElement(GetRootContainer(), returnValue);
         games.Clear();
         return game;
     }else{
@@ -421,7 +419,7 @@ GameElement *GuiDlgGameSelect::DoModal(void)
 }
 
 GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiElmBackground *bgr)
-                 :GuiDialog(parent, name)
+                 :GuiDialog(parent, name), games(parent->_root)
 {
     list = new GuiElmSelectionList(this, name, NUM_LIST_ITEMS);
 

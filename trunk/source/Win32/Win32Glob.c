@@ -28,21 +28,31 @@
 ******************************************************************************
 */
 #include "../Arch/ArchGlob.h"
+#include "../Arch/ArchFile.h"
 #include <windows.h>
 #include <stdlib.h>
+#ifdef UNDER_CE
+#include <Win32Wrappers.h>
+#endif
 
 // This glob only support very basic globbing, dirs in the patterns are only
 // supported without any wildcards
 
 ArchGlob* archGlob(const char* pattern, int flags)
 {
+    char *p;
     char oldPath[MAX_PATH];
+    char findPath[MAX_PATH];
     const char* filePattern;
     ArchGlob* glob;
     WIN32_FIND_DATAA wfd;
     HANDLE handle;
 
-    GetCurrentDirectoryA(MAX_PATH, oldPath);
+    strcpy(oldPath, archGetCurrentDirectory());
+
+    while((p = strchr(pattern, '\\')) != NULL) {
+        *p = '/';
+    }
 
     filePattern = strrchr(pattern, '/');
     if (filePattern == NULL) {
@@ -53,40 +63,47 @@ ArchGlob* archGlob(const char* pattern, int flags)
         strcpy(relPath, pattern);
         relPath[filePattern - pattern] = '\0';
         pattern = filePattern + 1;
-        SetCurrentDirectoryA(relPath);
+        if( relPath[0] == '/' || relPath[1] == ':' ) {
+            // absolute path already
+            strcpy(oldPath, relPath);
+        }else{
+            strcat(oldPath, "/");
+            strcat(oldPath, relPath);
+        }
     }
 
-    handle = FindFirstFileA(pattern, &wfd);
+    strcpy(findPath, oldPath);
+    strcat(findPath, "/");
+    strcat(findPath, pattern);
+    handle = FindFirstFileA(findPath, &wfd);
     if (handle == INVALID_HANDLE_VALUE) {
-        SetCurrentDirectoryA(oldPath);
         return NULL;
     }
 
     glob = (ArchGlob*)calloc(1, sizeof(ArchGlob));
 
     do {
+        char *fullpath = (char*)malloc(MAX_PATH);
         DWORD fa;
         if (0 == strcmp(wfd.cFileName, ".") || 0 == strcmp(wfd.cFileName, "..")) {
             continue;
         }
-        fa = GetFileAttributesA(wfd.cFileName);
+        strcpy(fullpath, oldPath);
+        strcat(fullpath, "/");
+        strcat(fullpath, wfd.cFileName);
+        fa = GetFileAttributesA(fullpath);
         if (((flags & ARCH_GLOB_DIRS) && (fa & FILE_ATTRIBUTE_DIRECTORY) != 0) ||
             ((flags & ARCH_GLOB_FILES) && (fa & FILE_ATTRIBUTE_DIRECTORY) == 0))
         {
-            char* path = (char*)malloc(MAX_PATH);
-            GetCurrentDirectoryA(MAX_PATH, path);
-            strcat(path, "\\");
-            strcat(path, wfd.cFileName);
-
             glob->count++;
             glob->pathVector = realloc(glob->pathVector, sizeof(char*) * glob->count);
-            glob->pathVector[glob->count - 1] = path;
+            glob->pathVector[glob->count - 1] = fullpath;
+        }else{
+            free(fullpath);
         }
     } while (FindNextFileA(handle, &wfd));
 
     FindClose(handle);
-
-    SetCurrentDirectoryA(oldPath);
 
     return glob;
 }

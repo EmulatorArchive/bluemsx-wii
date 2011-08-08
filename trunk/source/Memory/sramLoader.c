@@ -26,6 +26,7 @@
 ******************************************************************************
 */
 #include "sramLoader.h"
+#include "../Arch/ArchFile.h"
 #include "../Board/Board.h"
 #include <stdlib.h>
 #include <string.h>
@@ -81,7 +82,7 @@ char* sramCreateFilename(char* romFilename) {
 void sramLoad(char* filename, UInt8* sram, int length, void* header, int headerLength) {
     FILE* file;
 
-    file = fopen(filename, "rb");
+    file = archFileOpen(filename, "rb");
     if (file != NULL) {
         if (headerLength > 0) {
             char* readHeader[256];
@@ -100,7 +101,7 @@ void sramLoad(char* filename, UInt8* sram, int length, void* header, int headerL
 void sramSave(char* filename, UInt8* sram, int length, void* header, int headerLength) {
     FILE* file;
 
-    file = fopen(filename, "wb");
+    file = archFileOpen(filename, "wb");
     if (file != NULL) {
         if (headerLength > 0) {
             fwrite(header, 1, headerLength, file);

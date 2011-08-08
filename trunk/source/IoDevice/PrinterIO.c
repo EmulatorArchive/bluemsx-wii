@@ -26,6 +26,7 @@
 ******************************************************************************
 */
 #include "PrinterIO.h"
+#include "../Arch/ArchFile.h"
 #include "../Arch/ArchPrinter.h"
 #include "../SoundChips/DAC.h"
 #include "../Board/Board.h"
@@ -53,7 +54,7 @@ static void setType(PrinterIO* printerIO)
         printerIO->printerReady = archPrinterCreate();
         break;
     case PRN_FILE:
-        printerIO->file = fopen(theFileName, "w+");
+        printerIO->file = archFileOpen(theFileName, "w+");
         break;
     case PRN_SIMPL:
         printerIO->dac = dacCreate(boardGetMixer(), DAC_MONO);
