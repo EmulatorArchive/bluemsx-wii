@@ -63,10 +63,17 @@ void GuiDlgStateSelect::CreateStateFileList(Properties *properties, char *direct
                     // libogc bug: year = 1929
                     struct tm * timeinfo;
                     timeinfo = localtime(&t);
+#ifdef UNDER_CE
+                    char *str = (char*)malloc(80);
+                    sprintf(str, "%04d-%02d-%02d %02d:%02d:%02d",
+                                 timeinfo->tm_year, timeinfo->tm_mon, timeinfo->tm_mday,
+                                 timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+#else
                     timeinfo->tm_year += 80;
                     t = mktime(timeinfo);
                     // get date/time string and strip off milliseconds
-                    char *str = strdup(ctime(&t));
+                    char *str = _strdup(ctime(&t));
+#endif
                     char *p = &str[strlen(str)-1];
                     while( *p != ' ' ) p--;
                     *p = '\0';
@@ -81,7 +88,7 @@ void GuiDlgStateSelect::CreateStateFileList(Properties *properties, char *direct
                     // store in list
                     filetimes[k] = t;
                     timestrings[k] = str;
-                    filenames[k] = strdup(glob->pathVector[i]);
+                    filenames[k] = _strdup(glob->pathVector[i]);
                     num_states++;
                 }
             }

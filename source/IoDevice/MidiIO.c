@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "MidiIO.h"
+#include "../Arch/ArchFile.h"
 #include "../Arch/ArchUart.h"
 #include "../SoundChips/DAC.h"
 #include "../Board/Board.h"
@@ -62,7 +63,7 @@ static void setOutType(int device, MidiIO* midiIo)
         midiIo->outHost = archMidiOutCreate(device);
         break;
     case MIDI_FILE:
-        midiIo->outFile = fopen(theOutFileName, "w+");
+        midiIo->outFile = archFileOpen(theOutFileName, "w+");
         break;
     }
 }
@@ -81,7 +82,7 @@ static void setInType(int device, MidiIO* midiIo)
         midiIo->inHost = archMidiInCreate(device, midiInCb, midiIo);
         break;
     case MIDI_FILE:
-        midiIo->inFile = fopen(theInFileName, "w+");
+        midiIo->inFile = archFileOpen(theInFileName, "w+");
         break;
     }
 }

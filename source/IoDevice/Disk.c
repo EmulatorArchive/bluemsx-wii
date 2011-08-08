@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include "../Arch/ArchFile.h"
 
 
 // PacketFileSystem.h Need to be included after all other includes
@@ -648,11 +649,11 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
         return ramImageBuffer[driveId] != NULL;
     }
 
-    drives[driveId] = fopen(fileName, "r+b");
+    drives[driveId] = archFileOpen(fileName, "r+b");
     RdOnly[driveId] = 0;
 
     if (drives[driveId] == NULL) {
-        drives[driveId] = fopen(fileName, "rb");
+        drives[driveId] = archFileOpen(fileName, "rb");
         RdOnly[driveId] = 1;
     }
 
@@ -662,7 +663,7 @@ UInt8 diskChange(int driveId, char* fileName, const char* fileInZipFile)
 
     fname = makeErrorsFileName(fileName);
     if( fname != NULL ) {
-        FILE *f = fopen(fname, "rb");
+        FILE *f = archFileOpen(fname, "rb");
         if( f != NULL ) {
             char *p = (char*)malloc(DISK_ERRORS_SIZE);
             if( fread(p, 1, DISK_ERRORS_HEADER_SIZE, f) == DISK_ERRORS_HEADER_SIZE ) {

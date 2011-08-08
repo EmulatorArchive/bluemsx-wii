@@ -108,7 +108,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #if defined(VAXC) || defined(VMS)
 #  define OS_CODE  0x02
 #  define F_OPEN(name, mode) \
-     fopen((name), (mode), "mbc=60", "ctx=stm", "rfm=fix", "mrs=512")
+     archFileOpen((name), (mode), "mbc=60", "ctx=stm", "rfm=fix", "mrs=512")
 #endif
 
 #if defined(ATARI) || defined(atarist)
@@ -170,7 +170,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 #ifndef F_OPEN
-#  define F_OPEN(name, mode) fopen((name), (mode))
+#  define F_OPEN(name, mode) archFileOpen((name), (mode))
 #endif
 
          /* functions */
@@ -196,7 +196,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #  ifdef WIN32
      /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
-#    if !defined(vsnprintf) && !defined(NO_vsnprintf)
+#    if !defined(vsnprintf) && !defined(NO_vsnprintf) && defined(UNDER_CE)
 #      define vsnprintf _vsnprintf
 #    endif
 #  endif

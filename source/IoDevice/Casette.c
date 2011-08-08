@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include "../Arch/ArchFile.h"
 #include "../Emulator/Properties.h"
 #include "../Utils/SaveState.h"
 #include "../Utils/ziphelper.h"
@@ -193,7 +194,7 @@ int tapeInsert(char *name, const char *fileInZipFile)
     Properties* pProperties = propGetGlobalProperties();
     
     if (ramImageBuffer != NULL) {
-        file = fopen(tapePosName, "w");
+        file = archFileOpen(tapePosName, "w");
         if (file != NULL) {
             char buffer[32];
             sprintf(buffer, "POS:%d", ramImagePos);
@@ -228,7 +229,7 @@ int tapeInsert(char *name, const char *fileInZipFile)
     ramImagePos = 0;
 
     // Load and verify tape position
-    file = fopen(tapePosName, "rb");
+    file = archFileOpen(tapePosName, "rb");
     if (file != NULL) {
         char buffer[32] = { 0 };
         fread(buffer, 1, 31, file);
@@ -243,7 +244,7 @@ int tapeInsert(char *name, const char *fileInZipFile)
         }
     }
     else {
-        file = fopen(name,"rb");
+        file = archFileOpen(name,"rb");
         if (file != NULL) {
             // Load file into RAM buffer
             fseek(file, 0, SEEK_END);
@@ -327,7 +328,7 @@ int tapeSave(char *name, TapeFormat format)
         return 0;
     }
 
-    file = fopen(name, "wb");
+    file = archFileOpen(name, "wb");
     if (file == NULL) {
         return 0;
     }

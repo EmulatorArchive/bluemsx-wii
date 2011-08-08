@@ -15,10 +15,12 @@ typedef enum {
   CONTAINER_CHEATFILE
 } CONTAINER;
 
+class GuiRootContainer;
+
 class GameList
 {
 public:
-    GameList();
+    GameList(GuiRootContainer *root);
     virtual ~GameList();
 
     int Load(const char *filename);
@@ -37,6 +39,7 @@ public:
     static void XMLCALL endElement(void *userData, const char *name);
     static void XMLCALL dataHandler(void *userData, const XML_Char *s, int len);
 private:
+    GuiRootContainer *root_container;
     int elements;
     char *receiving_string;
     GameElement *current_element;

@@ -4,15 +4,18 @@
 #include "xmlwriter.h"
 #include <stdarg.h>
 
+#include "../Arch/ArchFile.h"
+
+
 XmlWriter::XmlWriter(string sTmp)
 {
     sXmlFile = sTmp;
     fp = NULL;
     iLevel = 0;
-    fp = fopen(sXmlFile.c_str(),"w");
+    fp = archFileOpen(sXmlFile.c_str(),"w");
     if(fp == NULL)
     {
-        std::cout<<"Unable to open output file";
+        printf("Unable to open output file\n");
         return;
     }
     else

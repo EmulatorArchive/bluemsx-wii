@@ -8,13 +8,14 @@ typedef enum {
   GEP_KEYBOARD_JOYSTICK,
 } GEP;
 
+class GuiRootContainer;
 class GuiImage;
 
 class GameElement
 {
 public:
-    GameElement();
-    GameElement(GameElement* parent);
+    GameElement(GuiRootContainer *root);
+    GameElement(GuiRootContainer *root, GameElement* parent);
     virtual ~GameElement();
 
     unsigned CalcCRC(unsigned crc = 0);
@@ -35,6 +36,7 @@ public:
     void DeleteImage(int number);
     GameElement *next;
 private:
+    GuiRootContainer *root_container;
     char *name;
     char *cmdline;
     char *screenshot[2];

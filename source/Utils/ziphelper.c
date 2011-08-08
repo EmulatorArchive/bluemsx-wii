@@ -28,6 +28,7 @@
 #include "ziphelper.h"
 #include "ZipFromMem.h"
 
+#include "../Arch/ArchFile.h"
 #include "../Unzip/zip.h"
 #include "../Unzip/unzip.h"
 #include "ctype.h"
@@ -40,10 +41,15 @@
 #include <direct.h>
 #endif
 
-#ifdef MINGW
- #define MKDIR(x) mkdir(x)
+#ifdef UNDER_CE
+#include <Win32Wrappers.h>
+#define MKDIR(x) CreateDirectoryA(x, NULL)
+#else
+#if defined(MINGW) || defined(WIN32)
+ #define MKDIR(x) _mkdir(x)
 #else
  #define MKDIR(x) mkdir(x,0777)
+#endif
 #endif
 
 static void toLower(char* str) {
@@ -448,7 +454,7 @@ int zipExtractCurrentfile(unzFile uf, int overwrite, const char* password)
         }
 
         if ((overwrite==0) && (err==UNZ_OK)) {
-            FILE* ftestexist = fopen(write_filename,"rb");
+            FILE* ftestexist = archFileOpen(write_filename,"rb");
             if (ftestexist!=NULL) {
                 fclose(ftestexist);
                 skip = 1;
@@ -456,7 +462,7 @@ int zipExtractCurrentfile(unzFile uf, int overwrite, const char* password)
         }
 
         if ((skip==0) && (err==UNZ_OK)) {
-            fout=fopen(write_filename,"wb");
+            fout=archFileOpen(write_filename,"wb");
 
             /* some zipfile don't contain directory alone before file */
             if( (fout==NULL) && (filename_withoutpath!=(char*)filename_inzip) ) {
@@ -464,7 +470,7 @@ int zipExtractCurrentfile(unzFile uf, int overwrite, const char* password)
                 *(filename_withoutpath-1)='\0';
                 makedir(write_filename);
                 *(filename_withoutpath-1)=c;
-                fout=fopen(write_filename,"wb");
+                fout=archFileOpen(write_filename,"wb");
             }
 
             if( fout == NULL ) {

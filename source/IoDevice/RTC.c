@@ -26,6 +26,7 @@
 ******************************************************************************
 */
 #include "RTC.h"
+#include "../Arch/ArchFile.h"
 #include "../Memory/IoPort.h"
 #include "../Board/Board.h"
 #include "../Utils/SaveState.h"
@@ -322,7 +323,7 @@ RTC* rtcCreate(int enable, char* cmosName)
 
         strcpy(rtc->cmosName, cmosName);
 
-        file = fopen(cmosName, "r");
+        file = archFileOpen(cmosName, "r");
 
         if (file != NULL) {
             fread(rtc->registers, 1, sizeof(rtc->registers), file);
@@ -363,7 +364,7 @@ void rtcDestroy(RTC* rtc)
     ioPortUnregister(0xb5);
 
     if (rtc->cmosName[0]) {
-        FILE* file = fopen(rtc->cmosName, "w");
+        FILE* file = archFileOpen(rtc->cmosName, "w");
 
         fwrite(rtc->registers, 1, sizeof(rtc->registers), file);
 

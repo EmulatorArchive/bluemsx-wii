@@ -2,6 +2,7 @@
 #define _GUI_IMAGES_H
 
 class GuiImage;
+class GuiRootContainer;
 
 extern GuiImage *g_imgArrow;
 extern GuiImage *g_imgBackground;
@@ -29,7 +30,7 @@ extern GuiImage *g_imgFrameB;
 extern GuiImage *g_imgFrameC;
 extern GuiImage *g_imgInputBar;
 
-extern void GuiImageInit(void);
-extern void GuiImageClose(void);
+extern void GuiImageInit(GuiRootContainer *root);
+extern void GuiImageClose(GuiRootContainer *root);
 
 #endif

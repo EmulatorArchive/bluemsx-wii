@@ -184,7 +184,7 @@ void GuiLayer::DoTransform(LayerTransform transform)
     _transform.offsetY += transform.offsetY;
     _transform.stretchWidth *= transform.stretchWidth;
     _transform.stretchHeight *= transform.stretchHeight;
-    _transform.rotation = fmod(_transform.rotation + transform.rotation, 360.0f);
+    _transform.rotation = (f32)fmod(_transform.rotation + transform.rotation, 360.0f);
     _transform.alpha = (u8)(((u16)_transform.alpha * transform.alpha) / 255);
 }
 

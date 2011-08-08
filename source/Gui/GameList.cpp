@@ -1,7 +1,10 @@
+
+#include "GameList.h"
+
 #include <stdio.h>
 #include <string.h>
+
 #include "../Utils/xmlwriter.h"
-#include "GameList.h"
 #include "../Input/InputEvent.h"
 
 /*************************************************
@@ -25,7 +28,7 @@ void XMLCALL GameList::startElement(void *userData, const char *name, const char
                 // throw away unfinished elements
                 delete my->current_element;
             }
-            my->current_element = new GameElement();
+            my->current_element = new GameElement(my->root_container);
             my->current_element->SetName(atts[1]);
         }
         break;
@@ -354,9 +357,10 @@ void GameList::MoveDown(int index)
     AddToList(index + 1, RemoveFromList(index));
 }
 
-GameList::GameList()
+GameList::GameList(GuiRootContainer *root)
 {
     // Init member variables
+    root_container = root;
     elements = 0;
     current_container = CONTAINER_ROOT;
     current_element = NULL;

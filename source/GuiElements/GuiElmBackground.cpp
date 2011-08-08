@@ -28,9 +28,9 @@ void GuiElmBackground::Show(GuiEffect *effect)
         // Background picture
         sprBackground = new GuiSprite(this, "background");
         sprBackground->SetImage(g_imgBackground);
-        sprBackground->SetStretchWidth((float)GetWidth() /
+        sprBackground->SetStretchWidth((float)(GetWidth()-1) /
                                        (float)g_imgBackground->GetWidth());
-        sprBackground->SetStretchHeight((float)GetHeight() /
+        sprBackground->SetStretchHeight((float)(GetHeight()-1) /
                                         (float)g_imgBackground->GetHeight());
         sprBackground->SetRefPixelPosition(0, 0);
         sprBackground->SetPosition(0, 0);

@@ -20,38 +20,6 @@ GuiImage::GuiImage()
     _initialized = false;
 }
 
-GuiImage::GuiImage(GuiImage *src)
-{
-    _width = src->_width;
-    _height = src->_height;
-    _bytespp = src->_bytespp;
-    _initialized = src->_initialized;
-#ifdef WII
-    if( src->_pixels != NULL ) {
-        _pixels = (u8*)(memalign(32, _width*_height*_bytespp));
-        memcpy(_pixels, src->_pixels, _width*_height*_bytespp);
-        _Flush();
-    }else{
-        _pixels = NULL;
-    }
-#else
-    // Now clone the texture
-    GameWindow::Lock();
-    int w = g_hge->Texture_GetWidth(src->_texObj);
-    int h = g_hge->Texture_GetHeight(src->_texObj);
-    _texObj = g_hge->Texture_Create(w, h);
-    assert(_texObj);
-    u8 *psrc = (u8 *)g_hge->Texture_Lock(src->_texObj, true);
-    u8 *pdst = (u8 *)g_hge->Texture_Lock(_texObj, false);
-    _tex_width = g_hge->Texture_GetWidth(_texObj);
-    _tex_height = g_hge->Texture_GetHeight(_texObj);
-    memcpy(pdst, psrc, _tex_width * _tex_height * 4);
-    g_hge->Texture_Unlock(_texObj);
-    g_hge->Texture_Unlock(src->_texObj);
-    GameWindow::Unlock();
-#endif
-}
-
 GuiImage::~GuiImage(){
     DestroyImage();
 }
@@ -214,6 +182,7 @@ IMG_LOAD_ERROR GuiImage::LoadImage(const unsigned char* path, IMG_LOAD_TYPE load
     _texObj = g_hge->Texture_Create(_width, _height);
     assert(_texObj);
     u8 *blitbuf = (u8 *)g_hge->Texture_Lock(_texObj, false);
+    assert(blitbuf);
     _tex_width = g_hge->Texture_GetWidth(_texObj);
     _tex_height = g_hge->Texture_GetHeight(_texObj);
     memset(blitbuf, 0, _tex_width * _tex_height * 4);

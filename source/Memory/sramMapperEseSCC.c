@@ -483,7 +483,7 @@ int sramMapperEseSCCCreate(char* filename, UInt8* buf, int size, int pSlot, int 
 
 #ifdef ESESCCDEBUG
     if (!logNo) {
-        logFd = fopen(ESESCCDEBUG, "w");
+        logFd = archFileOpen(ESESCCDEBUG, "w");
     }
     DBGLOG2("%s %d: create\n", wavescsiName[rm->type], logNo);
     if (strlen(filename)) {

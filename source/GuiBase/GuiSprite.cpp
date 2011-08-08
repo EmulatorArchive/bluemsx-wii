@@ -8,8 +8,9 @@
 #endif
 
 #include "GuiContainer.h"
+#include "GuiRootContainer.h"
 #include "GuiImage.h"
-#include "DrawableImage.h"
+#include "GuiTextImage.h"
 #include "GuiTiles.h"
 
 #define FRAME_CORRECTION 0.375f //!< Displays frames a lot nicer, still needs a complete fix.
@@ -18,14 +19,14 @@
 GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, int x, int y,
                      int clipw, int cliph, int clipx, int clipy) :
     GuiLayer(parent, name),
-    _image(NULL), _draw_image(NULL), _image_owner(false),
+    _image(NULL), _draw_image(NULL),
     _colRect(NULL)
 {
 #ifndef WII
     spr = NULL;
 #endif
     _colRect = new Rect();
-    if( image != NULL) {
+    if( image != NULL ) {
         SetImage(image, clipw, cliph, clipx, clipy);
     }
     SetPosition((f32)x,(f32)y);
@@ -42,20 +43,14 @@ GuiSprite::~GuiSprite(){
 
 void GuiSprite::CleanUp(void)
 {
-    if( _image_owner ) {
-        if( _draw_image ) {
-            delete _draw_image;
-            _draw_image = NULL;
-            _image = NULL;
-        }else if( _image ) {
-            delete _image;
-            _image = NULL;
-        }
-        _image_owner = false;
+    if( _image ) {
+        GetParent()->GetRootContainer()->ReleaseImage(_image);
     }
+	_image = NULL;
+	_draw_image = NULL;
 }
 
-void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage,
+void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
                                u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
     if(drawimage != NULL) {
@@ -68,7 +63,7 @@ void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage,
     if(spr) {
         delete spr;
     }
-    spr = new hgeSprite(image->GetTEX(), 0, 0, image->GetWidth(), image->GetHeight());
+    spr = new hgeSprite(image->GetTEX(), 0, 0, (float)image->GetWidth(), (float)image->GetHeight());
     spr->SetBlendMode(BLEND_COLORMUL | BLEND_ALPHABLEND | BLEND_NOZWRITE);
 #endif
     // Free previous image if needed
@@ -99,11 +94,12 @@ void GuiSprite::SetImageIntern(GuiImage* image, DrawableImage* drawimage,
 
 void GuiSprite::SetImage(GuiImage* image, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
-    SetImageIntern(new GuiImage(image), NULL, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
-    _image_owner = true;
+    GetParent()->GetRootContainer()->UseImage(image);
+    SetImageIntern(image, NULL, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
 }
-void GuiSprite::SetImage(DrawableImage* drawimage, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
+void GuiSprite::SetImage(GuiTextImage* drawimage, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
+    GetParent()->GetRootContainer()->UseImage(drawimage);
     SetImageIntern(NULL, drawimage, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
 }
 
@@ -112,24 +108,22 @@ GuiImage* GuiSprite::GetImage() const{
 }
 
 bool GuiSprite::LoadImage(const unsigned char *buf){
-    GuiImage *image = new GuiImage;
+    GuiImage *image = GetParent()->GetRootContainer()->CreateImage();
     if(image->LoadImage(buf) == IMG_LOAD_ERROR_NONE) {
         SetImageIntern(image, NULL, 0, 0, 0, 0);
-        _image_owner = true;
         return true;
     }else{
-        delete image;
+        GetParent()->GetRootContainer()->ReleaseImage(image);
         return false;
     }
 }
 bool GuiSprite::LoadImage(const char *file){
-    GuiImage *image = new GuiImage;
+    GuiImage *image = GetParent()->GetRootContainer()->CreateImage();
     if(image->LoadImage(file) == IMG_LOAD_ERROR_NONE) {
         SetImageIntern(image, NULL, 0, 0, 0, 0);
-        _image_owner = true;
         return true;
     }else{
-        delete image;
+        GetParent()->GetRootContainer()->ReleaseImage(image);
         return false;
     }
 }
@@ -141,7 +135,7 @@ void GuiSprite::CreateTextImageVA(TextRender* font, int size, int minwidth, int 
     CleanUp();
 
     // Create new DrawableImage
-    DrawableImage* drawimage = new DrawableImage();
+    GuiTextImage* drawimage = GetParent()->GetRootContainer()->CreateTextImage();
     drawimage->SetFont(font);
     drawimage->SetSize(size);
     drawimage->SetYSpacing(yspace);
@@ -157,7 +151,6 @@ void GuiSprite::CreateTextImageVA(TextRender* font, int size, int minwidth, int 
     drawimage->RenderTextVA(center, fmt, valist);
 
     SetImage(drawimage, txtwidth, txtheight);
-    _image_owner = true;
 }
 
 void GuiSprite::CreateTextImage(TextRender* font, int size, int minwidth, int yspace, bool center,
@@ -174,12 +167,11 @@ void GuiSprite::CreateDrawImage(int width, int height, int format)
     // Free previous image if needed
     CleanUp();
 
-    // Create new DrawableImage
-    DrawableImage* drawimage = new DrawableImage();
+    // Create new GuiTextImage
+    GuiTextImage* drawimage = GetParent()->GetRootContainer()->CreateTextImage();
     drawimage->CreateImage(width, height, format);
 
     SetImage(drawimage, width, height);
-    _image_owner = true;
 }
 
 void GuiSprite::FillSolidColor(u8 r, u8 g, u8 b)
@@ -278,8 +270,8 @@ COLL GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
     rect[0].x -= rect[1].x; rect[0].y -= rect[1].y;
 
     // Rotate the other sprite clockwise by its angle to make it axis-aligned
-    cosa = cos(angle2),
-    sina = sin(angle2);
+    cosa = (f32)cos(angle2),
+    sina = (f32)sin(angle2);
     temp = rect[0].x; rect[0].x = temp*cosa + rect[0].y*sina; rect[0].y = -temp*sina + rect[0].y*cosa;
 
     // Calculate the points of the other sprite.
@@ -288,8 +280,8 @@ COLL GuiSprite::CollidesWith(GuiSprite* sprite, bool complete)
     rect[2].width -= rect[1].width; rect[2].height -= rect[1].height;
     rect[2].x += rect[1].width; rect[2].y += rect[1].height;
 
-    cosa = cos(angle1-angle2);
-    sina = sin(angle1-angle2);
+    cosa = (f32)cos(angle1-angle2);
+    sina = (f32)sin(angle1-angle2);
     // Calculate the points of this sprite
     rect[3].x = -rect[0].height*sina; rect[3].width = rect[3].x; temp = rect[0].width*cosa; rect[3].x += temp; rect[3].width -= temp;
     rect[3].y =  rect[0].height*cosa; rect[3].height = rect[3].y; temp = rect[0].width*sina; rect[3].y += temp; rect[3].height -= temp;
@@ -364,13 +356,13 @@ COLL GuiSprite::CollidesWith(GuiTiles* tiledlayer)
 
     // Get on which tiles the sprite is drawn
     Rect rect;
-    rect.x = (s32)((_colRect->x + transform.offsetX)/tiledlayer->GetCellWidth());
-    rect.y = (s32)((_colRect->y + transform.offsetY)/tiledlayer->GetCellHeight());
-    rect.width = (u32)((_colRect->x + transform.offsetX + _colRect->width)/tiledlayer->GetCellWidth());
-    rect.height = (u32)((_colRect->y + transform.offsetY + _colRect->height)/tiledlayer->GetCellHeight());
+    rect.x = (f32)((_colRect->x + transform.offsetX)/tiledlayer->GetCellWidth());
+    rect.y = (f32)((_colRect->y + transform.offsetY)/tiledlayer->GetCellHeight());
+    rect.width = (f32)((_colRect->x + transform.offsetX + _colRect->width)/tiledlayer->GetCellWidth());
+    rect.height = (f32)((_colRect->y + transform.offsetY + _colRect->height)/tiledlayer->GetCellHeight());
 
-    for(s32 y = rect.y; y < rect.height+1; y++){
-        for(s32 x = rect.x; x < rect.width+1; x++){
+    for(s32 y = (s32)rect.y; y < rect.height+1; y++){
+        for(s32 x = (s32)rect.x; x < rect.width+1; x++){
             // Since checks are done inside the tiledlayer, we do not need to check here
             s32 data = tiledlayer->GetCell(x, y);
             if(data < 0)data = tiledlayer->GetAnimatedTile(data);
@@ -441,8 +433,8 @@ void GuiSprite::Draw(void)
 #else
     spr->SetColor(((u32)transform.alpha << 24) + 0xffffff);
     spr->SetHotSpot(_refPixelX, _refPixelY);
-    spr->SetTextureRect(_clip_x, _clip_y, _width, _height);
-    spr->RenderEx(transform.offsetX, transform.offsetY+20, (transform.rotation / 180.0f) * M_PI,
+    spr->SetTextureRect((f32)_clip_x, (f32)_clip_y, (f32)_width, (f32)_height);
+    spr->RenderEx(transform.offsetX+1, transform.offsetY+20+1, (transform.rotation / 180.0f) * M_PI,
                   transform.stretchWidth, transform.stretchHeight);
 #endif
 }

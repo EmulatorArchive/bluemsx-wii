@@ -679,7 +679,7 @@ static UInt8 readPage2(RTL8019* rtl, UInt8 address)
     case 0x05:
         return rtl->regLppr;
     case 0x06:
-        return (UInt8)(rtl->regAcnt >> 8);
+        return 0; //(UInt8)(rtl->regAcnt >> 8); --> Same effect as 0, is this intentional?
     case 0x07:
         return (UInt8)(rtl->regAcnt & 0xff);
     case 0x0c:

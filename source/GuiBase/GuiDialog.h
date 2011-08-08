@@ -26,8 +26,6 @@ public:
     void AddElement(GuiElement *element);
     void RemoveElement(GuiElement *element);
 
-    virtual void AddIndex(int index, GuiLayer *layer, bool fix, GuiEffect *effect = NULL);
-    virtual void AddIndex(int index, GuiElement *element, bool fix, GuiEffect *effect = NULL);
     virtual void AddTop(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void AddTop(GuiElement *element, GuiEffect *effect = NULL);
     virtual void AddTopFixed(GuiLayer *layer, GuiEffect *effect = NULL);

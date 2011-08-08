@@ -1,9 +1,15 @@
 
+#ifdef UNDER_CE
+#include <windows.h>
+#include <stdlib.h>
+#include <list>
+#else
 #include <string>
 #include <list>
 #include <sstream>
 #include <iomanip>
-
+#endif
+#include "../../Arch/ArchFile.h"
 #include "../../Arch/ArchThread.h"
 
 #include "Language.h"
@@ -303,7 +309,7 @@ static bool loadCheatFile(const char* filename)
         return false;
     }
 
-    FILE* f = fopen(filename, "r");
+    FILE* f = archFileOpen(filename, "r");
     if (f == NULL) {
         GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container, "invalidchaet");
         msgbox->Create(MSGT_TEXT, NULL, 128, "Invalid cheat file!");

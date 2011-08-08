@@ -13,7 +13,9 @@
 #include "..\..\..\include\hge\hge.h"
 #include <stdio.h>
 #include <d3d8.h>
+#ifndef UNDER_CE
 #include <d3dx8.h>
+#endif
 
 #define D3DFVF_HGEVERTEX (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 #define VERTEX_BUFFER_SIZE 4000
@@ -67,7 +69,9 @@ public:
 	virtual const wchar_t*	CALL	System_GetStateString(hgeStringState);
 	virtual char*		CALL	System_GetErrorMessage();
 	virtual	void		CALL	System_Log(const char *format, ...);
+#ifdef HGE_FULL
 	virtual bool		CALL	System_Launch(const wchar_t *url);
+#endif
 
 	virtual float		CALL	Timer_GetTime();
 	virtual float		CALL	Timer_GetDelta();
@@ -88,13 +92,8 @@ public:
 	virtual bool		CALL	Gfx_BeginScene(HTARGET target=0);
 	virtual void		CALL	Gfx_EndScene();
 	virtual void		CALL	Gfx_Clear(DWORD color);
-	virtual void		CALL	Gfx_RenderLine(float x1, float y1, float x2, float y2, DWORD color=0xFFFFFFFF, float z=0.5f);
-	virtual void		CALL	Gfx_RenderTriple(const hgeTriple *triple);
 	virtual void		CALL	Gfx_RenderQuad(const hgeQuad *quad);
-	virtual hgeVertex*	CALL	Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend, int *max_prim);
-	virtual void		CALL	Gfx_FinishBatch(int nprim);
 	virtual void		CALL	Gfx_SetClipping(int x=0, int y=0, int w=0, int h=0);
-	virtual void		CALL	Gfx_SetTransform(float x=0, float y=0, float dx=0, float dy=0, float rot=0, float hscale=0, float vscale=0); 
 
 	virtual HTARGET		CALL	Target_Create(int width, int height, bool zbuffer);
 	virtual void		CALL	Target_Free(HTARGET target);
@@ -105,8 +104,8 @@ public:
 	virtual HTEXTURE	CALL	Texture_Load(const char *filename, DWORD size=0, bool bMipmap=false);
 #endif
 	virtual void		CALL	Texture_Free(HTEXTURE tex);
-	virtual int			CALL	Texture_GetWidth(HTEXTURE tex, bool bOriginal=false);
-	virtual int			CALL	Texture_GetHeight(HTEXTURE tex, bool bOriginal=false);
+	virtual int			CALL	Texture_GetWidth(HTEXTURE tex);
+	virtual int			CALL	Texture_GetHeight(HTEXTURE tex);
 	virtual DWORD*		CALL	Texture_Lock(HTEXTURE tex, bool bReadOnly=true, int left=0, int top=0, int width=0, int height=0);
 	virtual void		CALL	Texture_Unlock(HTEXTURE tex);
 
@@ -172,7 +171,6 @@ public:
 	D3DXMATRIX			matView;
 	D3DXMATRIX			matProj;
 
-	CTextureList*		textures;
 	hgeVertex*			VertArray;
 
 	int					nPrim;

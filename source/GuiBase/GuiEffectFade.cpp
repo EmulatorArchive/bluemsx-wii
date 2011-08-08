@@ -19,8 +19,8 @@ GuiEffectFade::GuiEffectFade(int fade_frames, int delay, bool zoom,
     m_bClockwise = clockwise;
     if( posx >= 0.0f && posy >= 0.0f ) {
         m_bMove = true;
-        m_iPosX = posx * GuiContainer::GetRootContainer()->GetWidth();
-        m_iPosY = posy * GuiContainer::GetRootContainer()->GetHeight();
+        m_iPosX = (int)posx * GuiContainer::GetRootContainer()->GetWidth();
+        m_iPosY = (int)posy * GuiContainer::GetRootContainer()->GetHeight();
     }else{
         m_bMove = false;
         m_iPosX = 0;
@@ -89,7 +89,7 @@ bool GuiEffectFade::Run(void)
     bool bDone = false;
 
     // Do the effect
-    f32 factor = sin(((f32)m_iCount / m_iFrames) * GUI_PI_2);
+    f32 factor = (f32)sin(((f32)m_iCount / m_iFrames) * GUI_PI_2);
 
     // Fade
     m_oTransform.alpha = (u8)( (1.0f-factor) * m_iStartAlpha + factor * m_iEndAlpha );

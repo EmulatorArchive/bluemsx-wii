@@ -151,23 +151,29 @@ void HGE_Impl::_UpdateMouse()
 void HGE_Impl::_BuildEvent(int type, int key, int scan, int flags, int x, int y)
 {
 	CInputEventList *last, *eptr=new CInputEventList;
-	unsigned char kbstate[256];
 	POINT pt;
 
 	eptr->event.type=type;
 	eptr->event.chr=0;
 	pt.x=x; pt.y=y;
 
-	GetKeyboardState(kbstate);
 	if(type==INPUT_KEYDOWN)
 	{
 		if((flags & HGEINP_REPEAT) == 0) keyz[key] |= 1;
-		ToAscii(key, scan, kbstate, (unsigned short *)&eptr->event.chr, 0);
+#ifdef UNDER_CE
+    eptr->event.chr = MapVirtualKey(MapVirtualKey(scan, 1), 2);
+#else
+		ToAscii(key, scan, NULL, (unsigned short *)&eptr->event.chr, 0);
+#endif
 	}
 	if(type==INPUT_KEYUP)
 	{
 		keyz[key] |= 2;
-		ToAscii(key, scan, kbstate, (unsigned short *)&eptr->event.chr, 0);
+#ifdef UNDER_CE
+    eptr->event.chr = MapVirtualKey(MapVirtualKey(scan, 1), 2);
+#else
+		ToAscii(key, scan, NULL, (unsigned short *)&eptr->event.chr, 0);
+#endif
 	}
 	if(type==INPUT_MOUSEWHEEL)
 	{
@@ -191,12 +197,12 @@ void HGE_Impl::_BuildEvent(int type, int key, int scan, int flags, int x, int y)
 		bCaptured=false;
 	}
 	
-	if(kbstate[VK_SHIFT] & 0x80) flags|=HGEINP_SHIFT;
-	if(kbstate[VK_CONTROL] & 0x80) flags|=HGEINP_CTRL;
-	if(kbstate[VK_MENU] & 0x80) flags|=HGEINP_ALT;
-	if(kbstate[VK_CAPITAL] & 0x1) flags|=HGEINP_CAPSLOCK;
-	if(kbstate[VK_SCROLL] & 0x1) flags|=HGEINP_SCROLLLOCK;
-	if(kbstate[VK_NUMLOCK] & 0x1) flags|=HGEINP_NUMLOCK;
+	if(GetKeyState(VK_SHIFT) & 0x80) flags|=HGEINP_SHIFT;
+	if(GetKeyState(VK_CONTROL) & 0x80) flags|=HGEINP_CTRL;
+	if(GetKeyState(VK_MENU) & 0x80) flags|=HGEINP_ALT;
+	if(GetKeyState(VK_CAPITAL) & 0x1) flags|=HGEINP_CAPSLOCK;
+	if(GetKeyState(VK_SCROLL) & 0x1) flags|=HGEINP_SCROLLLOCK;
+	if(GetKeyState(VK_NUMLOCK) & 0x1) flags|=HGEINP_NUMLOCK;
 	eptr->event.flags=flags;
 
 	if(pt.x==-1) { eptr->event.x=Xpos;eptr->event.y=Ypos; }

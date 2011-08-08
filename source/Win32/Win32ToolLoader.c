@@ -29,6 +29,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../Tools/BlueMSXToolInterface.h"
 #include "../Debugger/Debugger.h"
@@ -42,7 +43,9 @@
 #ifndef NO_TOOL_SUPPORT
 
 #define MAX_TOOLS 16
+#ifndef MAX_PATH
 #define MAX_PATH  256
+#endif
 
 struct ToolInfo {
     char description[32];

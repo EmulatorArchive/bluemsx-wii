@@ -134,7 +134,7 @@ void GuiKeyboard::Render(void)
     bool validpos = GetRootContainer()->gwd.input.GetWiiMoteIR(&x, &y, &angle);
     if( validpos && is_enabled && !is_hidden ) {
         spr_cursor->SetPosition(x, y);
-        spr_cursor->SetRotation(angle);
+        spr_cursor->SetRotation((f32)angle);
         spr_cursor->SetVisible(true);
     }else{
         spr_cursor->SetVisible(false);
@@ -218,9 +218,9 @@ void GuiKeyboard::Render(void)
             spr->SetPosition(xscale * key->x + xpos, yscale * key->y + ypos);
             spr->SetTransparency(128);
             if( key->key == EC_CAPS ) {
-                spr->SetVisible(ledGetCapslock());
+                spr->SetVisible(!!ledGetCapslock());
             }else{
-                spr->SetVisible(inputEventGetState(key->key));
+                spr->SetVisible(!!inputEventGetState(key->key));
             }
         }
     }

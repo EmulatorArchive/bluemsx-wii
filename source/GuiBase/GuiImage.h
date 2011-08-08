@@ -33,7 +33,6 @@ class GuiImage{
 public:
     //!Constructors.
     GuiImage();
-    GuiImage(GuiImage *src);
     //!Destructor.
     virtual ~GuiImage();
 

@@ -298,14 +298,14 @@ void updateExtendedRomName(int drive, char* filename, char* zipFile) {
 }
 
 void updateExtendedDiskName(int drive, char* filename, char* zipFile) {
-    int size;
-    char* buf;
     char* name;
 
     extendedDiskName[drive][0] = 0;
 
 #ifndef BLUEMSXWII
     if (drive < MAX_FDC_COUNT) {
+        char* buf;
+        int size;
         buf = romLoad(filename, zipFile[0] ? zipFile : NULL, &size);
         if (buf != NULL) {
             strcpy(extendedDiskName[drive], mediaDbGetPrettyString(mediaDbLookupDisk(buf, size)));
@@ -501,7 +501,7 @@ static UInt32 fileWriteTime(const char* filename)
 
   rv = stat(filename, &s);
 
-  return rv < 0 ? 0 : s.st_mtime;
+  return rv < 0 ? 0 : (UInt32)s.st_mtime;
 }
 
 char* generateSaveFilename(Properties* properties, char* directory, char* prefix, char* extension, int digits)

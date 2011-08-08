@@ -59,10 +59,10 @@ GuiElmListLine* GuiElmListLineDefault::Create(GuiContainer *parent)
                                      fontcolor, fontsize, center);
 }
 
-COLL GuiElmListLineDefault::CollidesWith(GuiSprite* spr, bool compl)
+COLL GuiElmListLineDefault::CollidesWith(GuiSprite* spr, bool complete)
 {
     assert( sprite != NULL );
-    return sprite->CollidesWith(spr, compl);
+    return sprite->CollidesWith(spr, complete);
 }
 
 
@@ -116,7 +116,7 @@ void GuiElmSelectionList::ElmSetSelected(bool sel, GuiSprite *pointer, int x, in
         }
         for(int i = upper_index; s < 0 && i <= lower_index; i++) {
             if( visible_items[i] == NULL ||
-               (int)visible_items[i]->GetY() + visible_items[i]->GetHeight() / 2 > y )
+               (int)visible_items[i]->GetY() + visible_items[i]->GetHeight() / 2 > (unsigned)y )
             {
                 break;
             }
@@ -422,7 +422,8 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
     // Arrows
     sprArrowUp = new GuiSprite(this, "arrow_up");
     sprArrowUp->SetImage(g_imgArrow);
-    sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
+    sprArrowUp->SetRefPixelPosition((f32)(g_imgArrow->GetWidth()/2),
+		                            (f32)(g_imgArrow->GetHeight()/2));
     sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2);
     sprArrowUp->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
     sprArrowUp->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());
@@ -431,7 +432,8 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
 
     sprArrowDown = new GuiSprite(this, "arrow_down");
     sprArrowDown->SetImage(g_imgArrow);
-    sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth()/2, g_imgArrow->GetHeight()/2);
+    sprArrowDown->SetRefPixelPosition((f32)(g_imgArrow->GetWidth()/2),
+		                              (f32)(g_imgArrow->GetHeight()/2));
     sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2);
     sprArrowDown->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
     sprArrowDown->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());

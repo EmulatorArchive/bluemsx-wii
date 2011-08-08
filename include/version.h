@@ -1,7 +1,7 @@
 #ifndef _VERSION_H
 #define _VERSION_H
 
-#include "revision.inc"
+#include "../build/revision.inc"
 
 #if REVISION_NUMBER==148
 #define VERSION_AS_STRING "V1.0.2"

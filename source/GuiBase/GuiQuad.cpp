@@ -30,15 +30,15 @@ void GuiQuad::SetRectangle(Rect* rect){
     if(rect == NULL)return;
     SetX(rect->x);
     SetY(rect->y);
-    _width = rect->width;
-    _height = rect->height;
+    _width = (u32)rect->width;
+    _height = (u32)rect->height;
 }
 const Rect* GuiQuad::GetRectangle(){
     // Now we assign our data to the rectangle and return it.
     _rect->x = GetX();
     _rect->y = GetY();
-    _rect->width = _width;
-    _rect->height = _height;
+    _rect->width = (f32)_width;
+    _rect->height = (f32)_height;
     return _rect;
 }
 

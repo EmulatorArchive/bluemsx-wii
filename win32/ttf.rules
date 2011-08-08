@@ -7,8 +7,8 @@
 		<CustomBuildRule
 			Name="TTF"
 			DisplayName="TTF font"
-			CommandLine="$(SolutionDir)..\util\raw2c $(InputDir)$(InputName).ttf $(TargetDir)$(InputName).inc $(InputName)"
-			Outputs="$(TargetDir)$(InputName).inc"
+			CommandLine="$(SolutionDir)..\util\raw2c $(InputDir)$(InputName).ttf $(OutDir)\$(InputName).inc $(InputName)"
+			Outputs="$(OutDir)\$(InputName).inc"
 			FileExtensions="*.ttf"
 			ExecutionDescription="Convert binary to include file"
 			>

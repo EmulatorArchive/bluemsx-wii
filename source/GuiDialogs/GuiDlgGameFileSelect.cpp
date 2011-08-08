@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <time.h>
 
-#include "../Arch/ArchFile.h"
 #include "../Arch/ArchGlob.h"
 
 #include "../GuiBase/GuiEffectFade.h"
@@ -46,7 +46,7 @@ public:
 
     virtual GuiElmListLine* Create(GuiContainer *parent);
     virtual void Initialize(void *itm);
-    virtual COLL CollidesWith(GuiSprite* spr, bool compl);
+    virtual COLL CollidesWith(GuiSprite* spr, bool complete);
 private:
     GuiSprite *spr_col_a;
     GuiSprite *spr_col_b;
@@ -104,10 +104,10 @@ GuiElmListLine* GuiElmListLineFile::Create(GuiContainer *parent)
                                   fontcolor, fontsize, center);
 }
 
-COLL GuiElmListLineFile::CollidesWith(GuiSprite* spr, bool compl)
+COLL GuiElmListLineFile::CollidesWith(GuiSprite* spr, bool complete)
 {
     assert( spr_col_a != NULL );
-    return spr_col_a->CollidesWith(spr, compl);
+    return spr_col_a->CollidesWith(spr, complete);
 }
 
 //-----------------------
@@ -127,13 +127,13 @@ void GuiDlgGameFileSelect::CreateFileList(void)
     items = (FILEITEM**)malloc((glob_dirs->count + glob_files->count + 1)*sizeof(FILEITEM*));
 
     // Add '..' if not int the root
-    const char *curdir = archGetCurrentDirectory();
+    const char *curdir = directory.CreatePath("");
     if( strcmp(curdir, root_dir) != 0 ) {
         items[num_files] = new FILEITEM;
         items[num_files]->is_dir = true;
-        items[num_files]->txt_col_a = strdup("..");
-        items[num_files]->txt_col_b = strdup("<DIR>");
-        items[num_files]->txt_col_c = strdup("");
+        items[num_files]->txt_col_a = _strdup("..");
+        items[num_files]->txt_col_b = _strdup("<DIR>");
+        items[num_files]->txt_col_c = _strdup("");
         num_files++;
     }
 
@@ -149,7 +149,7 @@ void GuiDlgGameFileSelect::CreateFileList(void)
                 // Get modification time
                 struct tm *timeinfo;
                 timeinfo = localtime(&s.st_mtime);
-#ifndef WIN32
+#ifdef WII
                 timeinfo->tm_year += 80; // libogc bug: year = 1929
 #endif
                 char timestr[16];
@@ -160,7 +160,7 @@ void GuiDlgGameFileSelect::CreateFileList(void)
                     filename = p+1;
                 }
                 // to get sorted list, find position where to strore in list
-                for(k = first_index; k < num_files && stricmp(filename, items[k]->txt_col_a) > 0; k++);
+                for(k = first_index; k < num_files && _stricmp(filename, items[k]->txt_col_a) > 0; k++);
                 // shift all entries behind
                 for(j = num_files; j > k; j--) {
                     items[j] = items[j-1];
@@ -168,9 +168,9 @@ void GuiDlgGameFileSelect::CreateFileList(void)
                 // store in list
                 items[k] = new FILEITEM;
                 items[k]->is_dir = true;
-                items[k]->txt_col_a = strdup(filename);
-                items[k]->txt_col_b = strdup("<DIR>");
-                items[k]->txt_col_c = strdup(timestr);
+                items[k]->txt_col_a = _strdup(filename);
+                items[k]->txt_col_b = _strdup("<DIR>");
+                items[k]->txt_col_c = _strdup(timestr);
                 num_files++;
             }
         }
@@ -189,21 +189,21 @@ void GuiDlgGameFileSelect::CreateFileList(void)
                 // Get modification time
                 struct tm *timeinfo;
                 timeinfo = localtime(&s.st_mtime);
-#ifndef WIN32
+#ifdef WII
                 timeinfo->tm_year += 80; // libogc bug: year = 1929
 #endif
                 char timestr[16];
                 strftime(timestr, sizeof(timestr), "%Y/%m/%d", timeinfo);
                 // Get file size
                 char sizestr[16];
-                sprintf(sizestr, "%d", s.st_size);
+                sprintf(sizestr, "%d", (int)s.st_size);
                 // Find filename
                 char *p, *filename = path;
                 while( (p = strstr(filename, "/")) || (p = strstr(filename, "\\")) ) {
                     filename = p+1;
                 }
                 // to get sorted list, find position where to strore in list
-                for(k = first_index; k < num_files && stricmp(filename, items[k]->txt_col_a) > 0; k++);
+                for(k = first_index; k < num_files && _stricmp(filename, items[k]->txt_col_a) > 0; k++);
                 // shift all entries behind
                 for(j = num_files; j > k; j--) {
                     items[j] = items[j-1];
@@ -211,9 +211,9 @@ void GuiDlgGameFileSelect::CreateFileList(void)
                 // store in list
                 items[k] = new FILEITEM;
                 items[k]->is_dir = false;
-                items[k]->txt_col_a = strdup(filename);
-                items[k]->txt_col_b = strdup(sizestr);
-                items[k]->txt_col_c = strdup(timestr);
+                items[k]->txt_col_a = _strdup(filename);
+                items[k]->txt_col_b = _strdup(sizestr);
+                items[k]->txt_col_c = _strdup(timestr);
                 num_files++;
             }
         }
@@ -273,13 +273,13 @@ char* GuiDlgGameFileSelect::DoModal(void)
             sel = list->GetSelectedItem();
             if( items[sel]->is_dir ) {
                 // It's a directory, enter it
-                archSetCurrentDirectory(items[sel]->txt_col_a);
+                directory.ChangeDirectory(items[sel]->txt_col_a);
                 Create();
                 continue;
             }else{
                 // Combine path and filename
                 char *file = items[sel]->txt_col_a;
-                char *cur_dir = strdup(archGetCurrentDirectory());
+                char *cur_dir = _strdup(directory.CreatePath(""));
                 char *directory = cur_dir + strlen(root_dir);
                 if( *directory == '/' ) directory++;
                 char *relpath = (char*)malloc(strlen(directory)+strlen(file)+2);
@@ -311,15 +311,15 @@ char* GuiDlgGameFileSelect::DoModal(void)
 }
 
 GuiDlgGameFileSelect::GuiDlgGameFileSelect(GuiContainer *parent, const char *name,
-                                           const char *directory)
+                                           const char *dir)
                     : GuiDialog(parent, name)
 {
     items = NULL;
 
     // Prepare directory
-    org_dir = strdup(archGetCurrentDirectory());
-    archSetCurrentDirectory(directory);
-    root_dir = strdup(archGetCurrentDirectory());
+    org_dir = _strdup(directory.CreatePath(""));
+    directory.ChangeDirectory(dir);
+    root_dir = _strdup(directory.CreatePath(""));
 
     // Frame
     posx = (640-GFSEL_WIDTH)/2;
@@ -338,7 +338,7 @@ GuiDlgGameFileSelect::GuiDlgGameFileSelect(GuiContainer *parent, const char *nam
 GuiDlgGameFileSelect::~GuiDlgGameFileSelect()
 {
     // Restore current directory
-    archSetCurrentDirectory(org_dir);
+    directory.ChangeDirectory(org_dir);
 
     // Remove UI elements
     if( list != NULL ) {

@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../Arch/ArchFile.h"
+
 #include "strcmpnocase.h"
 
 #include "blowfish.h"
@@ -67,7 +69,7 @@ int pkg_load(const char* filename, char* key, int keyLen)
     int len;
     FILE* f;
     
-    f = fopen(filename, "rb");
+    f = archFileOpen(filename, "rb");
     if (f == NULL) {
         return 0;
     }
@@ -185,7 +187,7 @@ FILE* pkg_fopen(const char* fname, const char* mode)
         }
     }
 
-    return fopen(fname, mode);
+    return archFileOpen(fname, mode);
 }
 
 int pkg_fclose(FILE* file)

@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../Arch/ArchFile.h"
 #include "../Utils/IniFileParser.h"
 #include "../Utils/StrcmpNoCase.h"
 #include "../Emulator/Properties.h"
@@ -983,7 +984,7 @@ void propertiesSetDirectory(const char* defDir, const char* altDir)
     FILE* f;
 
     sprintf(settFilename, "bluemsx.ini", defDir);
-    f = fopen(settFilename, "r");
+    f = archFileOpen(settFilename, "r");
     if (f != NULL) {
         fclose(f);
     }
@@ -992,7 +993,7 @@ void propertiesSetDirectory(const char* defDir, const char* altDir)
     }
 
     sprintf(histFilename, "bluemsx_history.ini", defDir);
-    f = fopen(histFilename, "r");
+    f = archFileOpen(histFilename, "r");
     if (f != NULL) {
         fclose(f);
     }

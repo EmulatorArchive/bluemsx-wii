@@ -37,6 +37,7 @@
 #include "../SoundChips/Moonsound.h"
 #include "../Utils/SaveState.h"
 #include "../Utils/ziphelper.h"
+#include "../Arch/ArchFile.h"
 #include "../Arch/ArchNotifications.h"
 #include "../VideoChips/VideoManager.h"
 #include "../Debugger/DebugDeviceManager.h"
@@ -325,7 +326,7 @@ void boardCaptureStart(const char* filename) {
 
     cap.initStateSize = 0;
     boardSaveState("cap.tmp");
-    f = fopen("cap.tmp", "rb");
+    f = archFileOpen("cap.tmp", "rb");
     if (f != NULL) {
         cap.initStateSize = fread(cap.initState, 1, sizeof(cap.initState), f);
         fclose(f);
@@ -351,7 +352,7 @@ void boardCaptureStop() {
         cap.state = CAPTURE_PLAY;
         cap.inputCnt = rleEncGetLength();
 
-        f = fopen(cap.filename, "wb");
+        f = archFileOpen(cap.filename, "wb");
         if (f != NULL) {
             fwrite(cap.initState, 1, cap.initStateSize, f);
             fclose(f);
@@ -648,7 +649,7 @@ void boardCaptureStart(const char* filename) {
 
     cap.initStateSize = 0;
     boardSaveState("cap.tmp");
-    f = fopen("cap.tmp", "rb");
+    f = archFileOpen("cap.tmp", "rb");
     if (f != NULL) {
         cap.initStateSize = fread(cap.initState, 1, sizeof(cap.initState), f);
         fclose(f);
@@ -674,7 +675,7 @@ void boardCaptureStop() {
         cap.state = CAPTURE_PLAY;
         cap.inputCnt = rleEncGetLength();
 
-        f = fopen(cap.filename, "wb");
+        f = archFileOpen(cap.filename, "wb");
         if (f != NULL) {
             fwrite(cap.initState, 1, cap.initStateSize, f);
             fclose(f);
@@ -908,7 +909,7 @@ void boardCaptureStart(const char* filename) {
 
     cap.initStateSize = 0;
     boardSaveState("cap.tmp");
-    f = fopen("cap.tmp", "rb");
+    f = archFileOpen("cap.tmp", "rb");
     if (f != NULL) {
         cap.initStateSize = fread(cap.initState, 1, sizeof(cap.initState), f);
         fclose(f);
@@ -933,7 +934,7 @@ void boardCaptureStop() {
         cap.endTime64 = boardSystemTime64();
         cap.state = CAPTURE_PLAY;
 
-        f = fopen(cap.filename, "wb");
+        f = archFileOpen(cap.filename, "wb");
         if (f != NULL) {
             fwrite(cap.initState, 1, cap.initStateSize, f);
             fclose(f);

@@ -314,7 +314,7 @@ int sramMapperMegaSCSICreate(char* filename, UInt8* buf, int size, int pSlot, in
 
 #ifdef MEGASCSIDEBUG
     if (!megascsiTotal) {
-        logFd = fopen(MEGASCSIDEBUG, "w");
+        logFd = archFileOpen(MEGASCSIDEBUG, "w");
     }
     ++megascsiTotal;
     DBGLOG2("%s %d: create\n", megascsiName[rm->type], megascsiTotal);

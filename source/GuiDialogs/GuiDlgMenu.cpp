@@ -66,7 +66,7 @@ GuiDlgMenu::GuiDlgMenu(GuiContainer *parent, const char *name, int rows)
     frame = NULL;
     list = new GuiElmSelectionList(this, name, rows);
     num_item_rows = rows;
-    SetRefPixelPosition(GetWidth()/2, GetHeight()/2);
+    SetRefPixelPosition((f32)(GetWidth()/2), (f32)(GetHeight()/2));
 }
 
 GuiDlgMenu::~GuiDlgMenu()

@@ -7,8 +7,8 @@
 		<CustomBuildRule
 			Name="PNG"
 			DisplayName="PNG file"
-			CommandLine="$(SolutionDir)..\util\raw2c $(InputDir)$(InputName).png $(TargetDir)$(InputName).inc $(InputName)"
-			Outputs="$(TargetDir)$(InputName).inc"
+			CommandLine="$(SolutionDir)..\util\raw2c $(InputDir)$(InputName).png $(OutDir)\$(InputName).inc $(InputName)"
+			Outputs="$(OutDir)\$(InputName).inc"
 			FileExtensions="*.png"
 			ExecutionDescription="Convert binary to include file"
 			>

@@ -19,7 +19,11 @@
 #include "../source/GuiBase/GuiRootContainer.h"
 #include "../source/Win32/Win32Input.h"
 
+#ifdef UNDER_CE
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
+#else
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+#endif
 {
   // GUI init
   GuiMain *guimain = new GuiMain();

@@ -4,8 +4,11 @@
 
 #include "../GuiBase/GuiDialog.h"
 #include "../Gui/DirectoryList.h"
+#include "../Gui/DirectoryHelper.h"
 
+#ifndef MAX_PATH
 #define MAX_PATH        256
+#endif
 #define NUM_DIR_ITEMS   7
 
 class GuiElmFrame;
@@ -21,13 +24,13 @@ public:
 private:
     char* InitialiseList(char *prevsel);
 
+    DirectoryHelper directory;
     const char **title_list;
     GuiElmFrame *frame;
     GuiElmSelectionList *list;
     DirList dirs;
     int num_dirs;
     int dir_level;
-    char current_dir[MAX_PATH];
     char xmlfile[MAX_PATH];
 };
 

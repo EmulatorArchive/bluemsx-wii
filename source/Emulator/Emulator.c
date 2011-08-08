@@ -111,7 +111,7 @@ void savelog()
     int totalSize = LOG_SIZE;
     int lastPct = -1;
     int cnt = 0;
-    FILE * f = fopen("bluemsxlog.txt", "w+");
+    FILE * f = archFileOpen("bluemsxlog.txt", "w+");
     int i = 0;
     if (logwrapped == 0 && logindex == 0) {
         return;

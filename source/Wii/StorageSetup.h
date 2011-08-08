@@ -27,5 +27,4 @@
 #define MSX_DIR      "/MSX"
 
 extern bool SetupStorage(GuiContainer *container, bool bSDMounted, bool bUSBMounted);
-extern char *GetMSXRootPath(void);
 

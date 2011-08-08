@@ -89,8 +89,8 @@ void GuiElmButton::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
 bool GuiElmButton::ElmGetRegion(int *px, int *py, int *pw, int *ph)
 {
     if( shown ) {
-        *px = GetX();
-        *py = GetY();
+        *px = (int)GetX();
+        *py = (int)GetY();
         *pw = GetWidth();
         *ph = GetHeight();
         return true;

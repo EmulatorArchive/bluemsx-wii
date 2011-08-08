@@ -17,16 +17,13 @@
 
 char *GuiDlgDirSelect::DoModal(void)
 {
-    char *prevsel = NULL;
+    bool go_back_level = false;
+    char prev_dir[MAX_DIRMANAGER_PATH] = "";
     char *return_value = NULL;
 
     // On re-entry, go back one level if not on root level
     if( dir_level > 0 ) {
-        char *p = current_dir + strlen(current_dir) - 1;
-        while(*p != '/') p--;
-        *p = '\0';
-        prevsel = p + 1;
-        dir_level--;
+        go_back_level = true;
     }
 
     // Seletion loop
@@ -34,8 +31,20 @@ char *GuiDlgDirSelect::DoModal(void)
     do {
         DirElement *selected_dir = NULL;
 
+        // Go back one level if requested for
+        if( go_back_level ) {
+            char *p = directory.CreatePath("");
+            for( char *s = p; s != NULL; s = strstr(p, DIR_SLASH_S) ) {
+              p = ++s;
+            }
+            strcpy(prev_dir, p);
+            directory.ChangeDirectory("..");
+            dir_level--;
+            go_back_level = false;
+        }
+
         // Load dirs database and init list
-        return_value = InitialiseList(prevsel);
+        return_value = InitialiseList(prev_dir);
         if( return_value != NULL ) {
             break;
         }
@@ -47,8 +56,7 @@ char *GuiDlgDirSelect::DoModal(void)
 
                 // enter selected directory
                 selected_dir = dirs.GetDir(sel);
-                strcat(current_dir, "/");
-                strcat(current_dir, selected_dir->GetDirectory());
+                directory.ChangeDirectory(selected_dir->GetDirectory());
                 dir_level++;
                 break;
             }else{
@@ -64,12 +72,7 @@ char *GuiDlgDirSelect::DoModal(void)
                         break;
                     }
                 }else{
-                    // go back one level
-                    char *p = current_dir + strlen(current_dir) - 1;
-                    while(*p != '/') p--;
-                    *p = '\0';
-                    prevsel = p + 1;
-                    dir_level--;
+                    go_back_level = true;
                     break;
                 }
             }
@@ -81,11 +84,10 @@ char *GuiDlgDirSelect::DoModal(void)
 
 char* GuiDlgDirSelect::InitialiseList(char *prevsel)
 {
-    archSetCurrentDirectory(current_dir);
-    dirs.Load(xmlfile);
+    dirs.Load(directory.CreatePath(xmlfile));
     num_dirs = dirs.GetNumberOfDirs();
     if( num_dirs == 0 ) {
-        return current_dir;
+        return directory.CreatePath("");
     }
     title_list = (const char**)realloc(title_list, num_dirs * sizeof(const char*));
     for(int i = 0; i < num_dirs; i++) {
@@ -94,7 +96,7 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
 
     // When just gone back one level, find entry comming from
     int sel = -1;
-    if( prevsel ) {
+    if( prevsel && strlen(prevsel) > 0 ) {
         for( int i = 0; i < num_dirs; i++ ) {
             if( strcmp(prevsel, dirs.GetDir(i)->GetDirectory()) == 0 ) {
                 sel = i;
@@ -119,7 +121,7 @@ GuiDlgDirSelect::GuiDlgDirSelect(GuiContainer* parent, const char* name, const c
     frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, 320-180, 24, 2*180, 440-48);
     list = new GuiElmSelectionList(this, "list", NUM_DIR_ITEMS);
 
-    strcpy(current_dir, startdir);
+    directory.ChangeDirectory(startdir);
     strcpy(xmlfile, filename);
     dir_level = 0;
 

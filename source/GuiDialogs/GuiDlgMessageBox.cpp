@@ -129,7 +129,7 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, int alpha, const cha
                 (int)GetParentContainer()->GetHeight()/2-sizey/2);
     SetWidth(sizex);
     SetHeight(sizey);
-    SetRefPixelPosition(sizex/2, sizey/2);
+    SetRefPixelPosition((f32)(sizex/2), (f32)(sizey/2));
     frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, 0, 0, sizex, sizey, alpha);
     AddTop(frame);
 

@@ -1,6 +1,8 @@
 #ifndef _GUI_ROOTCONTAINER_H
 #define _GUI_ROOTCONTAINER_H
 
+#include <list>
+
 #include "GameWindow.h"
 #include "GuiContainer.h"
 #include "Mutex.h"
@@ -10,8 +12,15 @@
 extern GameWindow *g_poGwd;
 
 class GuiRootContainer;
+class GuiTextImage;
+class GuiImage;
 
 typedef void (*GUIFUNC_MAIN)(GuiRootContainer *);
+
+typedef struct {
+    GuiImage* image;
+    int count;
+} ImageRef;
 
 class GuiRootContainer : public GuiContainer {
 public:
@@ -28,6 +37,13 @@ public:
     GW_VIDEO_MODE GetMode(void);
     u32 GetWidth(void);
     u32 GetHeight(void);
+
+    // Image management
+    GuiImage *CreateImage();
+    GuiTextImage *CreateTextImage();
+    void UseImage(GuiImage *image);
+    void ReleaseImage(GuiImage *image);
+
 protected:
     static void RunMainFunc(void *context);
     static bool DrawFuncWrapper(void *context);
@@ -37,6 +53,10 @@ protected:
 private:
     CMutex mutex;
     bool stop_requested;
+
+    // Image management
+    CMutex image_lock;
+    std::list<ImageRef> image_ref;
 };
 
 #endif

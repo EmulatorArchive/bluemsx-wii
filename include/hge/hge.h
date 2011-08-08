@@ -284,8 +284,8 @@ public:
 	virtual bool		CALL	System_Start() = 0;
 	virtual char*		CALL	System_GetErrorMessage() = 0;
 	virtual	void		CALL	System_Log(const char *format, ...) = 0;
-	virtual bool		CALL	System_Launch(const wchar_t *url) = 0;
 #ifdef HGE_FULL
+	virtual bool		CALL	System_Launch(const wchar_t *url) = 0;
 	virtual void		CALL	System_Snapshot(const char *filename=0) = 0;
 #endif
 
@@ -333,13 +333,8 @@ public:
 	virtual bool		CALL	Gfx_BeginScene(HTARGET target=0) = 0;
 	virtual void		CALL	Gfx_EndScene() = 0;
 	virtual void		CALL	Gfx_Clear(DWORD color) = 0;
-	virtual void		CALL	Gfx_RenderLine(float x1, float y1, float x2, float y2, DWORD color=0xFFFFFFFF, float z=0.5f) = 0;
-	virtual void		CALL	Gfx_RenderTriple(const hgeTriple *triple) = 0;
 	virtual void		CALL	Gfx_RenderQuad(const hgeQuad *quad) = 0;
-	virtual hgeVertex*	CALL	Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend, int *max_prim) = 0;
-	virtual void		CALL	Gfx_FinishBatch(int nprim) = 0;
 	virtual void		CALL	Gfx_SetClipping(int x=0, int y=0, int w=0, int h=0) = 0;
-	virtual void		CALL	Gfx_SetTransform(float x=0, float y=0, float dx=0, float dy=0, float rot=0, float hscale=0, float vscale=0) = 0; 
 
 	virtual HTARGET		CALL	Target_Create(int width, int height, bool zbuffer) = 0;
 	virtual void		CALL	Target_Free(HTARGET target) = 0;
@@ -350,8 +345,8 @@ public:
 	virtual HTEXTURE	CALL	Texture_Load(const char *filename, DWORD size=0, bool bMipmap=false) = 0;
 #endif
 	virtual void		CALL	Texture_Free(HTEXTURE tex) = 0;
-	virtual int			CALL	Texture_GetWidth(HTEXTURE tex, bool bOriginal=false) = 0;
-	virtual int			CALL	Texture_GetHeight(HTEXTURE tex, bool bOriginal=false) = 0;
+	virtual int			CALL	Texture_GetWidth(HTEXTURE tex) = 0;
+	virtual int			CALL	Texture_GetHeight(HTEXTURE tex) = 0;
 	virtual DWORD*		CALL	Texture_Lock(HTEXTURE tex, bool bReadOnly=true, int left=0, int top=0, int width=0, int height=0) = 0;
 	virtual void		CALL	Texture_Unlock(HTEXTURE tex) = 0;
 };
