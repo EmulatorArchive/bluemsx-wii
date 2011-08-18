@@ -12,6 +12,8 @@
 #include <gccore.h>
 #include <libpng/png.h>
 
+#include "GuiAtom.h"
+
 //!Error codes when loading images.
 enum IMG_LOAD_ERROR{
     IMG_LOAD_ERROR_NONE = 0, //!< GuiImage successfully loaded.
@@ -29,7 +31,7 @@ enum IMG_LOAD_TYPE{
 };
 
 //!Stores imagedata and is capable of loading pngs.
-class GuiImage{
+class GuiImage : public GuiAtom {
 public:
     //!Constructors.
     GuiImage();

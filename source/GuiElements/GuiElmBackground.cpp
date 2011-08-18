@@ -66,6 +66,8 @@ void GuiElmBackground::ShowVersion(GuiEffect *effect)
 
         // Show it
         AddTop(sprTxt, effect);
+    }else{
+        Delete(effect); // delete because we don't use it
     }
 }
 
@@ -74,6 +76,8 @@ void GuiElmBackground::HideVersion(GuiEffect *effect)
     if( sprTxt != NULL ) {
         RemoveAndDelete(sprTxt, effect);
         sprTxt = NULL;
+    }else{
+        Delete(effect); // delete because we don't use it
     }
 }
 

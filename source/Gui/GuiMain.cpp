@@ -575,7 +575,7 @@ void GuiMain::Main(void)
 {
     // Resources
     GuiFontInit();
-    GuiImageInit(this);
+    GuiImageInit();
     SetPointerImage(g_imgMousecursor);
 
     // Background

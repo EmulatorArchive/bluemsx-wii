@@ -405,6 +405,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\source\GuiBase\GuiAtom.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\source\GuiBase\GuiAtom.h"
+					>
+				</File>
+				<File
 					RelativePath="..\source\GuiBase\GuiContainer.cpp"
 					>
 				</File>
