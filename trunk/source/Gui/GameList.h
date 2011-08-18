@@ -20,7 +20,7 @@ class GuiRootContainer;
 class GameList
 {
 public:
-    GameList(GuiRootContainer *root);
+    GameList();
     virtual ~GameList();
 
     int Load(const char *filename);

@@ -74,7 +74,7 @@ void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfro
 
 bool GuiEffectFade::CancelLayer(GuiLayer *layer, LayerTransform *transform)
 {
-    if( m_poLayer->GetID() == layer->GetID() ) {
+    if( m_poLayer == layer ) {
         // Since we're dealing with just one layer canceling this layer
         //   means the effect is done.
         *transform = m_oTransform;

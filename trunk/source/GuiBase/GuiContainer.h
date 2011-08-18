@@ -19,7 +19,6 @@ typedef struct _LayerEffect {
     GuiEffect *effect;
     GuiLayer  *add_layer;
     GuiLayer  *remove_layer;
-    bool      delete_layer;
 } LayerEffect;
 
 typedef std::list<GuiLayer*>::iterator LayerIndex;
@@ -33,12 +32,11 @@ public:
     virtual ~GuiContainer();
 
     // Callbacks
-    virtual void OnDelete(GuiLayer *layer) {};
+    virtual void OnDelete(GuiAtom *atom) {};
 
     // Utility
     void Lock(void);
     void Unlock(void);
-    static GuiRootContainer* GetRootContainer(void);
     GuiContainer* GetParentContainer(void);
     void SetPointerImage(GuiImage *image);
     GuiImage* GetPointerImage(void);
@@ -58,7 +56,6 @@ public:
     // Layer order management
     int GetIndex(GuiLayer *layer);
     int GetFixedLayers(void);
-    void DeleteAll(void);
 
     // Layer order management
     virtual void AddTop(GuiLayer *layer, GuiEffect *effect = NULL);
@@ -68,12 +65,7 @@ public:
     virtual void AddBottom(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void Remove(GuiLayer *layer, GuiEffect *effect = NULL);
     virtual void RemoveAndDelete(GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void Delete(GuiLayer *layer);
-
-protected:
-    void RegisterForDelete(GuiLayer *layer);
-    bool IsRegisteredForDelete(GuiLayer *layer);
-    static GuiRootContainer *_root;
+    virtual void Delete(GuiAtom *atom);
 
 private:
     // Internal layer administration
@@ -83,7 +75,7 @@ private:
     LayerIndex LayerGetIndex(GuiLayer* layer);
 
     void DeleteDirect(GuiLayer *layer);
-    void PrivateRemove(GuiLayer *layer, bool needdelete, GuiEffect *effect);
+    void PrivateRemove(GuiLayer *layer, GuiEffect *effect);
 
     GuiContainer *_parent;
     GuiImage* pointer_image;

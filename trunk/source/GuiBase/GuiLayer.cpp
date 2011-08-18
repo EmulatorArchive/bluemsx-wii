@@ -3,7 +3,6 @@
 #include "GuiContainer.h"
 #include <math.h>
 
-u32 GuiLayer::_highest_id = 0;
 CMutex GuiLayer::_mutex;
 
 GuiLayer::GuiLayer(GuiContainer *parent, const char *name) :
@@ -17,9 +16,6 @@ GuiLayer::GuiLayer(GuiContainer *parent, const char *name) :
     _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0),
     _stretchWidth(1.0f), _stretchHeight(1.0f)
 {
-    if( _parent != NULL ) {
-        _parent->RegisterForDelete(this);
-    }
     _transform.valid = false;
     _transform.offsetX = 0.0f;
     _transform.offsetY = 0.0f;
@@ -29,7 +25,6 @@ GuiLayer::GuiLayer(GuiContainer *parent, const char *name) :
     _transform.alpha = 255;
 
     _mutex.Lock();
-    _id = ++_highest_id;
     _mutex.Unlock();
 }
 
@@ -44,11 +39,6 @@ GuiContainer* GuiLayer::GetParent() const
 const char* GuiLayer::GetName() const
 {
     return _name;
-}
-
-u32 GuiLayer::GetID() const
-{
-    return _id;
 }
 
 u32 GuiLayer::GetHeight() const{

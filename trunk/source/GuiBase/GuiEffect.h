@@ -1,9 +1,10 @@
 #ifndef _GUI_EFFECT_H
 #define _GUI_EFFECT_H
 
+#include "../GuiBase/GuiAtom.h"
 #include "../GuiBase/GuiLayer.h"
 
-class GuiEffect {
+class GuiEffect : public GuiAtom {
 public:
     GuiEffect();
     virtual ~GuiEffect();

@@ -30,7 +30,7 @@ extern GuiImage *g_imgFrameB;
 extern GuiImage *g_imgFrameC;
 extern GuiImage *g_imgInputBar;
 
-extern void GuiImageInit(GuiRootContainer *root);
+extern void GuiImageInit(void);
 extern void GuiImageClose(GuiRootContainer *root);
 
 #endif

@@ -18,9 +18,8 @@
   Game Element
  *************************************************/
 
-GameElement::GameElement(GuiRootContainer *root)
+GameElement::GameElement()
 {
-    root_container = root;
     next = NULL;
     name = NULL;
     cmdline = NULL;
@@ -33,9 +32,8 @@ GameElement::GameElement(GuiRootContainer *root)
     memset(key_map, 0, sizeof(key_map)); /* set to EC_NONE */
 }
 
-GameElement::GameElement(GuiRootContainer *root, GameElement *parent)
+GameElement::GameElement(GameElement *parent)
 {
-    root_container = root;
     next = NULL;
     name = NULL;
     cmdline = NULL;
@@ -58,8 +56,8 @@ GameElement::~GameElement()
     if( cmdline ) free(cmdline);
     if( screenshot[0] ) free(screenshot[0]);
     if( screenshot[1] ) free(screenshot[1]);
-    if( image[0] ) root_container->ReleaseImage(image[0]);
-    if( image[1] ) root_container->ReleaseImage(image[1]);
+    if( image[0] ) GuiRootContainer::ReleaseAtom(image[0]);
+    if( image[1] ) GuiRootContainer::ReleaseAtom(image[1]);
     if( cheatfile ) free (cheatfile);
 }
 
@@ -165,7 +163,7 @@ int GameElement::GetKeyMapping(BTN key)
 void GameElement::FreeImage(int number)
 {
     if( image[number] ) {
-        root_container->ReleaseImage(image[number]);
+        GuiRootContainer::ReleaseAtom(image[number]);
         image[number] = NULL;
     }
 }
@@ -176,9 +174,9 @@ GuiImage* GameElement::GetImage(int number)
         char *filename = GetScreenShot(number);
         if( filename ) {
             DirectoryHelper dir;
-            image[number] = root_container->CreateImage();
+            image[number] = new GuiImage();
             if(image[number]->LoadImage(dir.CreatePath("Screenshots/", filename)) != IMG_LOAD_ERROR_NONE) {
-                root_container->ReleaseImage(image[number]);
+                GuiRootContainer::ReleaseAtom(image[number]);
                 image[number] = NULL;
             }
         }

@@ -409,7 +409,7 @@ GameElement *GuiDlgGameSelect::DoModal(void)
     }while( restart );
 
     if( returnValue != NULL ) {
-        GameElement *game = new GameElement(GetRootContainer(), returnValue);
+        GameElement *game = new GameElement(returnValue);
         games.Clear();
         return game;
     }else{
@@ -419,7 +419,7 @@ GameElement *GuiDlgGameSelect::DoModal(void)
 }
 
 GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiElmBackground *bgr)
-                 :GuiDialog(parent, name), games(parent->_root)
+                 :GuiDialog(parent, name)
 {
     list = new GuiElmSelectionList(this, name, NUM_LIST_ITEMS);
 

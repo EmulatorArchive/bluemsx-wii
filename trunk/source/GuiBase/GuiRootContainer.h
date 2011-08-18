@@ -1,7 +1,7 @@
 #ifndef _GUI_ROOTCONTAINER_H
 #define _GUI_ROOTCONTAINER_H
 
-#include <list>
+#include <map>
 
 #include "GameWindow.h"
 #include "GuiContainer.h"
@@ -17,10 +17,10 @@ class GuiImage;
 
 typedef void (*GUIFUNC_MAIN)(GuiRootContainer *);
 
-typedef struct {
-    GuiImage* image;
-    int count;
-} ImageRef;
+typedef std::map<GuiAtom*, int> TAtomRefMap;
+typedef std::pair<GuiAtom*, int> TAtomRefPair;
+typedef std::map<GuiAtom*, int>::iterator TAtomRefIterator;
+
 
 class GuiRootContainer : public GuiContainer {
 public:
@@ -39,10 +39,11 @@ public:
     u32 GetHeight(void);
 
     // Image management
-    GuiImage *CreateImage();
-    GuiTextImage *CreateTextImage();
-    void UseImage(GuiImage *image);
-    void ReleaseImage(GuiImage *image);
+    static void RegisterAtom(GuiAtom *atom);
+    static bool IsAtomRegistered(GuiAtom *atom);
+    static void UseAtom(GuiAtom *atom);
+    static void ReleaseAtom(GuiAtom *atom);
+    void DeleteAllAtoms(void);
 
 protected:
     static void RunMainFunc(void *context);
@@ -54,9 +55,9 @@ private:
     CMutex mutex;
     bool stop_requested;
 
-    // Image management
-    CMutex image_lock;
-    std::list<ImageRef> image_ref;
+    // Atom ref counting
+    static CMutex atom_lock;
+    static TAtomRefMap atom_ref;
 };
 
 #endif

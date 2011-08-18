@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <gccore.h>
 
+#include "GuiAtom.h"
 #include "Mutex.h"
 
 #ifndef GUI_PI
@@ -46,7 +47,7 @@ public:
 };
 
 //!Drawable objects should derive from this class. Layers can be managed by LayerManagers.
-class GuiLayer{
+class GuiLayer : public GuiAtom {
 public:
     //Constructor.
     GuiLayer(GuiContainer *parent, const char *name);
@@ -55,7 +56,6 @@ public:
 
     GuiContainer* GetParent() const;
     const char* GetName() const;
-    u32 GetID() const;
 
     //!Gets the height of the layer.
     //!\return the current height of this layer.

@@ -9,20 +9,22 @@
 
 GameWindow *g_poGwd = NULL;
 
-GuiRootContainer::GuiRootContainer()
-                 :GuiContainer(NULL, "root")
+CMutex GuiRootContainer::atom_lock;
+TAtomRefMap GuiRootContainer::atom_ref;
+
+GuiRootContainer::GuiRootContainer() :
+                  GuiContainer(NULL, "root")
 {
-    assert(_root == NULL); // only one root allowed
-    _root = this;
+    SetRootContainer(this);
     g_poGwd = &gwd;
     stop_requested = false;
 }
 
 GuiRootContainer::~GuiRootContainer()
 {
-	DeleteAll();
+    DeleteAllAtoms();
     gwd.StopVideo();
-    _root = NULL;
+    SetRootContainer(NULL);
 }
 
 /*---------------------*/
@@ -97,64 +99,64 @@ void GuiRootContainer::SetMode(GW_VIDEO_MODE mode)
 
 // Image management
 
-GuiImage* GuiRootContainer::CreateImage()
+void GuiRootContainer::RegisterAtom(GuiAtom *atom)
 {
-    ImageRef ref;
-    GuiImage *image = new GuiImage();
-    ref.image = image;
-    ref.count = 1;
-	image_lock.Lock();
-    image_ref.push_back(ref);
-	image_lock.Unlock();
-    return image;
+    atom_lock.Lock();
+    TAtomRefIterator it = atom_ref.find(atom);
+    assert( it == atom_ref.end() );
+    atom_ref.insert(TAtomRefPair(atom, 1));
+    atom_lock.Unlock();
 }
 
-GuiTextImage* GuiRootContainer::CreateTextImage()
+bool GuiRootContainer::IsAtomRegistered(GuiAtom *atom)
 {
-    ImageRef ref;
-    GuiTextImage *image = new GuiTextImage();
-    ref.image = image;
-    ref.count = 1;
-	image_lock.Lock();
-    image_ref.push_back(ref);
-	image_lock.Unlock();
-    return image;
+    atom_lock.Lock();
+    TAtomRefIterator it = atom_ref.find(atom);
+    bool bRegistered = ( it != atom_ref.end() );
+    atom_lock.Unlock();
+    return bRegistered;
 }
 
-void GuiRootContainer::UseImage(GuiImage *image)
+void GuiRootContainer::UseAtom(GuiAtom *atom)
 {
-	image_lock.Lock();
-    std::list<ImageRef>::iterator it;
-    for( it = image_ref.begin(); it != image_ref.end(); ++it ) {
-        ImageRef &ref = *it;
-        if( ref.image == image ) {
-            ref.count++;
-			image_lock.Unlock();
-            return;
-        }
+    atom_lock.Lock();
+    TAtomRefIterator it = atom_ref.find(atom);
+    assert( it != atom_ref.end() );
+    (*it).second++;
+    atom_lock.Unlock();
+}
+
+void GuiRootContainer::ReleaseAtom(GuiAtom *atom)
+{
+    atom_lock.Lock();
+    TAtomRefIterator it = atom_ref.find(atom);
+    assert( it != atom_ref.end() );
+    if( --(*it).second == 0 ) {
+        atom_ref.erase(it);
+        delete atom;
     }
-	image_lock.Unlock();
-    assert(0);
-    return;
+    atom_lock.Unlock();
 }
 
-void GuiRootContainer::ReleaseImage(GuiImage *image)
+void GuiRootContainer::DeleteAllAtoms(void)
 {
-	image_lock.Lock();
-    std::list<ImageRef>::iterator it;
-    for( it = image_ref.begin(); it != image_ref.end(); ++it ) {
-        ImageRef &ref = *it;
-        if( ref.image == image ) {
-            if( --ref.count == 0 ) {
-                delete image;
-                image_ref.erase(it);
-            }
-			image_lock.Unlock();
-            return;
-        }
+    atom_lock.Lock();
+    TAtomRefIterator it = atom_ref.begin();
+#ifdef DEBUG
+    if( it != atom_ref.end() ) {
+        printf("There are unfreed resources detected\n");
+        DebugBreak();
     }
-	image_lock.Unlock();
-    assert(0);
-    return;
+#endif
+    while( it != atom_ref.end() ) {
+        GuiAtom *atom = (*it).first;
+#ifdef DEBUG
+        printf("Unfreed GuiAtom 0x%x ref = %d\n", (*it).first, (*it).second);
+#endif
+        atom_ref.erase(it);
+        delete atom;
+        it = atom_ref.begin();
+    }
+    atom_lock.Unlock();
 }
 

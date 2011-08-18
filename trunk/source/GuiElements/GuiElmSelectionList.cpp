@@ -202,7 +202,7 @@ void GuiElmSelectionList::CleanUp(void)
     Lock();
 
     if( listline != NULL ) {
-        GetParentContainer()->Delete(listline);
+        Delete(listline);
         listline = NULL;
     }
     if( is_showing ) {
@@ -423,7 +423,7 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
     sprArrowUp = new GuiSprite(this, "arrow_up");
     sprArrowUp->SetImage(g_imgArrow);
     sprArrowUp->SetRefPixelPosition((f32)(g_imgArrow->GetWidth()/2),
-		                            (f32)(g_imgArrow->GetHeight()/2));
+                                    (f32)(g_imgArrow->GetHeight()/2));
     sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2);
     sprArrowUp->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
     sprArrowUp->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());
@@ -433,7 +433,7 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
     sprArrowDown = new GuiSprite(this, "arrow_down");
     sprArrowDown->SetImage(g_imgArrow);
     sprArrowDown->SetRefPixelPosition((f32)(g_imgArrow->GetWidth()/2),
-		                              (f32)(g_imgArrow->GetHeight()/2));
+                                      (f32)(g_imgArrow->GetHeight()/2));
     sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2);
     sprArrowDown->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
     sprArrowDown->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());

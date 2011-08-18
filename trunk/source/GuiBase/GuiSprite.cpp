@@ -44,10 +44,10 @@ GuiSprite::~GuiSprite(){
 void GuiSprite::CleanUp(void)
 {
     if( _image ) {
-        GetParent()->GetRootContainer()->ReleaseImage(_image);
+        GetParent()->GetRootContainer()->ReleaseAtom(_image);
     }
-	_image = NULL;
-	_draw_image = NULL;
+    _image = NULL;
+    _draw_image = NULL;
 }
 
 void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
@@ -94,12 +94,12 @@ void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
 
 void GuiSprite::SetImage(GuiImage* image, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
-    GetParent()->GetRootContainer()->UseImage(image);
+    GetParent()->GetRootContainer()->UseAtom(image);
     SetImageIntern(image, NULL, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
 }
 void GuiSprite::SetImage(GuiTextImage* drawimage, u32 clipWidth, u32 clipHeight, u32 clipOffsetX, u32 clipOffsetY)
 {
-    GetParent()->GetRootContainer()->UseImage(drawimage);
+    GetParent()->GetRootContainer()->UseAtom(drawimage);
     SetImageIntern(NULL, drawimage, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
 }
 
@@ -108,22 +108,22 @@ GuiImage* GuiSprite::GetImage() const{
 }
 
 bool GuiSprite::LoadImage(const unsigned char *buf){
-    GuiImage *image = GetParent()->GetRootContainer()->CreateImage();
+    GuiImage *image = new GuiImage();
     if(image->LoadImage(buf) == IMG_LOAD_ERROR_NONE) {
         SetImageIntern(image, NULL, 0, 0, 0, 0);
         return true;
     }else{
-        GetParent()->GetRootContainer()->ReleaseImage(image);
+        GetParent()->GetRootContainer()->ReleaseAtom(image);
         return false;
     }
 }
 bool GuiSprite::LoadImage(const char *file){
-    GuiImage *image = GetParent()->GetRootContainer()->CreateImage();
+    GuiImage *image = new GuiImage();
     if(image->LoadImage(file) == IMG_LOAD_ERROR_NONE) {
         SetImageIntern(image, NULL, 0, 0, 0, 0);
         return true;
     }else{
-        GetParent()->GetRootContainer()->ReleaseImage(image);
+        GetParent()->GetRootContainer()->ReleaseAtom(image);
         return false;
     }
 }
@@ -135,7 +135,7 @@ void GuiSprite::CreateTextImageVA(TextRender* font, int size, int minwidth, int 
     CleanUp();
 
     // Create new DrawableImage
-    GuiTextImage* drawimage = GetParent()->GetRootContainer()->CreateTextImage();
+    GuiTextImage* drawimage = new GuiTextImage();
     drawimage->SetFont(font);
     drawimage->SetSize(size);
     drawimage->SetYSpacing(yspace);
@@ -151,6 +151,7 @@ void GuiSprite::CreateTextImageVA(TextRender* font, int size, int minwidth, int 
     drawimage->RenderTextVA(center, fmt, valist);
 
     SetImage(drawimage, txtwidth, txtheight);
+    Delete(drawimage);
 }
 
 void GuiSprite::CreateTextImage(TextRender* font, int size, int minwidth, int yspace, bool center,
@@ -168,10 +169,11 @@ void GuiSprite::CreateDrawImage(int width, int height, int format)
     CleanUp();
 
     // Create new GuiTextImage
-    GuiTextImage* drawimage = GetParent()->GetRootContainer()->CreateTextImage();
+    GuiTextImage* drawimage = new GuiTextImage();
     drawimage->CreateImage(width, height, format);
 
     SetImage(drawimage, width, height);
+    Delete(drawimage);
 }
 
 void GuiSprite::FillSolidColor(u8 r, u8 g, u8 b)
