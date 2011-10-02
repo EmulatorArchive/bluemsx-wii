@@ -714,7 +714,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {   
         case WM_CREATE: 
             return FALSE;
-        
+
+        case WM_CLOSE:
+            return FALSE;
+
         case WM_PAINT:
             if(pHGE->pD3D && pHGE->procRenderFunc && pHGE->bWindowed) pHGE->procRenderFunc();
             break;

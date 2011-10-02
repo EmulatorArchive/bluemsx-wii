@@ -8,7 +8,7 @@
 #include <gccore.h>
 
 #include "../GuiBase/GuiDialog.h"
-#include "../GuiBase/GuiEffectFade.h"
+#include "../GuiBase/GuiRect.h"
 #include "../GuiBase/GuiSprite.h"
 
 #include "../GuiElements/GuiElmFrame.h"
@@ -19,20 +19,22 @@
 #define SCROLL_TIME 500
 #define REPEAT_TIME 200
 
-#define SELECTION_FADE_TIME  10
-#define SELECTION_FADE_DELAY 2
-#define SELECTION_EFFECT new GuiEffectFade(SELECTION_FADE_TIME, SELECTION_FADE_DELAY)
+#define SELECTION_FADE_TIME  15
+#define SELECTION_FADE_DELAY 5
 
 //-----------------------
 
-GuiElmListLineDefault::GuiElmListLineDefault(GuiContainer *parent, const char *name,
-                                             GXColor fontcol, int fontsz, bool cntr)
-                     : GuiElmListLine(parent, name)
+GuiElmListLineDefault::GuiElmListLineDefault(GuiElement *parent, const char *name,
+                                             GXColor fontcol, int fontsz, float xspace, bool cntr) :
+                       GuiElmListLine(parent, name)
 {
     text = NULL;
     sprite = NULL;
+    selector = NULL;
+    m_bEnableEffect = false;
     fontcolor = fontcol;
     fontsize = fontsz;
+    xspacing = xspace;
     center = cntr;
 }
 
@@ -40,167 +42,122 @@ GuiElmListLineDefault::~GuiElmListLineDefault()
 {
     if( sprite != NULL ) {
         RemoveAndDelete(sprite);
-        sprite = NULL;
     }
+    if( selector != NULL ) {
+        RemoveAndDelete(selector);
+    }
+}
+
+GuiElmListLine* GuiElmListLineDefault::Create(GuiElement *parent)
+{
+    return new GuiElmListLineDefault(parent, text,
+                                     fontcolor, fontsize, xspacing, center);
 }
 
 void GuiElmListLineDefault::Initialize(void *item)
 {
     text = (const char *)item;
+
     sprite = new GuiSprite(this, "textsprite");
-    sprite->CreateTextImage(g_fontArial, fontsize, GetWidth(), 0, center, fontcolor, text);
-    sprite->SetPosition(0, fontsize/3);
+    sprite->CreateTextImage(g_fontArial, fontsize, (int)GetWidth(), 0, center, fontcolor, text);
+    sprite->SetPosition(xspacing, (float)fontsize/3);
     AddTop(sprite);
 }
 
-GuiElmListLine* GuiElmListLineDefault::Create(GuiContainer *parent)
+void GuiElmListLineDefault::EnableEffect(bool enable)
 {
-    return new GuiElmListLineDefault(parent, text,
-                                     fontcolor, fontsize, center);
+    m_bEnableEffect = enable;
 }
 
-COLL GuiElmListLineDefault::CollidesWith(GuiSprite* spr, bool complete)
+bool GuiElmListLineDefault::OnTestActiveArea(float x, float y)
 {
-    assert( sprite != NULL );
-    return sprite->CollidesWith(spr, complete);
+    return IsInVisibleArea(x, y);
 }
 
+void GuiElmListLineDefault::OnActive(bool active)
+{
+    if( active && sprite != NULL ) {
+        selector = new GuiSprite(this, "selector", g_imgSelector, 0, 0);
+        selector->SetScaledWidth(GetWidth());
+        selector->SetScaledHeight(GetHeight());
+        AddBehind(sprite, selector, m_bEnableEffect? new GuiEffectFade(SELECTION_FADE_TIME) : NULL);
+    }
+    if( !active && selector != NULL ) {
+        RemoveAndDelete(selector, m_bEnableEffect? new GuiEffectFade(SELECTION_FADE_TIME, SELECTION_FADE_DELAY) : NULL);
+        selector = NULL;
+    }
+}
 
 //-----------------------
 
-bool GuiElmSelectionList::ElmSetSelectedOnCollision(GuiSprite *sprite)
+GuiElmSelectionList::GuiElmSelectionList(GuiElement *parent, const char *name, int rows) :
+                     GuiElement(parent, name),
+                     effectDefault(SELECTION_FADE_TIME, SELECTION_FADE_DELAY)
 {
-    bool return_value = false;
-
-    Lock();
-
-    for(int i = upper_index; i <= lower_index; i++) {
-        if( visible_items[i] != NULL ) {
-            COLL coll = visible_items[i]->CollidesWith(sprite);
-            if( coll == COLL_UNKNOWN ) {
-                Unlock();
-                return false;
-            }
-            if( coll == COLL_COLLISION ) {
-                if( i != selected ) {
-                    selected = i;
-                }
-                return_value = true;
-                break;
-            }else{
-                if( i == 2 ) {
-                    i=2;
-                }
-            }
-        }
-    }
-    SetSelectedItem();
-
-    Unlock();
-
-    return return_value;;
+    num_item_rows = rows;
+    is_showing = false;
+    listline = NULL;
+    sprCursor = NULL;
+    selected_item = -1;
+    visible_items = new GuiElmListLine*[rows];
+    memset(visible_items, 0, rows * sizeof(GuiElmListLine*));
 }
 
-void GuiElmSelectionList::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
+GuiElmSelectionList::~GuiElmSelectionList()
 {
-    Lock();
-
-    if( sel ) {
-        int s = -1;
-        for(int i = upper_index; i <= lower_index; i++) {
-            if( visible_items[i] != NULL && pointer != NULL &&
-                visible_items[i]->CollidesWith(pointer) == COLL_COLLISION ) {
-                s = i;
-                break;
-            }
-        }
-        for(int i = upper_index; s < 0 && i <= lower_index; i++) {
-            if( visible_items[i] == NULL ||
-               (int)visible_items[i]->GetY() + visible_items[i]->GetHeight() / 2 > (unsigned)y )
-            {
-                break;
-            }
-            s = i;
-        }
-        if( s < 0 ) {
-            s = upper_index;
-        }
-        if( s != selected ) {
-            selected = s;
-        }
-    }else{
-        // We're never deselected, just inactive
-        is_active = false;
-    }
-
-    Unlock();
+    CleanUp();
+    delete[] visible_items;
 }
 
-bool GuiElmSelectionList::ElmGetRegion(int *px, int *py, int *pw, int *ph)
+//-----------------------
+
+void GuiElmSelectionList::OnSelect(GuiElement *element)
 {
-    if( is_showing ) {
-        *px = xpos;
-        *py = ypos;
-        *pw = xsize;
-        *ph = ypitch*num_item_rows;
-        return true;
-    }else{
-        return false;
+    for(int i = 0; i < num_item_rows; i++) {
+        if( visible_items[i] == element ) {
+            selected_item = index + i;
+            break;
+        }
     }
 }
 
-bool GuiElmSelectionList::ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed)
+bool GuiElmSelectionList::OnKey(GuiDialog *dlg, BTN key, bool pressed)
 {
-    if( pressed &&
-        dlg->GetSelected(false) == this )
-    {
+    bool handled = false;
+
+    // Handle selection movement (arrow keys)
+    if( HasFocus() && pressed ) {
         switch( key ) {
             case BTN_UP:
             case BTN_JOY1_UP:
             case BTN_JOY2_UP:
-                DoKeyUp();
-                return true;
+                if( GetFocusElement() == visible_items[1] && index > 0 ) {
+                    UpdateList(UPDATELIST_SCROLL_UP);
+                    handled = true;
+                }
+                break;
             case BTN_DOWN:
             case BTN_JOY1_DOWN:
             case BTN_JOY2_DOWN:
-                DoKeyDown();
-                return true;
+                if( GetFocusElement() == visible_items[num_item_rows-2] && index + num_item_rows < num_items ) {
+                    UpdateList(UPDATELIST_SCROLL_DOWN);
+                    handled = true;
+                }
+                break;
             default:
                 break;
         }
     }
-    return false;
+    if( !handled ) {
+        handled = GuiElement::OnKey(dlg, key, pressed);
+    }
+    return handled;
 }
 
 //-----------------------
 
-void GuiElmSelectionList::DoKeyUp(void)
-{
-    if( selected > upper_index ) {
-        selected--;
-    }else{
-        if( index > 0 ) {
-            index--;
-        }
-    }
-}
-
-void GuiElmSelectionList::DoKeyDown(void)
-{
-    if( selected < lower_index &&
-        visible_items[selected+1] != NULL ) {
-        selected++;
-    }else{
-        if( index+selected < num_items-1 ) {
-            index++;
-        }
-    }
-}
-
 void GuiElmSelectionList::CleanUp(void)
 {
-    Lock();
-
     if( listline != NULL ) {
         Delete(listline);
         listline = NULL;
@@ -209,41 +166,28 @@ void GuiElmSelectionList::CleanUp(void)
         // Titles
         for(int i = 0; i < num_item_rows; i++) {
             if( visible_items[i] != NULL ) {
-                RemoveAndDelete(visible_items[i], SELECTION_EFFECT);
+                RemoveAndDelete(visible_items[i], effectDefault);
                 visible_items[i] = NULL;
             }
         }
 
         // Arrows
         if( sprArrowUp != NULL ) {
-            RemoveAndDelete(sprArrowUp, SELECTION_EFFECT);
+            RemoveAndDelete(sprArrowUp, effectDefault);
             sprArrowUp = NULL;
         }
         if( sprArrowDown != NULL ) {
-            RemoveAndDelete(sprArrowDown, SELECTION_EFFECT);
+            RemoveAndDelete(sprArrowDown, effectDefault);
             sprArrowDown = NULL;
-        }
-
-        // Title list
-        if( sprSelector != NULL ) {
-            RemoveAndDelete(sprSelector, SELECTION_EFFECT);
-            sprSelector = NULL;
         }
 
         is_showing = false;
     }
-
-    Unlock();
-}
-
-void GuiElmSelectionList::ClearTitleList(void)
-{
-    current_index = -1;
 }
 
 int GuiElmSelectionList::GetSelectedItem(void)
 {
-    return selected;
+    return selected_item;
 }
 
 void GuiElmSelectionList::SetNumberOfItems(int num)
@@ -258,73 +202,112 @@ bool GuiElmSelectionList::IsShowing(void)
 
 int GuiElmSelectionList::IsActive(void)
 {
-    return is_showing && is_active;
+    return is_showing;
 }
 
-void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
+void GuiElmSelectionList::UpdateList(UPDATELIST update)
 {
     Lock();
 
-    // Render text
-    if( index == current_index && current_index != -1 ) {
-        // Index not changed, nothing to update
-    }else
-    if( index == current_index+1 && current_index != -1 ) {
+    int selected = GetSelectedItem();
+    if( selected >= 0 ) {
+        selected -= index;
+    }
+
+    if( update == UPDATELIST_SCROLL_DOWN ) {
+        GuiElmListLine *restore_element = NULL;
+        if( selected >= 0 ) {
+            restore_element = visible_items[selected];
+            restore_element->EnableEffect(false);
+        }
         // move list up
+        index++;
         RemoveAndDelete(visible_items[0]);
-        for(int i = 0, yy = ypos; i < num_item_rows-1; i++, yy += ypitch) {
+        float yy = 0.0f;
+        for(int i = 0; i < num_item_rows-1; i++) {
             visible_items[i] = visible_items[i+1];
-            visible_items[i]->SetPosition(xpos + xspacing, yy);
+            visible_items[i]->SetPosition(0.0f, yy);
             visible_items[i]->SetVisible(true);
+            yy += ypitch;
         }
         GuiElmListLine* line = listline->Create(this);
-        line->SetWidth(xsize-2*xspacing);
-        line->SetHeight(ypitch);
+        line->SetWidth(GetWidth());
+        line->SetHeight(rowheight);
         line->Initialize(item_list[num_item_rows-1+index]);
-        line->SetPosition(xpos + xspacing, ypos + (num_item_rows-1)*ypitch);
-        AddOnTopOf(visible_items[num_item_rows-1], line, SELECTION_EFFECT);
+        line->SetPosition(0.0f, (num_item_rows-1)*ypitch);
+        line->EnableEffect(true);
+        AddOnTopOf(visible_items[num_item_rows-1], line, effectDefault);
         visible_items[num_item_rows-1] = line;
+        // preserve current selection
+        if( restore_element != NULL ) {
+            visible_items[selected]->EnableEffect(false);
+            visible_items[selected]->SetFocus(true);
+            visible_items[selected]->EnableEffect(true);
+            restore_element->EnableEffect(true);
+        }
+        line->EnableEffect(true);
     }else
-    if( index == current_index-1 ) {
+    if( update == UPDATELIST_SCROLL_UP ) {
+        if( selected >= 0 ) {
+            visible_items[selected]->EnableEffect(false);
+            //visible_items[selected]->SetFocus(false);
+            SetActiveElement(NULL);
+            visible_items[selected]->EnableEffect(true);
+        }
         // move list down
+        index--;
         if( visible_items[num_item_rows-1] ) {
             RemoveAndDelete(visible_items[num_item_rows-1]);
         }
-        for(int i = num_item_rows-1, yy = ypos+(num_item_rows-1)*ypitch; i > 0; i--, yy -= ypitch) {
+        float yy = ypitch * (num_item_rows - 1);
+        for(int i = num_item_rows-1; i > 0; i--) {
             visible_items[i] = visible_items[i-1];
-            visible_items[i]->SetPosition(xpos + xspacing, yy);
+            visible_items[i]->SetPosition(0.0f, yy);
             visible_items[i]->SetVisible(true);
+            yy -= ypitch;
         }
         GuiElmListLine* line = listline->Create(this);
-        line->SetWidth(xsize-2*xspacing);
-        line->SetHeight(ypitch);
+        line->SetWidth(GetWidth());
+        line->SetHeight(rowheight);
         line->Initialize(item_list[0+index]);
-        line->SetPosition(xpos + xspacing, ypos);
-        AddOnTopOf(visible_items[0], line, SELECTION_EFFECT);
+        line->SetPosition(0, 0);
+        line->EnableEffect(true);
+        AddOnTopOf(visible_items[0], line, effectDefault);
         visible_items[0] = line;
-    }else{
+        // preserve current selection
+        if( selected >= 0 ) {
+            visible_items[selected]->EnableEffect(false);
+            visible_items[selected]->SetFocus(true);
+            visible_items[selected]->EnableEffect(true);
+        }
+        line->EnableEffect(true);
+    }else
+    if( update == UPDATELIST_REBUILD ) {
         // rebuild
-        for(int i = 0, yy = ypos; i < num_item_rows; i++, yy += ypitch) {
+        float yy = 0.0f;
+        for(int i = 0; i < num_item_rows; i++) {
             if( i < num_items ) {
                 GuiElmListLine* line = listline->Create(this);
-                line->SetWidth(xsize-2*xspacing);
-                line->SetHeight(ypitch);
+                line->SetWidth(GetWidth());
+                line->SetHeight(rowheight);
                 line->Initialize(item_list[i+index]);
-                line->SetPosition(xpos + xspacing, yy);
+                line->SetPosition(0.0f, yy);
                 line->SetVisible(true);
+                line->EnableEffect(true);
                 if( visible_items[i] != NULL ) {
-                    AddOnTopOf(visible_items[i], line, SELECTION_EFFECT);
-                    RemoveAndDelete(visible_items[i], SELECTION_EFFECT);
+                    AddOnTopOf(visible_items[i], line, effectDefault);
+                    RemoveAndDelete(visible_items[i], effectDefault);
                 }else{
-                    AddTop(line, SELECTION_EFFECT);
+                    AddTop(line, effectDefault);
                 }
                 visible_items[i] = line;
             }else{
                 visible_items[i] = NULL;
             }
+            yy += ypitch;
         }
     }
-    // Up button
+    // Up arrow
     if( index > 0  ) {
         if( visible_items[0] != NULL ) {
             visible_items[0]->SetVisible(false);
@@ -338,7 +321,7 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         sprArrowUp->SetVisible(false);
         upper_index = 0;
     }
-    // Down button
+    // Down arrow
     if( index+num_item_rows < num_items ) {
         if( visible_items[num_item_rows-1] != NULL ) {
             visible_items[num_item_rows-1]->SetVisible(false);
@@ -352,47 +335,24 @@ void GuiElmSelectionList::SetSelectedItem(int fade, int delay)
         sprArrowDown->SetVisible(false);
         lower_index = num_item_rows-1;
     }
-    // Update seletion
-    if( selected != prev_selected ) {
-        if( sprSelector != NULL ) {
-            RemoveAndDelete(sprSelector, new GuiEffectFade(
-                                         (fade > 0)? fade : SELECTION_FADE_TIME,
-                                         (delay > 0)? delay : SELECTION_FADE_DELAY));
-            sprSelector = NULL;
-        }
-        if( selected >= 0 ) {
-            GuiLayer *selectedline = visible_items[selected];
-            sprSelector = new GuiSprite(this, "selector");
-            sprSelector->SetImage(g_imgSelector);
-            sprSelector->SetRefPixelPosition(0, 0);
-            sprSelector->SetPosition(selectedline->GetX()-xspacing,selectedline->GetY());
-            sprSelector->SetStretchWidth((float)xsize / sprSelector->GetWidth());
-            sprSelector->SetStretchHeight((float)ypitch * 1.15f / sprSelector->GetHeight());
-            AddBottom(sprSelector, new GuiEffectFade((fade > 0)? fade : SELECTION_FADE_TIME));
-            is_active = true;
-        }
-        prev_selected = selected;
-    }
-    current_index = index;
 
     Unlock();
 }
 
 
 void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, int num, int select,
-                                        int pitchy, int posx, int posy, int xspace, int width)
+                                        float pitchy, float posx, float posy, float width)
 {
-    Lock();
-
     CleanUp();
 
     assert( listln != NULL );
     listline = listln;
-    xpos = posx;
-    ypos = posy;
-    xsize = width;
-    xspacing = xspace;
+    SetWidth(width);
     ypitch = pitchy;
+    rowheight = pitchy * 1.1f;
+
+    SetHeight((num_item_rows-1) * pitchy + rowheight);
+    SetPosition(posx, posy);
 
     // Init items
     item_list = items;
@@ -416,60 +376,34 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
         index = 0;
     }
 
-    // Title list
-    ClearTitleList();
-
     // Arrows
     sprArrowUp = new GuiSprite(this, "arrow_up");
     sprArrowUp->SetImage(g_imgArrow);
-    sprArrowUp->SetRefPixelPosition((f32)(g_imgArrow->GetWidth()/2),
-                                    (f32)(g_imgArrow->GetHeight()/2));
-    sprArrowUp->SetPosition(xpos + xsize/2, ypos+ypitch/2);
-    sprArrowUp->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
-    sprArrowUp->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());
+    sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth() / 2,
+                                    g_imgArrow->GetHeight() / 2);
+    sprArrowUp->SetPosition(GetWidth()/2, ypitch/2);
+    sprArrowUp->SetScaledWidth(width / 2);
+    sprArrowUp->SetScaledHeight(ypitch / 2);
     sprArrowUp->SetRotation(180.0f);
     sprArrowUp->SetVisible(false);
 
     sprArrowDown = new GuiSprite(this, "arrow_down");
     sprArrowDown->SetImage(g_imgArrow);
-    sprArrowDown->SetRefPixelPosition((f32)(g_imgArrow->GetWidth()/2),
-                                      (f32)(g_imgArrow->GetHeight()/2));
-    sprArrowDown->SetPosition(xpos + xsize/2, ypos+(num_item_rows-1)*ypitch+ypitch/2);
-    sprArrowDown->SetStretchWidth(((float)width / 2) / g_imgArrow->GetWidth());
-    sprArrowDown->SetStretchHeight(((float)ypitch / 2) / g_imgArrow->GetHeight());
+    sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth() / 2,
+                                      g_imgArrow->GetHeight() / 2);
+    sprArrowDown->SetPosition(GetWidth()/2, (num_item_rows-1)*ypitch+ypitch/2);
+    sprArrowDown->SetScaledWidth(width / 2);
+    sprArrowDown->SetScaledHeight(ypitch / 2);
     sprArrowDown->SetVisible(false);
 
-    current_index = -1;
-    prev_selected = -1;
-    selected = -1;
-    SetSelectedItem();
-    selected = new_selected;
+    // Initialize list
+    UpdateList(UPDATELIST_REBUILD);
+    visible_items[new_selected]->SetFocus(true);
 
     // Arrows
-    AddTop(sprArrowUp, SELECTION_EFFECT);
-    AddTop(sprArrowDown, SELECTION_EFFECT);
+    AddTop(sprArrowUp, effectDefault);
+    AddTop(sprArrowDown, effectDefault);
 
     is_showing = true;
-
-    Unlock();
-}
-
-GuiElmSelectionList::GuiElmSelectionList(GuiContainer *parent, const char *name, int rows)
-                   : GuiElement(parent, name)
-{
-    num_item_rows = rows;
-    is_showing = false;
-    is_active = false;
-    listline = NULL;
-    sprSelector = NULL;
-    sprCursor = NULL;
-    visible_items = new GuiElmListLine*[rows];
-    memset(visible_items, 0, rows * sizeof(GuiElmListLine*));
-}
-
-GuiElmSelectionList::~GuiElmSelectionList()
-{
-    CleanUp();
-    delete[] visible_items;
 }
 

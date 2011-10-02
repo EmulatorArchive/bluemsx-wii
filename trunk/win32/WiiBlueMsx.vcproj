@@ -12,7 +12,7 @@
 			Name="Win32"
 		/>
 		<Platform
-			Name="CEPC_600 (x86)"
+			Name="DELEM_600 (x86)"
 		/>
 	</Platforms>
 	<ToolFiles>
@@ -111,9 +111,9 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|CEPC_600 (x86)"
-			OutputDirectory="CEPC_600\$(ConfigurationName)"
-			IntermediateDirectory="CEPC_600\$(ConfigurationName)"
+			Name="Release|DELEM_600 (x86)"
+			OutputDirectory="DELEM_600\$(ConfigurationName)"
+			IntermediateDirectory="DELEM_600\$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -137,7 +137,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="Includes;..\include\libce;..\include\d3dm;..\include;..\include\Win32;..\source\WiiSprite;CEPC_600\$(ConfigurationName)"
+				AdditionalIncludeDirectories="Includes;..\include\libce;..\include\d3dm;..\include;..\include\Win32;..\source\WiiSprite;DELEM_600\$(ConfigurationName)"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE;STANDARDSHELL_UI_MODEL;_CRT_SECURE_NO_DEPRECATE;BLUEMSXWII;_CRT_SECURE_NO_WARNINGS;NO_ERRNO_H"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -294,9 +294,9 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|CEPC_600 (x86)"
-			OutputDirectory="CEPC_600\$(ConfigurationName)"
-			IntermediateDirectory="CEPC_600\$(ConfigurationName)"
+			Name="Debug|DELEM_600 (x86)"
+			OutputDirectory="DELEM_600\$(ConfigurationName)"
+			IntermediateDirectory="DELEM_600\$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -319,7 +319,7 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				Optimization="0"
-				AdditionalIncludeDirectories="Includes;..\include\libce;..\include\d3dm;..\include;..\include\Win32;..\source\WiiSprite;CEPC_600\$(ConfigurationName)"
+				AdditionalIncludeDirectories="Includes;..\include\libce;..\include\d3dm;..\include;..\include\Win32;..\source\WiiSprite;DELEM_600\$(ConfigurationName)"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE;STANDARDSHELL_UI_MODEL;_CRT_SECURE_NO_DEPRECATE;BLUEMSXWII;_CRT_SECURE_NO_WARNINGS;NO_ERRNO_H"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -469,11 +469,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\source\GuiBase\GuiQuad.cpp"
+					RelativePath="..\source\GuiBase\GuiRect.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\source\GuiBase\GuiQuad.h"
+					RelativePath="..\source\GuiBase\GuiRect.h"
 					>
 				</File>
 				<File
@@ -498,14 +498,6 @@
 				</File>
 				<File
 					RelativePath="..\source\GuiBase\GuiTextImage.h"
-					>
-				</File>
-				<File
-					RelativePath="..\source\GuiBase\GuiTiles.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\source\GuiBase\GuiTiles.h"
 					>
 				</File>
 				<File

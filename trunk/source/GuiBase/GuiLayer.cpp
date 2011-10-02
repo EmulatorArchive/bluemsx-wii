@@ -1,189 +1,113 @@
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 
 #include "GuiLayer.h"
 #include "GuiContainer.h"
 #include <math.h>
 
-CMutex GuiLayer::_mutex;
-
-GuiLayer::GuiLayer(GuiContainer *parent, const char *name) :
-    _parent(parent),
-    _name(name),
-    _rotation(0.0f),
-    _height(0), _width(0),
-    _alpha(0xff),
-    _x(0), _y(0),
-    _visible(true),
-    _refPixelX(0), _refPixelY(0), _refWidth(0), _refHeight(0),
-    _stretchWidth(1.0f), _stretchHeight(1.0f)
+GuiLayer::GuiLayer(GuiContainer *parent, const char *name)
 {
-    _transform.valid = false;
-    _transform.offsetX = 0.0f;
-    _transform.offsetY = 0.0f;
-    _transform.stretchWidth = 1.0f;
-    _transform.stretchHeight = 1.0f;
-    _transform.rotation = 0.0f;
-    _transform.alpha = 255;
+    m_poParent = parent;
+    m_psName = name;
+    m_fRotation = 0.0f;
+    m_fHeight = 0.0f;
+    m_fWidth = 0.0f;
+    m_fAlpha = 1.0f;
+    m_fX = 0.0f;
+    m_fY = 0.0f;
+    m_bVisible = true;
+    m_fRefPixelX = 0.0f;
+    m_fRefPixelY = 0.0f;
+    m_fZoomX = 1.0f;
+    m_fZoomY = 1.0f;
 
-    _mutex.Lock();
-    _mutex.Unlock();
+    m_oTransform.valid = false;
+    m_oTransform.offsetX = 0;
+    m_oTransform.offsetY = 0;
+    m_oTransform.stretchWidth = 1.0f;
+    m_oTransform.stretchHeight = 1.0f;
+    m_oTransform.rotation = 0.0f;
+    m_oTransform.alpha = 1.0f;
 }
 
 GuiLayer::~GuiLayer(){
 }
 
-GuiContainer* GuiLayer::GetParent() const
+void GuiLayer::SetScaledWidth(float scaled_width)
 {
-    return _parent;
+    m_fZoomX = (scaled_width-1) / m_fWidth;
 }
-
-const char* GuiLayer::GetName() const
+void GuiLayer::SetScaledHeight(float scaled_height)
 {
-    return _name;
+    m_fZoomY = (scaled_height-1) / m_fHeight;
 }
 
-u32 GuiLayer::GetHeight() const{
-    return _height;
-}
-u32 GuiLayer::GetWidth() const{
-    return _width;
+float GuiLayer::GetScaledWidth(void)
+{
+    return m_fWidth * m_fZoomX;
 }
 
-f32 GuiLayer::GetX() const{
-    return _x;
-}
-f32 GuiLayer::GetY() const{
-    return _y;
+float GuiLayer::GetScaledHeight(void)
+{
+    return m_fHeight * m_fZoomY;
 }
 
-bool GuiLayer::IsVisible() const{
-    return _visible;
-}
-void GuiLayer::SetVisible(bool visible){
-    _visible = visible;
-}
-
-void GuiLayer::SetTransparency(u8 alpha){
-    _alpha = alpha;
-}
-u8 GuiLayer::GetTransparency() const{
-    return _alpha;
-}
-
-void GuiLayer::SetZoom(f32 zoom){
-    if( zoom < 0 )return;
-    _stretchWidth = zoom;
-    _stretchHeight = zoom;
-}
-f32 GuiLayer::GetZoom() const{
-    if(_stretchWidth != _stretchHeight)return 0;
-    return _stretchWidth;
-}
-void GuiLayer::SetStretchWidth(f32 stretchWidth){
-    if( stretchWidth < 0 ) return;
-    _stretchWidth = stretchWidth;
-}
-void GuiLayer::SetStretchHeight(f32 stretchHeight){
-    if( stretchHeight < 0 ) return;
-    _stretchHeight = stretchHeight;
-}
-f32 GuiLayer::GetStretchWidth() const{
-    return _stretchWidth;
-}
-f32 GuiLayer::GetStretchHeight() const{
-    return _stretchHeight;
-}
-
-void GuiLayer::SetRefPixelPosition(f32 x, f32 y){
-    _refPixelX = x;
-    _refWidth = (f32)_width-x;
-    _refPixelY = y;
-    _refHeight = (f32)_height-y;
-}
-void GuiLayer::SetRefPixelX(f32 x){
-    _refPixelX = x;
-    _refWidth = (f32)_width-x;
-}
-void GuiLayer::SetRefPixelY(f32 y){
-    _refPixelY = y;
-    _refHeight = (f32)_height-y;
-}
-f32 GuiLayer::GetRefPixelX() const{
-    return _refPixelX;
-}
-f32 GuiLayer::GetRefPixelY() const{
-    return _refPixelY;
-}
-
-void GuiLayer::SetRotation(f32 rotation){
-    _rotation = rotation;
-}
-f32 GuiLayer::GetRotation() const{
-    return _rotation;
-}
-
-void GuiLayer::SetPosition(f32 x, f32 y){
-    _x = x;
-    _y = y;
-}
-void GuiLayer::SetPosition(s32 x, s32 y){
-    _x = (f32)x;
-    _y = (f32)y;
-}
-void GuiLayer::Move(f32 deltaX, f32 deltaY){
-    _x += deltaX;
-    _y += deltaY;
-}
-void GuiLayer::SetX(f32 x){
-    _x = x;
-}
-void GuiLayer::SetX(s32 x){
-    SetX((f32)x);
-}
-void GuiLayer::SetX(u32 x){
-    SetX((f32)x);
-}
-void GuiLayer::SetY(f32 y){
-    _y = y;
-}
-void GuiLayer::SetY(s32 y){
-    SetY((f32)y);
-}
-void GuiLayer::SetY(u32 y){
-    SetY((f32)y);
-}
-
-bool GuiLayer::IsBusy(void){
+bool GuiLayer::IsBusy(void)
+{
     return false;
+}
+
+bool GuiLayer::IsInVisibleArea(float x, float y)
+{
+    return x >= m_fX && y >= m_fY && x < (m_fX + m_fWidth * m_fZoomX) && y < (m_fY + m_fHeight * m_fZoomY);
+}
+
+bool GuiLayer::IsInVisibleArea(GuiLayer *layer)
+{
+    return IsInVisibleArea(layer->GetX() + layer->GetRefPixelX(),
+                           layer->GetY() + layer->GetRefPixelY());
 }
 
 void GuiLayer::ResetTransform(LayerTransform transform)
 {
-    _transform.offsetX = _x;
-    _transform.offsetY = _y;
-    _transform.stretchWidth = _stretchWidth;
-    _transform.stretchHeight = _stretchHeight;
-    _transform.rotation = _rotation;
-    _transform.alpha = _alpha;
-    _transform.valid = true;
+    m_oTransform.offsetX = m_fX;
+    m_oTransform.offsetY = m_fY;
+    m_oTransform.stretchWidth = m_fZoomX;
+    m_oTransform.stretchHeight = m_fZoomY;
+    m_oTransform.rotation = m_fRotation;
+    m_oTransform.alpha = m_fAlpha;
+    m_oTransform.valid = true;
     DoTransform(transform);
 }
 
 void GuiLayer::DoTransform(LayerTransform transform)
 {
-    _transform.offsetX += transform.offsetX;
-    _transform.offsetY += transform.offsetY;
-    _transform.stretchWidth *= transform.stretchWidth;
-    _transform.stretchHeight *= transform.stretchHeight;
-    _transform.rotation = (f32)fmod(_transform.rotation + transform.rotation, 360.0f);
-    _transform.alpha = (u8)(((u16)_transform.alpha * transform.alpha) / 255);
+    m_oTransform.offsetX += transform.offsetX;
+    m_oTransform.offsetY += transform.offsetY;
+    m_oTransform.stretchWidth *= transform.stretchWidth;
+    m_oTransform.stretchHeight *= transform.stretchHeight;
+    m_oTransform.rotation = (float)fmod(m_oTransform.rotation + transform.rotation, 360.0f);
+    m_oTransform.alpha = m_oTransform.alpha * transform.alpha;
 }
 
-LayerTransform GuiLayer::GetTransform(void)
+void GuiLayer::Draw(void)
 {
-    return _transform;
-}
-
-void GuiLayer::Draw(void){
-    // Nothing at all :)
+    // Can be overloaded to do something usefull
 }
 

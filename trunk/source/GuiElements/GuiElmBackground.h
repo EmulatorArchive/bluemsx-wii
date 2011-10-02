@@ -2,6 +2,7 @@
 #define _GUI_BACKGROUND_H
 
 #include "../GuiBase/GuiContainer.h"
+#include "../GuiBase/GuiEffectFade.h"
 
 class GuiEffect;
 class GuiSprite;
@@ -11,15 +12,13 @@ class GuiElmBackground : public GuiContainer
     public:
         GuiElmBackground(GuiContainer *parent, const char *name);
         virtual ~GuiElmBackground();
-        void Show(GuiEffect *effect = NULL);
-        void Hide(GuiEffect *effect = NULL);
-        void ShowVersion(GuiEffect *effect = NULL);
-        void HideVersion(GuiEffect *effect = NULL);
+        void ShowVersion(void);
+        void HideVersion(void);
 
     private:
         GuiSprite *sprTxt;
         GuiSprite *sprBackground;
-        bool is_shown;
+        GuiEffectFade effectVersion;
 };
 
 #endif

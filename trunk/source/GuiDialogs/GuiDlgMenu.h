@@ -13,7 +13,7 @@ public:
     GuiDlgMenu(GuiContainer *parent, const char *name, int rows);
     virtual ~GuiDlgMenu();
 
-    void Initialize(const char **items, int num, int width);
+    void Initialize(const char **items, int num, float width);
     void CleanUp(void);
     SELRET DoModal(int *selected);
 private:

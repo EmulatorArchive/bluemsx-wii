@@ -10,15 +10,15 @@ typedef enum {
 } BTE;
 
 class GuiImage;
+class GuiRect;
 
 class GuiElmButton : public GuiElement {
 public:
-    GuiElmButton(GuiContainer *parent, const char *name);
+    GuiElmButton(GuiElement *parent, const char *name);
     virtual ~GuiElmButton();
 
-    virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);
-    virtual void ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y);
-    virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
+    virtual bool OnTestActiveArea(float x, float y);
+    virtual void OnFocus(bool focus);
 
     void CreateImageSelectorButton(GuiImage *image, int f_sel=0);
     void CreateImageHighlightButton(GuiImage *image, int f_sel=0);
@@ -29,7 +29,7 @@ private:
 
     BTE type;
     bool selected;
-    bool shown;
+    bool is_created;
     int fade_sel;
     GuiSprite *sprImage;
     GuiSprite *sprText;

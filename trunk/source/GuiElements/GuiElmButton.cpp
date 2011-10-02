@@ -2,6 +2,7 @@
 #include "GuiElmButton.h"
 
 #include "../GuiBase/GuiEffectFade.h"
+#include "../GuiBase/GuiRect.h"
 #include "../GuiBase/GuiSprite.h"
 
 #include "../Gui/GuiImages.h"
@@ -9,17 +10,17 @@
 
 #define HIHGLIGHT_OVERLAP             6
 
-#define BUTTON_TRANSPARENCY_NORMAL    160
-#define BUTTON_TRANSPARENCY_HIGHLIGHT 255
+#define BUTTON_TRANSPARENCY_NORMAL    0.6f
+#define BUTTON_TRANSPARENCY_HIGHLIGHT 1.0f
 
-GuiElmButton::GuiElmButton(GuiContainer *parent, const char *name)
+GuiElmButton::GuiElmButton(GuiElement *parent, const char *name)
             : GuiElement(parent, name)
 {
     sprImage = NULL;
     sprText = NULL;
     sprSelector = NULL;
     selected = false;
-    shown = false;
+    is_created = false;
 }
 
 GuiElmButton::~GuiElmButton()
@@ -29,55 +30,52 @@ GuiElmButton::~GuiElmButton()
 
 //-----------------------
 
-bool GuiElmButton::ElmSetSelectedOnCollision(GuiSprite *sprite)
+bool GuiElmButton::OnTestActiveArea(float x, float y)
 {
-    if( shown && sprite != NULL && sprImage != NULL &&
-        sprite->CollidesWith(sprImage, true) == COLL_COLLISION )
-    {
-        ElmSetSelected(true, NULL, 0, 0);
-        return true;
+    if( is_created ) {
+        return IsInVisibleArea(x, y);
     }else{
         return false;
     }
 }
 
-void GuiElmButton::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
+void GuiElmButton::OnFocus(bool focus)
 {
-    if( !shown ) {
+    if( !is_created ) {
         return;
     }
     switch( type ) {
         case BTE_SELECTOR:
-            if( !selected && sel && sprImage != NULL ) {
+            if( !selected && focus && sprImage != NULL ) {
                 sprSelector = new GuiSprite(this, "selector", g_imgSelector2, 0, 0);
-                AddBehind(sprImage, sprSelector, new GuiEffectFade(fade_sel));
+                AddBehind(sprImage, sprSelector, GuiEffectFade(fade_sel));
                 selected = true;
             }
-            if( selected && !sel ) {
-                RemoveAndDelete(sprSelector, new GuiEffectFade(fade_sel));
+            if( selected && !focus ) {
+                RemoveAndDelete(sprSelector, GuiEffectFade(fade_sel));
                 sprSelector = NULL;
                 selected = false;
             }
             break;
         case BTE_HIGHLIGHT:
-            if( !selected && sel && sprImage != NULL ) {
-                sprImage->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            if( !selected && focus && sprImage != NULL ) {
+                sprImage->SetAlpha(BUTTON_TRANSPARENCY_HIGHLIGHT);
                 selected = true;
             }
-            if( selected && !sel && sprImage != NULL ) {
-                sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            if( selected && !focus && sprImage != NULL ) {
+                sprImage->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
                 selected = false;
             }
             break;
         case BTE_HIGHLIGHTTEXT:
-            if( !selected && sel && sprImage != NULL ) {
-                sprImage->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
-                sprText->SetTransparency(BUTTON_TRANSPARENCY_HIGHLIGHT);
+            if( !selected && focus && sprImage != NULL ) {
+                sprImage->SetAlpha(BUTTON_TRANSPARENCY_HIGHLIGHT);
+                sprText->SetAlpha(BUTTON_TRANSPARENCY_HIGHLIGHT);
                 selected = true;
             }
-            if( selected && !sel && sprImage != NULL ) {
-                sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-                sprText->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+            if( selected && !focus && sprImage != NULL ) {
+                sprImage->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
+                sprText->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
                 selected = false;
             }
             break;
@@ -86,24 +84,11 @@ void GuiElmButton::ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y)
     }
 }
 
-bool GuiElmButton::ElmGetRegion(int *px, int *py, int *pw, int *ph)
-{
-    if( shown ) {
-        *px = (int)GetX();
-        *py = (int)GetY();
-        *pw = GetWidth();
-        *ph = GetHeight();
-        return true;
-    }else{
-        return false;
-    }
-}
-
 //-----------------------
 
 void GuiElmButton::CleanUp(void)
 {
-    if( shown ) {
+    if( is_created ) {
         if( sprText != NULL ) {
             RemoveAndDelete(sprText);
             sprText = NULL;
@@ -116,7 +101,7 @@ void GuiElmButton::CleanUp(void)
             RemoveAndDelete(sprImage);
             sprImage = NULL;
         }
-        shown = false;
+        is_created = false;
     }
 }
 
@@ -132,7 +117,7 @@ void GuiElmButton::CreateImageSelectorButton(GuiImage *image, int f_sel)
 
     // Show
     AddTop(sprImage);
-    shown = true;
+    is_created = true;
 }
 
 void GuiElmButton::CreateImageHighlightButton(GuiImage *image, int f_sel)
@@ -144,11 +129,11 @@ void GuiElmButton::CreateImageHighlightButton(GuiImage *image, int f_sel)
     fade_sel = f_sel;
     selected = false;
     sprImage = new GuiSprite(this, "image", image, 0, 0);
-    sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+    sprImage->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
 
     // Show
     AddTop(sprImage);
-    shown = true;
+    is_created = true;
 }
 
 void GuiElmButton::CreateImageTextHighlightButton(GuiImage *image, const char *txt, int f_sel)
@@ -162,20 +147,20 @@ void GuiElmButton::CreateImageTextHighlightButton(GuiImage *image, const char *t
 
     // GuiImage
     sprImage = new GuiSprite(this, "image", image, 0, 0);
-    sprImage->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
-    int imgwidth = sprImage->GetWidth();
-    int imgheight = sprImage->GetHeight();
+    sprImage->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
+    int imgwidth = (int)sprImage->GetWidth();
+    int imgheight = (int)sprImage->GetHeight();
 
     // Text
     GXColor white = {255,255,255,255};
     sprText= new GuiSprite(this, "text");
     sprText->CreateTextImage(g_fontImpact, 36, 0, 0, true, white, txt);
     sprText->SetPosition((imgwidth - (int)sprText->GetWidth()) / 2, (imgheight - (int)sprText->GetHeight()) / 2);
-    sprText->SetTransparency(BUTTON_TRANSPARENCY_NORMAL);
+    sprText->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
 
     // Show
     AddTop(sprImage);
     AddTop(sprText);
-    shown = true;
+    is_created = true;
 }
 

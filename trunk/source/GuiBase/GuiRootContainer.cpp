@@ -1,3 +1,21 @@
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 
 #include "GuiRootContainer.h"
 #include "GuiImage.h"
@@ -18,10 +36,19 @@ GuiRootContainer::GuiRootContainer() :
     SetRootContainer(this);
     g_poGwd = &gwd;
     stop_requested = false;
+
+    // Initialize GameWindow
+    gwd.InitVideo();
+    gwd.SetBackground(0, 0, 0, 255);
+
+    SetWidth(gwd.GetWidth());
+    SetHeight(gwd.GetHeight());
 }
 
 GuiRootContainer::~GuiRootContainer()
 {
+    stop_requested = true;
+    Destructor(); // call GuiContainer destructor first
     DeleteAllAtoms();
     gwd.StopVideo();
     SetRootContainer(NULL);
@@ -36,14 +63,16 @@ bool GuiRootContainer::DrawFuncWrapper(void *context)
 
 bool GuiRootContainer::DrawFunc()
 {
-    LayerTransform transform;
-    transform.offsetX = transform.offsetY = 0.0f;
-    transform.stretchWidth = transform.stretchHeight = 1.0f;
-    transform.rotation = 0.0f;
-    transform.alpha = 255;
-    ResetTransform(transform);
-    // Draw layers
-    Draw();
+    if( !stop_requested ) {
+        LayerTransform transform;
+        transform.offsetX = transform.offsetY = 0;
+        transform.stretchWidth = transform.stretchHeight = 1.0f;
+        transform.rotation = 0.0f;
+        transform.alpha = 1.0f;
+        ResetTransform(transform);
+        // Draw layers
+        Draw();
+    }
 
     return stop_requested;
 }
@@ -55,13 +84,6 @@ void GuiRootContainer::RunMainFunc(void *context)
 
 void GuiRootContainer::Run(void)
 {
-    // Initialize GameWindow
-    gwd.InitVideo();
-    gwd.SetBackground(0, 0, 0, 255);
-
-    SetWidth(gwd.GetWidth());
-    SetHeight(gwd.GetHeight());
-
     gwd.Run(RunMainFunc, DrawFuncWrapper, this);
 }
 
@@ -82,12 +104,12 @@ GW_VIDEO_MODE GuiRootContainer::GetMode(void)
     return gwd.GetMode();
 }
 
-u32 GuiRootContainer::GetWidth(void)
+float GuiRootContainer::GetWidth(void)
 {
     return gwd.GetWidth();
 }
 
-u32 GuiRootContainer::GetHeight(void)
+float GuiRootContainer::GetHeight(void)
 {
     return gwd.GetHeight();
 }
@@ -130,11 +152,27 @@ void GuiRootContainer::ReleaseAtom(GuiAtom *atom)
 {
     atom_lock.Lock();
     TAtomRefIterator it = atom_ref.find(atom);
-    assert( it != atom_ref.end() );
-    if( --(*it).second == 0 ) {
-        atom_ref.erase(it);
-        delete atom;
+    if( it == atom_ref.end() ) {
+        printf("Resource is unknown\n");
+        DebugBreak();
+    }else{
+        if( (*it).second == 1 ) {
+            // this will result in an 'AbandonAtom' which will do the erase for us
+            delete atom;
+        }else{
+            (*it).second--;
+        }
     }
+    atom_lock.Unlock();
+}
+
+void GuiRootContainer::AbandonAtom(GuiAtom *atom)
+{
+    atom_lock.Lock();
+    TAtomRefIterator it = atom_ref.find(atom);
+    assert( it != atom_ref.end() );
+    assert( --(*it).second == 0 );
+    atom_ref.erase(it);
     atom_lock.Unlock();
 }
 

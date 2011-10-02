@@ -1,7 +1,32 @@
-/*
- * GuiBase - GameWindow
- */
-
+/***************************************************************
+ *
+ * libwiisprite 0.3.0d source code license.
+ * Copyright 2008, 2009, 2010 by Chaosteil, Feesh!, Arikado.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any
+ * damages arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any
+ * purpose, including commercial applications, and to alter it and
+ * redistribute it freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you
+ *    must not claim that you wrote the original software. If you
+ *    use this software in a product, an acknowledgment in the
+ *    product documentation would be appreciated but is not required.
+ * 2. Any commercial application using this software is required to
+ *    give a percentage of it's sales to the authors determined via
+ *    an an arranged agreement between the author and the commercial
+ *    seller.
+ * 3. Altered source versions must be plainly marked as such, and
+ *    must not be misrepresented as being the original software.
+ *    They are subject to the same restrictions listed here as the
+ *    unaltered source.
+ * 4. This notice may not be removed or altered from any source
+ *    distribution.
+ *
+ ***************************************************************/
 #ifndef GUIBASE_GAMEWINDOW
 #define GUIBASE_GAMEWINDOW
 
@@ -66,10 +91,10 @@ class GameWindow{
 
         //!Gets the width of the screen.
         //!\return The width of the screen if intialized. 0 if the video subsystem is not initialized.
-        static u32 GetWidth();
+        static float GetWidth();
         //!Gets the height of the screen.
         //!\return The height of the screen if intialized. 0 if the video subsystem is not initialized.
-        static u32 GetHeight();
+        static float GetHeight();
         static GuiImage* _lastimage;
         static bool _lastimagebilinear;
     protected:
@@ -106,7 +131,7 @@ class GameWindow{
         void* _gp_fifo;
 #endif
         static GW_VIDEO_MODE _mode;
-        static u32 _width, _height;
+        static int _width, _height;
         static bool _initialized;
         static int _clipx, _clipy, _clipw, _cliph;
 

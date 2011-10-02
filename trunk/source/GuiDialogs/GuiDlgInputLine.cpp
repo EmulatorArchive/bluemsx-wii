@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "../GuiBase/GuiEffectFade.h"
 #include "../GuiDialogs/GuiDlgMessageBox.h"
 #include "../GuiElements/GuiElmFrame.h"
 #include "../GuiElements/GuiElmSelectionList.h"
@@ -47,7 +46,7 @@ GuiDlgInputLine::GuiDlgInputLine(GuiContainer *parent, const char *name)
     // Frame
     sizex = DLGINPUT_WIDH;
     sizey = DLGINPUT_HEIGHT;
-    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BRUSHED, 0, 0, sizex, sizey, 255);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BRUSHED, 0, 0, sizex, sizey, 1.0f);
     AddTop(frame);
 
     // Input bar

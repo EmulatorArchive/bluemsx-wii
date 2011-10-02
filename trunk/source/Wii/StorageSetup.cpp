@@ -58,12 +58,13 @@ static void SetupStorageProgressCallback(int total, int current)
 bool SetupInstallZip(GuiContainer *container, void *zipptr, unsigned int zipsize,
                      const char *directory, const char *message)
 {
+    GuiEffectFade effect(10);
     // Prepare messagebox
     bool ok = GuiDlgMessageBox::ShowModal(container, "wantinstall",
-                                          MSGT_YESNO, NULL, 192, new GuiEffectFade(10),
-                                          new GuiEffectFade(10), message) == MSGBTN_YES;
+                                          MSGT_YESNO, NULL, 192,
+                                          effect, effect, message) == MSGBTN_YES;
     GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container, "install");
-    container->AddTop(msgbox, new GuiEffectFade(10));
+    container->AddTop(msgbox, effect);
     if( ok ) {
         bool failed = false;
         msgbox->Create(MSGT_TEXT, NULL, 128, "Installing (0%%) ...    ");
@@ -82,7 +83,7 @@ bool SetupInstallZip(GuiContainer *container, void *zipptr, unsigned int zipsize
             ok = false; // leave
         }
     }
-    container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
+    container->RemoveAndDelete(msgbox, effect);
     return ok;
 }
 

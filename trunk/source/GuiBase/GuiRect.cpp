@@ -16,29 +16,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  ***************************************************************/
-#ifndef _GUI_ATOM_H
-#define _GUI_ATOM_H
 
-class GuiRootContainer;
+#include "GuiRect.h"
 
-class GuiAtom
+GuiRect::GuiRect(float xx, float yy, float ww, float hh)
 {
-public:
-    GuiAtom();
-    GuiAtom(GuiRootContainer* root);
-    virtual ~GuiAtom();
+    x = xx;
+    y = yy;
+    width = ww;
+    height = hh;
+}
 
-    bool IsAlive(GuiAtom *atom);
-    virtual void Delete(GuiAtom *atom);
-
-    static GuiRootContainer* GetRootContainer(void);
-
-protected:
-    static void SetRootContainer(GuiRootContainer* root);
-
-private:
-    static GuiRootContainer* m_poRootContainer;
-};
-
-#endif
+GuiRect::~GuiRect()
+{
+}
 

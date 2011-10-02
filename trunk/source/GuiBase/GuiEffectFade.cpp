@@ -1,3 +1,21 @@
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 
 #include "GuiEffectFade.h"
 
@@ -17,50 +35,76 @@ GuiEffectFade::GuiEffectFade(int fade_frames, int delay, bool zoom,
     m_bZoom = zoom;
     m_fRotations = rotations;
     m_bClockwise = clockwise;
-    if( posx >= 0.0f && posy >= 0.0f ) {
-        m_bMove = true;
-        m_iPosX = (int)posx * GuiContainer::GetRootContainer()->GetWidth();
-        m_iPosY = (int)posy * GuiContainer::GetRootContainer()->GetHeight();
-    }else{
-        m_bMove = false;
-        m_iPosX = 0;
-        m_iPosY = 0;
-    }
+    m_fPosX = posx;
+    m_fPosY = posy;
 }
 
 GuiEffectFade::~GuiEffectFade()
 {
 }
 
-void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfrom, LayerTransform tto)
+GuiEffect* GuiEffectFade::Clone(void)
 {
-    assert( from || to );
-    if( from ) {
-        m_poLayer = from;
-        m_bFadeIn = false;
-        m_fStartRotation = tfrom.rotation;
+   return new GuiEffectFade(m_iFrames, m_iDelay, m_bZoom, m_fRotations, m_bClockwise, m_fPosX, m_fPosY);
+}
+
+void GuiEffectFade::Initialize(GuiLayer *layer, GuiEffectType type, LayerTransform tfrom, LayerTransform tto)
+{
+    m_poLayer = layer;
+    if( type == ET_HIDE) {
+        // fade out
+        m_fStartRotation = 0.0f;
         m_fEndRotation = -360.0f * m_fRotations;
-        m_fStartZoomX = tfrom.stretchWidth;
+        m_fStartZoomX = 1.0f;
         m_fEndZoomX = m_bZoom? 0.0f : 1.0f;
-        m_fStartZoomY = tfrom.stretchHeight;
+        m_fStartZoomY = 1.0f;
         m_fEndZoomY = m_bZoom? 0.0f : 1.0f;
-        m_iStartAlpha = tfrom.alpha;
-        m_iEndAlpha = 0;
-        m_fStartOffsetX = tfrom.valid? tfrom.offsetX : 0.0f;
-        m_fStartOffsetY = tfrom.valid? tfrom.offsetY : 0.0f;
+        m_fStartAlpha = 1.0f;
+        m_fEndAlpha = 0.0f;
     }else{
-        m_poLayer = to;
-        m_bFadeIn = true;
-        m_fStartRotation = tto.valid? tto.rotation : (360.0f * m_fRotations);
+        // fade in
+        m_fStartRotation = 360.0f * m_fRotations;
         m_fEndRotation = 0;
-        m_fStartZoomX = m_bZoom? (tto.valid? tto.stretchWidth : 0.0f) : 1.0f;
+        m_fStartZoomX = m_bZoom? 0.0f : 1.0f;
         m_fEndZoomX = 1.0f;
-        m_fStartZoomY = m_bZoom? (tto.valid? tto.stretchHeight : 0.0f) : 1.0f;
+        m_fStartZoomY = m_bZoom? 0.0f : 1.0f;
         m_fEndZoomY = 1.0f;
-        m_iStartAlpha = tto.valid? tto.alpha : 0;
-        m_iEndAlpha = 255;
-        m_fStartOffsetX = tto.valid? tto.offsetX : 0.0f;
-        m_fStartOffsetY = tto.valid? tto.offsetY : 0.0f;
+        m_fStartAlpha = 0.0f;
+        m_fEndAlpha = 1.0f;
+    }
+    m_fStartOffsetX = 0.0f;
+    m_fStartOffsetY = 0.0f;
+    m_fEndOffsetX = 0.0f;
+    m_fEndOffsetY = 0.0f;
+    if( tfrom.valid ) {
+        m_fStartRotation = tfrom.rotation;
+        m_fStartZoomX = tfrom.stretchWidth;
+        m_fStartZoomY = tfrom.stretchHeight;
+        m_fStartAlpha = tfrom.alpha;
+        m_fStartOffsetX = tfrom.offsetX;
+        m_fStartOffsetY = tfrom.offsetY;
+    }
+    if( tto.valid ) {
+        m_fEndZoomX = tto.stretchWidth;
+        m_fEndZoomY = tto.stretchHeight;
+        m_fEndAlpha = tto.alpha;
+        m_fEndOffsetX = tto.offsetX;
+        m_fEndOffsetY = tto.offsetY;
+    }
+    if( type == ET_HIDE) {
+        if( m_fPosX >= 0 ) {
+            m_fEndOffsetX += m_fPosX - m_poLayer->GetX() - m_poLayer->GetRefPixelX();
+        }
+        if( m_fPosY >= 0 ) {
+            m_fEndOffsetY += m_fPosY - m_poLayer->GetY() - m_poLayer->GetRefPixelY();
+        }
+    }else{
+        if( m_fPosX >= 0 ) {
+            m_fStartOffsetX += m_fPosX - m_poLayer->GetX() - m_poLayer->GetRefPixelX();
+        }
+        if( m_fPosY >= 0 ) {
+            m_fStartOffsetY += m_fPosY - m_poLayer->GetY() - m_poLayer->GetRefPixelY();
+        }
     }
     if( m_bClockwise ) {
         m_fStartRotation = -m_fStartRotation;
@@ -72,16 +116,9 @@ void GuiEffectFade::Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfro
     }
 }
 
-bool GuiEffectFade::CancelLayer(GuiLayer *layer, LayerTransform *transform)
+void GuiEffectFade::Cancel(LayerTransform *transform)
 {
-    if( m_poLayer == layer ) {
-        // Since we're dealing with just one layer canceling this layer
-        //   means the effect is done.
-        *transform = m_oTransform;
-        return true;
-    }else{
-        return false;
-    }
+    *transform = m_oTransform;
 }
 
 bool GuiEffectFade::Run(void)
@@ -89,35 +126,24 @@ bool GuiEffectFade::Run(void)
     bool bDone = false;
 
     // Do the effect
-    f32 factor = (f32)sin(((f32)m_iCount / m_iFrames) * GUI_PI_2);
-
+    float factor = (float)sin(((float)m_iCount / m_iFrames) * GUI_PI_2);
+ 
     // Fade
-    m_oTransform.alpha = (u8)( (1.0f-factor) * m_iStartAlpha + factor * m_iEndAlpha );
+    m_oTransform.alpha = (1.0f-factor) * m_fStartAlpha + factor * m_fEndAlpha;
 
     // Zoom
-    m_oTransform.stretchWidth = ( (1.0f-factor) * m_fStartZoomX + factor * m_fEndZoomX );
-    m_oTransform.stretchHeight = ( (1.0f-factor) * m_fStartZoomY + factor * m_fEndZoomY );
+    m_oTransform.stretchWidth = (1.0f-factor) * m_fStartZoomX + factor * m_fEndZoomX;
+    m_oTransform.stretchHeight = (1.0f-factor) * m_fStartZoomY + factor * m_fEndZoomY;
 
     // Rotation
-    m_oTransform.rotation = ( (1.0f-factor) * m_fStartRotation + factor * m_fEndRotation );
+    m_oTransform.rotation = (1.0f-factor) * m_fStartRotation + factor * m_fEndRotation;
 
     // Position movement
-    LayerTransform tr = m_poLayer->GetTransform();
-    float refx = m_poLayer->GetRefPixelX() * m_poLayer->GetStretchWidth();
-    float refy = m_poLayer->GetRefPixelY() * m_poLayer->GetStretchHeight();
-    if( m_bMove ) {
-        float move_factor = m_bFadeIn? 1.0f - factor : factor;
-        m_oTransform.offsetX = ((float)m_iPosX - tr.offsetX - m_fStartOffsetX - refx) * move_factor;
-        m_oTransform.offsetY = ((float)m_iPosY - tr.offsetY - m_fStartOffsetY - refy) * move_factor;
-    }else{
-        m_oTransform.offsetX = 0.0f;
-        m_oTransform.offsetY = 0.0f;
-    }
-    m_oTransform.offsetX += m_fStartOffsetX;
-    m_oTransform.offsetY += m_fStartOffsetY;
-    m_oTransform.valid = true;
+    m_oTransform.offsetX = (1.0f-factor) * m_fStartOffsetX + factor * m_fEndOffsetX;
+    m_oTransform.offsetY = (1.0f-factor) * m_fStartOffsetY + factor * m_fEndOffsetY;
 
     // Apply
+    m_oTransform.valid = true;
     m_poLayer->DoTransform(m_oTransform);
 
     // Next step

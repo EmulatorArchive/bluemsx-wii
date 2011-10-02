@@ -311,11 +311,12 @@ static bool loadCheatFile(const char* filename)
 
     FILE* f = archFileOpen(filename, "r");
     if (f == NULL) {
+        GuiEffectFade effect(10);
         GuiDlgMessageBox *msgbox = new GuiDlgMessageBox(container, "invalidchaet");
         msgbox->Create(MSGT_TEXT, NULL, 128, "Invalid cheat file!");
-        container->AddTop(msgbox, new GuiEffectFade(10));
+        container->AddTop(msgbox, effect);
         archThreadSleep(2000);
-        container->RemoveAndDelete(msgbox, new GuiEffectFade(10));
+        container->RemoveAndDelete(msgbox, effect);
         return false;
     }
 

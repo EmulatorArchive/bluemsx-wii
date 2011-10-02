@@ -4,7 +4,14 @@
 
 #include "../GuiBase/GuiContainer.h"
 #include "../GuiBase/GuiElement.h"
+#include "../GuiBase/GuiEffectFade.h"
 #include "../GuiBase/GuiSprite.h"
+
+typedef enum {
+  UPDATELIST_REBUILD,
+  UPDATELIST_SCROLL_DOWN,
+  UPDATELIST_SCROLL_UP
+} UPDATELIST;
 
 typedef enum {
   SELRET_SELECTED,
@@ -14,80 +21,78 @@ typedef enum {
   SELRET_KEY_PLUS,
 } SELRET;
 
-class GuiElmListLine : public GuiContainer {
+class GuiElmListLine : public GuiElement {
 public:
-    GuiElmListLine(GuiContainer *parent, const char *name)
-                 : GuiContainer(parent, name) {};
+    GuiElmListLine(GuiElement *parent, const char *name) :
+                   GuiElement(parent, name) {};
     virtual ~GuiElmListLine() {};
 
-    virtual GuiElmListLine* Create(GuiContainer *parent) = 0;
+    virtual GuiElmListLine* Create(GuiElement *parent) = 0;
     virtual void Initialize(void *item) = 0;
-    virtual COLL CollidesWith(GuiSprite* spr, bool complete = false) = 0;
+    virtual void EnableEffect(bool enable) = 0;
 };
 
 class GuiElmListLineDefault : public GuiElmListLine {
 public:
-    GuiElmListLineDefault(GuiContainer *parent, const char *name,
-                          GXColor fontcol, int fontsz, bool cntr);
+    GuiElmListLineDefault(GuiElement *parent, const char *name,
+                          GXColor fontcol, int fontsz, float xspace, bool cntr);
     virtual ~GuiElmListLineDefault();
 
-    virtual GuiElmListLine* Create(GuiContainer *parent);
+    virtual GuiElmListLine* Create(GuiElement *parent);
     virtual void Initialize(void *item);
-    virtual COLL CollidesWith(GuiSprite* spr, bool complete);
-private:
+    virtual void EnableEffect(bool enable);
 
+    virtual bool OnTestActiveArea(float x, float y);
+    virtual void OnActive(bool active);
+
+private:
     const char *text;
     GuiSprite *sprite;
+    GuiSprite *selector;
     GXColor fontcolor;
     int fontsize;
+    float xspacing;
+    bool m_bEnableEffect;
     bool center;
+    bool selected;
 };
 
 class GuiElmSelectionList : public GuiElement {
 public:
-    GuiElmSelectionList(GuiContainer *parent, const char *name, int rows);
+    GuiElmSelectionList(GuiElement *parent, const char *name, int rows);
     virtual ~GuiElmSelectionList();
 
-    virtual bool ElmSetSelectedOnCollision(GuiSprite *sprite);
-    virtual void ElmSetSelected(bool sel, GuiSprite *pointer, int x, int y);
-    virtual bool ElmGetRegion(int *px, int *py, int *pw, int *ph);
-    virtual bool ElmHandleKey(GuiDialog *dlg, BTN key, bool pressed);
+    // GuiElement callbacks
+    virtual void OnSelect(GuiElement *element);
+    virtual bool OnKey(GuiDialog *dlg, BTN key, bool pressed);
 
     void InitSelection(GuiElmListLine *listln, void **items, int num, int select,
-                       int pitchy, int posx, int posy, int xspace, int width);
-    void ClearTitleList(void);
-    void SetSelectedItem(int fade = -1, int delay = -1);
+                       float pitchy, float posx, float posy, float width);
+    void UpdateList(UPDATELIST update = UPDATELIST_REBUILD);
     void SetNumberOfItems(int num);
     bool IsShowing(void);
     int IsActive(void);
     int GetSelectedItem(void);
-    void DoKeyUp(void);
-    void DoKeyDown(void);
 
 private:
     void CleanUp(void);
 
     GuiElmListLine *listline;
-    int xpos;
-    int ypos;
-    int xsize;
-    int xspacing;
-    int ypitch;
-    int selected, prev_selected;
+    float ypitch;
+    float rowheight;
     int index;
     int num_items;
     int num_item_rows;
-    int current_index;
     int upper_index;
     int lower_index;
+    int selected_item;
     bool is_showing;
-    bool is_active;
     void **item_list;
     GuiElmListLine **visible_items;
     GuiSprite *sprCursor;
-    GuiSprite *sprSelector;
     GuiSprite *sprArrowUp;
     GuiSprite *sprArrowDown;
+    GuiEffectFade effectDefault;
 };
 
 #endif

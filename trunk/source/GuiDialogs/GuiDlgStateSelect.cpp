@@ -111,7 +111,7 @@ void GuiDlgStateSelect::FreeStateFileList(void)
 void GuiDlgStateSelect::UpdateScreenShot(char *file)
 {
     if( sprScreenShot != NULL ) {
-        RemoveAndDelete(sprScreenShot, new GuiEffectFade(SSEL_FADE_FRAMES, file? SSEL_FADE_DELAY:0));
+        RemoveAndDelete(sprScreenShot, GuiEffectFade(SSEL_FADE_FRAMES, file? SSEL_FADE_DELAY:0));
         sprScreenShot = NULL;
     }
     if( file != NULL ) {
@@ -128,9 +128,9 @@ void GuiDlgStateSelect::UpdateScreenShot(char *file)
         sprScreenShot->SetPosition(posx+sizex-283-SSEL_X_SPACING-2*SSEL_MENU_SPACING,
                                    posy+sizey/2-106);
         sprScreenShot->SetRefPixelPosition(0, 0);
-        sprScreenShot->SetStretchWidth(283.0f/sprScreenShot->GetWidth());
-        sprScreenShot->SetStretchHeight(212.0f/sprScreenShot->GetHeight());
-        AddTop(sprScreenShot, new GuiEffectFade(SSEL_FADE_FRAMES));
+        sprScreenShot->SetScaledWidth(283.0f);
+        sprScreenShot->SetScaledHeight(212.0f);
+        AddTop(sprScreenShot, GuiEffectFade(SSEL_FADE_FRAMES));
     }
 }
 
@@ -170,8 +170,8 @@ char *GuiDlgStateSelect::DoModal(void)
             returnValue = filenames[sel];
             // confirmation
             bool ok = GuiDlgMessageBox::ShowModal(this, "wantload",
-                                                  MSGT_YESNO, NULL, 192,
-                                                  new GuiEffectFade(10), new GuiEffectFade(10),
+                                                  MSGT_YESNO, NULL, 0.75f,
+                                                  GuiEffectFade(10), GuiEffectFade(10),
                                                   "Do you want to load\n\"%s\"", timestrings[sel]) == MSGBTN_YES;
             if( ok ) {
                 break;
@@ -201,18 +201,18 @@ GuiDlgStateSelect::GuiDlgStateSelect(GuiContainer *parent, const char *name, Pro
     posy = GetHeight()/2-(SSEL_HEIGHT/2)-16;
     sizex = 640-28;
     sizey = SSEL_HEIGHT+32;
-    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, sizex, sizey, 160);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, sizex, sizey, 0.6f);
     AddTop(frame);
 
     // Selection
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 26, false),
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 26, SSEL_MENU_SPACING, false),
                         (void**)timestrings, num_states, 0, SSEL_YPITCH,
                         posx+SSEL_X_SPACING,
                         posy+sizey/2-(NUM_STATE_ITEMS*SSEL_YPITCH)/2,
-                        SSEL_MENU_SPACING, SSEL_LIST_WIDTH);
+                        SSEL_LIST_WIDTH);
     AddTop(list);
-    SetSelected(list);
+    list->SetFocus(true);
 }
 
 GuiDlgStateSelect::~GuiDlgStateSelect()

@@ -28,10 +28,10 @@ private:
     int last_selected;
     int last_index;
     int num_states;
-    int posx;
-    int posy;
-    int sizex;
-    int sizey;
+    float posx;
+    float posy;
+    float sizex;
+    float sizey;
     char *filenames[256];
     char *timestrings[256];
     time_t filetimes[256];

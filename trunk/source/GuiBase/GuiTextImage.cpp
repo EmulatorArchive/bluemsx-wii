@@ -1,5 +1,23 @@
-// Code by DragonMinded
-// Please attribute, nothing more
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * Based on code of "DragonMinded"
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 
 #include "GuiTextImage.h"
 
@@ -9,80 +27,85 @@
 
 #include "GameWindow.h"
 #include "TextRender.h"
+#include "GuiRootContainer.h"
 
 GuiTextImage::GuiTextImage()
 {
     // Ensure we never draw if we haven't created
-    _initialized = false;
+    m_initialized = false;
 
     // Ensure proper null pointer
-    _pixels = NULL;
+    m_pixels = NULL;
 #ifndef WII
-    _texObj = NULL;
+    m_texObj = NULL;
 #endif
+    font = NULL;
 
     // Set default font style
-    _font_size = 20;
-    _font_yspacing = 0;
-    _font_color.r = _font_color.g = _font_color.b = _font_color.a = 0xff;
+    m_font_size = 20;
+    m_font_yspacing = 0;
+    m_font_color.r = m_font_color.g = m_font_color.b = m_font_color.a = 0xff;
 }
 
 GuiTextImage::~GuiTextImage()
 {
     DestroyImage();
+    if( font != NULL ) {
+        GetRootContainer()->ReleaseAtom(font);
+    }
 }
 
 void GuiTextImage::CreateImage(int width, int height, int format)
 {
     // Set parameters
-    _format = format;
-    _width = width;
-    _height = height;
+    m_format = format;
+    m_width = width;
+    m_height = height;
 
     int bytespp = (format == GX_TF_RGB565)? 2 : 4;
 
     // Allocate room
-    if(_pixels)
+    if(m_pixels)
     {
-        free(_pixels);
+        free(m_pixels);
     }
 #ifdef WII
-    _pixels = (u8 *)memalign(32, _width * _height * bytespp);
+    m_pixels = (u8 *)memalign(32, m_width * m_height * bytespp);
 #else
-    _pixels = (u8 *)malloc(_width * _height * bytespp);
+    m_pixels = (u8 *)malloc(m_width * m_height * bytespp);
 #endif
 
     // Set to zero's for now
-    memset(_pixels, 0, _width * _height * bytespp);
+    memset(m_pixels, 0, m_width * m_height * bytespp);
 
 #ifdef WII
     // Move flush cached memory
-    DCFlushRange (_pixels, _width * _height * bytespp);
+    DCFlushRange (m_pixels, m_width * m_height * bytespp);
 #else
     // Create texture
     GameWindow::Lock();
-    _texObj = g_hge->Texture_Create(width, height);
-    assert(_texObj);
+    m_texObj = g_hge->Texture_Create(width, height);
+    assert(m_texObj);
 
     // Clear it
-    u8 *blitbuf = (u8 *)g_hge->Texture_Lock(_texObj, false);
-    int tex_width = g_hge->Texture_GetWidth(_texObj);
-    int tex_height = g_hge->Texture_GetHeight(_texObj);
+    u8 *blitbuf = (u8 *)g_hge->Texture_Lock(m_texObj, false);
+    int tex_width = g_hge->Texture_GetWidth(m_texObj);
+    int tex_height = g_hge->Texture_GetHeight(m_texObj);
     memset(blitbuf, 0, tex_width * tex_height * 4);
-    g_hge->Texture_Unlock(_texObj);
+    g_hge->Texture_Unlock(m_texObj);
     GameWindow::Unlock();
 #endif
 
     // Set sprite as valid
-    _initialized = true;
+    m_initialized = true;
 }
 
 void GuiTextImage::FillSolidColor(u8 r, u8 g, u8 b)
 {
-    assert(_format == GX_TF_RGB565); // Only GX_TF_RGB565 supported
-    u16 *p = (u16*)_pixels;
+    assert(m_format == GX_TF_RGB565); // Only GX_TF_RGB565 supported
+    u16 *p = (u16*)m_pixels;
     u16 c = ((u16)(r >> 3) << 11) | ((u16)(g >> 3) << 6) | (b >> 3);
-    for(u32 i = 0; i < _width*_height; i++) {
+    for(png_uint_32 i = 0; i < m_width*m_height; i++) {
         *p++ = c;
     }
     FlushBuffer();
@@ -90,18 +113,18 @@ void GuiTextImage::FillSolidColor(u8 r, u8 g, u8 b)
 
 void GuiTextImage::DestroyImage(void)
 {
-    if(_pixels)
+    if(m_pixels)
     {
-        free(_pixels);
-        _pixels = NULL;
+        free(m_pixels);
+        m_pixels = NULL;
     }
 #ifndef WII
-    if(_texObj)
+    if(m_texObj)
     {
         GameWindow::Lock();
-        g_hge->Texture_Free(_texObj);
+        g_hge->Texture_Free(m_texObj);
         GameWindow::Unlock();
-        _texObj = NULL;
+        m_texObj = NULL;
     }
 #endif
 }
@@ -109,52 +132,52 @@ void GuiTextImage::DestroyImage(void)
 void GuiTextImage::BindTexture(bool bilinear)
 {
 #ifdef WII
-    if(!_initialized)return;
+    if(!m_initialized)return;
         if(GameWindow::_lastimagebilinear == bilinear)
             if(GameWindow::_lastimage == this)
                 return;
 
-    GX_InitTexObj(&_texObj, _pixels, _width, _height, _format, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GX_InitTexObj(&m_texObj, m_pixels, m_width, m_height, m_format, GX_CLAMP, GX_CLAMP, GX_FALSE);
 
     // This disables bilinear filtering if applicable
     if(!bilinear)
-        GX_InitTexObjLOD(&_texObj, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
+        GX_InitTexObjLOD(&m_texObj, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
 
-    GX_LoadTexObj(&_texObj,GX_TEXMAP0);
+    GX_LoadTexObj(&m_texObj,GX_TEXMAP0);
 
     GameWindow::_lastimage = this;
     GameWindow::_lastimagebilinear = bilinear;
 #endif
 }
 
-u32 GuiTextImage::GetWidth() const
+float GuiTextImage::GetWidth() const
 {
-    return _width;
+    return (float)m_width;
 }
 
-u32 GuiTextImage::GetHeight() const
+float GuiTextImage::GetHeight() const
 {
-    return _height;
+    return (float)m_height;
 }
 
 bool GuiTextImage::IsInitialized() const
 {
-    return _initialized;
+    return m_initialized;
 }
 
 void GuiTextImage::CopyBuffer(u8 *buf)
 {
 #ifdef WII
     // This function assumes the u8 buffer is RGBA quads
-    if( _format != GX_TF_RGBA8 )
+    if( m_format != GX_TF_RGBA8 )
         return;
 
-    u8 *pixBuf = _pixels;
+    u8 *pixBuf = m_pixels;
 
     // Loop in chunks of 4
-    for(u32 j = 0; j < _height; j += 4)
+    for(int j = 0; j < m_height; j += 4)
     {
-        for(u32 i = 0; i < _width; i += 4)
+        for(int i = 0; i < m_width; i += 4)
         {
             // First, copy AR chunks
             for(int y = 0; y < 4; y++)
@@ -162,10 +185,10 @@ void GuiTextImage::CopyBuffer(u8 *buf)
                 for(int x = 0; x < 4; x++)
                 {
                     // Alpha
-                    *pixBuf++ = buf[(((i + x) + ((j + y) * _width)) * 4) + 3];
+                    *pixBuf++ = buf[(((i + x) + ((j + y) * m_width)) * 4) + 3];
 
                     // Red
-                    *pixBuf++ = buf[((i + x) + ((j + y) * _width)) * 4];
+                    *pixBuf++ = buf[((i + x) + ((j + y) * m_width)) * 4];
                 }
             }
 
@@ -175,17 +198,17 @@ void GuiTextImage::CopyBuffer(u8 *buf)
                 for(int x = 0; x < 4; x++)
                 {
                     // Green
-                    *pixBuf++ = buf[(((i + x) + ((j + y) * _width)) * 4) + 1];
+                    *pixBuf++ = buf[(((i + x) + ((j + y) * m_width)) * 4) + 1];
 
                     // Blue
-                    *pixBuf++ = buf[(((i + x) + ((j + y) * _width)) * 4) + 2];
+                    *pixBuf++ = buf[(((i + x) + ((j + y) * m_width)) * 4) + 2];
                 }
             }
         }
     }
 
     // Move flush cached memory
-    DCFlushRange (_pixels, _width * _height * 4);
+    DCFlushRange (m_pixels, m_width * m_height * 4);
 #endif
 }
 
@@ -196,27 +219,27 @@ GuiImage *GuiTextImage::GetImage()
 
 u8 *GuiTextImage::GetTextureBuffer(void)
 {
-    return _pixels;
+    return m_pixels;
 }
 
 void GuiTextImage::FlushBuffer(void)
 {
 #ifdef WII
-    int bytespp = (_format == GX_TF_RGB565)? 2 : 4;
-    DCFlushRange (_pixels, _width * _height * bytespp);
+    int bytespp = (m_format == GX_TF_RGB565)? 2 : 4;
+    DCFlushRange (m_pixels, m_width * m_height * bytespp);
 #else
-    if( _format == GX_TF_RGB565 ) {
+    if( m_format == GX_TF_RGB565 ) {
         GameWindow::Lock();
-        u32 *blitbuf = (u32 *)g_hge->Texture_Lock(_texObj, false);
-        int tex_width = g_hge->Texture_GetWidth(_texObj);
-        u16 *p = (u16*)_pixels;
-        for(int y = 0; y < (int)_height; y += 4) {
+        u32 *blitbuf = (u32 *)g_hge->Texture_Lock(m_texObj, false);
+        int tex_width = g_hge->Texture_GetWidth(m_texObj);
+        u16 *p = (u16*)m_pixels;
+        for(int y = 0; y < (int)m_height; y += 4) {
             u32 *pd[4];
             pd[0] = blitbuf + y * tex_width;
             pd[1] = pd[0] + tex_width;
             pd[2] = pd[1] + tex_width;
             pd[3] = pd[2] + tex_width;
-            for(int x = 0; x < (int)_width; x += 4) {
+            for(int x = 0; x < (int)m_width; x += 4) {
                 for(int i = 0; i < 4; i++) {
                     *pd[i]++ = ((u32)0xff << 24) | ((u32)((u8)(*p >> 11) << 3) << 16) | ((u32)((u8)(*p >> 6) << 3) << 8) | ((u8)(*p) << 3);
                     p++;
@@ -229,7 +252,7 @@ void GuiTextImage::FlushBuffer(void)
                 }
             }
         }
-        g_hge->Texture_Unlock(_texObj);
+        g_hge->Texture_Unlock(m_texObj);
         GameWindow::Unlock();
     }
 #endif
@@ -237,51 +260,57 @@ void GuiTextImage::FlushBuffer(void)
 
 void GuiTextImage::SetFont(TextRender* f)
 {
+    if( font != NULL ) {
+        GetRootContainer()->ReleaseAtom(font);
+    }
+    if( f != NULL ) {
+        GetRootContainer()->UseAtom(f);
+    }
     font = f;
 }
 
 void GuiTextImage::SetColor(GXColor c)
 {
-    _font_color = c;
+    m_font_color = c;
 }
 
 void GuiTextImage::SetSize(int s)
 {
-    _font_size = s;
+    m_font_size = s;
 }
 
 void GuiTextImage::SetYSpacing(int s)
 {
-    _font_yspacing = s;
+    m_font_yspacing = s;
 }
 
 void GuiTextImage::RenderTextVA(bool center, const char *fmt, va_list list)
 {
     // This function assumes the u8 buffer is RGBA quads
-    if( _format != GX_TF_RGBA8 )
+    if( m_format != GX_TF_RGBA8 )
         return;
 #ifndef WII
-    if( _texObj == NULL )
+    if( m_texObj == NULL )
         return;
 #endif
     // Set font style
-    font->SetColor(_font_color);
-    font->SetSize(_font_size);
-    font->SetYSpacing(_font_yspacing);
+    font->SetColor(m_font_color);
+    font->SetSize(m_font_size);
+    font->SetYSpacing(m_font_yspacing);
 
     // Need to make room for the sprintf'd text
     char *out = (char *)malloc(1024);
 
     // Need temporary blit buffer
 #ifdef WII
-    u8 *blitbuf = (u8 *)memalign(32, _width * _height * 4);
-    memset(blitbuf, 0, _width * _height * 4);
+    u8 *blitbuf = (u8 *)memalign(32, m_width * m_height * 4);
+    memset(blitbuf, 0, m_width * m_height * 4);
 #else
     GameWindow::Lock();
-    u8 *blitbuf = (u8 *)g_hge->Texture_Lock(_texObj, false);
-    int tex_width = g_hge->Texture_GetWidth(_texObj);
-    int tex_height = g_hge->Texture_GetHeight(_texObj);
-    memset(blitbuf, 0, tex_width * _height * 4);
+    u8 *blitbuf = (u8 *)g_hge->Texture_Lock(m_texObj, false);
+    int tex_width = g_hge->Texture_GetWidth(m_texObj);
+    int tex_height = g_hge->Texture_GetHeight(m_texObj);
+    memset(blitbuf, 0, tex_width * m_height * 4);
 #endif
 
     // Build using sprintf
@@ -289,9 +318,9 @@ void GuiTextImage::RenderTextVA(bool center, const char *fmt, va_list list)
 
     // Set up buffer
 #ifdef WII
-    font->SetBuffer(blitbuf, _width, _height, _width);
+    font->SetBuffer(blitbuf, m_width, m_height, m_width);
 #else
-    font->SetBuffer(blitbuf, _width, _height, tex_width);
+    font->SetBuffer(blitbuf, m_width, m_height, tex_width);
 #endif
 
     // Call rendering engine
@@ -304,7 +333,7 @@ void GuiTextImage::RenderTextVA(bool center, const char *fmt, va_list list)
 #ifdef WII
     free(blitbuf);
 #else
-    g_hge->Texture_Unlock(_texObj);
+    g_hge->Texture_Unlock(m_texObj);
     GameWindow::Unlock();
 #endif
     free(out);
@@ -336,9 +365,9 @@ void GuiTextImage::GetTextSizeVA(int *sx, int *sy, const char *fmt, va_list list
 #endif
 
     // Set font style
-    font->SetColor(_font_color);
-    font->SetSize(_font_size);
-    font->SetYSpacing(_font_yspacing);
+    font->SetColor(m_font_color);
+    font->SetSize(m_font_size);
+    font->SetYSpacing(m_font_yspacing);
 
     // Build using sprintf
     vsprintf(out, fmt, list);

@@ -14,7 +14,7 @@ class GuiSprite;
 class GuiElmFrame : public GuiContainer
 {
     public:
-        GuiElmFrame(GuiContainer *parent, const char *name, FRAMETYPE type, int posx, int posy, int width, int height, int alpha = 128);
+        GuiElmFrame(GuiContainer *parent, const char *name, FRAMETYPE type, float posx, float posy, float width, float height, float alpha = 0.5f);
         virtual ~GuiElmFrame();
 
     private:
