@@ -40,24 +40,26 @@ typedef struct _fileitem {
 
 class GuiElmListLineFile : public GuiElmListLine {
 public:
-    GuiElmListLineFile(GuiContainer *parent, const char *name,
-                       GXColor fontcol, int fontsz, bool cntr);
+    GuiElmListLineFile(GuiElement *parent, const char *name,
+                       GXColor fontcol, int fontsz, float xspace, bool cntr);
     virtual ~GuiElmListLineFile();
 
-    virtual GuiElmListLine* Create(GuiContainer *parent);
+    virtual GuiElmListLine* Create(GuiElement *parent);
     virtual void Initialize(void *itm);
-    virtual COLL CollidesWith(GuiSprite* spr, bool complete);
+    virtual void EnableEffect(bool enable);
+    virtual bool OnTestActiveArea(float x, float y);
 private:
     GuiSprite *spr_col_a;
     GuiSprite *spr_col_b;
     GuiSprite *spr_col_c;
     GXColor fontcolor;
     int fontsize;
+    float xspacing;
     bool center;
 };
 
-GuiElmListLineFile::GuiElmListLineFile(GuiContainer *parent, const char *name,
-                                       GXColor fontcol, int fontsz, bool cntr)
+GuiElmListLineFile::GuiElmListLineFile(GuiElement *parent, const char *name,
+                                       GXColor fontcol, int fontsz, float xspace, bool cntr)
                      : GuiElmListLine(parent, name)
 {
     spr_col_a = NULL;
@@ -65,6 +67,7 @@ GuiElmListLineFile::GuiElmListLineFile(GuiContainer *parent, const char *name,
     spr_col_c = NULL;
     fontcolor = fontcol;
     fontsize = fontsz;
+    xspacing = xspace;
     center = cntr;
 }
 
@@ -85,29 +88,33 @@ void GuiElmListLineFile::Initialize(void *itm)
     FILEITEM *item;
     item = (FILEITEM *)itm;
     spr_col_a = new GuiSprite(this, "col_a");
-    spr_col_a->CreateTextImage(g_fontArial, fontsize, GetWidth(), 0, center, fontcolor, item->txt_col_a);
-    spr_col_a->SetPosition(0, fontsize/3);
+    spr_col_a->CreateTextImage(g_fontArial, fontsize, (int)GetWidth(), 0, center, fontcolor, item->txt_col_a);
+    spr_col_a->SetPosition(xspacing, (float)fontsize/3);
     AddTop(spr_col_a);
     spr_col_b = new GuiSprite(this, "col_b");
-    spr_col_b->CreateTextImage(g_fontArial, fontsize, GetWidth(), 0, false, fontcolor, item->txt_col_b);
-    spr_col_b->SetPosition(GetWidth() - 200, fontsize/3);
+    spr_col_b->CreateTextImage(g_fontArial, fontsize, (int)GetWidth(), 0, false, fontcolor, item->txt_col_b);
+    spr_col_b->SetPosition((int)GetWidth() - 200, (int)fontsize/3);
     AddTop(spr_col_b);
     spr_col_c = new GuiSprite(this, "col_c");
-    spr_col_c->CreateTextImage(g_fontArial, fontsize, GetWidth(), 0, false, fontcolor, item->txt_col_c);
-    spr_col_c->SetPosition(GetWidth() - 100, fontsize/3);
+    spr_col_c->CreateTextImage(g_fontArial, fontsize, (int)GetWidth(), 0, false, fontcolor, item->txt_col_c);
+    spr_col_c->SetPosition((int)GetWidth() - 100, (int)fontsize/3);
     AddTop(spr_col_c);
 }
 
-GuiElmListLine* GuiElmListLineFile::Create(GuiContainer *parent)
+void GuiElmListLineFile::EnableEffect(bool enable)
 {
-    return new GuiElmListLineFile(parent, "GuiElmListLineFile",
-                                  fontcolor, fontsize, center);
 }
 
-COLL GuiElmListLineFile::CollidesWith(GuiSprite* spr, bool complete)
+GuiElmListLine* GuiElmListLineFile::Create(GuiElement *parent)
+{
+    return new GuiElmListLineFile(parent, "GuiElmListLineFile",
+                                  fontcolor, fontsize, xspacing, center);
+}
+
+bool GuiElmListLineFile::OnTestActiveArea(float x, float y)
 {
     assert( spr_col_a != NULL );
-    return spr_col_a->CollidesWith(spr, complete);
+    return spr_col_a->IsInVisibleArea(x, y);
 }
 
 //-----------------------
@@ -251,11 +258,11 @@ int GuiDlgGameFileSelect::Create(void)
 
     // Selection
     GXColor black = {0, 0, 0, 255};
-    list->InitSelection(new GuiElmListLineFile(this, "fileline", black, GFSEL_FONTSIZE, false),
+    list->InitSelection(new GuiElmListLineFile(this, "fileline", black, GFSEL_FONTSIZE, GFSEL_MENU_SPACING, false),
                         (void**)items, num_files, 0, GFSEL_YPITCH,
                         posx+GFSEL_X_SPACING,
                         posy+sizey/2-(GFSEL_SELECTION_LINES*GFSEL_YPITCH)/2,
-                        GFSEL_MENU_SPACING, GFSEL_LIST_WIDTH);
+                        GFSEL_LIST_WIDTH);
 
     return num_files;
 }
@@ -294,8 +301,8 @@ char* GuiDlgGameFileSelect::DoModal(void)
                 
                 // Ask confirmation
                 bool ok = GuiDlgMessageBox::ShowModal(this, "wantadd",
-                                                      MSGT_YESNO, NULL, 192,
-                                                      new GuiEffectFade(GFSEL_FADE_FRAMES), new GuiEffectFade(GFSEL_FADE_FRAMES),
+                                                      MSGT_YESNO, NULL, 0.75f,
+                                                      GuiEffectFade(GFSEL_FADE_FRAMES), GuiEffectFade(GFSEL_FADE_FRAMES),
                                                       "Do you want to add\n\"%s\"", file) == MSGBTN_YES;
                 if( ok ) {
                     returnValue = relpath;

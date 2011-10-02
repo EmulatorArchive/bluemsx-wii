@@ -32,15 +32,21 @@ public:
     GuiDlgMessageBox(GuiContainer *parent, const char *name);
     virtual ~GuiDlgMessageBox();
 
-    static void ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, int alpha, int delay,
+    static void ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, float alpha, int delay,
                           GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
-    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, int alpha,
+    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, float alpha,
                             GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
 
-    void Create(MSGT type, GuiImage *image, int alpha, const char *txt, ...);
-    void CreateVA(MSGT type, GuiImage *image, int alpha, const char *txt, va_list valist);
+    static void ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, float alpha, int delay,
+                          GuiEffect &effa, GuiEffect &effb, const char *txt, ...);
+    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, float alpha,
+                            GuiEffect &effa, GuiEffect &effb, const char *txt, ...);
+
+    void Create(MSGT type, GuiImage *image, float alpha, const char *txt, ...);
+    void CreateVA(MSGT type, GuiImage *image, float alpha, const char *txt, va_list valist);
 
 private:
+    static MSGBTN RunModal(GuiDlgMessageBox *msgbox, MSGT type);
     void CleanUp(void);
 
     MSGT btn_type;

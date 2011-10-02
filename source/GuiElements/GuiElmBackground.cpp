@@ -1,83 +1,53 @@
 
 #include "GuiElmBackground.h"
 
-#include "version.h"
-#include "../arch/archThread.h"
-#include "../GuiBase/GuiEffectFade.h"
-#include "../GuiBase/GuiSprite.h"
+#include <assert.h>
 
+#include "version.h"
+
+#include "../GuiBase/GuiSprite.h"
 #include "../Gui/GuiFonts.h"
 #include "../Gui/GuiImages.h"
 
-GuiElmBackground::GuiElmBackground(GuiContainer *parent, const char *name)
-                : GuiContainer(parent, name)
+GuiElmBackground::GuiElmBackground(GuiContainer *parent, const char *name) :
+                  GuiContainer(parent, name),
+                  effectVersion(50)
 {
-    sprBackground = NULL;
-    sprTxt = NULL;
-    is_shown = false;
+    // Background picture
+    sprBackground = new GuiSprite(this, "background");
+    sprBackground->SetImage(g_imgBackground);
+    sprBackground->SetScaledWidth(GetWidth());
+    sprBackground->SetScaledHeight(GetHeight());
+    sprBackground->SetRefPixelPosition(0, 0);
+    sprBackground->SetPosition(0, 0);
+    AddTop(sprBackground);
+    
+    // Version
+    GXColor white = {255,255,255,255};
+    sprTxt = new GuiSprite(this, "version");
+    sprTxt->CreateTextImage(g_fontArial, 16, 0, 2, true, white, VERSION_AS_STRING);
+    sprTxt->SetPosition(530, 384);
+    sprTxt->SetAlpha(0.75f);
+    AddTop(sprTxt);
 }
 
 GuiElmBackground::~GuiElmBackground()
 {
-    Hide();
+    RemoveAndDelete(sprBackground);
+    sprBackground = NULL;
+    RemoveAndDelete(sprTxt);
+    sprTxt = NULL;
 }
 
-void GuiElmBackground::Show(GuiEffect *effect)
+void GuiElmBackground::ShowVersion(void)
 {
-    if( !is_shown ) {
-        // Background picture
-        sprBackground = new GuiSprite(this, "background");
-        sprBackground->SetImage(g_imgBackground);
-        sprBackground->SetStretchWidth((float)(GetWidth()-1) /
-                                       (float)g_imgBackground->GetWidth());
-        sprBackground->SetStretchHeight((float)(GetHeight()-1) /
-                                        (float)g_imgBackground->GetHeight());
-        sprBackground->SetRefPixelPosition(0, 0);
-        sprBackground->SetPosition(0, 0);
-        AddTop(sprBackground, effect);
-
-        // Show version
-        ShowVersion(new GuiEffectFade(10));
-
-        is_shown = true;
-    }
+    assert( sprTxt );
+    Show(sprTxt, effectVersion);
 }
 
-void GuiElmBackground::Hide(GuiEffect *effect)
+void GuiElmBackground::HideVersion(void)
 {
-    HideVersion();
-    if( is_shown ) {
-        RemoveAndDelete(sprBackground, effect);
-        sprBackground = NULL;
-
-        is_shown = false;
-    }
-}
-
-void GuiElmBackground::ShowVersion(GuiEffect *effect)
-{
-    GXColor white = {255,255,255,255};
-    if( sprTxt == NULL ) {
-        // Version text sprite
-        sprTxt = new GuiSprite(this, "version");
-        sprTxt->CreateTextImage(g_fontArial, 16, 0, 2, true, white, VERSION_AS_STRING);
-        sprTxt->SetPosition(530, 384);
-        sprTxt->SetTransparency(192);
-
-        // Show it
-        AddTop(sprTxt, effect);
-    }else{
-        Delete(effect); // delete because we don't use it
-    }
-}
-
-void GuiElmBackground::HideVersion(GuiEffect *effect)
-{
-    if( sprTxt != NULL ) {
-        RemoveAndDelete(sprTxt, effect);
-        sprTxt = NULL;
-    }else{
-        Delete(effect); // delete because we don't use it
-    }
+    assert( sprTxt );
+    Hide(sprTxt, effectVersion);
 }
 

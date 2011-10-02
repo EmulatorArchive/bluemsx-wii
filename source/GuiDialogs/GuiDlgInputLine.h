@@ -18,8 +18,8 @@ private:
     GuiElmFrame *frame;
     GuiSprite *keybd;
     GuiSprite *inpbar;
-    int sizex;
-    int sizey;
+    float sizex;
+    float sizey;
 };
 
 #endif

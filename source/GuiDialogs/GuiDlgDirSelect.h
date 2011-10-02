@@ -20,7 +20,7 @@ public:
     GuiDlgDirSelect(GuiContainer* parent, const char* name, const char* startdir, const char* filename);
     virtual ~GuiDlgDirSelect();
 
-    char* DoModal(void);
+    char* Run(void);
 private:
     char* InitialiseList(char *prevsel);
 

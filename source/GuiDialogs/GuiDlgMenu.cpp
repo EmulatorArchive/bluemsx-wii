@@ -11,35 +11,35 @@
 
 #define MENU_YPITCH      56
 
-void GuiDlgMenu::Initialize(const char **items, int num, int width)
+void GuiDlgMenu::Initialize(const char **items, int num, float width)
 {
     CleanUp();
 
     // Add container
-    int height = num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
-    int posx = GetWidth()/2-width/2;
-    int posy = GetHeight()/2-height/2;
-    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, width, height, 192);
-    AddTop(frame, new GuiEffectFade(10));
+    float height = (float)num_item_rows*MENU_YPITCH+(MENU_YPITCH/2);
+    float posx = GetWidth()/2-width/2;
+    float posy = GetHeight()/2-height/2;
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, posx, posy, width, height, 0.75f);
+    AddTop(frame, GuiEffectFade(10));
     width = frame->GetWidth();
     height = frame->GetHeight();
 
     // Menu list
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, false),
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, 24, false),
                         (void**)items, num, 0, MENU_YPITCH,
-                        posx+10, posy+24, 24, width-32);
-    AddTop(list, new GuiEffectFade(10));
-    SetSelected(list);
+                        posx+10, posy+24, width-32);
+    AddTop(list, GuiEffectFade(10));
+    list->SetFocus(true);
     initialized = true;
 }
 
 void GuiDlgMenu::CleanUp(void)
 {
     if( initialized ) {
-        Remove(list, new GuiEffectFade(10));
+        Remove(list, GuiEffectFade(10));
         if( frame ) {
-            RemoveAndDelete(frame, new GuiEffectFade(10));
+            RemoveAndDelete(frame, GuiEffectFade(10));
         }
         initialized = false;
     }
@@ -66,7 +66,7 @@ GuiDlgMenu::GuiDlgMenu(GuiContainer *parent, const char *name, int rows)
     frame = NULL;
     list = new GuiElmSelectionList(this, name, rows);
     num_item_rows = rows;
-    SetRefPixelPosition((f32)(GetWidth()/2), (f32)(GetHeight()/2));
+    SetRefPixelPosition(GetWidth()/2, GetHeight()/2);
 }
 
 GuiDlgMenu::~GuiDlgMenu()

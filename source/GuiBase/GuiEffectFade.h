@@ -1,3 +1,21 @@
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 #ifndef _GUI_EFFECT_FADE_H
 #define _GUI_EFFECT_FADE_H
 
@@ -11,15 +29,16 @@ public:
                   float posx=-1, float posy=-1);
     virtual ~GuiEffectFade();
 
-    virtual void Initialize(GuiLayer *from, GuiLayer *to, LayerTransform tfrom, LayerTransform tto);
-    virtual bool CancelLayer(GuiLayer *layer, LayerTransform *transform);
+    // Required interface
+    virtual void Initialize(GuiLayer *layer, GuiEffectType type, LayerTransform tfrom, LayerTransform tto);
+    virtual GuiEffect* Clone(void);
+    virtual void Cancel(LayerTransform *transform);
     virtual bool Run(void);
+
 private:
     GuiLayer *m_poLayer;
     LayerTransform m_oTransform;
-    bool m_bFadeIn;
     bool m_bZoom;
-    bool m_bMove;
     bool m_bClockwise;
     float m_fRotations;
     int m_iDelay;
@@ -31,12 +50,14 @@ private:
     float m_fEndZoomY;
     float m_fStartRotation;
     float m_fEndRotation;
-    int m_iStartAlpha;
-    int m_iEndAlpha;
-    int m_iPosX;
-    int m_iPosY;
+    float m_fStartAlpha;
+    float m_fEndAlpha;
+    float m_fPosX;
+    float m_fPosY;
     float m_fStartOffsetX;
     float m_fStartOffsetY;
+    float m_fEndOffsetX;
+    float m_fEndOffsetY;
 };
 
 #endif

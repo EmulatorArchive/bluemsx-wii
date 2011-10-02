@@ -15,7 +15,7 @@
 #define DSEL_YPITCH 50
 #define DIRSEL_FADE_FRAMES 10
 
-char *GuiDlgDirSelect::DoModal(void)
+char *GuiDlgDirSelect::Run(void)
 {
     bool go_back_level = false;
     char prev_dir[MAX_DIRMANAGER_PATH] = "";
@@ -51,7 +51,7 @@ char *GuiDlgDirSelect::DoModal(void)
 
         // Run GUI
         for(;;) {
-            if( Run() ) {
+            if( GuiDialog::Run() ) {
                 int sel = list->GetSelectedItem();
 
                 // enter selected directory
@@ -63,9 +63,9 @@ char *GuiDlgDirSelect::DoModal(void)
                 if( dir_level == 0 ) {
                     // on root level, leave after confirmation
                     bool ok = GuiDlgMessageBox::ShowModal(this, "wantquit",
-                                                          MSGT_YESNO, NULL, 192,
-                                                          new GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
-                                                          new GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
+                                                          MSGT_YESNO, NULL, 0.75f,
+                                                          GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
+                                                          GuiEffectFade(DIRSEL_FADE_FRAMES,0,true),
                                                           "Do you want to quit?") == MSGBTN_YES;
                     if( ok ) {
                         quit = true;
@@ -107,9 +107,11 @@ char* GuiDlgDirSelect::InitialiseList(char *prevsel)
     
     // Selection
     GXColor white = {255, 255, 255, 255};
-    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, false),
+    Lock();
+    list->InitSelection(new GuiElmListLineDefault(this, "defaultline", white, 32, 24, false),
                         (void**)title_list, num_dirs, sel, DSEL_YPITCH,
-                        320-180+8, 24+20, 24, 2*180-16);
+                        320-180+8, 24+20, 2*180-16);
+    Unlock();
 
     return NULL;
 }
@@ -129,6 +131,7 @@ GuiDlgDirSelect::GuiDlgDirSelect(GuiContainer* parent, const char* name, const c
 
     AddTop(frame);
     AddTop(list);
+    list->SetFocus(true);
 }
 
 GuiDlgDirSelect::~GuiDlgDirSelect()

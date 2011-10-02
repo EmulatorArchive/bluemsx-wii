@@ -10,7 +10,6 @@
 #include "../input/InputEvent.h"
 #include "../GuiBase/GuiRootContainer.h"
 #include "../GuiBase/GuiContainer.h"
-#include "../GuiBase/GuiEffectFade.h"
 #include "../GuiBase/GuiSprite.h"
 
 // Resources
@@ -20,8 +19,6 @@
 // Colors               R     G     B
 #define COLOR_HOVER   0x40, 0x40, 0x40
 #define COLOR_PRESSED 0x00, 0x00, 0xff
-
-#define KEYBOARD_EFFECT new GuiEffectFade(20, 0, true, 0.0f, false, 0.5f, 1.0f)
 
 typedef struct {
   int key;
@@ -117,6 +114,38 @@ static KEY_RECT key_rects[] = {
 
 #define NUM_KEYS (sizeof(key_rects) / sizeof(key_rects[0]))
 
+GuiKeyboard::GuiKeyboard(GuiContainer *parent, const char *name) :
+             GuiElement(parent, name),
+             effectDefault(20, 0, true, 0.0f, false, GetWidth()/2)
+{
+    is_showing = false;
+    is_enabled = true;
+    is_hidden = true;
+    xscale = 0.8f;
+    yscale = 1.0f;
+    xsize = (int)g_imgKeyboard->GetWidth();
+    ysize = (int)g_imgKeyboard->GetHeight();
+    xpos = 10;
+    ypos = (int)((GetHeight()-ysize)/2);
+
+    // Cursor
+    spr_cursor = new GuiSprite(this, "cursor");
+    spr_cursor->SetImage(g_imgMousecursor);
+    spr_cursor->SetRefPixelPosition(11, 4);
+    spr_cursor->SetPosition(0, 0);
+
+    AddRenderCallback(RenderWrapper, (void*)this);
+}
+
+GuiKeyboard::~GuiKeyboard()
+{
+    RemoveRenderCallback(RenderWrapper, (void*)this);
+    RemoveAndDelete(spr_cursor);
+    if( is_showing ) {
+        Hide();
+    }
+}
+
 bool GuiKeyboard::RenderWrapper(void *arg)
 {
     GuiKeyboard *me = (GuiKeyboard*)arg;
@@ -134,7 +163,7 @@ void GuiKeyboard::Render(void)
     bool validpos = GetRootContainer()->gwd.input.GetWiiMoteIR(&x, &y, &angle);
     if( validpos && is_enabled && !is_hidden ) {
         spr_cursor->SetPosition(x, y);
-        spr_cursor->SetRotation((f32)angle);
+        spr_cursor->SetRotation((float)angle);
         spr_cursor->SetVisible(true);
     }else{
         spr_cursor->SetVisible(false);
@@ -175,11 +204,11 @@ void GuiKeyboard::Render(void)
             y >= key->y && y < key->y + key->sy )
         {
             // update hover sprite
-            spr_hover->SetStretchWidth(((float)key->sx / 4) * xscale);
-            spr_hover->SetStretchHeight(((float)key->sy / 4) * yscale);
+            spr_hover->SetZoomX(((float)key->sx / 4) * xscale);
+            spr_hover->SetZoomY(((float)key->sy / 4) * yscale);
             spr_hover->SetRefPixelPosition(0,0);
-            spr_hover->SetPosition(xscale * key->x + xpos, yscale * key->y + ypos);
-            spr_hover->SetTransparency(128);
+            spr_hover->SetPosition((int)(xscale * key->x + xpos), (int)(yscale * key->y + ypos));
+            spr_hover->SetAlpha(0.5f);
             spr_hover->SetVisible(true);
             // unset previous pressed key
             if( key_pressed && key != key_pressed && !key_pressed->toggle ) {
@@ -212,11 +241,11 @@ void GuiKeyboard::Render(void)
         }
         // set/unset pressed key
         if( spr ) {
-            spr->SetStretchWidth(((float)key->sx / 4) * xscale);
-            spr->SetStretchHeight(((float)key->sy / 4) * yscale);
+            spr->SetZoomX(((float)key->sx / 4) * xscale);
+            spr->SetZoomY(((float)key->sy / 4) * yscale);
             spr->SetRefPixelPosition(0,0);
-            spr->SetPosition(xscale * key->x + xpos, yscale * key->y + ypos);
-            spr->SetTransparency(128);
+            spr->SetPosition((int)(xscale * key->x + xpos), (int)(yscale * key->y + ypos));
+            spr->SetAlpha(0.5f);
             if( key->key == EC_CAPS ) {
                 spr->SetVisible(!!ledGetCapslock());
             }else{
@@ -235,11 +264,11 @@ void GuiKeyboard::Show(void)
     // Keyboard image
     spr_image = new GuiSprite(this, "keyboard");
     spr_image->SetImage(g_imgKeyboard);
-    spr_image->SetStretchWidth(xscale);
-    spr_image->SetStretchHeight(yscale);
+    spr_image->SetZoomX(xscale);
+    spr_image->SetZoomY(yscale);
     spr_image->SetRefPixelPosition(0,0);
     spr_image->SetPosition(xpos, ypos);
-    spr_image->SetTransparency(256-32);
+    spr_image->SetAlpha(0.85f);
 
     spr_hover = new GuiSprite(this, "hover");
     spr_hover->CreateDrawImage(4, 4, GX_TF_RGB565);
@@ -266,24 +295,24 @@ void GuiKeyboard::Show(void)
     keyboardRemapKey(BTN_JOY2_WIIMOTE_A, EC_NONE);
 
     // Keyboard image
-    AddTop(spr_image, KEYBOARD_EFFECT);
+    AddTop(spr_image, effectDefault);
 
     // Selectors
-    AddTop(spr_hover, KEYBOARD_EFFECT);
+    AddTop(spr_hover, effectDefault);
     spr_hover->SetVisible(false);
-    AddTop(spr_caps, KEYBOARD_EFFECT);
+    AddTop(spr_caps, effectDefault);
     spr_caps->SetVisible(false);
-    AddTop(spr_pressed, KEYBOARD_EFFECT);
+    AddTop(spr_pressed, effectDefault);
     spr_pressed->SetVisible(false);
-    AddTop(spr_shift_l, KEYBOARD_EFFECT);
+    AddTop(spr_shift_l, effectDefault);
     spr_shift_l->SetVisible(false);
-    AddTop(spr_shift_r, KEYBOARD_EFFECT);
+    AddTop(spr_shift_r, effectDefault);
     spr_shift_r->SetVisible(false);
-    AddTop(spr_ctrl, KEYBOARD_EFFECT);
+    AddTop(spr_ctrl, effectDefault);
     spr_ctrl->SetVisible(false);
-    AddTop(spr_graph, KEYBOARD_EFFECT);
+    AddTop(spr_graph, effectDefault);
     spr_graph->SetVisible(false);
-    AddTop(spr_code, KEYBOARD_EFFECT);
+    AddTop(spr_code, effectDefault);
     spr_code->SetVisible(false);
 
     // Cursor
@@ -300,15 +329,15 @@ void GuiKeyboard::Hide(void)
     }
 
     Remove(spr_cursor);
-    RemoveAndDelete(spr_code, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_graph, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_ctrl, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_shift_l, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_shift_r, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_caps, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_pressed, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_hover, KEYBOARD_EFFECT);
-    RemoveAndDelete(spr_image, KEYBOARD_EFFECT);
+    RemoveAndDelete(spr_code, effectDefault);
+    RemoveAndDelete(spr_graph, effectDefault);
+    RemoveAndDelete(spr_ctrl, effectDefault);
+    RemoveAndDelete(spr_shift_l, effectDefault);
+    RemoveAndDelete(spr_shift_r, effectDefault);
+    RemoveAndDelete(spr_caps, effectDefault);
+    RemoveAndDelete(spr_pressed, effectDefault);
+    RemoveAndDelete(spr_hover, effectDefault);
+    RemoveAndDelete(spr_image, effectDefault);
     is_showing = false;
 
     keyboardRemapKey(BTN_JOY1_WIIMOTE_A, keymap1);
@@ -323,36 +352,5 @@ bool GuiKeyboard::IsShowing(void)
 void GuiKeyboard::SetEnabled(bool enable)
 {
     is_enabled = is_hidden = enable;
-}
-
-GuiKeyboard::GuiKeyboard(GuiContainer *parent, const char *name)
-            :GuiDialog(parent, name)
-{
-    is_showing = false;
-    is_enabled = true;
-    is_hidden = true;
-    xscale = 0.8f;
-    yscale = 1.0f;
-    xsize = g_imgKeyboard->GetWidth();
-    ysize = g_imgKeyboard->GetHeight();
-    xpos = 10;
-    ypos = (GetHeight()-ysize)/2;
-
-    // Cursor
-    spr_cursor = new GuiSprite(this, "cursor");
-    spr_cursor->SetImage(g_imgMousecursor);
-    spr_cursor->SetRefPixelPosition(11, 4);
-    spr_cursor->SetPosition(0, 0);
-
-    AddRenderCallback(RenderWrapper, (void*)this);
-}
-
-GuiKeyboard::~GuiKeyboard()
-{
-    RemoveRenderCallback(RenderWrapper, (void*)this);
-    RemoveAndDelete(spr_cursor);
-    if( is_showing ) {
-        Hide();
-    }
 }
 

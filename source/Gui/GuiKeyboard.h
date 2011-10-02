@@ -2,11 +2,12 @@
 #ifndef _GUI_KEYBOARD_H
 #define _GUI_KEYBOARD_H
 
-#include "../GuiBase/GuiDialog.h"
+#include "../GuiBase/GuiElement.h"
+#include "../GuiBase/GuiEffectFade.h"
 
 class GuiSprite;
 
-class GuiKeyboard  : public GuiDialog {
+class GuiKeyboard  : public GuiElement {
 public:
     GuiKeyboard(GuiContainer *parent, const char *name);
     virtual ~GuiKeyboard();
@@ -36,6 +37,7 @@ private:
     GuiSprite *spr_cursor;
     GuiSprite *spr_hover;
     GuiSprite *spr_pressed;
+    GuiEffectFade effectDefault;
 };
 
 #endif

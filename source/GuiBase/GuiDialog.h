@@ -1,74 +1,64 @@
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 #ifndef _GUI_DIALOG_H
 #define _GUI_DIALOG_H
 
 #include "GuiRootContainer.h"
-#include "GuiContainer.h"
-
-typedef struct _gritem GRITEM;
-typedef int GRDIR;
+#include "GuiElement.h"
 
 class GuiDialog;
-class GuiElement;
 class GuiSprite;
+class GuiRect;
 
-class GuiDialog : public GuiContainer {
+class GuiDialog : public GuiElement {
 public:
-    GuiDialog(GuiContainer *parent, const char *name);
+    GuiDialog(GuiContainer *parent, const char *name, float posx=0, float posy=0, float width=0, float height=0, float alpha=1.0f);
     virtual ~GuiDialog();
 
-    // Callbacks
+    // GuiDialog callbacks
     virtual void OnUpdateScreen(void);
-    virtual void OnKey(BTN key, bool pressed);
 
-    // Callbacks from GuiContainer
-    virtual void OnDelete(GuiLayer *layer);
+    // GuiElement callbacks
+    virtual bool OnKey(GuiDialog *dlg, BTN key, bool pressed);
 
-    void AddElement(GuiElement *element);
-    void RemoveElement(GuiElement *element);
-
-    virtual void AddTop(GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void AddTop(GuiElement *element, GuiEffect *effect = NULL);
-    virtual void AddTopFixed(GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void AddTopFixed(GuiElement *element, GuiEffect *effect = NULL);
-    virtual bool AddOnTopOf(GuiLayer *ontopof, GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual bool AddOnTopOf(GuiLayer *ontopof, GuiElement *element, GuiEffect *effect = NULL);
-    virtual bool AddBehind(GuiLayer *behind, GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual bool AddBehind(GuiLayer *behind, GuiElement *element, GuiEffect *effect = NULL);
-    virtual void AddBottom(GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void AddBottom(GuiElement *elementr, GuiEffect *effect = NULL);
-    virtual void Remove(GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void Remove(GuiElement *element, GuiEffect *effect = NULL);
-    virtual void RemoveAndDelete(GuiLayer *layer, GuiEffect *effect = NULL);
-    virtual void RemoveAndDelete(GuiElement *element, GuiEffect *effect = NULL);
-
-    void SetSelected(GuiElement *elm, int x=0, int y=0);
-    GuiElement* GetSelected(bool active_only = false);
+    // GuiDialog
     void* Run(bool modal = true);
     void Leave(void *retval);
 
-    void GetKeysCallback(BTN code, int pressed);
-    static void GetKeysCallbackWrapper(void *context, BTN code, int pressed);
+private:
+    void AddDialog(GuiDialog *dialog);
+    void RemoveDialog(GuiDialog *dialog);
+    void Activate(bool modal = false);
+    void Deactivate(void);
 
-protected:
+    static void GetKeysCallbackWrapper(void *context, BTN code, int pressed);
     static bool FrameCallbackWrapper(void *context);
+    void GetKeysCallback(BTN code, int pressed);
     bool FrameCallback(void);
 
-private:
-    GuiElement* CheckCollision(GuiSprite *sprite);
-    GuiElement* FindNearestElement(GuiElement *elm, GRDIR dir);
-    bool SelectNearestElement(GuiElement *elm, GRDIR dir);
-
-    static int running_count;
-    static GuiSprite *cursor;
-    GRITEM *first_item;
-    GRITEM *last_item;
-    GuiElement *last_selected;
-    GuiElement *selected_element;
-    GuiElement *is_above;
-    bool is_modal;
-    bool use_keyboard;
-    bool quit;
-    void *return_value;
+    static int s_running_count;
+    static GuiSprite *s_cursor;
+    int m_last_mouse_x, m_last_mouse_y;
+    bool m_is_modal;
+    bool m_is_active;
+    bool m_quit;
+    void *m_return_value;
 };
 
 #endif

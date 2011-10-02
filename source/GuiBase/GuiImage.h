@@ -1,7 +1,32 @@
-/*
- * GuiBase - GuiImage
- */
-
+/***************************************************************
+ *
+ * libwiisprite 0.3.0d source code license.
+ * Copyright 2008, 2009, 2010 by Chaosteil, Feesh!, Arikado.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any
+ * damages arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any
+ * purpose, including commercial applications, and to alter it and
+ * redistribute it freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you
+ *    must not claim that you wrote the original software. If you
+ *    use this software in a product, an acknowledgment in the
+ *    product documentation would be appreciated but is not required.
+ * 2. Any commercial application using this software is required to
+ *    give a percentage of it's sales to the authors determined via
+ *    an an arranged agreement between the author and the commercial
+ *    seller.
+ * 3. Altered source versions must be plainly marked as such, and
+ *    must not be misrepresented as being the original software.
+ *    They are subject to the same restrictions listed here as the
+ *    unaltered source.
+ * 4. This notice may not be removed or altered from any source
+ *    distribution.
+ *
+ ***************************************************************/
 #ifndef GUIBASE_IMAGE
 #define GUIBASE_IMAGE
 
@@ -39,7 +64,7 @@ public:
     virtual ~GuiImage();
 
 #ifndef WII
-    HTEXTURE GetTEX() { return _texObj; };
+    HTEXTURE GetTEX() { return m_texObj; };
 #endif
 
     //!Loads an image from a file. Width and height have to be a multiple of 4, or it won't load.
@@ -60,10 +85,10 @@ public:
     virtual void DestroyImage();
     //!Gets the width of this image.
     //!\return The width of the image. Returns 0 if no image is loaded.
-    virtual u32 GetWidth() const;
+    virtual float GetWidth() const;
     //!Gets the height of this image.
     //!\return The height of the image. Returns 0 if no image is loaded.
-    virtual u32 GetHeight() const;
+    virtual float GetHeight() const;
 
     //!Checks if the image is loaded.
     //!\return true if an image is stored, false if not.
@@ -79,20 +104,20 @@ protected:
     //!\param width The new width of the image.
     //!\param height The new height of the image.
     //!\return True if it was successfully initialized, false if not.
-    bool _InitializeImage(u32 width, u32 height, u32 bytespp = 4);
+    bool _InitializeImage(int width, int height, int bytespp = 4);
     //!Use this method if you've drawn something in the pixeldata.
     void _Flush();
 
 
 #ifdef WII
-    GXTexObj _texObj;
-    u8* _pixels; //!< Stores the pixeldata of this image. Use carefully.
+    GXTexObj m_texObj;
+    u8* m_pixels; //!< Stores the pixeldata of this image. Use carefully.
 #else
-    HTEXTURE _texObj;
-    u32 _tex_width, _tex_height;
+    HTEXTURE m_texObj;
+    int m_tex_width, m_tex_height;
 #endif
-    png_uint_32 _width, _height, _bytespp;
-    bool _initialized;
+    png_uint_32 m_width, m_height, m_bytespp;
+    bool m_initialized;
 private:
     void _ConvertTexture(u8 *blitbuf, png_byte color_type, int channels, png_bytep* row_pointers);
 };

@@ -25,10 +25,10 @@ private:
     GuiElmFrame *frame;
     GuiElmSelectionList *list;
     int num_files;
-    int posx;
-    int posy;
-    int sizex;
-    int sizey;
+    float posx;
+    float posy;
+    float sizex;
+    float sizey;
     FILEITEM **items;
 
     void CreateFileList(void);

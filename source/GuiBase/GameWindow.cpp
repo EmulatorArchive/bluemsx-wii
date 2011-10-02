@@ -1,3 +1,33 @@
+/***************************************************************
+ *
+ * libwiisprite 0.3.0d source code license.
+ * Copyright 2008, 2009, 2010 by Chaosteil, Feesh!, Arikado.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any
+ * damages arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any
+ * purpose, including commercial applications, and to alter it and
+ * redistribute it freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you
+ *    must not claim that you wrote the original software. If you
+ *    use this software in a product, an acknowledgment in the
+ *    product documentation would be appreciated but is not required.
+ * 2. Any commercial application using this software is required to
+ *    give a percentage of it's sales to the authors determined via
+ *    an an arranged agreement between the author and the commercial
+ *    seller.
+ * 3. Altered source versions must be plainly marked as such, and
+ *    must not be misrepresented as being the original software.
+ *    They are subject to the same restrictions listed here as the
+ *    unaltered source.
+ * 4. This notice may not be removed or altered from any source
+ *    distribution.
+ *
+ ***************************************************************/
+
 #include <assert.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -24,8 +54,8 @@ bool GameWindow::_screen_toggle = false;
 
 // Initializes the static members
 GW_VIDEO_MODE GameWindow::_mode = GW_VIDEO_MODE_INVALID;
-u32 GameWindow::_width = 0;
-u32 GameWindow::_height = 0;
+int GameWindow::_width = 0;
+int GameWindow::_height = 0;
 bool GameWindow::_initialized = false;
 #ifdef WII
 GuiImage* GameWindow::_lastimage = NULL;
@@ -215,7 +245,7 @@ void GameWindow::SetMode(GW_VIDEO_MODE mode)
     _fb ^= 1;
 
     // Use these values for GetWidth() and GetHeight()
-    _width = (u32)_rmode->fbWidth; _height = (u32)_rmode->efbHeight;
+    _width = _rmode->fbWidth; _height = _rmode->efbHeight;
     if( _mode == GW_VIDEO_MODE_PAL50_440 ||
         _mode == GW_VIDEO_MODE_PAL60_440 ||
         _mode == GW_VIDEO_MODE_NTSC_440) {
@@ -235,7 +265,7 @@ void GameWindow::SetMode(GW_VIDEO_MODE mode)
     GX_SetCopyClear(background, 0x00ffffff);
 
     // Set up the display
-    f32 yscale = 0; u32 xfbHeight = 0;
+    float yscale = 0; int xfbHeight = 0;
     yscale = GX_GetYScaleFactor(_rmode->efbHeight, _rmode->xfbHeight);
     xfbHeight = GX_SetDispCopyYScale(yscale);
     GX_SetViewport(0, 0,_rmode->fbWidth,_rmode->efbHeight, 0, 1);
@@ -494,14 +524,14 @@ void GameWindow::Flush()
 #endif
 }
 
-u32 GameWindow::GetWidth(){
+float GameWindow::GetWidth(){
     if(!_initialized)return 0;
-    return _width;
+    return (float)_width;
 }
 
-u32 GameWindow::GetHeight(){
+float GameWindow::GetHeight(){
     if(!_initialized)return 0;
-    return _height;
+    return (float)_height;
 }
 
 static void MyPngErrorFunction(png_structp png_ptr, const char *err_msg)

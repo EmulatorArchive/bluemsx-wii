@@ -7,6 +7,7 @@
 #include "font_impact.inc"
 
 #include "../GuiBase/TextRender.h"
+#include "../GuiBase/GuiRootContainer.h"
 
 TextRender *g_fontArial = NULL;
 TextRender *g_fontImpact = NULL;
@@ -19,11 +20,11 @@ void GuiFontInit(void)
     g_fontImpact->SetFont(font_impact, sizeof(font_impact));
 }
 
-void GuiFontClose(void)
+void GuiFontClose(GuiRootContainer *root)
 {
-    delete g_fontArial;
+    root->Delete(g_fontArial);
     g_fontArial = NULL;
-    delete g_fontImpact;
+    root->Delete(g_fontImpact);
     g_fontImpact = NULL;
 }
 

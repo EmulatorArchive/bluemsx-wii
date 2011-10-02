@@ -1,8 +1,26 @@
-
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 #ifndef _GUI_GAME_SELECT_H
 #define _GUI_GAME_SELECT_H
 
 #include "../GuiBase/GuiDialog.h"
+#include "../GuiBase/GuiEffectFade.h"
 #include "../Gui/DirectoryHelper.h"
 #include "../Gui/GameList.h"
 
@@ -23,24 +41,46 @@ class GuiElmBackground;
 class GuiElmButton;
 class GuiElmFrame;
 class GuiElmSelectionList;
+class GuiDlgGameSelect;
+
+class GuiElmGameSelectControl : public GuiElement
+{
+public:
+    GuiElmGameSelectControl(GuiElement *_parent, const char *name);
+    virtual ~GuiElmGameSelectControl();
+
+    // GuiElement interface
+    virtual bool OnKey(GuiDialog *dlg, BTN key, bool pressed);
+
+private:
+    GuiDlgGameSelect *parent;
+    GuiElmFrame *grWinControlsEdit;
+    GuiElmButton *grButtonAdd;
+    GuiElmButton *grButtonDel;
+    GuiElmButton *grButtonUp;
+    GuiElmButton *grButtonDown;
+    GuiElmButton *grButtonSettings;
+};
 
 class GuiDlgGameSelect : public GuiDialog
 {
+    friend class GuiElmGameSelectControl;
+
 public:
     GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiElmBackground *bgr);
     virtual ~GuiDlgGameSelect();
 
+    // GuiElement interface
+    virtual bool OnKey(GuiDialog *dlg, BTN key, bool pressed);
     // GuiDialog interface
-    virtual void OnKey(BTN key, bool pressed);
     virtual void OnUpdateScreen(void);
 
     bool Load(const char *dir, const char *filename, GameElement *select = NULL);
-    void Show(bool restart);
-    void Hide(bool restart);
     GameElement *DoModal(void);
-private:
+
+protected:
     DirectoryHelper directory;
-    bool is_showing;
+    bool update_screenshots;
     GuiElmBackground *background;
     GuiElmSelectionList *list;
     GameList games;
@@ -48,30 +88,39 @@ private:
     char *games_filename;
     int num_games;
     const char **title_list;
-    GuiSprite *sprScreenShot[2];
+    GuiSprite *sprScreenShotNormal[2];
+    GuiSprite *sprScreenShotEdit[2];
     float screenshotWidth;
     float screenshotHeigth;
-    int screenshotYpos1;
-    int screenshotYpos2;
+    int screenshotYpos;
     int last_index;
     int last_selected;
     GLEDITSEL selected_button;
     bool editMode;
 
-    GuiElmFrame *grWinList;
-    GuiElmFrame *grWinTitle;
-    GuiElmFrame *grWinPlay;
-    GuiElmFrame *grWinControls;
+    GuiEffectFade effectDefault;
+    GuiEffectFade effectRestart;
+    GuiEffectFade effectScreenshot;
 
-    GuiElmButton *grButtonAdd;
-    GuiElmButton *grButtonDel;
-    GuiElmButton *grButtonUp;
-    GuiElmButton *grButtonDown;
-    GuiElmButton *grButtonSettings;
+    GuiElmFrame *grWinList;
+
+    GuiContainer *containerTitleNormal;
+    GuiContainer *containerTitleEdit;
+    GuiContainer *containerPlayNormal;
+    GuiContainer *containerPlayEdit;
+    GuiElmGameSelectControl elmControl;
+
+    GuiElmFrame *grWinTitleNormal;
+    GuiElmFrame *grWinPlayNormal;
+
+    GuiElmFrame *grWinTitleEdit;
+    GuiElmFrame *grWinPlayEdit;
+
     GuiElmButton *grButtonDelScr1;
     GuiElmButton *grButtonDelScr2;
 
-    void SetSelectedGame(int index, int selected, bool restart);
+    void ShowElements(void);
+    void SetSelectedGame(int selected);
     void UpdateList(void);
 };
 

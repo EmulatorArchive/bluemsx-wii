@@ -1,5 +1,23 @@
-// Code by DragonMinded
-// Please attribute, nothing more
+/***************************************************************
+ *
+ * Copyright (C) 2008-2011 Tim Brugman
+ *
+ * Based on code of "DragonMinded"
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ ***************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +29,10 @@
 TextRender::TextRender()
 {
     // Initialize the library
-    FT_Error error = FT_Init_FreeType(&library);
+    FT_Error error = FT_Init_FreeType(&m_library);
 
     // Default values
-    _yspacing = DEFAULT_Y_CUSHION;
+    m_yspacing = DEFAULT_Y_CUSHION;
 
     if(error)
     {
@@ -26,13 +44,13 @@ TextRender::TextRender()
 TextRender::~TextRender()
 {
     // Free the library (and all resources)
-    FT_Done_FreeType(library);
+    FT_Done_FreeType(m_library);
 }
 
 void TextRender::SetFont(string path)
 {
     // Initialize a font
-    FT_Error error = FT_New_Face(library, path.c_str(), 0, &face);
+    FT_Error error = FT_New_Face(m_library, path.c_str(), 0, &m_face);
 
     if ( error )
     {
@@ -41,11 +59,11 @@ void TextRender::SetFont(string path)
     }
 }
 
-void TextRender::SetFont(const unsigned char* font, u32 size)
+void TextRender::SetFont(const unsigned char* font, int size)
 {
     // Initialize a font
-    FT_Error error = FT_New_Memory_Face(library, font, size, 0, &face);
-    _fontheight = size;
+    FT_Error error = FT_New_Memory_Face(m_library, font, size, 0, &m_face);
+    m_fontheight = size;
 
     if ( error )
     {
@@ -56,28 +74,28 @@ void TextRender::SetFont(const unsigned char* font, u32 size)
 
 void TextRender::SetColor(GXColor c)
 {
-    _color = c;
+    m_color = c;
 }
 
 void TextRender::SetSize(int s)
 {
     // Set up the font face (see freetype samples for magic values)
-    FT_Set_Pixel_Sizes(face, 0, s);
-    _fontheight = s;
+    FT_Set_Pixel_Sizes(m_face, 0, s);
+    m_fontheight = s;
 }
 
 void TextRender::SetYSpacing(int s)
 {
-    _yspacing = s + DEFAULT_Y_CUSHION;
+    m_yspacing = s + DEFAULT_Y_CUSHION;
 }
 
 void TextRender::SetBuffer(uint8_t *buf, int width, int height, int bufwidth)
 {
     // Set up a buffer to render to (RGBA quads, most likely to be blitted into a GuiTextImage and rendered using libwiisprite)
-    _buf = buf;
-    _width = width;
-    _height = height;
-    _bufwidth = bufwidth;
+    m_buf = buf;
+    m_width = width;
+    m_height = height;
+    m_bufwidth = bufwidth;
 }
 
 void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
@@ -86,17 +104,17 @@ void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
     int runHeight = bmp->rows;
 
     // Precalculate the width
-    if((left + bmp->width) >= _width)
+    if((left + bmp->width) >= m_width)
     {
         // Run height needs adjustment
-        runWidth = _width - (left + bmp->width);
+        runWidth = m_width - (left + bmp->width);
     }
 
     // Precalculate the height
-    if((top + bmp->rows) >= _height)
+    if((top + bmp->rows) >= m_height)
     {
         // Run height needs adjustment
-        runHeight = _height - (top + bmp->rows);
+        runHeight = m_height - (top + bmp->rows);
     }
 
     // Copy alpha data over, setting the color to the predefined color and the alpha to the value of the glyph
@@ -104,7 +122,7 @@ void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
     {
         // Precalculate
         int sywidth = (y * bmp->width);
-        int dywidth = ((y + top) * _bufwidth);
+        int dywidth = ((y + top) * m_bufwidth);
 
         for(int x = 0; x < runWidth; x++)
         {
@@ -113,10 +131,10 @@ void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
             int dstloc = ((x + left) + dywidth) << 2;
 
             // Copy data over
-            _buf[dstloc] = _color.r;
-            _buf[dstloc + 1] = _color.g;
-            _buf[dstloc + 2] = _color.b;
-            _buf[dstloc + 3] = ((uint8_t *)bmp->buffer)[srcloc];
+            m_buf[dstloc] = m_color.r;
+            m_buf[dstloc + 1] = m_color.g;
+            m_buf[dstloc + 2] = m_color.b;
+            m_buf[dstloc + 3] = ((uint8_t *)bmp->buffer)[srcloc];
         }
     }
 }
@@ -131,7 +149,7 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
     int y = DEFAULT_Y;
 
     // Shortcut from examples
-    FT_GlyphSlot slot = face->glyph;
+    FT_GlyphSlot slot = m_face->glyph;
 
     // Render
     bool newline = true;
@@ -141,12 +159,12 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
             int j = i;
             int s = 0;
             while(out[j] != '\0' && out[j] != '\r' && out[j] != '\n') {
-                FT_Error error = FT_Load_Char(face, out[j], FT_LOAD_RENDER);
+                FT_Error error = FT_Load_Char(m_face, out[j], FT_LOAD_RENDER);
                 if(error) break;  /* break on error */
                 s += slot->advance.x >> 6;
                 j++;
             }
-            x += (_width - s) >> 1;
+            x += (m_width - s) >> 1;
             if( x < 0 ) x = 0;
             newline = false;
 
@@ -155,7 +173,7 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
         {
             // Newline
             x = DEFAULT_X;
-            y += _fontheight + _yspacing;
+            y += m_fontheight + m_yspacing;
             newline = true;
 
             continue;
@@ -173,12 +191,12 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
         }
 
         // Render glyph
-        FT_Error error = FT_Load_Char(face, out[i], FT_LOAD_RENDER);
+        FT_Error error = FT_Load_Char(m_face, out[i], FT_LOAD_RENDER);
         if(error) continue;  /* ignore errors */
 
         // Blit glyph to surface
         if( sx == NULL && sy == NULL ) {
-            Blit(&slot->bitmap, x + slot->bitmap_left, (y + _fontheight) - slot->bitmap_top - 4);
+            Blit(&slot->bitmap, x + slot->bitmap_left, (y + m_fontheight) - slot->bitmap_top - 4);
         }
 
         // Advance the position
@@ -186,7 +204,7 @@ void TextRender::RenderSimple(const char *out, bool center, int *sx, int *sy)
         if( x > maxx ) maxx = x;
     }
     if( sx ) *sx = maxx + 1;
-    if( sy ) *sy = y + _fontheight + 4;
+    if( sy ) *sy = y + m_fontheight + 4;
 }
 
 void TextRender::GetTextSize(int *sx, int *sy, bool center, const char *fmt, ...)
