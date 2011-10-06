@@ -50,11 +50,13 @@ GuiDlgInputLine::GuiDlgInputLine(GuiContainer *parent, const char *name)
     AddTop(frame);
 
     // Input bar
-    inpbar = new GuiSprite(this, "inpbar", g_imgInputBar, 6, 6);
+    inpbar = new GuiSprite(this, "inpbar", NULL, 6, 6);
+    GuiImages::AssignSpriteToImage(inpbar, "image_inputbar");
     AddTop(inpbar);
 
     // Keyboard
-    keybd = new GuiSprite(this, "keybd", g_imgKeyboard2, 6, 64+6+6);
+    keybd = new GuiSprite(this, "keybd", NULL, 6, 64+6+6);
+    GuiImages::AssignSpriteToImage(keybd, "image_keyboard2");
     AddTop(keybd);
 }
 

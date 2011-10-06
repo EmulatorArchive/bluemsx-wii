@@ -20,16 +20,16 @@ public:
     virtual bool OnTestActiveArea(float x, float y);
     virtual void OnFocus(bool focus);
 
-    void CreateImageSelectorButton(GuiImage *image, int f_sel=0);
-    void CreateImageHighlightButton(GuiImage *image, int f_sel=0);
-    void CreateImageTextHighlightButton(GuiImage *image, const char *txt, int f_sel=0);
+    void CreateImageSelectorButton(const char *name, int f_sel=0);
+    void CreateImageHighlightButton(const char *name, int f_sel=0);
+    void CreateImageTextHighlightButton(const char *name, const char *txt, int f_sel=0);
 
 private:
     void CleanUp(void);
 
     BTE type;
     bool selected;
-    bool is_created;
+    bool shown;
     int fade_sel;
     GuiSprite *sprImage;
     GuiSprite *sprText;

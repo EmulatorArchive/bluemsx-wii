@@ -31,8 +31,7 @@
 #include "GuiTextImage.h"
 
 
-GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, float x, float y,
-                     float clipw, float cliph, float clipx, float clipy) :
+GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, float x, float y, GuiRect rect) :
            GuiLayer(parent, name)
 {
     m_image = NULL;
@@ -43,7 +42,7 @@ GuiSprite::GuiSprite(GuiContainer *parent, const char *name, GuiImage* image, fl
     m_spr = NULL;
 #endif
     if( image != NULL ) {
-        SetImage(image, clipw, cliph, clipx, clipy);
+        SetImage(image, rect);
     }
     SetPosition(x, y);
 }
@@ -66,8 +65,7 @@ void GuiSprite::CleanUp(void)
     m_draw_image = NULL;
 }
 
-void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
-                               float clipWidth, float clipHeight, float clipOffsetX, float clipOffsetY)
+void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage, GuiRect rect)
 {
     if(drawimage != NULL) {
         image = drawimage;
@@ -86,18 +84,18 @@ void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
     CleanUp();
 
     // Check/setup clipping rect
-    if(clipWidth == 0 || (clipWidth + clipOffsetX) > image->GetWidth()) {
-        clipWidth = image->GetWidth() - clipOffsetX;
+    if(rect.width == 0 || (rect.width + rect.x) > image->GetWidth()) {
+        rect.width = image->GetWidth() - rect.x;
     }
-    if(clipHeight == 0 || (clipHeight + clipOffsetY) > image->GetHeight()) {
-        clipHeight = image->GetHeight() - clipOffsetY; 
+    if(rect.height == 0 || (rect.height + rect.y) > image->GetHeight()) {
+        rect.height = image->GetHeight() - rect.y; 
     }
-    assert(clipWidth > 0);
-    assert(clipHeight > 0);
-    SetWidth(clipWidth);
-    SetHeight(clipHeight);
-    m_clip_x = clipOffsetX;
-    m_clip_y = clipOffsetY;
+    assert(rect.width > 0);
+    assert(rect.height > 0);
+    SetWidth(rect.width);
+    SetHeight(rect.height);
+    m_clip_x = rect.x;
+    m_clip_y = rect.y;
 
     // Refpixel setting. This positions at the upper left corner.
     SetRefPixelPosition(0,0);
@@ -106,18 +104,18 @@ void GuiSprite::SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
     m_draw_image = drawimage;
 }
 
-void GuiSprite::SetImage(GuiImage* image, float clipWidth, float clipHeight, float clipOffsetX, float clipOffsetY)
+void GuiSprite::SetImage(GuiImage* image, GuiRect rect)
 {
     CleanUp();
     GetRootContainer()->UseAtom(image);
-    SetImageIntern(image, NULL, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
+    SetImageIntern(image, NULL, rect);
 }
 
-void GuiSprite::SetImage(GuiTextImage* drawimage, float clipWidth, float clipHeight, float clipOffsetX, float clipOffsetY)
+void GuiSprite::SetImage(GuiTextImage* drawimage, GuiRect rect)
 {
     CleanUp();
     GetRootContainer()->UseAtom(drawimage);
-    SetImageIntern(NULL, drawimage, clipWidth, clipHeight, clipOffsetX, clipOffsetY);
+    SetImageIntern(NULL, drawimage, rect);
 }
 
 GuiImage* GuiSprite::GetImage() const
@@ -130,7 +128,7 @@ bool GuiSprite::LoadImage(const unsigned char *buf)
     CleanUp();
     GuiImage *image = new GuiImage();
     if(image->LoadImage(buf) == IMG_LOAD_ERROR_NONE) {
-        SetImageIntern(image, NULL, 0, 0, 0, 0);
+        SetImageIntern(image, NULL);
         return true;
     }else{
         GetParent()->GetRootContainer()->ReleaseAtom(image);
@@ -143,7 +141,7 @@ bool GuiSprite::LoadImage(const char *file)
     CleanUp();
     GuiImage *image = new GuiImage();
     if(image->LoadImage(file) == IMG_LOAD_ERROR_NONE) {
-        SetImageIntern(image, NULL, 0, 0, 0, 0);
+        SetImageIntern(image, NULL);
         return true;
     }else{
         GetParent()->GetRootContainer()->ReleaseAtom(image);
@@ -170,7 +168,7 @@ void GuiSprite::CreateTextImageVA(TextRender* font, int size, int minwidth, int 
     drawimage->CreateImage(txtwidth, txtheight);
     drawimage->RenderTextVA(center, fmt, valist);
 
-    SetImage(drawimage, (float)txtwidth, (float)txtheight);
+    SetImage(drawimage, GuiRect(0, 0, (float)txtwidth, (float)txtheight));
     Delete(drawimage);
 }
 
@@ -189,7 +187,7 @@ void GuiSprite::CreateDrawImage(int width, int height, int format)
     GuiTextImage* drawimage = new GuiTextImage();
     drawimage->CreateImage(width, height, format);
 
-    SetImage(drawimage, (float)width, (float)height);
+    SetImage(drawimage, GuiRect(0, 0, (float)width, (float)height));
     Delete(drawimage);
 }
 

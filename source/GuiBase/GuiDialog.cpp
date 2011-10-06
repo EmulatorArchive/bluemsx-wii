@@ -195,9 +195,11 @@ void GuiDialog::Activate(bool modal)
 
     // Cursor
     if( s_running_count == 0 ) {
-        s_cursor = new GuiSprite(GetRootContainer(), "cursor");
-        s_cursor->SetImage(GetPointerImage());
-        s_cursor->SetPosition(0, 0);
+        GuiImage *image;
+        GuiRect rect;
+        GetPointerImage(&image, &rect);
+        s_cursor = new GuiSprite(GetRootContainer(), "cursor", NULL, 0, 0);
+        s_cursor->SetImage(image, rect);
         s_cursor->SetVisible(false);
         GetRootContainer()->AddTopFixed(s_cursor);
     }

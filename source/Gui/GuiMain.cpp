@@ -171,7 +171,7 @@ void archDiskQuickChangeNotify(int driveId, char* fileName, const char* fileInZi
     }
     // Show popup
     GuiDlgMessageBox::ShowPopup(GuiContainer::GetRootContainer(), "diskchange",
-                                g_imgFloppyDisk, 0.75f, 500,
+                                "image_floppy_disk", 0.75f, 500,
                                 GuiEffectFade(10, 0, true),
                                 GuiEffectFade(50, 10, true), currentDisk);
 }
@@ -184,15 +184,19 @@ GuiMain::GuiMain() :
          effectZoom(10, 0, true)
 {
     // Resources
+    GuiImage *image;
+    GuiRect rect;
     GuiFontInit();
-    GuiImageInit();
-    SetPointerImage(g_imgMousecursor);
+    GuiImages::Init(this);
+    GuiImages::GetImage("image_mousecursor", &image, &rect);
+    SetPointerImage(image, rect);
 }
 
 GuiMain::~GuiMain()
 {
+    // Free GUI resources
     GuiFontClose(this);
-    GuiImageClose(this);
+    GuiImages::Close();
 }
 
 

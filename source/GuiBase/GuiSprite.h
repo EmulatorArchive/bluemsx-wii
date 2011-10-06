@@ -26,6 +26,7 @@
 
 #include "GuiLayer.h"
 #include "GuiImage.h"
+#include "GuiRect.h"
 
 #ifndef WII
 class hgeSprite;
@@ -36,14 +37,13 @@ class TextRender;
 
 class GuiSprite : public GuiLayer {
 public:
-    GuiSprite(GuiContainer *parent, const char *name, GuiImage* image=NULL, float x=0, float y=0,
-              float clipw=0, float cliph=0, float clipx=0, float clipy=0);
+    GuiSprite(GuiContainer *parent, const char *name, GuiImage* image=NULL, float x=0.0f, float y=0.0f, GuiRect rect = GuiRect());
     virtual ~GuiSprite();
 
     void CleanUp(void);
 
-    void SetImage(GuiImage* image, float clipWidth = 0, float clipHeight = 0, float clipOffsetX = 0, float clipOffsetY = 0);
-    void SetImage(GuiTextImage* drawimage, float clipWidth = 0, float clipHeight = 0, float clipOffsetX = 0, float clipOffsetY = 0);
+    void SetImage(GuiImage* image, GuiRect rect = GuiRect());
+    void SetImage(GuiTextImage* drawimage, GuiRect rect = GuiRect());
     GuiImage* GetImage() const;
 
     // Image
@@ -63,8 +63,7 @@ public:
     // Draws the GuiSprite.
     void Draw(void);
 private:
-    void SetImageIntern(GuiImage* image, GuiTextImage* drawimage,
-                        float clipWidth, float clipHeight, float clipOffsetX, float clipOffsetY);
+    void SetImageIntern(GuiImage* image, GuiTextImage* drawimage, GuiRect rect = GuiRect());
 #ifndef WII
     hgeSprite *m_spr;
 #endif

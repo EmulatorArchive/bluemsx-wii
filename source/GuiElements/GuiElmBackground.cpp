@@ -15,7 +15,7 @@ GuiElmBackground::GuiElmBackground(GuiContainer *parent, const char *name) :
 {
     // Background picture
     sprBackground = new GuiSprite(this, "background");
-    sprBackground->SetImage(g_imgBackground);
+    GuiImages::AssignSpriteToImage(sprBackground, "image_background");
     sprBackground->SetScaledWidth(GetWidth());
     sprBackground->SetScaledHeight(GetHeight());
     sprBackground->SetRefPixelPosition(0, 0);

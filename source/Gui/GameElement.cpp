@@ -181,11 +181,7 @@ GuiImage* GameElement::GetImage(int number)
             }
         }
     }
-    if( image[number] != NULL ) {
-        return image[number];
-    }else{
-        return g_imgNoise;
-    }
+    return image[number];
 }
 
 void GameElement::DeleteImage(int number)

@@ -24,10 +24,10 @@ private:
     bool is_showing;
     bool is_enabled;
     bool is_hidden;
-    int xpos;
-    int ypos;
-    int xsize;
-    int ysize;
+    float xpos;
+    float ypos;
+    float xsize;
+    float ysize;
     float xscale;
     float yscale;
     int keymap1;

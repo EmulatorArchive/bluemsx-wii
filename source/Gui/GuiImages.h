@@ -1,36 +1,30 @@
 #ifndef _GUI_IMAGES_H
 #define _GUI_IMAGES_H
 
+#include "../GuiBase/GuiSprite.h"
+#include "../GuiBase/GuiRect.h"
+
+struct _IMGPOS;
+typedef struct _IMGPOS IMGPOS;
+
 class GuiImage;
+class GuiSprite;
 class GuiRootContainer;
 
-extern GuiImage *g_imgArrow;
-extern GuiImage *g_imgBackground;
-extern GuiImage *g_imgMousecursor;
-extern GuiImage *g_imgNoise;
-extern GuiImage *g_imgSelector;
-extern GuiImage *g_imgSelector2;
-extern GuiImage *g_imgFloppyDisk;
-extern GuiImage *g_imgKeyboard;
-extern GuiImage *g_imgKeyboard2;
-extern GuiImage *g_imgButtonRed;
-extern GuiImage *g_imgButtonGreen;
-extern GuiImage *g_imgButtonBlue;
-extern GuiImage *g_imgButtonYellow;
-extern GuiImage *g_imgCheckboxChecked;
-extern GuiImage *g_imgCheckbox;
-extern GuiImage *g_imgUp;
-extern GuiImage *g_imgDown;
-extern GuiImage *g_imgAdd;
-extern GuiImage *g_imgDelete;
-extern GuiImage *g_imgDelete2;
-extern GuiImage *g_imgSettings;
-extern GuiImage *g_imgFrameA;
-extern GuiImage *g_imgFrameB;
-extern GuiImage *g_imgFrameC;
-extern GuiImage *g_imgInputBar;
+class GuiImages {
+public:
+    static void Init(GuiRootContainer *root);
+    static void Close();
 
-extern void GuiImageInit(void);
-extern void GuiImageClose(GuiRootContainer *root);
+    static void GetImage(const char *name, GuiImage **image, GuiRect *rect);
+    static float GetWidth(const char *name);
+    static float GetHeight(const char *name);
+    static void AssignSpriteToImage(GuiSprite *spr, const char *name, GuiRect rect = GuiRect());
+private:
+    static IMGPOS* GuiImages::FindImage(const char *name, GuiImage **image = NULL);
+
+    static GuiRootContainer* root_container;
+    static GuiImage* imgGui;
+};
 
 #endif
