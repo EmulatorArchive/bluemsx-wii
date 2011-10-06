@@ -53,7 +53,7 @@ void GuiDlgMessageBox::CleanUp(void)
     }
 }
 
-void GuiDlgMessageBox::ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, float alpha, int delay, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
+void GuiDlgMessageBox::ShowPopup(GuiContainer *parent, const char *name, const char *image, float alpha, int delay, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
@@ -67,7 +67,7 @@ void GuiDlgMessageBox::ShowPopup(GuiContainer *parent, const char *name, GuiImag
     va_end(marker);
 }
 
-void GuiDlgMessageBox::ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, float alpha, int delay, GuiEffect &effa, GuiEffect &effb, const char *txt, ...)
+void GuiDlgMessageBox::ShowPopup(GuiContainer *parent, const char *name, const char *image, float alpha, int delay, GuiEffect &effa, GuiEffect &effb, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
@@ -93,7 +93,7 @@ MSGBTN GuiDlgMessageBox::RunModal(GuiDlgMessageBox *msgbox, MSGT type)
     return return_value;
 }
 
-MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, float alpha, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
+MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT type, const char *image, float alpha, GuiEffect *effa, GuiEffect *effb, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
@@ -112,7 +112,7 @@ MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT 
     return return_value;
 }
 
-MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, float alpha, GuiEffect &effa, GuiEffect &effb, const char *txt, ...)
+MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT type, const char *image, float alpha, GuiEffect &effa, GuiEffect &effb, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
@@ -132,7 +132,7 @@ MSGBTN GuiDlgMessageBox::ShowModal(GuiContainer *parent, const char *name, MSGT 
 }
 
 
-void GuiDlgMessageBox::Create(MSGT type, GuiImage *image, float alpha, const char *txt, ...)
+void GuiDlgMessageBox::Create(MSGT type, const char *image, float alpha, const char *txt, ...)
 {
     va_list marker;
     va_start(marker, txt);
@@ -142,20 +142,26 @@ void GuiDlgMessageBox::Create(MSGT type, GuiImage *image, float alpha, const cha
     va_end(marker);
 }
 
-void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, float alpha, const char *txt, va_list valist)
+void GuiDlgMessageBox::CreateVA(MSGT type, const char *image, float alpha, const char *txt, va_list valist)
 {
     CleanUp();
 
     btn_type = type;
 
     // prepare text
-    GXColor white={255,255,255,255};
+    GXColor txtcol={255,255,255,255};
     txt_sprite = new GuiSprite(this, "text");
-    txt_sprite->CreateTextImageVA(g_fontArial, 32, 0, 0, true, white, txt, valist);
+    txt_sprite->CreateTextImageVA(g_fontArial, 32, 0, 0, true, txtcol, txt, valist);
+
+    // prepare image (optional)
+    if( image ) {
+        img_sprite = new GuiSprite(this, "image");
+        GuiImages::AssignSpriteToImage(img_sprite, image);
+    }
 
     // frame
     float minsizex = image? 560.0f : 400.0f;
-    float sizex = txt_sprite->GetWidth() + (image? image->GetWidth()+24 : 0) + 48;
+    float sizex = txt_sprite->GetWidth() + (image? img_sprite->GetWidth()+24 : 0) + 48;
     float sizey = txt_sprite->GetHeight() + 100;
     if( sizex < minsizex ) {
         sizex = minsizex;
@@ -175,37 +181,34 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, float alpha, const c
     float x = 0, y = 0;
     // image (optional)
     if( image ) {
-        img_sprite = new GuiSprite(this, "image");
-        img_sprite->SetImage(image);
-        img_sprite->SetRefPixelPosition(0, 0);
-        img_sprite->SetPosition(x+24, y+sizey/2-image->GetHeight()/2);
+        img_sprite->SetPosition(x+24, y+sizey/2-img_sprite->GetHeight()/2);
         AddTop(img_sprite);
-        x += image->GetWidth() + 24;
-        sizex -= image->GetWidth() + 24;
+        x += img_sprite->GetWidth() + 24;
+        sizex -= img_sprite->GetWidth() + 24;
     }
     // yes/no/ok/cancel buttons (optional)
     char const *btntxt[3];
-    GuiImage *btnimg[3];
+    const char *btnimg[3];
     switch( type ) {
         case MSGT_OK:
             no_buttons = 1; default_button = 0;
-            btntxt[0] = "Ok";     buttons[0] = MSGBTN_OK;     btnimg[0] = g_imgButtonBlue;
+            btntxt[0] = "Ok";     buttons[0] = MSGBTN_OK;     btnimg[0] = "image_button_blue";
             break;
         case MSGT_OKCANCEL:
             no_buttons = 2; default_button = 0;
-            btntxt[0] = "Ok";     buttons[0] = MSGBTN_OK;     btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "Cancel"; buttons[1] = MSGBTN_CANCEL; btnimg[1] = g_imgButtonRed;
+            btntxt[0] = "Ok";     buttons[0] = MSGBTN_OK;     btnimg[0] = "image_button_green";
+            btntxt[1] = "Cancel"; buttons[1] = MSGBTN_CANCEL; btnimg[1] = "image_button_red";
             break;
         case MSGT_YESNO:
             no_buttons = 2; default_button = 0;
-            btntxt[0] = "Yes";    buttons[0] = MSGBTN_YES;    btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "No";     buttons[1] = MSGBTN_NO;     btnimg[1] = g_imgButtonRed;
+            btntxt[0] = "Yes";    buttons[0] = MSGBTN_YES;    btnimg[0] = "image_button_green";
+            btntxt[1] = "No";     buttons[1] = MSGBTN_NO;     btnimg[1] = "image_button_red";
             break;
         case MSGT_YESNOCANCEL:
             no_buttons = 3; default_button = 0;
-            btntxt[0] = "Yes";    buttons[0] = MSGBTN_YES;    btnimg[0] = g_imgButtonGreen;
-            btntxt[1] = "No";     buttons[1] = MSGBTN_NO;     btnimg[1] = g_imgButtonRed;
-            btntxt[2] = "Cancel"; buttons[2] = MSGBTN_CANCEL; btnimg[2] = g_imgButtonYellow;
+            btntxt[0] = "Yes";    buttons[0] = MSGBTN_YES;    btnimg[0] = "image_button_green";
+            btntxt[1] = "No";     buttons[1] = MSGBTN_NO;     btnimg[1] = "image_button_red";
+            btntxt[2] = "Cancel"; buttons[2] = MSGBTN_CANCEL; btnimg[2] = "image_button_yellow";
             break;
         case MSGT_TEXT:
         default:
@@ -214,19 +217,21 @@ void GuiDlgMessageBox::CreateVA(MSGT type, GuiImage *image, float alpha, const c
     }
     if( no_buttons > 0 ) {
         float bx, by;
-        bx = x + sizex/2 - (no_buttons - 1) * 12 - 6;
-        for(int i = 0; i < no_buttons; i++) {
-            bx -= btnimg[i]->GetWidth() / 2;
-        }
-        by = y + sizey - btnimg[0]->GetHeight() - 32;
         for(int i = 0; i < no_buttons; i++) {
             button[i] = new GuiElmButton(this, "button");
             button[i]->CreateImageTextHighlightButton(btnimg[i], btntxt[i]);
-            button[i]->SetPosition(bx, by);
             AddTop(button[i]);
-            bx += btnimg[i]->GetWidth() + 24;
         }
-        sizey -= btnimg[0]->GetHeight() + 32;
+        bx = x + sizex/2 - (no_buttons - 1) * 12 - 6;
+        for(int i = 0; i < no_buttons; i++) {
+            bx -= button[i]->GetWidth() / 2;
+        }
+        by = y + sizey - button[0]->GetHeight() - 32;
+        for(int i = 0; i < no_buttons; i++) {
+            button[i]->SetPosition(bx, by);
+            bx += button[i]->GetWidth() + 24;
+        }
+        sizey -= button[0]->GetHeight() + 32;
     }
 
     // text

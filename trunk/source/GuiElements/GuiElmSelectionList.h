@@ -2,10 +2,8 @@
 #ifndef _GUI_SELECTION_LIST_H
 #define _GUI_SELECTION_LIST_H
 
-#include "../GuiBase/GuiContainer.h"
 #include "../GuiBase/GuiElement.h"
 #include "../GuiBase/GuiEffectFade.h"
-#include "../GuiBase/GuiSprite.h"
 
 typedef enum {
   UPDATELIST_REBUILD,
@@ -20,6 +18,9 @@ typedef enum {
   SELRET_KEY_B,
   SELRET_KEY_PLUS,
 } SELRET;
+
+class GuiElmFrame;
+class GuiSprite;
 
 class GuiElmListLine : public GuiElement {
 public:
@@ -48,7 +49,7 @@ public:
 private:
     const char *text;
     GuiSprite *sprite;
-    GuiSprite *selector;
+    GuiElmFrame *selector;
     GXColor fontcolor;
     int fontsize;
     float xspacing;

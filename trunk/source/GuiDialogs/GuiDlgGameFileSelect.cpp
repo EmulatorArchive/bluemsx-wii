@@ -333,7 +333,7 @@ GuiDlgGameFileSelect::GuiDlgGameFileSelect(GuiContainer *parent, const char *nam
     posy = GetHeight()/2-(GFSEL_HEIGHT/2)-16;
     sizex = GFSEL_WIDTH;
     sizey = GFSEL_HEIGHT+32;
-    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BRUSHED, posx, posy, sizex, sizey, 240);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BRUSHED, posx, posy, sizex, sizey, 0.9f);
     AddTop(frame);
 
     // List

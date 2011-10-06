@@ -77,7 +77,7 @@ bool GuiElmListLineDefault::OnTestActiveArea(float x, float y)
 void GuiElmListLineDefault::OnActive(bool active)
 {
     if( active && sprite != NULL ) {
-        selector = new GuiSprite(this, "selector", g_imgSelector, 0, 0);
+        selector = new GuiElmFrame(this, "selector", FRAMETYPE_SELECTOR, 0, 0, GetWidth(), GetHeight());
         selector->SetScaledWidth(GetWidth());
         selector->SetScaledHeight(GetHeight());
         AddBehind(sprite, selector, m_bEnableEffect? new GuiEffectFade(SELECTION_FADE_TIME) : NULL);
@@ -378,9 +378,9 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
 
     // Arrows
     sprArrowUp = new GuiSprite(this, "arrow_up");
-    sprArrowUp->SetImage(g_imgArrow);
-    sprArrowUp->SetRefPixelPosition(g_imgArrow->GetWidth() / 2,
-                                    g_imgArrow->GetHeight() / 2);
+    GuiImages::AssignSpriteToImage(sprArrowUp, "image_arrow");
+    sprArrowUp->SetRefPixelPosition(sprArrowUp->GetWidth() / 2,
+                                    sprArrowUp->GetHeight() / 2);
     sprArrowUp->SetPosition(GetWidth()/2, ypitch/2);
     sprArrowUp->SetScaledWidth(width / 2);
     sprArrowUp->SetScaledHeight(ypitch / 2);
@@ -388,9 +388,9 @@ void GuiElmSelectionList::InitSelection(GuiElmListLine *listln, void **items, in
     sprArrowUp->SetVisible(false);
 
     sprArrowDown = new GuiSprite(this, "arrow_down");
-    sprArrowDown->SetImage(g_imgArrow);
-    sprArrowDown->SetRefPixelPosition(g_imgArrow->GetWidth() / 2,
-                                      g_imgArrow->GetHeight() / 2);
+    GuiImages::AssignSpriteToImage(sprArrowDown, "image_arrow");
+    sprArrowDown->SetRefPixelPosition(sprArrowUp->GetWidth() / 2,
+                                      sprArrowUp->GetHeight() / 2);
     sprArrowDown->SetPosition(GetWidth()/2, (num_item_rows-1)*ypitch+ypitch/2);
     sprArrowDown->SetScaledWidth(width / 2);
     sprArrowDown->SetScaledHeight(ypitch / 2);

@@ -123,16 +123,15 @@ GuiKeyboard::GuiKeyboard(GuiContainer *parent, const char *name) :
     is_hidden = true;
     xscale = 0.8f;
     yscale = 1.0f;
-    xsize = (int)g_imgKeyboard->GetWidth();
-    ysize = (int)g_imgKeyboard->GetHeight();
+    xsize = GuiImages::GetWidth("image_keyboard");
+    ysize = GuiImages::GetHeight("image_keyboard");
     xpos = 10;
-    ypos = (int)((GetHeight()-ysize)/2);
+    ypos = (GetHeight()-ysize)/2;
 
     // Cursor
-    spr_cursor = new GuiSprite(this, "cursor");
-    spr_cursor->SetImage(g_imgMousecursor);
+    spr_cursor = new GuiSprite(this, "cursor", 0, 0);
+    GuiImages::AssignSpriteToImage(spr_cursor, "image_mousecursor");
     spr_cursor->SetRefPixelPosition(11, 4);
-    spr_cursor->SetPosition(0, 0);
 
     AddRenderCallback(RenderWrapper, (void*)this);
 }
@@ -263,7 +262,7 @@ void GuiKeyboard::Show(void)
 
     // Keyboard image
     spr_image = new GuiSprite(this, "keyboard");
-    spr_image->SetImage(g_imgKeyboard);
+    GuiImages::AssignSpriteToImage(spr_image, "image_keyboard");
     spr_image->SetZoomX(xscale);
     spr_image->SetZoomY(yscale);
     spr_image->SetRefPixelPosition(0,0);

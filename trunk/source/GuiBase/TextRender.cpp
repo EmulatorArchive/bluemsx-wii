@@ -131,9 +131,9 @@ void TextRender::Blit(FT_Bitmap *bmp, int left, int top)
             int dstloc = ((x + left) + dywidth) << 2;
 
             // Copy data over
-            m_buf[dstloc] = m_color.r;
+            m_buf[dstloc] = m_color.b;
             m_buf[dstloc + 1] = m_color.g;
-            m_buf[dstloc + 2] = m_color.b;
+            m_buf[dstloc + 2] = m_color.r;
             m_buf[dstloc + 3] = ((uint8_t *)bmp->buffer)[srcloc];
         }
     }

@@ -41,26 +41,26 @@ GuiElmGameSelectControl::GuiElmGameSelectControl(GuiElement *_parent, const char
 {
     parent = static_cast<GuiDlgGameSelect*>(_parent);
 
-    grWinControlsEdit = new GuiElmFrame(this, "controlframe", FRAMETYPE_BLUE, 0, 0, 280, 48);
+    grWinControlsEdit = new GuiElmFrame(this, "controlframe", FRAMETYPE_BLUE, 0, 0, 280, 48, 0.5f);
     AddTop(grWinControlsEdit);
     grButtonAdd = new GuiElmButton(this, "add");
-    grButtonAdd->CreateImageSelectorButton(g_imgAdd);
+    grButtonAdd->CreateImageSelectorButton("image_add");
     grButtonAdd->SetPosition(352-336, 2);
     AddTop(grButtonAdd);
     grButtonDel = new GuiElmButton(this, "del");
-    grButtonDel->CreateImageSelectorButton(g_imgDelete);
+    grButtonDel->CreateImageSelectorButton("image_delete");
     grButtonDel->SetPosition(402-336, 2);
     AddTop(grButtonDel);
     grButtonUp = new GuiElmButton(this, "up");
-    grButtonUp->CreateImageSelectorButton(g_imgUp);
+    grButtonUp->CreateImageSelectorButton("image_up");
     grButtonUp->SetPosition(452-336, 2);
     AddTop(grButtonUp);
     grButtonDown = new GuiElmButton(this, "down");
-    grButtonDown->CreateImageSelectorButton(g_imgDown);
+    grButtonDown->CreateImageSelectorButton("image_down");
     grButtonDown->SetPosition(502-336, 2);
     AddTop(grButtonDown);
     grButtonSettings = new GuiElmButton(this, "settings");
-    grButtonSettings->CreateImageSelectorButton(g_imgSettings);
+    grButtonSettings->CreateImageSelectorButton("image_settings");
     grButtonSettings->SetPosition(552-336, 2);
     AddTop(grButtonSettings);
 }
@@ -170,7 +170,7 @@ GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiEl
     sprScreenShotEdit[1] = NULL;
 
     // Containers (global)
-    grWinList = new GuiElmFrame(this, "listframe", FRAMETYPE_BLUE, 32-8, 22, 288, 396);
+    grWinList = new GuiElmFrame(this, "listframe", FRAMETYPE_BLUE, 32-8, 22, 288, 396, 0.5f);
     AddTop(grWinList);
     // Containers (edit mode)
     containerTitleEdit = new GuiContainer(this, "title_edit", 336+12, 22+10, 220, 147);
@@ -178,10 +178,10 @@ GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiEl
     elmControl.SetPosition(336, 370);
     elmControl.SetWidth(280);
     elmControl.SetHeight(48);
-    grWinTitleEdit = new GuiElmFrame(this, "screen1frame", FRAMETYPE_BLUE, 336, 22, 280, 167);
+    grWinTitleEdit = new GuiElmFrame(this, "screen1frame", FRAMETYPE_BLUE, 336, 22, 280, 167, 0.5f);
     grWinTitleEdit->SetVisible(false);
     AddTop(grWinTitleEdit);
-    grWinPlayEdit = new GuiElmFrame(this, "screen2frame", FRAMETYPE_BLUE, 336, 196, 280, 167);
+    grWinPlayEdit = new GuiElmFrame(this, "screen2frame", FRAMETYPE_BLUE, 336, 196, 280, 167, 0.5f);
     grWinPlayEdit->SetVisible(false);
     AddTop(grWinPlayEdit);
     containerTitleEdit->SetVisible(false);
@@ -193,9 +193,9 @@ GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiEl
     // Containers (normal mode)
     containerTitleNormal = new GuiContainer(this, "title_normal", 336+12, 22+12, 252, 168);
     containerPlayNormal = new GuiContainer(this, "play_normal", 336+12, 226+12, 252, 168);
-    grWinTitleNormal = new GuiElmFrame(this, "screen1frame", FRAMETYPE_BLUE, 336, 22, 280, 192);
+    grWinTitleNormal = new GuiElmFrame(this, "screen1frame", FRAMETYPE_BLUE, 336, 22, 280, 192, 0.5f);
     AddTop(grWinTitleNormal);
-    grWinPlayNormal = new GuiElmFrame(this, "screen2frame", FRAMETYPE_BLUE, 336, 226, 280, 192);
+    grWinPlayNormal = new GuiElmFrame(this, "screen2frame", FRAMETYPE_BLUE, 336, 226, 280, 192, 0.5f);
     AddTop(grWinPlayNormal);
     AddTop(containerTitleNormal);
     AddTop(containerPlayNormal);
@@ -204,12 +204,12 @@ GuiDlgGameSelect::GuiDlgGameSelect(GuiContainer *parent, const char *name, GuiEl
     AddTop(list);
     // Buttons
     grButtonDelScr1 = new GuiElmButton(this, "delscr1");
-    grButtonDelScr1->CreateImageSelectorButton(g_imgDelete2);
+    grButtonDelScr1->CreateImageSelectorButton("image_delete2");
     grButtonDelScr1->SetPosition(569, 22+10);
     grButtonDelScr1->SetVisible(false);
     AddTop(grButtonDelScr1);
     grButtonDelScr2 = new GuiElmButton(this, "delscr2");
-    grButtonDelScr2->CreateImageSelectorButton(g_imgDelete2);
+    grButtonDelScr2->CreateImageSelectorButton("image_delete2");
     grButtonDelScr2->SetPosition(569, 196+10);
     grButtonDelScr2->SetVisible(false);
     AddTop(grButtonDelScr2);
@@ -269,13 +269,15 @@ void GuiDlgGameSelect::SetSelectedGame(int selected)
         GameElement *game = games.GetGame(last_index+selected);
         for(int i = 0; i < 2; i++) {
             GuiImage *img = game->GetImage(i);
-            if( img == NULL ) {
-                img = g_imgNoise;
+            if( img != NULL ) {
+                sprScreenShotNormal[i]->SetImage(img);
+                sprScreenShotEdit[i]->SetImage(img);
+            }else{
+                GuiImages::AssignSpriteToImage(sprScreenShotNormal[i], "image_noise");
+                GuiImages::AssignSpriteToImage(sprScreenShotEdit[i], "image_noise");
             }
-            sprScreenShotNormal[i]->SetImage(img);
             sprScreenShotNormal[i]->SetScaledWidth(252.0f);
             sprScreenShotNormal[i]->SetScaledHeight(168.0f);
-            sprScreenShotEdit[i]->SetImage(img);
             sprScreenShotEdit[i]->SetScaledWidth(220.0f);
             sprScreenShotEdit[i]->SetScaledHeight(147.0f);
         }

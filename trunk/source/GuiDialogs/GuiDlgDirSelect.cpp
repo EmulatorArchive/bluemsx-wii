@@ -120,7 +120,7 @@ GuiDlgDirSelect::GuiDlgDirSelect(GuiContainer* parent, const char* name, const c
                 :GuiDialog(parent, name)
 {
     title_list = NULL;
-    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, 320-180, 24, 2*180, 440-48);
+    frame = new GuiElmFrame(this, "frame", FRAMETYPE_BLUE, 320-180, 24, 2*180, 440-48, 0.5f);
     list = new GuiElmSelectionList(this, "list", NUM_DIR_ITEMS);
 
     directory.ChangeDirectory(startdir);

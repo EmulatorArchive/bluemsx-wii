@@ -6,19 +6,19 @@
 typedef enum {
   FRAMETYPE_BLUE,
   FRAMETYPE_GRAY,
-  FRAMETYPE_BRUSHED
-} FRAMETYPE;
+  FRAMETYPE_BRUSHED,
+  FRAMETYPE_SELECTOR,
+} FRAME;
 
 class GuiSprite;
 
 class GuiElmFrame : public GuiContainer
 {
     public:
-        GuiElmFrame(GuiContainer *parent, const char *name, FRAMETYPE type, float posx, float posy, float width, float height, float alpha = 0.5f);
+        GuiElmFrame(GuiContainer *parent, const char *name, FRAME type, float posx, float posy, float width, float height, float alpha = 1.0f);
         virtual ~GuiElmFrame();
 
     private:
-        FRAMETYPE frame_type;
         GuiSprite *spr_left_top;
         GuiSprite *spr_middle_top;
         GuiSprite *spr_right_top;

@@ -20,7 +20,7 @@ GuiElmButton::GuiElmButton(GuiElement *parent, const char *name)
     sprText = NULL;
     sprSelector = NULL;
     selected = false;
-    is_created = false;
+    shown = false;
 }
 
 GuiElmButton::~GuiElmButton()
@@ -32,7 +32,7 @@ GuiElmButton::~GuiElmButton()
 
 bool GuiElmButton::OnTestActiveArea(float x, float y)
 {
-    if( is_created ) {
+    if( shown ) {
         return IsInVisibleArea(x, y);
     }else{
         return false;
@@ -41,13 +41,14 @@ bool GuiElmButton::OnTestActiveArea(float x, float y)
 
 void GuiElmButton::OnFocus(bool focus)
 {
-    if( !is_created ) {
+    if( !shown ) {
         return;
     }
     switch( type ) {
         case BTE_SELECTOR:
             if( !selected && focus && sprImage != NULL ) {
-                sprSelector = new GuiSprite(this, "selector", g_imgSelector2, 0, 0);
+                sprSelector = new GuiSprite(this, "selector");
+                GuiImages::AssignSpriteToImage(sprSelector, "image_selector2");
                 AddBehind(sprImage, sprSelector, GuiEffectFade(fade_sel));
                 selected = true;
             }
@@ -88,7 +89,7 @@ void GuiElmButton::OnFocus(bool focus)
 
 void GuiElmButton::CleanUp(void)
 {
-    if( is_created ) {
+    if( shown ) {
         if( sprText != NULL ) {
             RemoveAndDelete(sprText);
             sprText = NULL;
@@ -101,66 +102,69 @@ void GuiElmButton::CleanUp(void)
             RemoveAndDelete(sprImage);
             sprImage = NULL;
         }
-        is_created = false;
+        shown = false;
     }
 }
 
-void GuiElmButton::CreateImageSelectorButton(GuiImage *image, int f_sel)
+void GuiElmButton::CreateImageSelectorButton(const char *name, int f_sel)
 {
     CleanUp();
     type = BTE_SELECTOR;
-    SetWidth(image->GetWidth() + 2*HIHGLIGHT_OVERLAP);
-    SetHeight(image->GetHeight() + 2*HIHGLIGHT_OVERLAP);
     fade_sel = f_sel;
     selected = false;
-    sprImage = new GuiSprite(this, "image", image, HIHGLIGHT_OVERLAP, HIHGLIGHT_OVERLAP);
+    sprImage = new GuiSprite(this, "image", NULL, HIHGLIGHT_OVERLAP, HIHGLIGHT_OVERLAP);
+    GuiImages::AssignSpriteToImage(sprImage, name);
+    SetWidth(sprImage->GetWidth() + 2*HIHGLIGHT_OVERLAP);
+    SetHeight(sprImage->GetHeight() + 2*HIHGLIGHT_OVERLAP);
 
     // Show
     AddTop(sprImage);
-    is_created = true;
+    shown = true;
 }
 
-void GuiElmButton::CreateImageHighlightButton(GuiImage *image, int f_sel)
+void GuiElmButton::CreateImageHighlightButton(const char *name, int f_sel)
 {
     CleanUp();
     type = BTE_HIGHLIGHT;
-    SetWidth(image->GetWidth());
-    SetHeight(image->GetHeight());
     fade_sel = f_sel;
     selected = false;
-    sprImage = new GuiSprite(this, "image", image, 0, 0);
+    sprImage = new GuiSprite(this, "image", NULL, 0, 0);
+    GuiImages::AssignSpriteToImage(sprImage, name);
+    SetWidth(sprImage->GetWidth());
+    SetHeight(sprImage->GetHeight());
     sprImage->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
 
     // Show
     AddTop(sprImage);
-    is_created = true;
+    shown = true;
 }
 
-void GuiElmButton::CreateImageTextHighlightButton(GuiImage *image, const char *txt, int f_sel)
+void GuiElmButton::CreateImageTextHighlightButton(const char *name, const char *txt, int f_sel)
 {
     CleanUp();
     type = BTE_HIGHLIGHTTEXT;
-    SetWidth(image->GetWidth());
-    SetHeight(image->GetHeight());
     fade_sel = f_sel;
     selected = false;
 
     // GuiImage
-    sprImage = new GuiSprite(this, "image", image, 0, 0);
+    sprImage = new GuiSprite(this, "image", NULL, 0, 0);
+    GuiImages::AssignSpriteToImage(sprImage, name);
+    SetWidth(sprImage->GetWidth());
+    SetHeight(sprImage->GetHeight());
     sprImage->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
-    int imgwidth = (int)sprImage->GetWidth();
-    int imgheight = (int)sprImage->GetHeight();
+    float imgwidth = sprImage->GetWidth();
+    float imgheight = sprImage->GetHeight();
 
     // Text
     GXColor white = {255,255,255,255};
     sprText= new GuiSprite(this, "text");
     sprText->CreateTextImage(g_fontImpact, 36, 0, 0, true, white, txt);
-    sprText->SetPosition((imgwidth - (int)sprText->GetWidth()) / 2, (imgheight - (int)sprText->GetHeight()) / 2);
+    sprText->SetPosition((imgwidth - sprText->GetWidth()) / 2, (imgheight - sprText->GetHeight()) / 2);
     sprText->SetAlpha(BUTTON_TRANSPARENCY_NORMAL);
 
     // Show
     AddTop(sprImage);
     AddTop(sprText);
-    is_created = true;
+    shown = true;
 }
 

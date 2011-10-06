@@ -32,18 +32,18 @@ public:
     GuiDlgMessageBox(GuiContainer *parent, const char *name);
     virtual ~GuiDlgMessageBox();
 
-    static void ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, float alpha, int delay,
+    static void ShowPopup(GuiContainer *parent, const char *name, const char *image, float alpha, int delay,
                           GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
-    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, float alpha,
+    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, const char *image, float alpha,
                             GuiEffect *effa, GuiEffect *effb, const char *txt, ...);
 
-    static void ShowPopup(GuiContainer *parent, const char *name, GuiImage *image, float alpha, int delay,
+    static void ShowPopup(GuiContainer *parent, const char *name, const char *image, float alpha, int delay,
                           GuiEffect &effa, GuiEffect &effb, const char *txt, ...);
-    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, GuiImage *image, float alpha,
+    static MSGBTN ShowModal(GuiContainer *parent, const char *name, MSGT type, const char *image, float alpha,
                             GuiEffect &effa, GuiEffect &effb, const char *txt, ...);
 
-    void Create(MSGT type, GuiImage *image, float alpha, const char *txt, ...);
-    void CreateVA(MSGT type, GuiImage *image, float alpha, const char *txt, va_list valist);
+    void Create(MSGT type, const char *image, float alpha, const char *txt, ...);
+    void CreateVA(MSGT type, const char *image, float alpha, const char *txt, va_list valist);
 
 private:
     static MSGBTN RunModal(GuiDlgMessageBox *msgbox, MSGT type);

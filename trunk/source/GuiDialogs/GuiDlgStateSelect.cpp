@@ -120,7 +120,7 @@ void GuiDlgStateSelect::UpdateScreenShot(char *file)
 
         sprScreenShot = new GuiSprite(this, "screenshot");
         if( buffer == NULL || !sprScreenShot->LoadImage((const unsigned char*)buffer) ) {
-            sprScreenShot->SetImage(g_imgNoise);
+            GuiImages::AssignSpriteToImage(sprScreenShot, "image_noise");
         }
         if( buffer != NULL ) {
             free(buffer);

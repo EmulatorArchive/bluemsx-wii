@@ -24,6 +24,7 @@
 #include <list>
 #include "GuiEffect.h"
 #include "GuiLayer.h"
+#include "GuiRect.h"
 
 class GuiRootContainer;
 class GuiImage;
@@ -64,8 +65,8 @@ public:
     void Lock(void);
     void Unlock(void);
     GuiContainer* GetParentContainer(void);
-    void SetPointerImage(GuiImage *image);
-    GuiImage* GetPointerImage(void);
+    void SetPointerImage(GuiImage *image, GuiRect rect = GuiRect());
+    void GetPointerImage(GuiImage **image, GuiRect *rect);
 
     // Render/Frame callbacks
     void AddRenderCallback(bool (*callback)(void*), void *context);
@@ -120,7 +121,7 @@ public:
 private:
     // Internal layer administration
     void ActivateEffect(GuiLayer *layer);
-    void CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, bool *queue, LayerTransform *transform);
+    bool CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, bool *queue, LayerTransform *transform);
     void LayerAdd(LayerIndex index, bool movenonfixed, GuiLayer *layer, GuiEffect *effect, bool queue, LayerTransform *transform);
     void LayerRemove(GuiLayer* layer, GuiEffect *effect = NULL, bool queue = false, LayerTransform *transform = NULL);
     void LayerRemoveAll();
@@ -129,6 +130,7 @@ private:
 
     GuiContainer *_parent;
     GuiImage* pointer_image;
+    GuiRect pointer_image_clip;
     bool stop_requested;
 
     LayerIndex first_nonfixed;

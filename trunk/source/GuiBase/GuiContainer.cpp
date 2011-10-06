@@ -38,9 +38,12 @@ GuiContainer::GuiContainer(GuiContainer *parent, const char *name,
     }
 
     if( _parent != NULL ) {
+        GuiImage *image;
+        GuiRect rect;
         SetWidth(width > 0? width : _parent->GetWidth());
         SetHeight(height > 0? height : _parent->GetHeight());
-        SetPointerImage(_parent->GetPointerImage());
+        _parent->GetPointerImage(&image, &rect);
+        SetPointerImage(image, rect);
     }else{
         SetWidth(0);
         SetHeight(0);
@@ -96,14 +99,16 @@ GuiContainer* GuiContainer::GetParentContainer(void)
     return _parent;
 }
 
-void GuiContainer::SetPointerImage(GuiImage *image)
+void GuiContainer::SetPointerImage(GuiImage *image, GuiRect rect)
 {
     pointer_image = image;
+    pointer_image_clip = rect;
 }
 
-GuiImage* GuiContainer::GetPointerImage(void)
+void GuiContainer::GetPointerImage(GuiImage **image, GuiRect *rect)
 {
-    return pointer_image;
+    *image = pointer_image;
+    *rect = pointer_image_clip;
 }
 
 
@@ -239,7 +244,7 @@ void GuiContainer::ActivateEffect(GuiLayer *layer)
     }
 }
 
-void GuiContainer::CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, bool *queue, LayerTransform *transform)
+bool GuiContainer::CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, bool *queue, LayerTransform *transform)
 {
     // Check for pending actions with this layer in effect-list
     LayerEffect ef;
@@ -250,7 +255,7 @@ void GuiContainer::CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, b
         {
             if( *queue ) {
                 // found, indeed needs to be queued
-                return;
+                return true;
             }else{
                 // found, remove and cancel effect
                 if( (*it).active ) {
@@ -271,7 +276,7 @@ void GuiContainer::CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, b
     if( *queue ) {
         // requested for queuing but not found, no need to queue
         *queue = false;
-        return;
+        return false;
     }
 
     if( found ) {
@@ -288,6 +293,7 @@ void GuiContainer::CancelEffectsInProgress(GuiLayer *layer, bool allow_remove, b
         // Clear the old effect
         Delete(ef.effect);
     }
+    return found;
 }
 
 void GuiContainer::LayerAdd(LayerIndex index, bool movenonfixed, GuiLayer *layer, GuiEffect *effect, bool queue, LayerTransform *transform)
@@ -351,16 +357,12 @@ void GuiContainer::LayerRemove(GuiLayer *layer, GuiEffect *effect, bool queue, L
 
 void GuiContainer::Show(GuiLayer *layer, GuiEffect *effect, bool queue, LayerTransform *transform)
 {
-    bool effect_busy = false;
- 
     assert( layer != NULL );
 
     Lock();
 
     // Check for pending actions with this layer in effect-list
-    LayerTransform old_transform;
-    CancelEffectsInProgress(layer, false, &queue, &old_transform);
-    (void)old_transform;
+    bool effect_busy = CancelEffectsInProgress(layer, false, &queue, transform);
 
     if( layer->IsVisible() && !effect_busy ) {
         // No need to do anything, bail out
@@ -397,7 +399,7 @@ void GuiContainer::Hide(GuiLayer *layer, GuiEffect *effect, bool queue, LayerTra
 
     // Check for pending actions with this layer in effect-list
     LayerTransform old_transform;
-    CancelEffectsInProgress(layer, false, &queue, &old_transform);
+    (void)CancelEffectsInProgress(layer, false, &queue, &old_transform);
 
     if( effect != NULL ) {
         // Register the effect
@@ -492,7 +494,7 @@ void GuiContainer::AddTop(GuiLayer *layer, GuiEffect *effect, bool queue)
 {
     Lock();
     LayerTransform transform;
-    CancelEffectsInProgress(layer, true, &queue, &transform);
+    (void)CancelEffectsInProgress(layer, true, &queue, &transform);
     LayerAdd(first_nonfixed, true, layer, effect, queue, &transform);
     Unlock();
 }
@@ -501,7 +503,7 @@ void GuiContainer::AddTopFixed(GuiLayer *layer, GuiEffect *effect, bool queue)
 {
     Lock();
     LayerTransform transform;
-    CancelEffectsInProgress(layer, true, &queue, &transform);
+    (void)CancelEffectsInProgress(layer, true, &queue, &transform);
     LayerAdd(first_nonfixed, false, layer, effect, queue, &transform);
     Unlock();
 }
@@ -525,7 +527,7 @@ bool GuiContainer::AddOnTopOf(GuiLayer *ontopof, GuiLayer *layer, GuiEffect *eff
     Lock();
 
     LayerTransform transform;
-    CancelEffectsInProgress(layer, true, &queue, &transform);
+    (void)CancelEffectsInProgress(layer, true, &queue, &transform);
     LayerIndex index = LayerGetIndex(ontopof);
     if( index != layers.end() ) {
         LayerAdd(index, true, layer, effect, queue, &transform);
@@ -542,7 +544,7 @@ bool GuiContainer::AddBehind(GuiLayer *behind, GuiLayer *layer, GuiEffect *effec
     Lock();
 
     LayerTransform transform;
-    CancelEffectsInProgress(layer, true, &queue, &transform);
+    (void)CancelEffectsInProgress(layer, true, &queue, &transform);
     LayerIndex index = LayerGetIndex(behind);
     if( index != layers.end() ) {
         LayerAdd(++index, true, layer, effect, queue, &transform);
@@ -558,7 +560,7 @@ void GuiContainer::AddBottom(GuiLayer *layer, GuiEffect *effect, bool queue)
 {
     Lock();
     LayerTransform transform;
-    CancelEffectsInProgress(layer, true, &queue, &transform);
+    (void)CancelEffectsInProgress(layer, true, &queue, &transform);
     LayerAdd(layers.end(), true, layer, effect, queue, &transform);
     Unlock();
 }
@@ -567,7 +569,7 @@ void GuiContainer::Remove(GuiLayer *layer, GuiEffect *effect, bool queue)
 {
     Lock();
     LayerTransform transform;
-    CancelEffectsInProgress(layer, false, &queue, &transform);
+    (void)CancelEffectsInProgress(layer, false, &queue, &transform);
     LayerRemove(layer, effect, queue, &transform);
     Unlock();
 }
